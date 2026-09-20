@@ -71,6 +71,29 @@
     };
 
     function App() {
+      // Local Timezone Formatting Helpers
+      const formatLocalTime = (ts) => {
+        if (!ts) return "";
+        try {
+          const d = new Date(ts);
+          if (isNaN(d.getTime())) return String(ts);
+          return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZoneName: 'short' });
+        } catch (e) {
+          return String(ts);
+        }
+      };
+
+      const formatLocalDateTime = (ts) => {
+        if (!ts) return "";
+        try {
+          const d = new Date(ts);
+          if (isNaN(d.getTime())) return String(ts);
+          return d.toLocaleDateString() + " " + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZoneName: 'short' });
+        } catch (e) {
+          return String(ts);
+        }
+      };
+
       // Auth State
       const [isLoggedIn, setIsLoggedIn] = useState(false);
       const [selectedLoginUserId, setSelectedLoginUserId] = useState("OP-9012");
@@ -1559,7 +1582,7 @@
                               </div>
                               <div className="flex justify-between items-center pt-1">
                                 <span className="text-[10px] text-slate-400 font-mono">
-                                  {new Date(c.expedite_ping?.timestamp).toLocaleTimeString()} UTC
+                                  {formatLocalTime(c.expedite_ping?.timestamp)}
                                 </span>
                                 <button
                                   onClick={() => {
@@ -1686,7 +1709,7 @@
                       </div>
                       <div className="flex items-center space-x-2 text-[10px] font-mono text-slate-600 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200">
                         <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                        <span>LIVE 5S TICKER: {currentTime.toLocaleTimeString()} UTC</span>
+                        <span>LIVE 5S TICKER: {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZoneName: 'short' })}</span>
                       </div>
                     </div>
 
@@ -2427,7 +2450,7 @@
                                         CASE RETURNED FOR REWORK BY {lastRework?.actor_name || "Approver"} ({lastRework?.actor_role || "Operations Approver"}):
                                       </span>
                                       <span className="text-[10px] font-mono text-amber-700">
-                                        {lastRework?.timestamp ? new Date(lastRework.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + " UTC" : ""}
+                                        {lastRework?.timestamp ? formatLocalTime(lastRework.timestamp) : ""}
                                       </span>
                                     </div>
                                     <p className="font-semibold italic font-sans text-amber-900 text-[11px]">
@@ -2448,7 +2471,7 @@
                                         LEVEL 1 APPROVED BY {lastTier1?.actor_name || "Daniel Osei"} ({lastTier1?.actor_role || "Operations Approver"}) — AWAITING TIER-2 DUAL AUTH:
                                       </span>
                                       <span className="text-[10px] font-mono text-purple-700">
-                                        {lastTier1?.timestamp ? new Date(lastTier1.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + " UTC" : ""}
+                                        {lastTier1?.timestamp ? formatLocalTime(lastTier1.timestamp) : ""}
                                       </span>
                                     </div>
                                     <p className="font-semibold italic font-sans text-purple-900 text-[11px]">
@@ -2469,7 +2492,7 @@
                                         MAKER HANDOVER VERIFICATION NOTE ({lastMaker?.actor_name || "Priya Nair"}):
                                       </span>
                                       <span className="text-[10px] font-mono text-blue-700">
-                                        {lastMaker?.timestamp ? new Date(lastMaker.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + " UTC" : ""}
+                                        {lastMaker?.timestamp ? formatLocalTime(lastMaker.timestamp) : ""}
                                       </span>
                                     </div>
                                     <p className="font-semibold italic font-sans text-blue-900 text-[11px]">
@@ -2490,7 +2513,7 @@
                                         AUTHORIZED FOR CLEARING RELEASE BY {lastTier1?.actor_name || "Approver"} ({lastTier1?.actor_role || "Checker"}):
                                       </span>
                                       <span className="text-[10px] font-mono text-emerald-700">
-                                        {lastTier1?.timestamp ? new Date(lastTier1.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + " UTC" : ""}
+                                        {lastTier1?.timestamp ? formatLocalTime(lastTier1.timestamp) : ""}
                                       </span>
                                     </div>
                                     <p className="font-semibold italic font-sans text-emerald-900 text-[11px]">
@@ -2853,7 +2876,7 @@
                                             <span className="text-[11px] text-slate-600 font-medium font-mono">({item.actor_name})</span>
                                           </div>
                                           <span className="text-[10px] font-mono text-slate-400">
-                                            {new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} UTC
+                                            {formatLocalTime(item.timestamp)}
                                           </span>
                                         </div>
                                         <div className="mt-1.5 p-2.5 bg-white rounded-lg border border-slate-200 text-[11px] text-slate-800 flex items-start space-x-2 shadow-xs">
@@ -5078,7 +5101,7 @@
                     <div><span className="text-slate-500">CASE ID:</span> <strong className="text-sky-700">{selectedAuditEvent.case_id}</strong></div>
                     <div><span className="text-slate-500">STAGE:</span> <strong className="text-slate-900">{selectedAuditEvent.stage_name}</strong></div>
                     <div><span className="text-slate-500">ACTOR:</span> <strong className="text-slate-900">{selectedAuditEvent.actor_id} ({selectedAuditEvent.actor_role})</strong></div>
-                    <div><span className="text-slate-500">TIMESTAMP:</span> <strong className="text-slate-900">{new Date(selectedAuditEvent.timestamp).toISOString()}</strong></div>
+                    <div><span className="text-slate-500">TIMESTAMP:</span> <strong className="text-slate-900">{formatLocalDateTime(selectedAuditEvent.timestamp)}</strong></div>
                     <div className="col-span-2"><span className="text-slate-500">CORRELATION UETR:</span> <strong className="text-slate-700">{selectedAuditEvent.correlation_id}</strong></div>
                   </div>
 

@@ -2,7 +2,8 @@ import urllib.request
 import json
 
 def api_call(url, data=None, method="GET", headers=None):
-    h = headers or {}
+    h = headers.copy() if headers else {}
+    h["Connection"] = "close"
     if data is not None:
         body = json.dumps(data).encode("utf-8")
         h["Content-Type"] = "application/json"
