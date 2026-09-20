@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <circle cx="50" cy="50" r="48" fill="#0070ad"/>
+  <g transform="translate(16, 16) scale(0.68)">
+<!-- Shield with Clear Viewing Window & Checkmark -->
+<path d="M50 14 L82 26 V52 C82 72 50 86 50 86 C50 86 18 72 18 52 V26 Z" stroke="#FFFFFF" stroke-width="4.5" stroke-linejoin="round" fill="none"/>
+<circle cx="50" cy="48" r="16" stroke="#FFFFFF" stroke-width="3.5" stroke-dasharray="5,3" fill="none"/>
+<path d="M42 48 L47 53 L58 41" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </g>
+</svg>

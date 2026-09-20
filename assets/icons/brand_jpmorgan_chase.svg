@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <!-- JPMorgan Chase Signature Octagon -->
+<g transform="translate(10, 10)">
+  <!-- Chase Octagon Polygon with 4 Symmetric Folded Triangles -->
+  <polygon points="26,6 54,6 74,26 74,54 54,74 26,74 6,54 6,26" fill="#117ACA"/>
+  <!-- Inner White Negative Cross / Turbine -->
+  <polygon points="40,20 40,40 20,40" fill="#FFFFFF"/>
+  <polygon points="60,40 40,40 40,60" fill="#FFFFFF"/>
+  <polygon points="40,60 40,40 20,40" fill="#FFFFFF"/>
+  <polygon points="40,20 40,40 60,40" fill="#FFFFFF"/>
+  <polygon points="22,22 36,12 36,36 12,36" fill="#117ACA"/>
+  <polygon points="58,22 68,36 44,36 44,12" fill="#117ACA"/>
+  <polygon points="58,58 44,68 44,44 68,44" fill="#117ACA"/>
+  <polygon points="22,58 12,44 36,44 36,68" fill="#117ACA"/>
+</g>
+<text x="50" y="88" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="8.5" font-weight="900" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.5">JPMorgan Chase</text>
+</svg>

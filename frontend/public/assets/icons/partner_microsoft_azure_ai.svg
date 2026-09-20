@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <g transform="translate(10, 14)">
+  <rect x="0" y="0" width="16" height="16" fill="#F25022"/>
+  <rect x="19" y="0" width="16" height="16" fill="#7FBA00"/>
+  <rect x="0" y="19" width="16" height="16" fill="#00A4EF"/>
+  <rect x="19" y="19" width="16" height="16" fill="#FFB900"/>
+  <path d="M48 28 C48 20 54 14 62 14 C68 14 74 18 76 24 C80 24 84 28 84 32 C84 37 80 41 75 41 H48 C43 41 39 37 39 32 C39 28 42 24 46 24" fill="none" stroke="#0078D4" stroke-width="3.5" stroke-linecap="round"/>
+  <circle cx="62" cy="28" r="3.5" fill="#00A4EF"/>
+  <path d="M54 41 L62 28 L70 41" stroke="#00A4EF" stroke-width="2.5" stroke-linecap="round"/>
+  <text x="40" y="60" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="800" fill="#FFFFFF" text-anchor="middle" letter-spacing="1">MICROSOFT</text>
+  <text x="40" y="71" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="8.5" font-weight="600" fill="#00A4EF" text-anchor="middle">Azure AI</text>
+</g>
+</svg>

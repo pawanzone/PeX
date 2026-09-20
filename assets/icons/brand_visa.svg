@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <!-- Visa Signature Wordmark with Gold Wing Tab -->
+<g transform="translate(10, 18)">
+  <!-- VISA Typography -->
+  <text x="40" y="42" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="28" font-weight="900" font-style="italic" fill="#1A1F71" text-anchor="middle" letter-spacing="1">VISA</text>
+  <!-- Gold Wing Flag on V -->
+  <polygon points="13,20 22,20 18,30" fill="#F7B600"/>
+</g>
+<text x="50" y="80" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="8" font-weight="800" fill="#FFFFFF" text-anchor="middle" letter-spacing="1">PAYMENT NETWORK</text>
+</svg>

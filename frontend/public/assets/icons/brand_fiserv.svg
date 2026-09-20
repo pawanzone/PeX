@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <!-- Fiserv Signature Typography with Orange Dot -->
+<g transform="translate(10, 18)">
+  <text x="36" y="44" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="22" font-weight="900" fill="#FFFFFF" text-anchor="middle" letter-spacing="-0.5">fiserv</text>
+  <!-- Iconic Fiserv Orange Square Period -->
+  <rect x="62" y="32" width="9" height="9" fill="#FF6600"/>
+</g>
+<text x="50" y="80" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="8" font-weight="700" fill="#FF6600" text-anchor="middle" letter-spacing="1">PAYMENTS PROCESSOR</text>
+</svg>

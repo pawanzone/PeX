@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+<!-- SWIFT Globe with Case File -->
+<circle cx="44" cy="46" r="28" stroke="#0070ad" stroke-width="4" fill="none"/>
+<ellipse cx="44" cy="46" rx="12" ry="28" stroke="#0070ad" stroke-width="3" fill="none"/>
+<path d="M16 46 H72" stroke="#0070ad" stroke-width="3" stroke-linecap="round"/>
+<path d="M60 22 H82 C84 22 86 24 86 26 V52 C86 54 84 56 82 56 H60 Z" stroke="#0070ad" stroke-width="3.5" stroke-linejoin="round" fill="none"/>
+<path d="M60 28 H86" stroke="#0070ad" stroke-width="3"/>
+</svg>

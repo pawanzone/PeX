@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <!-- Center Top Hook & Mast -->
+  <line x1="50" y1="12" x2="50" y2="82" stroke="#2CE2E3" stroke-width="4.5" stroke-linecap="round"/>
+  <circle cx="50" cy="12" r="3.5" fill="#2CE2E3"/>
+  <!-- Cross Beam -->
+  <line x1="18" y1="26" x2="82" y2="26" stroke="#2CE2E3" stroke-width="4.5" stroke-linecap="round"/>
+  <!-- Left Scale Pan -->
+  <line x1="18" y1="26" x2="10" y2="54" stroke="#2CE2E3" stroke-width="3" stroke-linecap="round"/>
+  <line x1="18" y1="26" x2="28" y2="54" stroke="#2CE2E3" stroke-width="3" stroke-linecap="round"/>
+  <path d="M10,54 C10,64 28,64 28,54 Z" stroke="#2CE2E3" stroke-width="3.5" stroke-linejoin="round" fill="none"/>
+  <!-- Right Scale Pan -->
+  <line x1="82" y1="26" x2="72" y2="54" stroke="#2CE2E3" stroke-width="3" stroke-linecap="round"/>
+  <line x1="82" y1="26" x2="90" y2="54" stroke="#2CE2E3" stroke-width="3" stroke-linecap="round"/>
+  <path d="M72,54 C72,64 90,64 90,54 Z" stroke="#2CE2E3" stroke-width="3.5" stroke-linejoin="round" fill="none"/>
+  <!-- Base Stand -->
+  <line x1="32" y1="84" x2="68" y2="84" stroke="#2CE2E3" stroke-width="5" stroke-linecap="round"/>
+</svg>

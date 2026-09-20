@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <g transform="translate(8, 8)">
+  <rect x="6" y="28" width="22" height="46" rx="2" stroke="#00A3E0" stroke-width="3.5" fill="none"/>
+  <rect x="32" y="10" width="24" height="64" rx="2" stroke="#00A3E0" stroke-width="3.5" fill="none"/>
+  <rect x="60" y="22" width="20" height="52" rx="2" stroke="#00A3E0" stroke-width="3.5" fill="none"/>
+  <line x1="12" y1="36" x2="22" y2="36" stroke="#00A3E0" stroke-width="2"/>
+  <line x1="12" y1="46" x2="22" y2="46" stroke="#00A3E0" stroke-width="2"/>
+  <line x1="12" y1="56" x2="22" y2="56" stroke="#00A3E0" stroke-width="2"/>
+  <line x1="38" y1="20" x2="50" y2="20" stroke="#00A3E0" stroke-width="2"/>
+  <line x1="38" y1="30" x2="50" y2="30" stroke="#00A3E0" stroke-width="2"/>
+  <line x1="38" y1="40" x2="50" y2="40" stroke="#00A3E0" stroke-width="2"/>
+  <line x1="38" y1="50" x2="50" y2="50" stroke="#00A3E0" stroke-width="2"/>
+  <line x1="38" y1="60" x2="50" y2="60" stroke="#00A3E0" stroke-width="2"/>
+  <line x1="66" y1="32" x2="74" y2="32" stroke="#00A3E0" stroke-width="2"/>
+  <line x1="66" y1="42" x2="74" y2="42" stroke="#00A3E0" stroke-width="2"/>
+  <line x1="66" y1="52" x2="74" y2="52" stroke="#00A3E0" stroke-width="2"/>
+  <line x1="66" y1="62" x2="74" y2="62" stroke="#00A3E0" stroke-width="2"/>
+  <circle cx="44" cy="5" r="2.5" fill="#00A3E0"/>
+</g>
+</svg>

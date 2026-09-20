@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+<!-- Bar Chart with Exponential Confidence Trajectory & Percentage Star -->
+<path d="M14 86 H86" stroke="#0070ad" stroke-width="4" stroke-linecap="round"/>
+<path d="M14 86 V14" stroke="#0070ad" stroke-width="4" stroke-linecap="round"/>
+<!-- 3 Ascending Confidence Bars -->
+<rect x="24" y="58" width="12" height="28" rx="2" stroke="#0070ad" stroke-width="3.5" fill="none"/>
+<rect x="44" y="40" width="12" height="46" rx="2" stroke="#0070ad" stroke-width="3.5" fill="none"/>
+<rect x="64" y="22" width="12" height="64" rx="2" stroke="#0070ad" stroke-width="3.5" fill="none"/>
+<polyline points="22,50 44,32 68,16" stroke="#0070ad" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+<circle cx="68" cy="16" r="3.5" fill="#0070ad"/>
+</svg>

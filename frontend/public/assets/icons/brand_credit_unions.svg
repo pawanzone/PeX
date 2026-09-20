@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <!-- Community Multi-Member Cooperative Silhouette -->
+<g transform="translate(10, 10)">
+  <circle cx="40" cy="24" r="8" fill="#008080"/>
+  <path d="M28 46 C28 36 34 32 40 32 C46 32 52 36 52 46" fill="#008080"/>
+  <circle cx="24" cy="30" r="6" fill="#005A9C"/>
+  <path d="M14 48 C14 40 18 36 24 36 C27 36 30 38 31 42" stroke="#005A9C" stroke-width="2" fill="none"/>
+  <circle cx="56" cy="30" r="6" fill="#005A9C"/>
+  <path d="M66 48 C66 40 62 36 56 36 C53 36 50 38 49 42" stroke="#005A9C" stroke-width="2" fill="none"/>
+</g>
+<text x="50" y="74" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="7.5" font-weight="900" fill="#FFFFFF" text-anchor="middle">CREDIT UNIONS</text>
+<text x="50" y="84" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="6.5" font-weight="600" fill="#008080" text-anchor="middle">Regional & Member FIs</text>
+</svg>

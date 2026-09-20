@@ -1,0 +1,182 @@
+"""SQLAlchemy 2.0 ORM Models for PeX Enterprise Database."""
+from datetime import datetime
+from sqlalchemy import (
+    Column,
+    String,
+    Integer,
+    Float,
+    Boolean,
+    DateTime,
+    Text,
+    JSON,
+    ForeignKey,
+    Index,
+)
+from app.db.base import Base
+
+class UserModel(Base):
+    """User directory & RBAC personas."""
+    __tablename__ = "users"
+
+    user_id = Column(String(64), primary_key=True, index=True)
+    name = Column(String(128), nullable=False)
+    email = Column(String(256), nullable=False, index=True)
+    role = Column(String(64), nullable=False, index=True)  # OPERATOR, OPERATIONS_APPROVER, COMPLIANCE_APPROVER, RISK_APPROVER, ADMIN
+    title = Column(String(128), nullable=False)
+    department = Column(String(128), nullable=False)
+    avatar_initials = Column(String(8), nullable=False, default="PX")
+    badge_color = Column(String(32), nullable=False, default="blue")
+    max_approval_amount = Column(Float, nullable=False, default=0.0)
+    is_active = Column(Boolean, nullable=False, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+class RolePermissionModel(Base):
+    """Fine-grained permission scopes for RBAC."""
+    __tablename__ = "role_permissions"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    role = Column(String(64), nullable=False, index=True)
+    permission_scope = Column(String(128), nullable=False)
+    description = Column(String(256), nullable=True)
+
+class CaseModel(Base):
+    """Canonical Payment Exception Cases across all 41 Market Profiles."""
+    __tablename__ = "cases"
+
+    case_id = Column(String(64), primary_key=True, index=True)
+    payment_id = Column(String(64), nullable=False, index=True)
+    uetr = Column(String(128), nullable=False, index=True)
+    payment_ref = Column(String(128), nullable=False, index=True)
+    profile = Column(String(64), nullable=False, index=True)
+    domain = Column(String(64), nullable=False, index=True)
+    secondary_profiles = Column(JSON, default=list)
+    error_code = Column(String(64), nullable=False)
+    reason = Column(Text, nullable=False)
+    amount = Column(Float, nullable=False, index=True)
+    currency = Column(String(8), nullable=False, index=True)
+    payment_rail = Column(String(64), nullable=False)
+    debtor_party = Column(JSON, nullable=False)
+    debtor_account = Column(JSON, nullable=False)
+    creditor_party = Column(JSON, nullable=False)
+    creditor_account = Column(JSON, nullable=False)
+    queue = Column(String(64), nullable=False, index=True)
+    status = Column(String(64), nullable=False, index=True)
+    severity = Column(String(32), nullable=False, index=True)
+    priority = Column(String(32), nullable=False, index=True)
+    sla_due_at = Column(String(64), nullable=False)
+    dual_auth_required = Column(Boolean, default=False)
+    ai_confidence = Column(Float, nullable=True)
+    created_at = Column(String(64), nullable=False)
+    settled_at = Column(String(64), nullable=True)
+    approval_history = Column(JSON, default=list)
+    audit_timeline = Column(JSON, default=list)
+    guided_questions = Column(JSON, default=list)
+    expedite_ping = Column(JSON, nullable=True)
+
+    __table_args__ = (
+        Index("ix_cases_domain_status", "domain", "status"),
+        Index("ix_cases_queue_status", "queue", "status"),
+    )
+
+class AuditEventModel(Base):
+    """Immutable Continuous Cryptographic Provenance Ledger (SHA-256 Chaining)."""
+    __tablename__ = "audit_events"
+
+    event_index = Column(Integer, primary_key=True, index=True)
+    case_id = Column(String(64), nullable=False, index=True)
+    correlation_id = Column(String(128), nullable=False, index=True)
+    stage_name = Column(String(64), nullable=False, index=True)
+    actor_id = Column(String(64), nullable=False)
+    actor_role = Column(String(64), nullable=False)
+    action_name = Column(String(128), nullable=False)
+    timestamp = Column(String(64), nullable=False)
+    details = Column(Text, nullable=False)
+    control_tags = Column(JSON, default=list)
+    prev_hash = Column(String(64), nullable=False)
+    current_hash = Column(String(64), nullable=False, index=True)
+
+class TokenVaultModel(Base):
+    """Zero-trust Tokenization Vault & PII Surrogate Mapping."""
+    __tablename__ = "token_vault_mappings"
+
+    raw_hash = Column(String(64), primary_key=True, index=True)
+    raw_value = Column(String(256), nullable=False)
+    token_value = Column(String(64), nullable=False, unique=True, index=True)
+    token_type = Column(String(32), nullable=False, default="PARTY")  # PARTY, IBAN, ACC, PAN
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+class RecommendationModel(Base):
+    """AI Guided Decisions & Evidentiary Grounding Contracts."""
+    __tablename__ = "recommendations"
+
+    recommendation_id = Column(String(64), primary_key=True, index=True)
+    case_id = Column(String(64), nullable=False, index=True)
+    action_type = Column(String(64), nullable=False)
+    confidence_score = Column(Float, nullable=False)
+    rationale = Column(Text, nullable=False)
+    proposed_changes = Column(JSON, default=list)
+    corroborating_evidence = Column(JSON, default=list)
+    risk_evaluation = Column(JSON, nullable=False)
+    guided_questions = Column(JSON, default=list)
+    step_by_step_assessment = Column(JSON, default=list)
+    hypothesis_ranking = Column(JSON, default=list)
+    anomaly_guardrails = Column(JSON, default=list)
+    consequence_simulation = Column(JSON, nullable=True)
+    applied_policies = Column(JSON, default=list)
+    model_identifier = Column(String(64), default="mock-governed-reasoner-v1")
+    prompt_tokens = Column(Integer, default=0)
+    completion_tokens = Column(Integer, default=0)
+    generated_at = Column(DateTime, default=datetime.utcnow)
+
+class ApprovalRecordModel(Base):
+    """Role-gated Maker-Checker and Dual Authorization Signatures."""
+    __tablename__ = "approval_records"
+
+    approval_id = Column(String(64), primary_key=True, index=True)
+    case_id = Column(String(64), nullable=False, index=True)
+    recommendation_id = Column(String(64), nullable=False)
+    approver_id = Column(String(64), nullable=False, index=True)
+    approver_name = Column(String(128), nullable=False)
+    approver_role = Column(String(64), nullable=False)
+    action = Column(String(64), nullable=False)
+    comments = Column(Text, nullable=False)
+    approved_changes = Column(JSON, default=list)
+    step_number = Column(Integer, default=1)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+class GovernedActionModel(Base):
+    """Idempotent Outbound Wire & Settlement Contracts."""
+    __tablename__ = "governed_actions"
+
+    action_id = Column(String(64), primary_key=True, index=True)
+    case_id = Column(String(64), nullable=False, index=True)
+    approval_ids = Column(JSON, default=list)
+    action_type = Column(String(64), nullable=False)
+    target_system = Column(String(128), default="SIMULATED_BANK_PAYMENT_HUB")
+    idempotency_key = Column(String(128), nullable=False, unique=True, index=True)
+    dispatch_payload = Column(JSON, nullable=False)
+    status = Column(String(32), default="PENDING")
+    dispatched_at = Column(DateTime, nullable=True)
+    settled_at = Column(DateTime, nullable=True)
+
+class DeliveryReceiptModel(Base):
+    """External Bank Settlement ACKs and Delivery Receipts."""
+    __tablename__ = "delivery_receipts"
+
+    receipt_id = Column(String(64), primary_key=True, index=True)
+    action_id = Column(String(64), nullable=False, index=True)
+    case_id = Column(String(64), nullable=False, index=True)
+    bank_ack_reference = Column(String(128), nullable=False, unique=True, index=True)
+    status = Column(String(64), default="SETTLED_CONFIRMED")
+    timestamp = Column(DateTime, default=datetime.utcnow)
+    details = Column(JSON, default=dict)
+
+class RawBankEventModel(Base):
+    """Raw Ingested Bank Payloads (Bank A, Bank B, Bank C)."""
+    __tablename__ = "raw_bank_events"
+
+    event_id = Column(String(64), primary_key=True, index=True)
+    source_bank_id = Column(String(64), nullable=False, index=True)
+    event_type = Column(String(64), nullable=False)
+    raw_payload = Column(JSON, nullable=False)
+    ingested_at = Column(DateTime, default=datetime.utcnow)

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <!-- Customers Bank Waving Flag Stripes -->
+<g transform="translate(10, 12)">
+  <!-- Wavy Red & Blue Ribbons -->
+  <path d="M18 20 C28 26 42 16 54 22 C60 25 64 24 64 24 V34 C54 28 42 38 30 32 C22 28 18 30 18 30 Z" fill="#E01932"/>
+  <path d="M18 36 C28 42 42 32 54 38 C60 41 64 40 64 40 V50 C54 44 42 54 30 48 C22 44 18 46 18 46 Z" fill="#002D62"/>
+</g>
+<text x="50" y="74" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="8" font-weight="900" fill="#FFFFFF" text-anchor="middle">Customers Bank</text>
+<text x="50" y="84" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="7" font-weight="600" fill="#002D62" text-anchor="middle">Commercial & Digital</text>
+</svg>

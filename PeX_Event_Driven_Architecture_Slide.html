@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PeX - Event-Driven Multi-Agent Architecture (16:9 Presentation Slide)</title>
+    <style>
+        :root {
+            --bg-dark: #070D18;
+            --card-bg: rgba(15, 23, 42, 0.85);
+            --card-border: rgba(56, 189, 248, 0.25);
+            --cyan-glow: #00E5FF;
+            --gold-glow: #F59E0B;
+            --purple-glow: #A855F7;
+            --emerald-glow: #10B981;
+            --text-main: #F8FAFC;
+            --text-sub: #94A3B8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        body {
+            background: #020617;
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        /* 16:9 Slide Canvas */
+        .slide-frame {
+            width: 100%;
+            max-width: 1600px;
+            aspect-ratio: 16 / 9;
+            background: radial-gradient(circle at 50% 0%, #111D35 0%, #070D18 60%, #030712 100%);
+            border: 1px solid #1E293B;
+            border-radius: 16px;
+            padding: 40px 48px 36px 48px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+        }
+
+        /* Slide Top Header */
+        .slide-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding-bottom: 18px;
+        }
+
+        .slide-title-group h1 {
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(90deg, #FFFFFF 0%, #E2E8F0 60%, #38BDF8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 6px;
+        }
+
+        .slide-title-group .subtitle {
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            color: #38BDF8;
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .spade-logo {
+            width: 38px;
+            height: 38px;
+            filter: drop-shadow(0 0 10px rgba(0, 229, 255, 0.4));
+        }
+
+        /* Main Architecture Row (Bank on Left • PeX on Right) */
+        .architecture-row {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 28px;
+            margin: 20px 0;
+            flex: 1;
+            align-items: stretch;
+        }
+
+        /* Bank Ecosystem Container (Left) */
+        .bank-container {
+            background: linear-gradient(180deg, rgba(14, 165, 233, 0.08) 0%, rgba(15, 23, 42, 0.6) 100%);
+            border: 1.5px solid rgba(56, 189, 248, 0.35);
+            border-radius: 14px;
+            padding: 22px 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            box-shadow: 0 0 20px rgba(14, 165, 233, 0.08);
+        }
+
+        .bank-badge-title {
+            text-align: center;
+            font-size: 14px;
+            font-weight: 800;
+            letter-spacing: 1.2px;
+            color: #38BDF8;
+            text-transform: uppercase;
+            border-bottom: 1px solid rgba(56, 189, 248, 0.2);
+            padding-bottom: 12px;
+            margin-bottom: 14px;
+        }
+
+        .bank-event-box {
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(56, 189, 248, 0.4);
+            border-radius: 10px;
+            padding: 14px;
+            position: relative;
+        }
+
+        .step-num-badge {
+            width: 26px;
+            height: 26px;
+            background: #0284C7;
+            color: #FFFFFF;
+            font-weight: 800;
+            font-size: 13px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 10px rgba(2, 132, 199, 0.5);
+            margin-bottom: 8px;
+        }
+
+        .bank-event-box h3 {
+            font-size: 14px;
+            font-weight: 700;
+            color: #F8FAFC;
+            margin-bottom: 4px;
+        }
+
+        .bank-event-box p {
+            font-size: 11.5px;
+            color: #94A3B8;
+            line-height: 1.4;
+        }
+
+        .bank-sub-nodes {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .bank-node-item {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #E2E8F0;
+        }
+
+        /* PeX Enterprise Platform Container (Right) */
+        .pex-container {
+            background: linear-gradient(180deg, rgba(0, 229, 255, 0.04) 0%, rgba(15, 23, 42, 0.8) 100%);
+            border: 1.5px solid rgba(0, 229, 255, 0.3);
+            border-radius: 14px;
+            padding: 22px 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            box-shadow: 0 0 25px rgba(0, 229, 255, 0.06);
+        }
+
+        .pex-header-title {
+            text-align: center;
+            font-size: 16px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            color: #00E5FF;
+            text-transform: uppercase;
+            margin-bottom: 18px;
+        }
+
+        .stages-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 14px;
+            position: relative;
+        }
+
+        /* Connecting Pipeline Arrow behind cards */
+        .stages-grid::before {
+            content: "";
+            position: absolute;
+            top: 22px;
+            left: 5%;
+            right: 5%;
+            height: 3px;
+            background: linear-gradient(90deg, #0284C7, #00E5FF, #F59E0B, #A855F7, #10B981);
+            z-index: 1;
+            opacity: 0.6;
+        }
+
+        .stage-card {
+            background: rgba(15, 23, 42, 0.92);
+            border-radius: 12px;
+            padding: 16px 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .stage-card.s1 { border: 1.5px solid #0284C7; }
+        .stage-card.s2 { border: 1.5px solid #00E5FF; }
+        .stage-card.s3 { border: 1.5px solid #F59E0B; background: rgba(245, 158, 11, 0.05); }
+        .stage-card.s4 { border: 1.5px solid #A855F7; }
+        .stage-card.s5 { border: 1.5px solid #10B981; }
+
+        .stage-circle {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 900;
+            color: #FFFFFF;
+            margin-bottom: 12px;
+            box-shadow: 0 0 16px rgba(0,0,0,0.5);
+        }
+
+        .s1 .stage-circle { background: linear-gradient(135deg, #0284C7, #0369A1); box-shadow: 0 0 14px rgba(2, 132, 199, 0.6); }
+        .s2 .stage-circle { background: linear-gradient(135deg, #00E5FF, #0099B8); box-shadow: 0 0 14px rgba(0, 229, 255, 0.6); color: #082F49; }
+        .s3 .stage-circle { background: linear-gradient(135deg, #F59E0B, #D97706); box-shadow: 0 0 14px rgba(245, 158, 11, 0.6); }
+        .s4 .stage-circle { background: linear-gradient(135deg, #A855F7, #7E22CE); box-shadow: 0 0 14px rgba(168, 85, 247, 0.6); }
+        .s5 .stage-circle { background: linear-gradient(135deg, #10B981, #047857); box-shadow: 0 0 14px rgba(160, 185, 129, 0.6); }
+
+        .stage-title {
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }
+
+        .s1 .stage-title { color: #38BDF8; }
+        .s2 .stage-title { color: #00E5FF; }
+        .s3 .stage-title { color: #FBBF24; }
+        .s4 .stage-title { color: #C084FC; }
+        .s5 .stage-title { color: #34D399; }
+
+        .stage-bullets {
+            list-style: none;
+            font-size: 11px;
+            color: #CBD5E1;
+            line-height: 1.45;
+            text-align: left;
+            width: 100%;
+            margin-top: 4px;
+        }
+
+        .stage-bullets li {
+            position: relative;
+            padding-left: 10px;
+            margin-bottom: 4px;
+        }
+
+        .stage-bullets li::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: #64748B;
+        }
+
+        /* Bottom Advantage Banner */
+        .bottom-advantage-banner {
+            background: linear-gradient(90deg, rgba(2, 132, 199, 0.2) 0%, rgba(245, 158, 11, 0.15) 50%, rgba(16, 185, 129, 0.2) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            padding: 16px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .advantage-header-row {
+            text-align: center;
+        }
+
+        .advantage-main-text {
+            font-size: 18px;
+            font-weight: 900;
+            letter-spacing: 1px;
+            background: linear-gradient(90deg, #FFFFFF, #F59E0B, #00E5FF);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .advantage-sub-text {
+            font-size: 11.5px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            color: #94A3B8;
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+
+        .advantage-pillars-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        .pillar-card {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 8px 12px;
+        }
+
+        .pillar-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .pillar-text h4 {
+            font-size: 12px;
+            font-weight: 700;
+            color: #F8FAFC;
+        }
+
+        .pillar-text p {
+            font-size: 10.5px;
+            color: #94A3B8;
+        }
+    </style>
+</head>
+<body>
+    <div class="slide-frame">
+        <!-- Top Header -->
+        <div class="slide-header">
+            <div class="slide-title-group">
+                <h1>Event-Driven Multi-Agent Architecture: Bank to PeX Platform</h1>
+                <div class="subtitle">The Journey to Trusted Autonomous Payment Operations</div>
+            </div>
+            <div class="header-brand">
+                <svg class="spade-logo" viewBox="0 0 100 100" fill="#00E5FF">
+                    <path d="M50 15 C35 35 15 50 15 70 C15 82 25 90 38 88 C45 86 48 80 50 75 C52 80 55 86 62 88 C75 90 85 82 85 70 C85 50 65 35 50 15 Z"/>
+                    <path d="M46 75 L42 95 L58 95 L54 75 Z"/>
+                </svg>
+            </div>
+        </div>
+
+        <!-- Main Architecture Split (Bank Left • PeX Right) -->
+        <div class="architecture-row">
+            <!-- Left Side: Bank Ecosystem -->
+            <div class="bank-container">
+                <div class="bank-badge-title">Bank & Financial Ecosystem</div>
+                
+                <div class="bank-event-box">
+                    <div class="step-num-badge">1</div>
+                    <h3>Payment Exception Event</h3>
+                    <p>SWIFT, Fedwire, ACH, Core Banking failure or sanctions hold.</p>
+                </div>
+
+                <div class="bank-sub-nodes">
+                    <div class="bank-node-item">
+                        <span>🗄️</span>
+                        <div>Core Banking CIF & Ledger</div>
+                    </div>
+                    <div class="bank-node-item">
+                        <span>⚡</span>
+                        <div>Outbound Settlement Rails</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side: PeX Enterprise Platform -->
+            <div class="pex-container">
+                <div class="pex-header-title">PeX Enterprise Agentic Platform</div>
+
+                <div class="stages-grid">
+                    <!-- Stage 1 -->
+                    <div class="stage-card s1">
+                        <div class="stage-circle">1</div>
+                        <div class="stage-title">Tokenization Vault Agent</div>
+                        <ul class="stage-bullets">
+                            <li>AWS KMS Isolation</li>
+                            <li>PII & Account Masking</li>
+                            <li>Zero-Trust Enclave</li>
+                        </ul>
+                    </div>
+
+                    <!-- Stage 2 -->
+                    <div class="stage-card s2">
+                        <div class="stage-circle">2</div>
+                        <div class="stage-title">Canonical & Evidence Agent</div>
+                        <ul class="stage-bullets">
+                            <li>41-Class Taxonomy</li>
+                            <li>Multi-Rail Normalization</li>
+                            <li>Async Core Queries</li>
+                        </ul>
+                    </div>
+
+                    <!-- Stage 3 (Highlighted) -->
+                    <div class="stage-card s3">
+                        <div class="stage-circle">3</div>
+                        <div class="stage-title">Deep Reasoning Agent</div>
+                        <ul class="stage-bullets">
+                            <li>Bedrock Foundation LLM</li>
+                            <li>Repair Plan Synthesis</li>
+                            <li>Confidence Score (98%)</li>
+                        </ul>
+                    </div>
+
+                    <!-- Stage 4 -->
+                    <div class="stage-card s4">
+                        <div class="stage-circle">4</div>
+                        <div class="stage-title">Policy & HITL Copilot</div>
+                        <ul class="stage-bullets">
+                            <li>Deterministic Limits</li>
+                            <li>STP vs. Review Gate</li>
+                            <li>Analyst 1-Click UI</li>
+                        </ul>
+                    </div>
+
+                    <!-- Stage 5 -->
+                    <div class="stage-card s5">
+                        <div class="stage-circle">5</div>
+                        <div class="stage-title">Execution & Audit Agent</div>
+                        <ul class="stage-bullets">
+                            <li>pacs.004 / camt.056 Out</li>
+                            <li>Settlement Dispatch</li>
+                            <li>Immutable Hash Chain</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Advantage Banner -->
+        <div class="bottom-advantage-banner">
+            <div class="advantage-header-row">
+                <div class="advantage-main-text">FROM ASSETS TO AGENTIC ADVANTAGE</div>
+                <div class="advantage-sub-text">Trusted AI • Deterministic Guardrails • Transformed Payment Operations</div>
+            </div>
+
+            <div class="advantage-pillars-grid">
+                <div class="pillar-card">
+                    <div class="pillar-icon">📈</div>
+                    <div class="pillar-text">
+                        <h4>Stronger Foundations</h4>
+                        <p>Modernize with purpose</p>
+                    </div>
+                </div>
+                <div class="pillar-card">
+                    <div class="pillar-icon">🛡️</div>
+                    <div class="pillar-text">
+                        <h4>Trusted by Design</h4>
+                        <p>Govern with confidence</p>
+                    </div>
+                </div>
+                <div class="pillar-card">
+                    <div class="pillar-icon">🚀</div>
+                    <div class="pillar-text">
+                        <h4>Innovate Faster</h4>
+                        <p>Scale agentic products</p>
+                    </div>
+                </div>
+                <div class="pillar-card">
+                    <div class="pillar-icon">♾️</div>
+                    <div class="pillar-text">
+                        <h4>Operate Intelligently</h4>
+                        <p>Reimagine at scale</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <g transform="translate(10, 10)">
+  <path d="M40 12 C44 20 54 28 54 36 C54 44 46 48 40 46 C34 48 26 44 26 36 C26 28 36 20 40 12 Z" fill="#0070AD"/>
+  <path d="M37 44 L34 52 H46 L43 44 Z" fill="#0070AD"/>
+  <polygon points="58,16 60,20 64,22 60,24 58,28 56,24 52,22 56,20" fill="#00E5FF"/>
+  <text x="40" y="68" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="900" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.5">Capgemini</text>
+  <text x="40" y="78" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="7" font-weight="600" fill="#00E5FF" text-anchor="middle">Financial Services</text>
+</g>
+</svg>

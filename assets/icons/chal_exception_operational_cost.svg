@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <!-- Dollar Sign with Ascending Cost Flare Bar -->
+<circle cx="44" cy="50" r="24" stroke="#00e5ff" stroke-width="4" fill="none"/>
+<path d="M44 34 V66 M38 40 C38 36 48 36 48 42 C48 48 38 48 38 54 C38 60 48 60 48 56" stroke="#00e5ff" stroke-width="3.5" stroke-linecap="round"/>
+<polyline points="66,54 78,32 88,32" stroke="#00e5ff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg>

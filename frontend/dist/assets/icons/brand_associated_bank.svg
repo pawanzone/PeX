@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <!-- Associated Bank Green Tree Emblem -->
+<g transform="translate(10, 10)">
+  <circle cx="40" cy="30" r="18" fill="#007A3D" opacity="0.2"/>
+  <path d="M40 14 C30 22 28 36 40 44 C52 36 50 22 40 14 Z" fill="#007A3D"/>
+  <path d="M28 28 C34 32 40 40 40 46" stroke="#FFFFFF" stroke-width="2" fill="none"/>
+  <path d="M52 28 C46 32 40 40 40 46" stroke="#FFFFFF" stroke-width="2" fill="none"/>
+  <rect x="38" y="44" width="4" height="10" fill="#007A3D"/>
+</g>
+<text x="50" y="74" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="8" font-weight="900" fill="#FFFFFF" text-anchor="middle">Associated Bank</text>
+<text x="50" y="84" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="7" font-weight="600" fill="#007A3D" text-anchor="middle">Mid-Market Leader</text>
+</svg>

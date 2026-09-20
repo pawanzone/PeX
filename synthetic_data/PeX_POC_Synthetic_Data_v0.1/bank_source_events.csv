@@ -1,0 +1,19 @@
+bank_id,source_event_id,event_type,payload_json,source_schema
+BANK_B,B-EXC-INV-0001,EXC_EVT,"{""legacyPaymentRef"": ""PAY-000044"", ""errorCode"": ""INVALID_IBAN_001"", ""amount"": ""151474.86"", ""currency"": ""GBP"", ""beneficiaryRef"": ""BEN-00053""}",B-7.2
+BANK_A,A-EXC-INV-0002,PAYMENT_EXCEPTION,"{""txn_id"": ""PAY-000002"", ""err_cd"": ""INVALID_IBAN_001"", ""amt"": ""156597.41"", ""ccy"": ""USD"", ""ben_id"": ""BEN-00030""}",A-1.0
+BANK_C,C-EXC-INV-0003,exceptionEvent,"{""payment"": {""id"": ""PAY-000095"", ""amt"": {""value"": ""48206.45"", ""ccy"": ""GBP""}}, ""exception"": {""code"": ""INVALID_IBAN_001""}, ""beneficiary"": {""id"": ""BEN-00038""}}",C-3.4
+BANK_B,B-EXC-INV-0004,EXC_EVT,"{""legacyPaymentRef"": ""PAY-000139"", ""errorCode"": ""INVALID_BIC_SWIFT_001"", ""amount"": ""238587.23"", ""currency"": ""EUR"", ""beneficiaryRef"": ""BEN-00041""}",B-7.2
+BANK_C,C-EXC-INV-0005,exceptionEvent,"{""payment"": {""id"": ""PAY-000140"", ""amt"": {""value"": ""163853.55"", ""ccy"": ""GBP""}}, ""exception"": {""code"": ""INVALID_BIC_SWIFT_001""}, ""beneficiary"": {""id"": ""BEN-00006""}}",C-3.4
+BANK_B,B-EXC-INV-0006,EXC_EVT,"{""legacyPaymentRef"": ""PAY-000021"", ""errorCode"": ""INVALID_BIC_SWIFT_001"", ""amount"": ""2852.57"", ""currency"": ""EUR"", ""beneficiaryRef"": ""BEN-00019""}",B-7.2
+BANK_A,A-EXC-DUP-0007,PAYMENT_EXCEPTION,"{""txn_id"": ""PAY-000101"", ""err_cd"": ""DUPLICATE_PAYMENT_001"", ""amt"": ""67063.95"", ""ccy"": ""GBP"", ""ben_id"": ""BEN-00059""}",A-1.0
+BANK_B,B-EXC-DUP-0008,EXC_EVT,"{""legacyPaymentRef"": ""PAY-000059"", ""errorCode"": ""DUPLICATE_PAYMENT_001"", ""amount"": ""13122.24"", ""currency"": ""EUR"", ""beneficiaryRef"": ""BEN-00023""}",B-7.2
+BANK_B,B-EXC-DUP-0009,EXC_EVT,"{""legacyPaymentRef"": ""PAY-000146"", ""errorCode"": ""DUPLICATE_PAYMENT_001"", ""amount"": ""54258.16"", ""currency"": ""USD"", ""beneficiaryRef"": ""BEN-00026""}",B-7.2
+BANK_B,B-EXC-SAN-0010,EXC_EVT,"{""legacyPaymentRef"": ""PAY-000107"", ""errorCode"": ""SANCTIONS_HIT_001"", ""amount"": ""63623.73"", ""currency"": ""GBP"", ""beneficiaryRef"": ""BEN-00039""}",B-7.2
+BANK_C,C-EXC-SAN-0011,exceptionEvent,"{""payment"": {""id"": ""PAY-000042"", ""amt"": {""value"": ""19969.77"", ""ccy"": ""GBP""}}, ""exception"": {""code"": ""SANCTIONS_HIT_001""}, ""beneficiary"": {""id"": ""BEN-00051""}}",C-3.4
+BANK_A,A-EXC-SAN-0012,PAYMENT_EXCEPTION,"{""txn_id"": ""PAY-000101"", ""err_cd"": ""SANCTIONS_HIT_001"", ""amt"": ""67063.95"", ""ccy"": ""GBP"", ""ben_id"": ""BEN-00059""}",A-1.0
+BANK_C,C-EXC-KYC-0013,exceptionEvent,"{""payment"": {""id"": ""PAY-000148"", ""amt"": {""value"": ""164406.55"", ""ccy"": ""GBP""}}, ""exception"": {""code"": ""KYC_EXPIRED_001""}, ""beneficiary"": {""id"": ""BEN-00002""}}",C-3.4
+BANK_C,C-EXC-KYC-0014,exceptionEvent,"{""payment"": {""id"": ""PAY-000144"", ""amt"": {""value"": ""8172.41"", ""ccy"": ""USD""}}, ""exception"": {""code"": ""KYC_EXPIRED_001""}, ""beneficiary"": {""id"": ""BEN-00040""}}",C-3.4
+BANK_B,B-EXC-KYC-0015,EXC_EVT,"{""legacyPaymentRef"": ""PAY-000036"", ""errorCode"": ""KYC_EXPIRED_001"", ""amount"": ""170333.61"", ""currency"": ""GBP"", ""beneficiaryRef"": ""BEN-00016""}",B-7.2
+BANK_B,B-EXC-RET-0016,EXC_EVT,"{""legacyPaymentRef"": ""PAY-000066"", ""errorCode"": ""RETURNED_PAYMENT_001"", ""amount"": ""199524.74"", ""currency"": ""EUR"", ""beneficiaryRef"": ""BEN-00001""}",B-7.2
+BANK_A,A-EXC-RET-0017,PAYMENT_EXCEPTION,"{""txn_id"": ""PAY-000070"", ""err_cd"": ""RETURNED_PAYMENT_001"", ""amt"": ""244250.31"", ""ccy"": ""EUR"", ""ben_id"": ""BEN-00053""}",A-1.0
+BANK_B,B-EXC-RET-0018,EXC_EVT,"{""legacyPaymentRef"": ""PAY-000031"", ""errorCode"": ""RETURNED_PAYMENT_001"", ""amount"": ""142519.46"", ""currency"": ""USD"", ""beneficiaryRef"": ""BEN-00007""}",B-7.2

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <!-- Standard Chartered Twisted Double Ribbon -->
+<g transform="translate(12, 10)">
+  <!-- Blue Ribbon Loop -->
+  <path d="M26 18 C38 6 52 16 52 28 C52 40 38 46 26 56 C20 62 16 68 20 74 C24 80 34 80 40 74" fill="none" stroke="#0072CE" stroke-width="6" stroke-linecap="round"/>
+  <!-- Green Ribbon Loop Intertwined -->
+  <path d="M50 18 C38 30 26 36 26 48 C26 58 38 64 50 74" fill="none" stroke="#009E49" stroke-width="6" stroke-linecap="round"/>
+</g>
+<text x="50" y="78" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="7.5" font-weight="900" fill="#FFFFFF" text-anchor="middle">standard</text>
+<text x="50" y="87" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="7.5" font-weight="700" fill="#009E49" text-anchor="middle">chartered</text>
+</svg>

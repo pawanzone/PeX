@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <circle cx="50" cy="50" r="48" fill="#0070ad"/>
+  <g transform="translate(16, 16) scale(0.68)">
+<!-- Pega Branching Workflow -->
+<circle cx="26" cy="34" r="8" stroke="#FFFFFF" stroke-width="3.5" fill="none"/>
+<circle cx="74" cy="34" r="8" stroke="#FFFFFF" stroke-width="3.5" fill="none"/>
+<circle cx="50" cy="72" r="8" stroke="#FFFFFF" stroke-width="3.5" fill="none"/>
+<path d="M34 34 H66 M32 40 L44 66 M68 40 L56 66" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round"/>
+<circle cx="50" cy="34" r="3" fill="#FFFFFF"/>
+  </g>
+</svg>

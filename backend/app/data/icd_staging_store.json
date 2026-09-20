@@ -1,0 +1,356 @@
+{
+  "metadata": {
+    "version": "2.0.0",
+    "description": "Enterprise External ICD Staging Data Store for PeX Platform",
+    "last_updated": "2026-09-10T20:00:00Z",
+    "covered_domains": [
+      "DATA_QUALITY",
+      "PROCESSING",
+      "COMPLIANCE",
+      "CLIENT_TREASURY",
+      "SETTLEMENT_RETURNS"
+    ],
+    "total_error_profiles": 41
+  },
+  "federal_reserve_directory": {
+    "fedwire_aba_routing": {
+      "021000021": {
+        "name": "JPMorgan Chase Bank, N.A.",
+        "city": "New York",
+        "state": "NY",
+        "status": "ACTIVE",
+        "funds_eligible": true
+      },
+      "026009593": {
+        "name": "Citibank, N.A.",
+        "city": "New York",
+        "state": "NY",
+        "status": "ACTIVE",
+        "funds_eligible": true
+      },
+      "121000358": {
+        "name": "Bank of America, N.A.",
+        "city": "San Francisco",
+        "state": "CA",
+        "status": "ACTIVE",
+        "funds_eligible": true
+      },
+      "071000013": {
+        "name": "The Northern Trust Company",
+        "city": "Chicago",
+        "state": "IL",
+        "status": "ACTIVE",
+        "funds_eligible": true
+      },
+      "021001033": {
+        "name": "The Bank of New York Mellon",
+        "city": "New York",
+        "state": "NY",
+        "status": "ACTIVE",
+        "funds_eligible": true
+      },
+      "122000496": {
+        "name": "Wells Fargo Bank, N.A.",
+        "city": "San Francisco",
+        "state": "CA",
+        "status": "ACTIVE",
+        "funds_eligible": true
+      }
+    },
+    "fedwire_cutoffs": {
+      "standard_funds_transfer_cutoff_est": "18:30:00",
+      "operating_circular_6_spec": "Federal Reserve Banks Operating Circular No. 6 (Funds Transfers through the Fedwire Funds Service)",
+      "settlement_window_status": "OPEN",
+      "default_buffer_minutes": 105
+    },
+    "chips_uid_directory": {
+      "CHIPS-0002": {
+        "participant_name": "JPMorgan Chase Bank NY",
+        "chips_aba": "021000021",
+        "status": "ACTIVE"
+      },
+      "CHIPS-0008": {
+        "participant_name": "Citibank NY",
+        "chips_aba": "026009593",
+        "status": "ACTIVE"
+      }
+    },
+    "fedline_liquidity_reserve": {
+      "reserve_account_status": "NORMAL_SURPLUS",
+      "intraday_overdraft_cap": ",000,000.00",
+      "current_fed_reserve_buffer": ",500,000.00"
+    }
+  },
+  "swift_reference_master": {
+    "bic_directory": {
+      "WESTGB2L": {
+        "institution": "National Westminster Bank PLC",
+        "city": "London",
+        "country": "GB",
+        "connected": true,
+        "pacs008_enabled": true
+      },
+      "BARCGB22": {
+        "institution": "Barclays Bank PLC",
+        "city": "London",
+        "country": "GB",
+        "connected": true,
+        "pacs008_enabled": true
+      },
+      "CHASUS33": {
+        "institution": "JPMorgan Chase Bank N.A.",
+        "city": "New York",
+        "country": "US",
+        "connected": true,
+        "pacs008_enabled": true
+      },
+      "DEUTDEDD": {
+        "institution": "Deutsche Bank AG",
+        "city": "Frankfurt",
+        "country": "DE",
+        "connected": true,
+        "pacs008_enabled": true
+      },
+      "BNPAFRPP": {
+        "institution": "BNP Paribas S.A.",
+        "city": "Paris",
+        "country": "FR",
+        "connected": true,
+        "pacs008_enabled": true
+      },
+      "DBSSSGSG": {
+        "institution": "DBS Bank Ltd",
+        "city": "Singapore",
+        "country": "SG",
+        "connected": true,
+        "pacs008_enabled": true
+      },
+      "ANZBAU3M": {
+        "institution": "Australia and New Zealand Banking Group",
+        "city": "Melbourne",
+        "country": "AU",
+        "connected": true,
+        "pacs008_enabled": true
+      },
+      "UBSWCHZH": {
+        "institution": "UBS Switzerland AG",
+        "city": "Zurich",
+        "country": "CH",
+        "connected": true,
+        "pacs008_enabled": true
+      },
+      "BOTKJPJT": {
+        "institution": "MUFG Bank, Ltd.",
+        "city": "Tokyo",
+        "country": "JP",
+        "connected": true,
+        "pacs008_enabled": true
+      },
+      "HYVEDEMM": {
+        "institution": "UniCredit Bank AG",
+        "city": "Munich",
+        "country": "DE",
+        "connected": true,
+        "pacs008_enabled": true
+      }
+    },
+    "iso20022_schema_registry": {
+      "pacs.008.001.10": {
+        "name": "FIToFICustomerCreditTransfer",
+        "status": "MANDATORY_CBPR+_RELEASE_2026",
+        "validation_engine": "ISO_XSD_V3"
+      },
+      "pacs.004.001.11": {
+        "name": "PaymentReturn",
+        "status": "ACTIVE"
+      },
+      "camt.056.001.10": {
+        "name": "FIToFIPaymentCancellationRequest",
+        "status": "ACTIVE"
+      }
+    },
+    "iban_math_spec": {
+      "algorithm": "MOD-97-10 (ISO/IEC 7064)",
+      "mod97_divisor": 97,
+      "supported_countries": [
+        "GB",
+        "DE",
+        "FR",
+        "IT",
+        "ES",
+        "CH",
+        "NL",
+        "BE",
+        "SE",
+        "NO",
+        "SG",
+        "JP",
+        "US"
+      ]
+    }
+  },
+  "core_banking_ssi": {
+    "counterparty_master": {
+      "Nordhavn Components A/S": {
+        "registered_country": "GB",
+        "currency": "GBP",
+        "standing_iban": "GB82WEST12345698765431",
+        "clearing_bic": "WESTGB2LXXX",
+        "routing_aba": "021000021",
+        "verified_tax_id": "GB-88912891",
+        "kyc_status": "CURRENT_VALID",
+        "kyc_expiry": "2027-12-31",
+        "purpose_code": "GDDS",
+        "structured_address": {
+          "street": "42 Wharfside Way",
+          "building_num": "Building B",
+          "postcode": "EC2A 4NE",
+          "city": "London",
+          "country": "GB"
+        }
+      },
+      "HarborView Supplier Ltd": {
+        "registered_country": "GB",
+        "currency": "USD",
+        "standing_iban": "GB33BARC20000098765432",
+        "clearing_bic": "BARCGB22XXX",
+        "routing_aba": "026009593",
+        "verified_tax_id": "GB-99214421",
+        "kyc_status": "CURRENT_VALID",
+        "kyc_expiry": "2027-08-15",
+        "purpose_code": "CORT",
+        "structured_address": {
+          "street": "10 Canary Wharf",
+          "building_num": "Level 14",
+          "postcode": "E14 5HP",
+          "city": "London",
+          "country": "GB"
+        }
+      },
+      "Apex Global Treasury": {
+        "registered_country": "US",
+        "currency": "USD",
+        "standing_iban": "US64CHAS02100002100012345678",
+        "clearing_bic": "CHASUS33XXX",
+        "routing_aba": "021000021",
+        "verified_tax_id": "US-13-8829104",
+        "kyc_status": "CURRENT_VALID",
+        "kyc_expiry": "2028-01-30",
+        "purpose_code": "TREA",
+        "structured_address": {
+          "street": "270 Park Avenue",
+          "building_num": "Tower 1",
+          "postcode": "10017",
+          "city": "New York",
+          "country": "US"
+        }
+      },
+      "Kyoto Precision Robotics": {
+        "registered_country": "JP",
+        "currency": "JPY",
+        "standing_iban": "JP44BOTK0001000987654321",
+        "clearing_bic": "BOTKJPJTXXX",
+        "routing_aba": "021001033",
+        "verified_tax_id": "JP-88192019",
+        "kyc_status": "CURRENT_VALID",
+        "kyc_expiry": "2027-06-30",
+        "purpose_code": "COMM",
+        "structured_address": {
+          "street": "7-1 Chiyoda-ku",
+          "building_num": "Marunouchi Bldg",
+          "postcode": "100-8388",
+          "city": "Tokyo",
+          "country": "JP"
+        }
+      },
+      "Vanguard BioPharma GmbH": {
+        "registered_country": "DE",
+        "currency": "EUR",
+        "standing_iban": "DE89DEUT370400440532013000",
+        "clearing_bic": "DEUTDEDDXXX",
+        "routing_aba": "021000021",
+        "verified_tax_id": "DE-128891042",
+        "kyc_status": "CURRENT_VALID",
+        "kyc_expiry": "2027-11-20",
+        "purpose_code": "PHAR",
+        "structured_address": {
+          "street": "Taunusanlage 12",
+          "building_num": "Main Tower",
+          "postcode": "60325",
+          "city": "Frankfurt am Main",
+          "country": "DE"
+        }
+      }
+    },
+    "historical_settlement_ledger_90d": {
+      "total_reconciled_volume_30d": ",900,000.00",
+      "historical_match_confidence_floor": 0.94,
+      "recurrent_counterparties_count": 1420
+    },
+    "successor_account_registry": {
+      "CLOSED_ACCOUNT_MAPPING": {
+        "GB82WEST12345698760077": {
+          "status": "CLOSED_MIGRATED",
+          "closure_date": "2025-11-30",
+          "successor_account_iban": "GB82WEST12345698765431",
+          "successor_account_status": "ACTIVE_VERIFIED",
+          "successor_bic": "WESTGB2LXXX",
+          "institution": "National Westminster Bank PLC",
+          "migration_mandate_ref": "MIG-NATWEST-2025-8841"
+        }
+      }
+    }
+  },
+  "sanctions_and_compliance": {
+    "ofac_sdn_watchlist": {
+      "screening_engine": "OFAC_FUZZY_JARO_WINKLER_V4",
+      "false_positive_homonyms": {
+        "Nordhavn Components A/S": {
+          "designation_match": "N. Components Ltd (Individual)",
+          "sdn_id": "SDN-IND-991204",
+          "similarity_score": 0.87,
+          "divergent_attributes": [
+            "Tax ID Divergent",
+            "Incorporation Date 2014 vs 1982",
+            "UBO Cleared 100%"
+          ]
+        }
+      }
+    },
+    "fatf_corridor_risk": {
+      "high_risk_jurisdictions": [
+        "KP",
+        "IR",
+        "MM"
+      ],
+      "monitored_jurisdictions": [
+        "SY",
+        "YE"
+      ]
+    }
+  },
+  "treasury_and_liquidity": {
+    "nostro_corridor_balances": {
+      "USD": {
+        "nostro_account": "JPMorgan Chase NY",
+        "intraday_balance": ",200,000.00",
+        "liquidity_status": "SURPLUS"
+      },
+      "EUR": {
+        "nostro_account": "Deutsche Bank Frankfurt",
+        "intraday_balance": "92,500,000.00",
+        "liquidity_status": "SURPLUS"
+      },
+      "GBP": {
+        "nostro_account": "Barclays Bank London",
+        "intraday_balance": "45,800,000.00",
+        "liquidity_status": "SURPLUS"
+      },
+      "JPY": {
+        "nostro_account": "MUFG Bank Tokyo",
+        "intraday_balance": "4,200,000,000.00",
+        "liquidity_status": "SURPLUS"
+      }
+    }
+  }
+}

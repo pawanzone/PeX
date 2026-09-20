@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <!-- Citi Wordmark & Signature Red Arc -->
+<g transform="translate(10, 15)">
+  <!-- Iconic Red Arch sweeping across top -->
+  <path d="M28 28 C34 16 54 16 68 28" fill="none" stroke="#EE1C25" stroke-width="4.5" stroke-linecap="round"/>
+  <!-- citi Typography -->
+  <text x="40" y="52" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="28" font-weight="800" fill="#003B70" text-anchor="middle" letter-spacing="-1">citi</text>
+</g>
+<text x="50" y="86" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="8.5" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="1">GLOBAL BANK</text>
+</svg>

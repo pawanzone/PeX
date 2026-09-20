@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <circle cx="50" cy="50" r="48" fill="#0070ad"/>
+  <g transform="translate(16, 16) scale(0.68)">
+<!-- Stacked Vault Cylinders with Bi-Directional Internal Transfer Arrows -->
+<ellipse cx="50" cy="24" rx="30" ry="10" stroke="#FFFFFF" stroke-width="4" fill="none"/>
+<path d="M20 24 V46 C20 52 33 56 50 56 C67 56 80 52 80 46 V24" stroke="#FFFFFF" stroke-width="4" fill="none"/>
+<path d="M20 46 V68 C20 74 33 78 50 78 C67 78 80 74 80 68 V46" stroke="#FFFFFF" stroke-width="4" fill="none"/>
+<path d="M34 86 H66" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round"/>
+<polyline points="40,82 34,86 40,90" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+<polyline points="60,82 66,86 60,90" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </g>
+</svg>

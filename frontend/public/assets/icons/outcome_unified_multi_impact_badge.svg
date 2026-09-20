@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <circle cx="50" cy="50" r="48" fill="#0070ad"/>
+  <g transform="translate(16, 16) scale(0.68)">
+<!-- 4-Quadrant Value Crest: Lightning + Target + Shield + Star -->
+<!-- Dividing Cross / Diamond Core -->
+<circle cx="50" cy="50" r="8" fill="#FFFFFF"/>
+<path d="M50 14 V38 M50 62 V86 M14 50 H38 M62 50 H86" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round"/>
+<!-- Top-Left: Speed Lightning (Faster Resolution) -->
+<path d="M28 20 L20 32 H28 L24 44 L36 30 H28 Z" stroke="#FFFFFF" stroke-width="2.5" stroke-linejoin="round" fill="none"/>
+<!-- Top-Right: Precision Target (Better Decision) -->
+<circle cx="72" cy="28" r="12" stroke="#FFFFFF" stroke-width="3" fill="none"/>
+<path d="M68 28 L71 31 L77 25" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+<!-- Bottom-Left: Shield (Stronger Controls) -->
+<path d="M28 62 L38 67 V77 C38 83 28 87 28 87 C28 87 18 83 18 77 V67 Z" stroke="#FFFFFF" stroke-width="2.5" stroke-linejoin="round" fill="none"/>
+<!-- Bottom-Right: Star (Client Delight & Experience) -->
+<path d="M72 64 L74 70 H80 L75 73 L77 79 L72 75 L67 79 L69 73 L64 70 H70 Z" stroke="#FFFFFF" stroke-width="2.5" stroke-linejoin="round" fill="none"/>
+  </g>
+</svg>

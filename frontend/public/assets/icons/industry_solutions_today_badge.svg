@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <circle cx="50" cy="50" r="48" fill="#0070ad"/>
+  <g transform="translate(16, 16) scale(0.68)">
+<!-- Structured Workflow Board with Case Cards -->
+<rect x="16" y="16" width="68" height="68" rx="8" stroke="#FFFFFF" stroke-width="4.5" fill="none"/>
+<path d="M40 16 V84 M64 16 V84" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round"/>
+<rect x="22" y="24" width="12" height="16" rx="2" stroke="#FFFFFF" stroke-width="2.5" fill="none"/>
+<rect x="22" y="46" width="12" height="22" rx="2" stroke="#FFFFFF" stroke-width="2.5" fill="none"/>
+<rect x="46" y="24" width="12" height="26" rx="2" stroke="#FFFFFF" stroke-width="2.5" fill="none"/>
+<rect x="70" y="24" width="12" height="14" rx="2" stroke="#FFFFFF" stroke-width="2.5" fill="none"/>
+<rect x="70" y="44" width="12" height="14" rx="2" stroke="#FFFFFF" stroke-width="2.5" fill="none"/>
+  </g>
+</svg>

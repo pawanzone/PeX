@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PeX - Event-Driven Process Diagram (EPC Architecture)</title>
+    <style>
+        :root {
+            --bg-page: #060B18;
+            --bank-border: #0284C7;
+            --pex-border: #00E5FF;
+            --event-color: #EA580C;
+            --func-color: #10B981;
+            --data-color: #0284C7;
+            --actor-color: #06B6D4;
+            --xor-color: #F59E0B;
+            --text-light: #F8FAFC;
+            --text-muted: #94A3B8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        body {
+            background: var(--bg-page);
+            color: var(--text-light);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 30px 20px;
+        }
+
+        .header-bar {
+            width: 100%;
+            max-width: 1400px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header-title h1 {
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(90deg, #FFFFFF, #38BDF8, #00E5FF);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-title p {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+
+        /* SVG Diagram Canvas */
+        .diagram-container {
+            width: 100%;
+            max-width: 1400px;
+            background: #0B132B;
+            border: 1px solid #1E293B;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+        }
+
+        svg {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* EPC Legend */
+        .legend-bar {
+            width: 100%;
+            max-width: 1400px;
+            margin-top: 24px;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid #1E293B;
+            border-radius: 12px;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .legend-sample {
+            width: 24px;
+            height: 18px;
+            border-radius: 4px;
+        }
+
+        .sample-event {
+            background: var(--event-color);
+            clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+        }
+
+        .sample-func {
+            background: var(--func-color);
+            border-radius: 5px;
+        }
+
+        .sample-data {
+            background: var(--data-color);
+            border-radius: 2px;
+        }
+
+        .sample-actor {
+            background: var(--actor-color);
+            border-radius: 10px;
+        }
+
+        .sample-gate {
+            background: var(--xor-color);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header-bar">
+        <div class="header-title">
+            <h1>PeX Event-Driven Process Diagram (EPC Architecture)</h1>
+            <p>Bank Ecosystem (Left) • Multi-Agent Autonomous Processing Core (Right)</p>
+        </div>
+    </div>
+
+    <div class="diagram-container">
+        <svg viewBox="0 0 1200 700" xmlns="http://www.w3.org/2000/svg">
+            <!-- Definitions for Markers & Gradients -->
+            <defs>
+                <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                    <path d="M 0 1 L 10 5 L 0 9 z" fill="#00E5FF" />
+                </marker>
+                <marker id="arrow-white" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                    <path d="M 0 1 L 10 5 L 0 9 z" fill="#94A3B8" />
+                </marker>
+                <marker id="arrow-orange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                    <path d="M 0 1 L 10 5 L 0 9 z" fill="#EA580C" />
+                </marker>
+            </defs>
+
+            <!-- ==================== LEFT CONTAINER: BANK ==================== -->
+            <rect x="20" y="30" width="340" height="640" rx="14" fill="#071224" stroke="#0284C7" stroke-width="2.5" />
+            <text x="190" y="62" fill="#38BDF8" font-size="15" font-weight="800" text-anchor="middle" letter-spacing="1">BANK / FINANCIAL INSTITUTION</text>
+
+            <!-- [01] Payment Exception Event (Orange Hexagon) -->
+            <polygon points="190,95 295,115 295,165 190,185 85,165 85,115" fill="#EA580C" stroke="#C2410C" stroke-width="2" />
+            <text x="190" y="130" fill="#FFFFFF" font-size="12" font-weight="800" text-anchor="middle">[01] Payment Exception</text>
+            <text x="190" y="148" fill="#FFFFFF" font-size="11" font-weight="600" text-anchor="middle">Event (SWIFT / Fed / ACH)</text>
+
+            <!-- Arrow Down to Data -->
+            <line x1="190" y1="185" x2="190" y2="225" stroke="#94A3B8" stroke-width="2" marker-end="url(#arrow-white)" />
+
+            <!-- Data: Raw Payment Message (Blue Rect) -->
+            <rect x="70" y="225" width="240" height="48" rx="6" fill="#0284C7" stroke="#0369A1" stroke-width="1.5" />
+            <text x="190" y="246" fill="#FFFFFF" font-size="11" font-weight="700" text-anchor="middle">Data: Raw Payment Message</text>
+            <text x="190" y="261" fill="#E0F2FE" font-size="10" text-anchor="middle">pacs.008 / MT103 / Fedwire / ACH</text>
+
+            <!-- Arrow Down to Core Banking -->
+            <line x1="190" y1="273" x2="190" y2="315" stroke="#94A3B8" stroke-width="2" marker-end="url(#arrow-white)" />
+
+            <!-- Actor: Core Banking & Ledger (Cyan Oval) -->
+            <ellipse cx="190" cy="345" rx="110" ry="30" fill="#06B6D4" stroke="#0891B2" stroke-width="2" />
+            <text x="190" y="342" fill="#083344" font-size="12" font-weight="800" text-anchor="middle">Actor: Core Banking</text>
+            <text x="190" y="357" fill="#083344" font-size="11" font-weight="600" text-anchor="middle">& Customer CIF Ledger</text>
+
+            <!-- [10] Payment Resolved & Settled (Orange Hexagon at bottom) -->
+            <polygon points="190,545 295,565 295,615 190,635 85,615 85,565" fill="#EA580C" stroke="#C2410C" stroke-width="2" />
+            <text x="190" y="582" fill="#FFFFFF" font-size="12" font-weight="800" text-anchor="middle">[10] Payment Resolved</text>
+            <text x="190" y="600" fill="#FFFFFF" font-size="11" font-weight="600" text-anchor="middle">& Settled on Rails</text>
+
+
+            <!-- ==================== RIGHT CONTAINER: PEX PLATFORM ==================== -->
+            <rect x="390" y="30" width="790" height="640" rx="14" fill="#050C1B" stroke="#00E5FF" stroke-width="2.5" />
+            <text x="785" y="62" fill="#00E5FF" font-size="15" font-weight="800" text-anchor="middle" letter-spacing="1.5">PeX ENTERPRISE AGENTIC PLATFORM</text>
+
+            <!-- [02] Tokenization Vault Agent (Green Rounded Rect) -->
+            <rect x="580" y="90" width="260" height="42" rx="8" fill="#10B981" stroke="#047857" stroke-width="2" />
+            <text x="710" y="116" fill="#FFFFFF" font-size="12" font-weight="800" text-anchor="middle">[02] Tokenization Vault Agent</text>
+
+            <!-- Data: AWS KMS Token Map (Blue Rect on right) -->
+            <rect x="880" y="90" width="180" height="42" rx="6" fill="#0284C7" stroke="#0369A1" stroke-width="1.5" />
+            <text x="970" y="108" fill="#FFFFFF" font-size="10.5" font-weight="700" text-anchor="middle">Data: AWS KMS</text>
+            <text x="970" y="122" fill="#E0F2FE" font-size="9.5" text-anchor="middle">Zero-Trust Token Map</text>
+
+            <!-- Connection from Token Vault to Data -->
+            <line x1="840" y1="111" x2="880" y2="111" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="3 2" />
+
+            <!-- Arrow Down to Event 03 -->
+            <line x1="710" y1="132" x2="710" y2="160" stroke="#00E5FF" stroke-width="2" marker-end="url(#arrow)" />
+
+            <!-- [03] PII Tokenized Event (Orange Hexagon) -->
+            <polygon points="710,160 790,172 790,202 710,214 630,202 630,172" fill="#EA580C" stroke="#C2410C" stroke-width="2" />
+            <text x="710" y="191" fill="#FFFFFF" font-size="11" font-weight="800" text-anchor="middle">[03] PII Tokenized Event</text>
+
+            <!-- Arrow Down to Function 04 -->
+            <line x1="710" y1="214" x2="710" y2="242" stroke="#00E5FF" stroke-width="2" marker-end="url(#arrow)" />
+
+            <!-- [04] Canonical Schema Agent (Green Rounded Rect) -->
+            <rect x="580" y="242" width="260" height="40" rx="8" fill="#10B981" stroke="#047857" stroke-width="2" />
+            <text x="710" y="267" fill="#FFFFFF" font-size="12" font-weight="800" text-anchor="middle">[04] Canonical Schema Agent</text>
+
+            <!-- Data: Canonical Object (Blue Rect on right) -->
+            <rect x="880" y="242" width="180" height="40" rx="6" fill="#0284C7" stroke="#0369A1" stroke-width="1.5" />
+            <text x="970" y="267" fill="#FFFFFF" font-size="11" font-weight="700" text-anchor="middle">Data: Canonical Object</text>
+            <line x1="840" y1="262" x2="880" y2="262" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="3 2" />
+
+            <!-- Arrow Down to Function 05 -->
+            <line x1="710" y1="282" x2="710" y2="310" stroke="#00E5FF" stroke-width="2" marker-end="url(#arrow)" />
+
+            <!-- [05] Error Classifier & Evidence Agent (Green Rounded Rect) -->
+            <rect x="550" y="310" width="320" height="42" rx="8" fill="#10B981" stroke="#047857" stroke-width="2" />
+            <text x="710" y="336" fill="#FFFFFF" font-size="12" font-weight="800" text-anchor="middle">[05] Error Classifier & Evidence Agent</text>
+
+            <!-- Arrow Down to Function 06 -->
+            <line x1="710" y1="352" x2="710" y2="380" stroke="#00E5FF" stroke-width="2" marker-end="url(#arrow)" />
+
+            <!-- [06] Semantic Rulebook Agent (Green Rounded Rect) -->
+            <rect x="580" y="380" width="260" height="38" rx="8" fill="#10B981" stroke="#047857" stroke-width="2" />
+            <text x="710" y="404" fill="#FFFFFF" font-size="12" font-weight="800" text-anchor="middle">[06] Semantic Rulebook Agent</text>
+
+            <!-- Arrow Down to Function 07 -->
+            <line x1="710" y1="418" x2="710" y2="446" stroke="#00E5FF" stroke-width="2" marker-end="url(#arrow)" />
+
+            <!-- [07] Deep Reasoning Agent (Bedrock LLM) -->
+            <rect x="560" y="446" width="300" height="42" rx="8" fill="#10B981" stroke="#047857" stroke-width="2" />
+            <text x="710" y="465" fill="#FFFFFF" font-size="11.5" font-weight="800" text-anchor="middle">[07] Deep Reasoning Agent</text>
+            <text x="710" y="479" fill="#D1FAE5" font-size="9.5" text-anchor="middle">(AWS Bedrock Foundation LLM)</text>
+
+            <!-- Arrow Down to XOR Gate -->
+            <line x1="710" y1="488" x2="710" y2="512" stroke="#00E5FF" stroke-width="2" marker-end="url(#arrow)" />
+
+            <!-- XOR Gate (Yellow Circle) -->
+            <circle cx="710" cy="522" r="14" fill="#F59E0B" stroke="#D97706" stroke-width="2" />
+            <text x="710" y="526" fill="#000000" font-size="9.5" font-weight="900" text-anchor="middle">XOR</text>
+
+            <!-- Branch A: STP Auto-Approved (Left Branch) -->
+            <line x1="696" y1="522" x2="570" y2="522" stroke="#F59E0B" stroke-width="2" />
+            <line x1="570" y1="522" x2="570" y2="546" stroke="#F59E0B" stroke-width="2" marker-end="url(#arrow)" />
+            <rect x="490" y="546" width="160" height="34" rx="6" fill="#047857" stroke="#065F46" stroke-width="1.5" />
+            <text x="570" y="567" fill="#FFFFFF" font-size="10.5" font-weight="800" text-anchor="middle">[08a] STP Auto-Approved</text>
+
+            <!-- Branch B: HITL Review (Right Branch) -->
+            <line x1="724" y1="522" x2="850" y2="522" stroke="#F59E0B" stroke-width="2" />
+            <line x1="850" y1="522" x2="850" y2="546" stroke="#F59E0B" stroke-width="2" marker-end="url(#arrow)" />
+            <rect x="760" y="546" width="180" height="34" rx="6" fill="#D97706" stroke="#B45309" stroke-width="1.5" />
+            <text x="850" y="567" fill="#FFFFFF" font-size="10.5" font-weight="800" text-anchor="middle">[08b] HITL Review Required</text>
+
+            <!-- Arrow from HITL Review to Analyst Copilot -->
+            <line x1="940" y1="563" x2="980" y2="563" stroke="#94A3B8" stroke-width="2" marker-end="url(#arrow-white)" />
+            <rect x="980" y="546" width="160" height="34" rx="6" fill="#10B981" stroke="#047857" stroke-width="1.5" />
+            <text x="1060" y="567" fill="#FFFFFF" font-size="10.5" font-weight="800" text-anchor="middle">[08c] Analyst Copilot</text>
+
+            <!-- Merge Gate V (Yellow Circle) -->
+            <line x1="570" y1="580" x2="570" y2="600" stroke="#F59E0B" stroke-width="2" />
+            <line x1="570" y1="600" x2="696" y2="600" stroke="#F59E0B" stroke-width="2" />
+            <line x1="1060" y1="580" x2="1060" y2="600" stroke="#F59E0B" stroke-width="2" />
+            <line x1="1060" y1="600" x2="724" y2="600" stroke="#F59E0B" stroke-width="2" />
+            
+            <circle cx="710" cy="600" r="14" fill="#F59E0B" stroke="#D97706" stroke-width="2" />
+            <text x="710" y="605" fill="#000000" font-size="11" font-weight="900" text-anchor="middle">V</text>
+
+            <!-- Arrow Down to Function 09 -->
+            <line x1="710" y1="614" x2="710" y2="630" stroke="#00E5FF" stroke-width="2" marker-end="url(#arrow)" />
+
+            <!-- [09] Action Execution Agent (Green Rounded Rect) -->
+            <rect x="580" y="630" width="260" height="36" rx="8" fill="#10B981" stroke="#047857" stroke-width="2" />
+            <text x="710" y="653" fill="#FFFFFF" font-size="11.5" font-weight="800" text-anchor="middle">[09] Action Execution Agent</text>
+
+
+            <!-- ==================== CROSS-SYSTEM CONNECTORS ==================== -->
+            <!-- Ingest: Bank Event 01 to PeX Token Vault Function 02 -->
+            <path d="M 295 140 H 450 V 111 H 580" fill="none" stroke="#00E5FF" stroke-width="2.5" marker-end="url(#arrow)" />
+
+            <!-- Bi-directional Evidence Query: Function 05 to Bank Core -->
+            <path d="M 550 331 H 300" fill="none" stroke="#38BDF8" stroke-width="2" stroke-dasharray="4 3" marker-end="url(#arrow-white)" />
+            <text x="425" y="322" fill="#38BDF8" font-size="9.5" font-weight="700" text-anchor="middle">Query Bank Core CIF</text>
+
+            <!-- Outbound Dispatch: Function 09 back to Bank Event 10 -->
+            <path d="M 580 648 H 400 V 590 H 295" fill="none" stroke="#EA580C" stroke-width="2.5" marker-end="url(#arrow-orange)" />
+            <text x="445" y="582" fill="#EA580C" font-size="10" font-weight="800" text-anchor="middle">Dispatch to Rails</text>
+        </svg>
+    </div>
+
+    <!-- EPC Legend Bar -->
+    <div class="legend-bar">
+        <div class="legend-item">
+            <div class="legend-sample sample-event"></div>
+            <span><b>Event (State / Trigger)</b></span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-sample sample-func"></div>
+            <span><b>Function / AI Agent</b></span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-sample sample-data"></div>
+            <span><b>Information / Data Object</b></span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-sample sample-actor"></div>
+            <span><b>Actor / External System</b></span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-sample sample-gate"></div>
+            <span><b>XOR / V Logical Connector</b></span>
+        </div>
+    </div>
+</body>
+</html>

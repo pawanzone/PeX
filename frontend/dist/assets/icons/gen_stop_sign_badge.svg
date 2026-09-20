@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <circle cx="50" cy="50" r="48" fill="#0070ad"/>
+  <g transform="translate(16, 16) scale(0.68)">
+<!-- Octagonal STOP Sign with Open Hand of Authority -->
+<polygon points="30,14 70,14 86,30 86,70 70,86 30,86 14,70 14,30" stroke="#FFFFFF" stroke-width="4.5" stroke-linejoin="round" fill="none"/>
+<!-- Open Raised Palm -->
+<path d="M36 54 V42 C36 39 39 39 39 42 V52 M43 52 V38 C43 35 46 35 46 38 V52 M50 52 V36 C50 33 53 33 53 36 V52 M57 52 V40 C57 37 60 37 60 40 V54 C60 62 54 68 48 68 C42 68 36 62 36 54 Z" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </g>
+</svg>

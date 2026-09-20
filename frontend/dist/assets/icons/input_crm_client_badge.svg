@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <circle cx="50" cy="50" r="48" fill="#0070ad"/>
+  <g transform="translate(16, 16) scale(0.68)">
+<!-- Central User Profile -->
+<circle cx="50" cy="36" r="14" stroke="#FFFFFF" stroke-width="4.5" fill="none"/>
+<path d="M24 78 C24 64 36 58 50 58 C64 58 76 64 76 78" stroke="#FFFFFF" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+<!-- Surrounding CRM Data Ring / Badges -->
+<path d="M16 42 A38 38 0 0 1 50 12" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round" fill="none" stroke-dasharray="6,4"/>
+<path d="M84 42 A38 38 0 0 1 50 88" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round" fill="none" stroke-dasharray="6,4"/>
+<circle cx="82" cy="30" r="5" fill="#FFFFFF"/>
+<circle cx="18" cy="68" r="5" fill="#FFFFFF"/>
+  </g>
+</svg>

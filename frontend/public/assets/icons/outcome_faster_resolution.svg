@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+<!-- Speed Chronometer with Lightning Strike -->
+<circle cx="50" cy="54" r="34" stroke="#0070ad" stroke-width="4.5" fill="none"/>
+<path d="M46 12 H54 M50 12 V18" stroke="#0070ad" stroke-width="4" stroke-linecap="round"/>
+<path d="M12 36 H20 M8 50 H18 M12 64 H22" stroke="#0070ad" stroke-width="3.5" stroke-linecap="round"/>
+<path d="M54 32 L40 54 H54 L46 76 L66 50 H52 Z" stroke="#0070ad" stroke-width="3" stroke-linejoin="round" fill="none"/>
+</svg>

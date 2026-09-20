@@ -1,0 +1,4 @@
+bank_id,bank_name,country,bic,source_style,event_transport,schema_version
+BANK_A,NorthStar Bank,US,NSBKUS33,REST_POSTGRES,REST,A-1.0
+BANK_B,HarborView Bank,GB,HVBKGB2L,KAFKA_LEGACY,KAFKA,B-7.2
+BANK_C,Summit Financial,DE,SUMMDEFF,NESTED_JSON,MQ,C-3.4

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <!-- FIS Official Typography with Lime Green Accents -->
+<g transform="translate(10, 15)">
+  <text x="36" y="44" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="28" font-weight="900" fill="#FFFFFF" text-anchor="middle" letter-spacing="2">FIS</text>
+  <!-- Signature FIS Accent Dots -->
+  <circle cx="56" cy="22" r="3.5" fill="#6CB33F"/>
+  <circle cx="64" cy="22" r="3.5" fill="#6CB33F"/>
+  <circle cx="72" cy="22" r="3.5" fill="#6CB33F"/>
+</g>
+<text x="50" y="80" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="8" font-weight="700" fill="#6CB33F" text-anchor="middle" letter-spacing="1">BANKING & PAYMENTS</text>
+</svg>

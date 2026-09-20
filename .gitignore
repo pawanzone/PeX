@@ -1,0 +1,33 @@
+# Environments & Virtual Envs
+.venv/
+env/
+venv/
+ENV/
+
+# Node Modules & Frontend Caches
+frontend/node_modules/
+node_modules/
+.npm
+.eslintcache
+
+# Python Bytecode & Pytest
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Databases & Runtime State
+pex_enterprise.db
+*.db-journal
+*.log
+.system_generated/
+
+# Local Backups & Archive Snapshots
+backups/
+*.zip
+
+# IDE & OS Files
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

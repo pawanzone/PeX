@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PeX Vector Icons — Real-Time Color Customizer</title>
+    <style>
+        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        body { background: #151E2F; color: #FFFFFF; margin: 0; padding: 40px 20px; }
+        .header { text-align: center; margin-bottom: 25px; }
+        .header h1 { margin: 0 0 10px 0; font-size: 28px; color: #FFFFFF; }
+        .header p { color: #94A3B8; font-size: 14px; margin: 0; }
+        
+        .controls { display: flex; justify-content: center; align-items: center; gap: 15px; margin-bottom: 35px; background: #2E3649; padding: 14px 25px; border-radius: 12px; width: fit-content; margin-left: auto; margin-right: auto; border: 1px solid #3B5272; position: sticky; top: 15px; z-index: 50; box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+        .controls label { font-size: 14px; font-weight: 600; color: #CBD5E1; }
+        .controls input[type="color"] { border: none; width: 38px; height: 38px; border-radius: 8px; cursor: pointer; background: transparent; }
+        
+        .presets { display: flex; gap: 10px; }
+        .preset-btn { width: 26px; height: 26px; border-radius: 50%; border: 2px solid #FFFFFF; cursor: pointer; transition: transform 0.15s; }
+        .preset-btn:hover { transform: scale(1.2); }
+        
+        .section-heading { max-width: 1100px; margin: 30px auto 15px auto; font-size: 18px; font-weight: bold; color: #38BDF8; border-bottom: 1px solid #334155; padding-bottom: 8px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; max-width: 1100px; margin: 0 auto; }
+        .card { background: #2E3649; border: 1px solid #3B5272; border-radius: 14px; padding: 20px; text-align: center; transition: all 0.2s; display: flex; flex-direction: column; justify-content: space-between; }
+        .card:hover { transform: translateY(-3px); border-color: #5FEB8A; box-shadow: 0 8px 20px rgba(0,0,0,0.35); }
+        
+        .icon-container { width: 80px; height: 80px; margin: 0 auto 12px auto; display: flex; align-items: center; justify-content: center; }
+        .card-title { font-size: 14px; font-weight: bold; margin-bottom: 4px; color: #F1F5F9; }
+        .card-filename { font-size: 11px; font-family: monospace; color: #94A3B8; margin-bottom: 14px; }
+        
+        .btn-group { display: flex; gap: 8px; justify-content: center; }
+        .btn-group button { background: #1E293B; border: 1px solid #475569; color: #F8FAFC; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 500; transition: all 0.15s; }
+        .btn-group button:hover { background: #334155; border-color: #5FEB8A; color: #5FEB8A; }
+        
+        .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #10B981; color: #FFFFFF; padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: bold; display: none; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎨 PeX Vector Icons — Real-Time Color Customizer</h1>
+        <p>Pick any brand color, click a preset, or download customized SVGs directly for PowerPoint, web, and presentations.</p>
+    </div>
+
+    <div class="controls">
+        <label>Icon Color:</label>
+        <input type="color" id="colorPicker" value="#5FEB8A" onchange="updateAllColors(this.value)">
+        <span id="hexLabel" style="font-family: monospace; font-size: 14px; color: #5FEB8A; font-weight: bold;">#5FEB8A</span>
+        
+        <div style="width: 1px; height: 22px; background: #475569; margin: 0 6px;"></div>
+        
+        <label>Presets:</label>
+        <div class="presets">
+            <div class="preset-btn" style="background: #5FEB8A;" title="Emerald Green" onclick="setPreset('#5FEB8A')"></div>
+            <div class="preset-btn" style="background: #2CE2E3;" title="Electric Cyan" onclick="setPreset('#2CE2E3')"></div>
+            <div class="preset-btn" style="background: #38BDF8;" title="Sky Blue" onclick="setPreset('#38BDF8')"></div>
+            <div class="preset-btn" style="background: #F59E0B;" title="Amber Gold" onclick="setPreset('#F59E0B')"></div>
+            <div class="preset-btn" style="background: #FFFFFF;" title="Crisp White" onclick="setPreset('#FFFFFF')"></div>
+        </div>
+    </div>
+
+    
+        <div class="section-heading">Business ROI</div>
+        <div class="grid">
+            
+            <div class="card" id="card-mttr_speed_clock">
+                <div class="icon-container" id="icon-mttr_speed_clock">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <path d="M12 38 H24 M8 50 H20 M14 62 H26" stroke="#5FEB8A" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <circle cx="58" cy="50" r="34" stroke="#5FEB8A" stroke-width="5" fill="none"/>
+  <path d="M54 11 H62 M58 11 V16" stroke="#5FEB8A" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <circle cx="58" cy="50" r="4" fill="#5FEB8A"/>
+  <path d="M58 50 L58 28 M58 50 L76 40" stroke="#5FEB8A" stroke-width="4.5" stroke-linecap="round"/>
+  <path d="M78 20 L86 16 L82 24 L90 22 L76 38 L80 28 Z" fill="#5FEB8A"/>
+</svg>
+                </div>
+                <div class="card-title">MTTR Speed Clock (85%+ Reduction)</div>
+                <div class="card-filename">mttr_speed_clock.svg</div>
+                <div class="btn-group">
+                    <button onclick="copySvg('mttr_speed_clock')">📋 Copy SVG</button>
+                    <button onclick="downloadSvg('mttr_speed_clock')">⬇️ Download</button>
+                </div>
+            </div>
+            
+            <div class="card" id="card-stp_resolution_cycle">
+                <div class="icon-container" id="icon-stp_resolution_cycle">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <path d="M50 16 A34 34 0 0 1 84 50" stroke="#5FEB8A" stroke-width="5" stroke-linecap="round" fill="none"/>
+  <path d="M84 50 A34 34 0 0 1 50 84" stroke="#5FEB8A" stroke-width="5" stroke-linecap="round" fill="none"/>
+  <path d="M50 84 A34 34 0 0 1 16 50" stroke="#5FEB8A" stroke-width="5" stroke-linecap="round" fill="none"/>
+  <path d="M16 50 A34 34 0 0 1 50 16" stroke="#5FEB8A" stroke-width="5" stroke-linecap="round" fill="none"/>
+  <polyline points="76,42 84,50 92,42" stroke="#5FEB8A" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <polyline points="24,58 16,50 8,58" stroke="#5FEB8A" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <circle cx="50" cy="50" r="16" stroke="#5FEB8A" stroke-width="3" stroke-dasharray="4,3" fill="none"/>
+  <path d="M43 50 L48 55 L58 43" stroke="#5FEB8A" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg>
+                </div>
+                <div class="card-title">STP Resolution Cycle (94.2% STP)</div>
+                <div class="card-filename">stp_resolution_cycle.svg</div>
+                <div class="btn-group">
+                    <button onclick="copySvg('stp_resolution_cycle')">📋 Copy SVG</button>
+                    <button onclick="downloadSvg('stp_resolution_cycle')">⬇️ Download</button>
+                </div>
+            </div>
+            
+            <div class="card" id="card-net_savings_dollar">
+                <div class="icon-container" id="icon-net_savings_dollar">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <circle cx="50" cy="34" r="22" stroke="#5FEB8A" stroke-width="4.5" fill="none"/>
+  <path d="M50 20 V48 M55 25 C55 22 45 22 45 28 C45 35 55 33 55 40 C55 46 45 46 45 43" stroke="#5FEB8A" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <path d="M18 72 C28 66 38 68 48 74 L68 74 C78 74 84 66 84 66 C84 66 80 62 70 64 L56 64 C48 60 38 60 28 66 Z" stroke="#5FEB8A" stroke-width="4" stroke-linejoin="round" fill="none"/>
+  <path d="M18 72 L12 84 H32 L38 78" stroke="#5FEB8A" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <path d="M78 22 L84 14 M84 26 L92 22 M80 34 L88 38" stroke="#5FEB8A" stroke-width="3.5" stroke-linecap="round"/>
+</svg>
+                </div>
+                <div class="card-title">Net Savings / Profit ($42 / Case)</div>
+                <div class="card-filename">net_savings_dollar.svg</div>
+                <div class="btn-group">
+                    <button onclick="copySvg('net_savings_dollar')">📋 Copy SVG</button>
+                    <button onclick="downloadSvg('net_savings_dollar')">⬇️ Download</button>
+                </div>
+            </div>
+            
+            <div class="card" id="card-zero_cutoff_penalty">
+                <div class="icon-container" id="icon-zero_cutoff_penalty">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <path d="M26 18 H74 M26 82 H74 M30 18 C30 46 70 54 70 82 M70 18 C70 46 30 54 30 82" stroke="#5FEB8A" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <line x1="38" y1="30" x2="62" y2="30" stroke="#5FEB8A" stroke-width="3" stroke-dasharray="3,3"/>
+  <circle cx="50" cy="50" r="14" fill="#5FEB8A" fill-opacity="0.18"/>
+  <path d="M42 50 L47 55 L58 44" stroke="#5FEB8A" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg>
+                </div>
+                <div class="card-title">Zero Cutoff Penalties (Real-Time SLA)</div>
+                <div class="card-filename">zero_cutoff_penalty.svg</div>
+                <div class="btn-group">
+                    <button onclick="copySvg('zero_cutoff_penalty')">📋 Copy SVG</button>
+                    <button onclick="downloadSvg('zero_cutoff_penalty')">⬇️ Download</button>
+                </div>
+            </div>
+            
+            <div class="card" id="card-high_margin_growth">
+                <div class="icon-container" id="icon-high_margin_growth">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <path d="M16 84 H88 M16 84 V16" stroke="#5FEB8A" stroke-width="4.5" stroke-linecap="round"/>
+  <rect x="26" y="62" width="10" height="22" rx="2" stroke="#5FEB8A" stroke-width="3.5" fill="none"/>
+  <rect x="42" y="48" width="10" height="36" rx="2" stroke="#5FEB8A" stroke-width="3.5" fill="none"/>
+  <rect x="58" y="32" width="10" height="52" rx="2" stroke="#5FEB8A" stroke-width="3.5" fill="none"/>
+  <rect x="74" y="16" width="10" height="68" rx="2" fill="#5FEB8A"/>
+  <path d="M22 66 Q52 46 80 14" stroke="#5FEB8A" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <polyline points="68,14 80,14 80,26" stroke="#5FEB8A" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg>
+                </div>
+                <div class="card-title">High-Margin Asset Growth (4.2x Multiplier)</div>
+                <div class="card-filename">high_margin_growth.svg</div>
+                <div class="btn-group">
+                    <button onclick="copySvg('high_margin_growth')">📋 Copy SVG</button>
+                    <button onclick="downloadSvg('high_margin_growth')">⬇️ Download</button>
+                </div>
+            </div>
+            
+        </div>
+        
+        <div class="section-heading">Institutional Governance</div>
+        <div class="grid">
+            
+            <div class="card" id="card-bank_institution">
+                <div class="icon-container" id="icon-bank_institution">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <!-- Roof Pediment Triangle -->
+  <polygon points="50,14 14,32 86,32" stroke="#5FEB8A" stroke-width="4.5" stroke-linejoin="round" fill="none"/>
+  <!-- Architrave Eaves -->
+  <rect x="18" y="32" width="64" height="6" rx="1.5" stroke="#5FEB8A" stroke-width="3.5" fill="none"/>
+  <!-- 4 Pillars -->
+  <line x1="28" y1="38" x2="28" y2="70" stroke="#5FEB8A" stroke-width="5" stroke-linecap="round"/>
+  <line x1="42" y1="38" x2="42" y2="70" stroke="#5FEB8A" stroke-width="5" stroke-linecap="round"/>
+  <line x1="58" y1="38" x2="58" y2="70" stroke="#5FEB8A" stroke-width="5" stroke-linecap="round"/>
+  <line x1="72" y1="38" x2="72" y2="70" stroke="#5FEB8A" stroke-width="5" stroke-linecap="round"/>
+  <!-- Stepped Base Platform -->
+  <rect x="14" y="70" width="72" height="6" rx="1.5" stroke="#5FEB8A" stroke-width="3.5" fill="none"/>
+  <line x1="10" y1="78" x2="90" y2="78" stroke="#5FEB8A" stroke-width="4.5" stroke-linecap="round"/>
+  <line x1="6" y1="84" x2="94" y2="84" stroke="#5FEB8A" stroke-width="4.5" stroke-linecap="round"/>
+</svg>
+                </div>
+                <div class="card-title">Bank / Institutional Entity</div>
+                <div class="card-filename">bank_institution.svg</div>
+                <div class="btn-group">
+                    <button onclick="copySvg('bank_institution')">📋 Copy SVG</button>
+                    <button onclick="downloadSvg('bank_institution')">⬇️ Download</button>
+                </div>
+            </div>
+            
+            <div class="card" id="card-security_padlock">
+                <div class="icon-container" id="icon-security_padlock">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <!-- Shackle Loop -->
+  <path d="M30,48 V30 C30,18 70,18 70,30 V48" stroke="#5FEB8A" stroke-width="5" stroke-linecap="round" fill="none"/>
+  <!-- Padlock Body -->
+  <rect x="18" y="48" width="64" height="42" rx="8" stroke="#5FEB8A" stroke-width="4.5" fill="none"/>
+  <!-- Keyhole -->
+  <circle cx="50" cy="64" r="5" fill="#5FEB8A"/>
+  <polygon points="47,66 53,66 55,78 45,78" fill="#5FEB8A"/>
+</svg>
+                </div>
+                <div class="card-title">Security Padlock / Encryption</div>
+                <div class="card-filename">security_padlock.svg</div>
+                <div class="btn-group">
+                    <button onclick="copySvg('security_padlock')">📋 Copy SVG</button>
+                    <button onclick="downloadSvg('security_padlock')">⬇️ Download</button>
+                </div>
+            </div>
+            
+            <div class="card" id="card-compliance_scales">
+                <div class="icon-container" id="icon-compliance_scales">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <!-- Center Top Hook & Mast -->
+  <line x1="50" y1="12" x2="50" y2="82" stroke="#5FEB8A" stroke-width="4.5" stroke-linecap="round"/>
+  <circle cx="50" cy="12" r="3.5" fill="#5FEB8A"/>
+  <!-- Cross Beam -->
+  <line x1="18" y1="26" x2="82" y2="26" stroke="#5FEB8A" stroke-width="4.5" stroke-linecap="round"/>
+  <!-- Left Scale Pan -->
+  <line x1="18" y1="26" x2="10" y2="54" stroke="#5FEB8A" stroke-width="3" stroke-linecap="round"/>
+  <line x1="18" y1="26" x2="28" y2="54" stroke="#5FEB8A" stroke-width="3" stroke-linecap="round"/>
+  <path d="M10,54 C10,64 28,64 28,54 Z" stroke="#5FEB8A" stroke-width="3.5" stroke-linejoin="round" fill="none"/>
+  <!-- Right Scale Pan -->
+  <line x1="82" y1="26" x2="72" y2="54" stroke="#5FEB8A" stroke-width="3" stroke-linecap="round"/>
+  <line x1="82" y1="26" x2="90" y2="54" stroke="#5FEB8A" stroke-width="3" stroke-linecap="round"/>
+  <path d="M72,54 C72,64 90,64 90,54 Z" stroke="#5FEB8A" stroke-width="3.5" stroke-linejoin="round" fill="none"/>
+  <!-- Base Stand -->
+  <line x1="32" y1="84" x2="68" y2="84" stroke="#5FEB8A" stroke-width="5" stroke-linecap="round"/>
+</svg>
+                </div>
+                <div class="card-title">Legal & Compliance Scales (OCC/SOX)</div>
+                <div class="card-filename">compliance_scales.svg</div>
+                <div class="btn-group">
+                    <button onclick="copySvg('compliance_scales')">📋 Copy SVG</button>
+                    <button onclick="downloadSvg('compliance_scales')">⬇️ Download</button>
+                </div>
+            </div>
+            
+            <div class="card" id="card-verified_shield">
+                <div class="icon-container" id="icon-verified_shield">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <!-- Shield Outer Shell -->
+  <path d="M50,14 L82,24 C82,56 50,86 50,86 C50,86 18,56 18,24 Z" stroke="#5FEB8A" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round" fill="none"/>
+  <!-- Verified Checkmark -->
+  <polyline points="36,50 46,60 66,38" stroke="#5FEB8A" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg>
+                </div>
+                <div class="card-title">Verified Compliance Shield</div>
+                <div class="card-filename">verified_shield.svg</div>
+                <div class="btn-group">
+                    <button onclick="copySvg('verified_shield')">📋 Copy SVG</button>
+                    <button onclick="downloadSvg('verified_shield')">⬇️ Download</button>
+                </div>
+            </div>
+            
+            <div class="card" id="card-institutional_trust_cluster">
+                <div class="icon-container" id="icon-institutional_trust_cluster">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 140" width="100%" height="100%">
+  <!-- Connecting Dotted Constellation Lines -->
+  <line x1="70" y1="46" x2="70" y2="82" stroke="#5FEB8A" stroke-width="2.5" stroke-dasharray="3,4" stroke-opacity="0.8"/>
+  <line x1="32" y1="82" x2="108" y2="82" stroke="#5FEB8A" stroke-width="2.5" stroke-dasharray="3,4" stroke-opacity="0.8"/>
+  <circle cx="70" cy="82" r="3" fill="#5FEB8A"/>
+  
+  <!-- 1. Top Bank Institution -->
+  <g transform="translate(42, 6) scale(0.56)">
+    <polygon points="50,14 14,32 86,32" stroke="#5FEB8A" stroke-width="5" stroke-linejoin="round" fill="none"/>
+    <rect x="18" y="32" width="64" height="6" rx="1.5" stroke="#5FEB8A" stroke-width="4" fill="none"/>
+    <line x1="28" y1="38" x2="28" y2="68" stroke="#5FEB8A" stroke-width="6" stroke-linecap="round"/>
+    <line x1="42" y1="38" x2="42" y2="68" stroke="#5FEB8A" stroke-width="6" stroke-linecap="round"/>
+    <line x1="58" y1="38" x2="58" y2="68" stroke="#5FEB8A" stroke-width="6" stroke-linecap="round"/>
+    <line x1="72" y1="38" x2="72" y2="68" stroke="#5FEB8A" stroke-width="6" stroke-linecap="round"/>
+    <rect x="14" y="68" width="72" height="6" rx="1.5" stroke="#5FEB8A" stroke-width="4" fill="none"/>
+    <line x1="10" y1="76" x2="90" y2="76" stroke="#5FEB8A" stroke-width="5" stroke-linecap="round"/>
+    <line x1="6" y1="82" x2="94" y2="82" stroke="#5FEB8A" stroke-width="5" stroke-linecap="round"/>
+  </g>
+
+  <!-- 2. Bottom-Left Regulatory Scales -->
+  <g transform="translate(6, 68) scale(0.48)">
+    <line x1="50" y1="12" x2="50" y2="78" stroke="#5FEB8A" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="50" cy="12" r="4" fill="#5FEB8A"/>
+    <line x1="18" y1="26" x2="82" y2="26" stroke="#5FEB8A" stroke-width="5" stroke-linecap="round"/>
+    <line x1="18" y1="26" x2="10" y2="54" stroke="#5FEB8A" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="18" y1="26" x2="28" y2="54" stroke="#5FEB8A" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M10,54 C10,64 28,64 28,54 Z" stroke="#5FEB8A" stroke-width="4" stroke-linejoin="round" fill="none"/>
+    <line x1="82" y1="26" x2="72" y2="54" stroke="#5FEB8A" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="82" y1="26" x2="90" y2="54" stroke="#5FEB8A" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M72,54 C72,64 90,64 90,54 Z" stroke="#5FEB8A" stroke-width="4" stroke-linejoin="round" fill="none"/>
+    <line x1="32" y1="80" x2="68" y2="80" stroke="#5FEB8A" stroke-width="6" stroke-linecap="round"/>
+  </g>
+
+  <!-- 3. Bottom-Center Security Padlock -->
+  <g transform="translate(46, 74) scale(0.48)">
+    <path d="M30,48 V30 C30,18 70,18 70,30 V48" stroke="#5FEB8A" stroke-width="6" stroke-linecap="round" fill="none"/>
+    <rect x="18" y="48" width="64" height="42" rx="8" stroke="#5FEB8A" stroke-width="5" fill="none"/>
+    <circle cx="50" cy="64" r="5" fill="#5FEB8A"/>
+    <polygon points="47,66 53,66 55,78 45,78" fill="#5FEB8A"/>
+  </g>
+
+  <!-- 4. Bottom-Right Verified Shield -->
+  <g transform="translate(86, 68) scale(0.48)">
+    <path d="M50,14 L82,24 C82,56 50,86 50,86 C50,86 18,56 18,24 Z" stroke="#5FEB8A" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="none"/>
+    <polyline points="36,50 46,60 66,38" stroke="#5FEB8A" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </g>
+</svg>
+                </div>
+                <div class="card-title">Institutional Trust Connected Diagram (Full Card 4 Cluster)</div>
+                <div class="card-filename">institutional_trust_cluster.svg</div>
+                <div class="btn-group">
+                    <button onclick="copySvg('institutional_trust_cluster')">📋 Copy SVG</button>
+                    <button onclick="downloadSvg('institutional_trust_cluster')">⬇️ Download</button>
+                </div>
+            </div>
+            
+        </div>
+        
+
+    <div id="toast" class="toast">✓ SVG Copied to Clipboard!</div>
+
+    <script>
+        const iconRawTemplates = {"mttr_speed_clock": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\" width=\"100%\" height=\"100%\">\n  <path d=\"M12 38 H24 M8 50 H20 M14 62 H26\" stroke=\"{COLOR}\" stroke-width=\"4\" stroke-linecap=\"round\" fill=\"none\"/>\n  <circle cx=\"58\" cy=\"50\" r=\"34\" stroke=\"{COLOR}\" stroke-width=\"5\" fill=\"none\"/>\n  <path d=\"M54 11 H62 M58 11 V16\" stroke=\"{COLOR}\" stroke-width=\"4\" stroke-linecap=\"round\" fill=\"none\"/>\n  <circle cx=\"58\" cy=\"50\" r=\"4\" fill=\"{COLOR}\"/>\n  <path d=\"M58 50 L58 28 M58 50 L76 40\" stroke=\"{COLOR}\" stroke-width=\"4.5\" stroke-linecap=\"round\"/>\n  <path d=\"M78 20 L86 16 L82 24 L90 22 L76 38 L80 28 Z\" fill=\"{COLOR}\"/>\n</svg>", "stp_resolution_cycle": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\" width=\"100%\" height=\"100%\">\n  <path d=\"M50 16 A34 34 0 0 1 84 50\" stroke=\"{COLOR}\" stroke-width=\"5\" stroke-linecap=\"round\" fill=\"none\"/>\n  <path d=\"M84 50 A34 34 0 0 1 50 84\" stroke=\"{COLOR}\" stroke-width=\"5\" stroke-linecap=\"round\" fill=\"none\"/>\n  <path d=\"M50 84 A34 34 0 0 1 16 50\" stroke=\"{COLOR}\" stroke-width=\"5\" stroke-linecap=\"round\" fill=\"none\"/>\n  <path d=\"M16 50 A34 34 0 0 1 50 16\" stroke=\"{COLOR}\" stroke-width=\"5\" stroke-linecap=\"round\" fill=\"none\"/>\n  <polyline points=\"76,42 84,50 92,42\" stroke=\"{COLOR}\" stroke-width=\"5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" fill=\"none\"/>\n  <polyline points=\"24,58 16,50 8,58\" stroke=\"{COLOR}\" stroke-width=\"5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" fill=\"none\"/>\n  <circle cx=\"50\" cy=\"50\" r=\"16\" stroke=\"{COLOR}\" stroke-width=\"3\" stroke-dasharray=\"4,3\" fill=\"none\"/>\n  <path d=\"M43 50 L48 55 L58 43\" stroke=\"{COLOR}\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\" fill=\"none\"/>\n</svg>", "net_savings_dollar": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\" width=\"100%\" height=\"100%\">\n  <circle cx=\"50\" cy=\"34\" r=\"22\" stroke=\"{COLOR}\" stroke-width=\"4.5\" fill=\"none\"/>\n  <path d=\"M50 20 V48 M55 25 C55 22 45 22 45 28 C45 35 55 33 55 40 C55 46 45 46 45 43\" stroke=\"{COLOR}\" stroke-width=\"4\" stroke-linecap=\"round\" fill=\"none\"/>\n  <path d=\"M18 72 C28 66 38 68 48 74 L68 74 C78 74 84 66 84 66 C84 66 80 62 70 64 L56 64 C48 60 38 60 28 66 Z\" stroke=\"{COLOR}\" stroke-width=\"4\" stroke-linejoin=\"round\" fill=\"none\"/>\n  <path d=\"M18 72 L12 84 H32 L38 78\" stroke=\"{COLOR}\" stroke-width=\"4\" stroke-linecap=\"round\" fill=\"none\"/>\n  <path d=\"M78 22 L84 14 M84 26 L92 22 M80 34 L88 38\" stroke=\"{COLOR}\" stroke-width=\"3.5\" stroke-linecap=\"round\"/>\n</svg>", "zero_cutoff_penalty": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\" width=\"100%\" height=\"100%\">\n  <path d=\"M26 18 H74 M26 82 H74 M30 18 C30 46 70 54 70 82 M70 18 C70 46 30 54 30 82\" stroke=\"{COLOR}\" stroke-width=\"4.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" fill=\"none\"/>\n  <line x1=\"38\" y1=\"30\" x2=\"62\" y2=\"30\" stroke=\"{COLOR}\" stroke-width=\"3\" stroke-dasharray=\"3,3\"/>\n  <circle cx=\"50\" cy=\"50\" r=\"14\" fill=\"{COLOR}\" fill-opacity=\"0.18\"/>\n  <path d=\"M42 50 L47 55 L58 44\" stroke=\"{COLOR}\" stroke-width=\"5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" fill=\"none\"/>\n</svg>", "high_margin_growth": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\" width=\"100%\" height=\"100%\">\n  <path d=\"M16 84 H88 M16 84 V16\" stroke=\"{COLOR}\" stroke-width=\"4.5\" stroke-linecap=\"round\"/>\n  <rect x=\"26\" y=\"62\" width=\"10\" height=\"22\" rx=\"2\" stroke=\"{COLOR}\" stroke-width=\"3.5\" fill=\"none\"/>\n  <rect x=\"42\" y=\"48\" width=\"10\" height=\"36\" rx=\"2\" stroke=\"{COLOR}\" stroke-width=\"3.5\" fill=\"none\"/>\n  <rect x=\"58\" y=\"32\" width=\"10\" height=\"52\" rx=\"2\" stroke=\"{COLOR}\" stroke-width=\"3.5\" fill=\"none\"/>\n  <rect x=\"74\" y=\"16\" width=\"10\" height=\"68\" rx=\"2\" fill=\"{COLOR}\"/>\n  <path d=\"M22 66 Q52 46 80 14\" stroke=\"{COLOR}\" stroke-width=\"4\" stroke-linecap=\"round\" fill=\"none\"/>\n  <polyline points=\"68,14 80,14 80,26\" stroke=\"{COLOR}\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\" fill=\"none\"/>\n</svg>", "bank_institution": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\" width=\"100%\" height=\"100%\">\n  <!-- Roof Pediment Triangle -->\n  <polygon points=\"50,14 14,32 86,32\" stroke=\"{COLOR}\" stroke-width=\"4.5\" stroke-linejoin=\"round\" fill=\"none\"/>\n  <!-- Architrave Eaves -->\n  <rect x=\"18\" y=\"32\" width=\"64\" height=\"6\" rx=\"1.5\" stroke=\"{COLOR}\" stroke-width=\"3.5\" fill=\"none\"/>\n  <!-- 4 Pillars -->\n  <line x1=\"28\" y1=\"38\" x2=\"28\" y2=\"70\" stroke=\"{COLOR}\" stroke-width=\"5\" stroke-linecap=\"round\"/>\n  <line x1=\"42\" y1=\"38\" x2=\"42\" y2=\"70\" stroke=\"{COLOR}\" stroke-width=\"5\" stroke-linecap=\"round\"/>\n  <line x1=\"58\" y1=\"38\" x2=\"58\" y2=\"70\" stroke=\"{COLOR}\" stroke-width=\"5\" stroke-linecap=\"round\"/>\n  <line x1=\"72\" y1=\"38\" x2=\"72\" y2=\"70\" stroke=\"{COLOR}\" stroke-width=\"5\" stroke-linecap=\"round\"/>\n  <!-- Stepped Base Platform -->\n  <rect x=\"14\" y=\"70\" width=\"72\" height=\"6\" rx=\"1.5\" stroke=\"{COLOR}\" stroke-width=\"3.5\" fill=\"none\"/>\n  <line x1=\"10\" y1=\"78\" x2=\"90\" y2=\"78\" stroke=\"{COLOR}\" stroke-width=\"4.5\" stroke-linecap=\"round\"/>\n  <line x1=\"6\" y1=\"84\" x2=\"94\" y2=\"84\" stroke=\"{COLOR}\" stroke-width=\"4.5\" stroke-linecap=\"round\"/>\n</svg>", "security_padlock": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\" width=\"100%\" height=\"100%\">\n  <!-- Shackle Loop -->\n  <path d=\"M30,48 V30 C30,18 70,18 70,30 V48\" stroke=\"{COLOR}\" stroke-width=\"5\" stroke-linecap=\"round\" fill=\"none\"/>\n  <!-- Padlock Body -->\n  <rect x=\"18\" y=\"48\" width=\"64\" height=\"42\" rx=\"8\" stroke=\"{COLOR}\" stroke-width=\"4.5\" fill=\"none\"/>\n  <!-- Keyhole -->\n  <circle cx=\"50\" cy=\"64\" r=\"5\" fill=\"{COLOR}\"/>\n  <polygon points=\"47,66 53,66 55,78 45,78\" fill=\"{COLOR}\"/>\n</svg>", "compliance_scales": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\" width=\"100%\" height=\"100%\">\n  <!-- Center Top Hook & Mast -->\n  <line x1=\"50\" y1=\"12\" x2=\"50\" y2=\"82\" stroke=\"{COLOR}\" stroke-width=\"4.5\" stroke-linecap=\"round\"/>\n  <circle cx=\"50\" cy=\"12\" r=\"3.5\" fill=\"{COLOR}\"/>\n  <!-- Cross Beam -->\n  <line x1=\"18\" y1=\"26\" x2=\"82\" y2=\"26\" stroke=\"{COLOR}\" stroke-width=\"4.5\" stroke-linecap=\"round\"/>\n  <!-- Left Scale Pan -->\n  <line x1=\"18\" y1=\"26\" x2=\"10\" y2=\"54\" stroke=\"{COLOR}\" stroke-width=\"3\" stroke-linecap=\"round\"/>\n  <line x1=\"18\" y1=\"26\" x2=\"28\" y2=\"54\" stroke=\"{COLOR}\" stroke-width=\"3\" stroke-linecap=\"round\"/>\n  <path d=\"M10,54 C10,64 28,64 28,54 Z\" stroke=\"{COLOR}\" stroke-width=\"3.5\" stroke-linejoin=\"round\" fill=\"none\"/>\n  <!-- Right Scale Pan -->\n  <line x1=\"82\" y1=\"26\" x2=\"72\" y2=\"54\" stroke=\"{COLOR}\" stroke-width=\"3\" stroke-linecap=\"round\"/>\n  <line x1=\"82\" y1=\"26\" x2=\"90\" y2=\"54\" stroke=\"{COLOR}\" stroke-width=\"3\" stroke-linecap=\"round\"/>\n  <path d=\"M72,54 C72,64 90,64 90,54 Z\" stroke=\"{COLOR}\" stroke-width=\"3.5\" stroke-linejoin=\"round\" fill=\"none\"/>\n  <!-- Base Stand -->\n  <line x1=\"32\" y1=\"84\" x2=\"68\" y2=\"84\" stroke=\"{COLOR}\" stroke-width=\"5\" stroke-linecap=\"round\"/>\n</svg>", "verified_shield": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\" width=\"100%\" height=\"100%\">\n  <!-- Shield Outer Shell -->\n  <path d=\"M50,14 L82,24 C82,56 50,86 50,86 C50,86 18,56 18,24 Z\" stroke=\"{COLOR}\" stroke-width=\"4.5\" stroke-linejoin=\"round\" stroke-linecap=\"round\" fill=\"none\"/>\n  <!-- Verified Checkmark -->\n  <polyline points=\"36,50 46,60 66,38\" stroke=\"{COLOR}\" stroke-width=\"5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" fill=\"none\"/>\n</svg>", "institutional_trust_cluster": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 140 140\" width=\"100%\" height=\"100%\">\n  <!-- Connecting Dotted Constellation Lines -->\n  <line x1=\"70\" y1=\"46\" x2=\"70\" y2=\"82\" stroke=\"{COLOR}\" stroke-width=\"2.5\" stroke-dasharray=\"3,4\" stroke-opacity=\"0.8\"/>\n  <line x1=\"32\" y1=\"82\" x2=\"108\" y2=\"82\" stroke=\"{COLOR}\" stroke-width=\"2.5\" stroke-dasharray=\"3,4\" stroke-opacity=\"0.8\"/>\n  <circle cx=\"70\" cy=\"82\" r=\"3\" fill=\"{COLOR}\"/>\n  \n  <!-- 1. Top Bank Institution -->\n  <g transform=\"translate(42, 6) scale(0.56)\">\n    <polygon points=\"50,14 14,32 86,32\" stroke=\"{COLOR}\" stroke-width=\"5\" stroke-linejoin=\"round\" fill=\"none\"/>\n    <rect x=\"18\" y=\"32\" width=\"64\" height=\"6\" rx=\"1.5\" stroke=\"{COLOR}\" stroke-width=\"4\" fill=\"none\"/>\n    <line x1=\"28\" y1=\"38\" x2=\"28\" y2=\"68\" stroke=\"{COLOR}\" stroke-width=\"6\" stroke-linecap=\"round\"/>\n    <line x1=\"42\" y1=\"38\" x2=\"42\" y2=\"68\" stroke=\"{COLOR}\" stroke-width=\"6\" stroke-linecap=\"round\"/>\n    <line x1=\"58\" y1=\"38\" x2=\"58\" y2=\"68\" stroke=\"{COLOR}\" stroke-width=\"6\" stroke-linecap=\"round\"/>\n    <line x1=\"72\" y1=\"38\" x2=\"72\" y2=\"68\" stroke=\"{COLOR}\" stroke-width=\"6\" stroke-linecap=\"round\"/>\n    <rect x=\"14\" y=\"68\" width=\"72\" height=\"6\" rx=\"1.5\" stroke=\"{COLOR}\" stroke-width=\"4\" fill=\"none\"/>\n    <line x1=\"10\" y1=\"76\" x2=\"90\" y2=\"76\" stroke=\"{COLOR}\" stroke-width=\"5\" stroke-linecap=\"round\"/>\n    <line x1=\"6\" y1=\"82\" x2=\"94\" y2=\"82\" stroke=\"{COLOR}\" stroke-width=\"5\" stroke-linecap=\"round\"/>\n  </g>\n\n  <!-- 2. Bottom-Left Regulatory Scales -->\n  <g transform=\"translate(6, 68) scale(0.48)\">\n    <line x1=\"50\" y1=\"12\" x2=\"50\" y2=\"78\" stroke=\"{COLOR}\" stroke-width=\"5\" stroke-linecap=\"round\"/>\n    <circle cx=\"50\" cy=\"12\" r=\"4\" fill=\"{COLOR}\"/>\n    <line x1=\"18\" y1=\"26\" x2=\"82\" y2=\"26\" stroke=\"{COLOR}\" stroke-width=\"5\" stroke-linecap=\"round\"/>\n    <line x1=\"18\" y1=\"26\" x2=\"10\" y2=\"54\" stroke=\"{COLOR}\" stroke-width=\"3.5\" stroke-linecap=\"round\"/>\n    <line x1=\"18\" y1=\"26\" x2=\"28\" y2=\"54\" stroke=\"{COLOR}\" stroke-width=\"3.5\" stroke-linecap=\"round\"/>\n    <path d=\"M10,54 C10,64 28,64 28,54 Z\" stroke=\"{COLOR}\" stroke-width=\"4\" stroke-linejoin=\"round\" fill=\"none\"/>\n    <line x1=\"82\" y1=\"26\" x2=\"72\" y2=\"54\" stroke=\"{COLOR}\" stroke-width=\"3.5\" stroke-linecap=\"round\"/>\n    <line x1=\"82\" y1=\"26\" x2=\"90\" y2=\"54\" stroke=\"{COLOR}\" stroke-width=\"3.5\" stroke-linecap=\"round\"/>\n    <path d=\"M72,54 C72,64 90,64 90,54 Z\" stroke=\"{COLOR}\" stroke-width=\"4\" stroke-linejoin=\"round\" fill=\"none\"/>\n    <line x1=\"32\" y1=\"80\" x2=\"68\" y2=\"80\" stroke=\"{COLOR}\" stroke-width=\"6\" stroke-linecap=\"round\"/>\n  </g>\n\n  <!-- 3. Bottom-Center Security Padlock -->\n  <g transform=\"translate(46, 74) scale(0.48)\">\n    <path d=\"M30,48 V30 C30,18 70,18 70,30 V48\" stroke=\"{COLOR}\" stroke-width=\"6\" stroke-linecap=\"round\" fill=\"none\"/>\n    <rect x=\"18\" y=\"48\" width=\"64\" height=\"42\" rx=\"8\" stroke=\"{COLOR}\" stroke-width=\"5\" fill=\"none\"/>\n    <circle cx=\"50\" cy=\"64\" r=\"5\" fill=\"{COLOR}\"/>\n    <polygon points=\"47,66 53,66 55,78 45,78\" fill=\"{COLOR}\"/>\n  </g>\n\n  <!-- 4. Bottom-Right Verified Shield -->\n  <g transform=\"translate(86, 68) scale(0.48)\">\n    <path d=\"M50,14 L82,24 C82,56 50,86 50,86 C50,86 18,56 18,24 Z\" stroke=\"{COLOR}\" stroke-width=\"5\" stroke-linejoin=\"round\" stroke-linecap=\"round\" fill=\"none\"/>\n    <polyline points=\"36,50 46,60 66,38\" stroke=\"{COLOR}\" stroke-width=\"6\" stroke-linecap=\"round\" stroke-linejoin=\"round\" fill=\"none\"/>\n  </g>\n</svg>"};
+        let currentColor = '#5FEB8A';
+
+        function setPreset(color) {
+            document.getElementById('colorPicker').value = color;
+            updateAllColors(color);
+        }
+
+        function updateAllColors(color) {
+            currentColor = color;
+            document.getElementById('hexLabel').innerText = color.toUpperCase();
+            document.getElementById('hexLabel').style.color = color;
+            
+            for (const key in iconRawTemplates) {
+                const el = document.getElementById('icon-' + key);
+                if (el) {
+                    el.innerHTML = iconRawTemplates[key].replace(/{COLOR}/g, color);
+                }
+            }
+        }
+
+        function copySvg(key) {
+            const svgText = iconRawTemplates[key].replace(/{COLOR}/g, currentColor);
+            navigator.clipboard.writeText(svgText).then(() => {
+                showToast("✓ SVG Code Copied for " + key + " (" + currentColor + ")");
+            });
+        }
+
+        function downloadSvg(key) {
+            const svgText = iconRawTemplates[key].replace(/{COLOR}/g, currentColor);
+            const blob = new Blob([svgText], { type: 'image/svg+xml' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = key + '_' + currentColor.replace('#', '') + '.svg';
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast("⬇️ Downloaded " + a.download);
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.style.display = 'block';
+            setTimeout(() => { t.style.display = 'none'; }, 2200);
+        }
+    </script>
+</body>
+</html>

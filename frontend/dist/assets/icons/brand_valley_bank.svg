@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <!-- Valley Bank Dual Chevrons >> -->
+<g transform="translate(10, 12)">
+  <!-- First Gold Chevron -->
+  <polygon points="20,20 32,34 20,48 28,48 40,34 28,20" fill="#C89D35"/>
+  <!-- Second Navy Chevron -->
+  <polygon points="36,20 48,34 36,48 44,48 56,34 44,20" fill="#0C2340"/>
+</g>
+<text x="50" y="74" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="8.5" font-weight="900" fill="#FFFFFF" text-anchor="middle">Valley Bank</text>
+<text x="50" y="84" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="7" font-weight="600" fill="#C89D35" text-anchor="middle">Regional Bank</text>
+</svg>

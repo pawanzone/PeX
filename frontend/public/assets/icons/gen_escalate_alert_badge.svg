@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <circle cx="50" cy="50" r="48" fill="#0070ad"/>
+  <g transform="translate(16, 16) scale(0.68)">
+<!-- Upward Ascending Escalation Arrow over Multi-Tier Step Ladder -->
+<path d="M18 84 H82" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round"/>
+<path d="M24 84 V64 H40 V44 H56 V24 H72 V84" stroke="#FFFFFF" stroke-width="3.5" fill="none"/>
+<!-- Bold Ascending Arrow -->
+<path d="M22 68 L68 22 M52 22 H68 V38" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

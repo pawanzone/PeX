@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <g transform="translate(10, 10)">
+  <!-- 3-Tier Layer Stack with Cog -->
+  <polygon points="40,12 70,22 40,32 10,22" stroke="#00e5ff" stroke-width="3.5" fill="none" stroke-linejoin="round"/>
+  <polygon points="40,28 70,38 40,48 10,38" stroke="#00e5ff" stroke-width="3.5" fill="none" stroke-linejoin="round"/>
+  <polygon points="40,44 70,54 40,64 10,54" stroke="#00e5ff" stroke-width="3.5" fill="none" stroke-linejoin="round"/>
+  <!-- Central Mini Cog -->
+  <circle cx="40" cy="22" r="4.5" fill="#00e5ff"/>
+  <path d="M40 14 V16 M40 28 V30 M32 22 H34 M46 22 H48" stroke="#00e5ff" stroke-width="2" stroke-linecap="round"/>
+  <!-- Connecting Vertical Axis -->
+  <line x1="40" y1="32" x2="40" y2="44" stroke="#00e5ff" stroke-width="2.5" stroke-dasharray="2 2"/>
+  <line x1="40" y1="48" x2="40" y2="60" stroke="#00e5ff" stroke-width="2.5" stroke-dasharray="2 2"/>
+</g>
+</svg>

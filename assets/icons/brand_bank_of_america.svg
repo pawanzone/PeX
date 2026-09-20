@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <!-- Bank of America Flag Grid -->
+<g transform="translate(12, 10)">
+  <!-- Left Blue Column (3 stripes) -->
+  <rect x="14" y="14" width="20" height="7" rx="1.5" fill="#002D62"/>
+  <rect x="14" y="25" width="20" height="7" rx="1.5" fill="#002D62"/>
+  <rect x="14" y="36" width="20" height="7" rx="1.5" fill="#002D62"/>
+  <!-- Right Red Column (3 stripes) -->
+  <rect x="38" y="14" width="24" height="7" rx="1.5" fill="#E31837"/>
+  <rect x="38" y="25" width="24" height="7" rx="1.5" fill="#E31837"/>
+  <rect x="38" y="36" width="24" height="7" rx="1.5" fill="#E31837"/>
+</g>
+<text x="50" y="72" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="8" font-weight="900" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.5">BANK OF AMERICA</text>
+<text x="50" y="84" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="7" font-weight="600" fill="#E31837" text-anchor="middle">Transaction Services</text>
+</svg>

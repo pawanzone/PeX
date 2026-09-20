@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <!-- Courthouse Pillar Facade with Scales of Justice -->
+<path d="M20 34 L50 16 L80 34 Z" stroke="#00e5ff" stroke-width="4" stroke-linejoin="round" fill="none"/>
+<line x1="20" y1="34" x2="80" y2="34" stroke="#00e5ff" stroke-width="3.5"/>
+<line x1="30" y1="40" x2="30" y2="68" stroke="#00e5ff" stroke-width="4"/>
+<line x1="50" y1="40" x2="50" y2="68" stroke="#00e5ff" stroke-width="4"/>
+<line x1="70" y1="40" x2="70" y2="68" stroke="#00e5ff" stroke-width="4"/>
+<rect x="16" y="70" width="68" height="10" rx="2" stroke="#00e5ff" stroke-width="4" fill="none"/>
+</svg>

@@ -1,0 +1,7 @@
+policy_id,exception_type,title,rule_text,approval_role,effective_date,version
+POL-IBAN-01,INVALID_IBAN,Payment Repair Policy,Validate format/checksum/country; repair only with corroborating beneficiary/history evidence.,OPERATIONS,2026-01-01,1.0
+POL-BIC-01,INVALID_BIC_SWIFT,Routing Repair Policy,Use approved BIC reference and corridor evidence; do not infer unsupported routing.,OPERATIONS,2026-01-01,1.0
+POL-DUP-01,DUPLICATE_PAYMENT,Duplicate Payment Policy,"Compare parties, amount, currency, timing and references; escalate ambiguous matches.",OPERATIONS_RISK,2026-01-01,1.0
+POL-SAN-01,SANCTIONS_HIT,Sanctions Investigation Policy,Potential matches remain on hold until authorized compliance disposition.,COMPLIANCE,2026-01-01,1.0
+POL-KYC-01,KYC_EXPIRED,KYC Remediation Policy,Expired KYC requires remediation; grace periods must be explicitly supported by policy.,KYC_COMPLIANCE,2026-01-01,1.0
+POL-RET-01,RETURNED_PAYMENT,Payment Return Policy,Interpret return code and downstream reason before repair/resubmission.,OPERATIONS,2026-01-01,1.0

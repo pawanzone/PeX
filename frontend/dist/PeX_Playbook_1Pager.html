@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Payment Exception Platform (PeX) Playbook</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #0c1527; color: #f1f5f9; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+    .quadrant-box { background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(51, 65, 85, 0.6); }
+    @media print {
+      body { background-color: white; color: black; }
+      .no-print { display: none; }
+      .quadrant-box { background: #ffffff !important; border: 1px solid #cbd5e1 !important; color: #0f172a !important; }
+      .text-slate-300, .text-slate-400 { color: #334155 !important; }
+      .text-white { color: #0f172a !important; }
+    }
+  </style>
+</head>
+<body class="p-3 md:p-6 min-h-screen flex items-center justify-center">
+
+  <div class="max-w-[1400px] w-full bg-[#091120] border border-slate-800 rounded-3xl p-5 md:p-7 shadow-2xl space-y-4">
+    
+    <!-- Top Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-800 pb-3 gap-3">
+      <div>
+        <h1 class="text-2xl md:text-3xl font-black tracking-tight text-white flex items-center gap-2">
+          <span>The Payment Exception Platform</span>
+          <span class="text-sky-400">(PeX)</span>
+          <span>Playbook</span>
+        </h1>
+        <p class="text-sm text-slate-300 font-medium mt-0.5">
+          Trusted context. Intelligent decisions. Scalable outcomes.
+        </p>
+      </div>
+
+      <div class="flex items-center space-x-3 shrink-0">
+        <span class="px-3 py-1 bg-sky-950/60 border border-sky-500/40 rounded-xl text-xs font-mono text-sky-400 font-bold flex items-center space-x-2">
+          <span class="w-2 h-2 rounded-full bg-sky-400 animate-pulse"></span>
+          <span>ENTERPRISE COGNITIVE OVERLAY</span>
+        </span>
+        <button onclick="window.print()" class="no-print px-3 py-1 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold font-mono transition-all shadow-sm">
+          🖨️ Print Slide
+        </button>
+      </div>
+    </div>
+
+    <!-- 4 Main Quadrants Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+      <!-- ========================================== -->
+      <!-- QUADRANT 1: The Structure                  -->
+      <!-- ========================================== -->
+      <div class="quadrant-box rounded-2xl p-4 flex flex-col justify-between space-y-3 relative overflow-hidden">
+        <div>
+          <div class="flex justify-between items-center mb-1">
+            <h2 class="text-base font-extrabold text-white flex items-center gap-2">
+              <span class="w-6 h-6 rounded-lg bg-sky-600/30 border border-sky-500/50 flex items-center justify-center text-xs font-mono text-sky-300">1</span>
+              <span>The structure</span>
+            </h2>
+            <span class="text-[10px] font-mono uppercase bg-slate-800 text-slate-400 px-2 py-0.5 rounded">Hub & Spoke</span>
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed mb-3">
+            <strong class="text-sky-300">PeX</strong> connects payment rails, canonical schemas, and deterministic decision context to power trusted exception intelligence across transaction banking.
+          </p>
+        </div>
+
+        <!-- Hub and Spoke Interactive Layout -->
+        <div class="grid grid-cols-3 gap-2 items-center text-[11px] py-1">
+          <!-- Left Column (4 Spokes) -->
+          <div class="space-y-2">
+            <div class="bg-slate-900/90 border border-slate-700/70 rounded-xl p-2 shadow-sm">
+              <div class="font-bold text-sky-400 flex items-center gap-1.5">
+                <span>👥</span><span>Client Treasury</span>
+              </div>
+              <div class="text-[10px] text-slate-400">Self-service resolution & portal visibility</div>
+            </div>
+            <div class="bg-slate-900/90 border border-slate-700/70 rounded-xl p-2 shadow-sm">
+              <div class="font-bold text-rose-400 flex items-center gap-1.5">
+                <span>🛡️</span><span>Risk & Compliance</span>
+              </div>
+              <div class="text-[10px] text-slate-400">Controls that build confidence, SR 11-7</div>
+            </div>
+            <div class="bg-slate-900/90 border border-slate-700/70 rounded-xl p-2 shadow-sm">
+              <div class="font-bold text-emerald-400 flex items-center gap-1.5">
+                <span>⚙️</span><span>Operations</span>
+              </div>
+              <div class="text-[10px] text-slate-400">Efficiency that scales, MTTR &lt;3 min</div>
+            </div>
+            <div class="bg-slate-900/90 border border-slate-700/70 rounded-xl p-2 shadow-sm">
+              <div class="font-bold text-amber-400 flex items-center gap-1.5">
+                <span>📊</span><span>Finance & Nostro</span>
+              </div>
+              <div class="text-[10px] text-slate-400">Cutoff protection & fee recovery</div>
+            </div>
+          </div>
+
+          <!-- Center Hub -->
+          <div class="flex flex-col items-center justify-center p-3 text-center">
+            <div class="relative flex items-center justify-center w-28 h-28 rounded-full bg-gradient-to-tr from-sky-900 via-blue-800 to-indigo-900 border-2 border-sky-400/80 shadow-[0_0_25px_rgba(56,189,248,0.35)] p-2">
+              <div class="text-center">
+                <div class="text-xs font-black text-white leading-tight uppercase tracking-wider">PeX</div>
+                <div class="text-[9px] font-bold text-sky-300 leading-tight mt-0.5">Semantic Exception Layer</div>
+              </div>
+            </div>
+            <div class="text-[9px] font-mono text-slate-400 mt-2">18 BIAN Objects</div>
+          </div>
+
+          <!-- Right Column (4 Spokes) -->
+          <div class="space-y-2">
+            <div class="bg-slate-900/90 border border-slate-700/70 rounded-xl p-2 shadow-sm">
+              <div class="font-bold text-purple-400 flex items-center gap-1.5">
+                <span>🗄️</span><span>Data & Knowledge</span>
+              </div>
+              <div class="text-[10px] text-slate-400">18 BIAN tables & ISO 20022 schemas</div>
+            </div>
+            <div class="bg-slate-900/90 border border-slate-700/70 rounded-xl p-2 shadow-sm">
+              <div class="font-bold text-cyan-400 flex items-center gap-1.5">
+                <span>⚡</span><span>Platform & Rails</span>
+              </div>
+              <div class="text-[10px] text-slate-400">SWIFT, Fedwire, CHIPS, TARGET2</div>
+            </div>
+            <div class="bg-slate-900/90 border border-slate-700/70 rounded-xl p-2 shadow-sm">
+              <div class="font-bold text-pink-400 flex items-center gap-1.5">
+                <span>🤖</span><span>Deterministic AI</span>
+              </div>
+              <div class="text-[10px] text-slate-400">Multi-hypothesis ranking & modulo math</div>
+            </div>
+            <div class="bg-slate-900/90 border border-slate-700/70 rounded-xl p-2 shadow-sm">
+              <div class="font-bold text-teal-400 flex items-center gap-1.5">
+                <span>🌐</span><span>Partner Ecosystem</span>
+              </div>
+              <div class="text-[10px] text-slate-400">SSI vaults & correspondent telemetry</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- ========================================== -->
+      <!-- QUADRANT 2: How the Flywheel Works         -->
+      <!-- ========================================== -->
+      <div class="quadrant-box rounded-2xl p-4 flex flex-col justify-between space-y-3 relative overflow-hidden">
+        <div>
+          <div class="flex justify-between items-center mb-1">
+            <h2 class="text-base font-extrabold text-white flex items-center gap-2">
+              <span class="w-6 h-6 rounded-lg bg-sky-600/30 border border-sky-500/50 flex items-center justify-center text-xs font-mono text-sky-300">2</span>
+              <span>How the flywheel works</span>
+            </h2>
+            <span class="text-[10px] font-mono uppercase bg-slate-800 text-slate-400 px-2 py-0.5 rounded">Continuous Cycle</span>
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed mb-2">
+            A continuous cycle that transforms fragmented exception messages into insight, deterministic action, and audit learning.
+          </p>
+        </div>
+
+        <!-- 5-Stage Top Pipeline -->
+        <div class="grid grid-cols-5 gap-1.5 text-center text-[10px] font-bold">
+          <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-2 flex flex-col items-center">
+            <span class="text-base mb-0.5">🌪️</span>
+            <span class="text-sky-300 uppercase">Ingest</span>
+          </div>
+          <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-2 flex flex-col items-center">
+            <span class="text-base mb-0.5">💡</span>
+            <span class="text-emerald-300 uppercase">Understand</span>
+          </div>
+          <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-2 flex flex-col items-center">
+            <span class="text-base mb-0.5">🧠</span>
+            <span class="text-purple-300 uppercase">Reason</span>
+          </div>
+          <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-2 flex flex-col items-center">
+            <span class="text-base mb-0.5">▶️</span>
+            <span class="text-pink-300 uppercase">Act</span>
+          </div>
+          <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-2 flex flex-col items-center">
+            <span class="text-base mb-0.5">📖</span>
+            <span class="text-amber-300 uppercase">Learn</span>
+          </div>
+        </div>
+
+        <!-- Stacked 3-Tier Execution Framework -->
+        <div class="space-y-2 text-[10px]">
+          <!-- Tier 1: Orchestration Layer -->
+          <div class="bg-slate-900/95 border border-sky-500/30 rounded-xl p-2">
+            <div class="flex items-center justify-between font-mono font-bold text-sky-400 mb-1">
+              <span>PeX Orchestration Layer</span>
+              <span class="text-[9px] text-slate-500">Autonomous Execution Bus</span>
+            </div>
+            <div class="grid grid-cols-4 gap-1 text-[9px] font-medium text-slate-300 text-center">
+              <div class="bg-slate-950 p-1 rounded border border-slate-800">Root-Cause Intent</div>
+              <div class="bg-slate-950 p-1 rounded border border-slate-800">Multi-Hypothesis</div>
+              <div class="bg-slate-950 p-1 rounded border border-slate-800">Tool & SSI Access</div>
+              <div class="bg-slate-950 p-1 rounded border border-slate-800">Payload Generation</div>
+            </div>
+          </div>
+
+          <!-- Tier 2: Enterprise Data & Canonical Fabric -->
+          <div class="bg-slate-900/95 border border-purple-500/30 rounded-xl p-2">
+            <div class="flex items-center justify-between font-mono font-bold text-purple-400 mb-1">
+              <span>Enterprise Data & Canonical Fabric</span>
+              <span class="text-[9px] text-slate-500">18 BIAN Core Entities</span>
+            </div>
+            <div class="grid grid-cols-4 gap-1 text-[9px] font-medium text-slate-300 text-center">
+              <div class="bg-slate-950 p-1 rounded border border-slate-800">Structured (MX/MQ)</div>
+              <div class="bg-slate-950 p-1 rounded border border-slate-800">Unstructured Tracers</div>
+              <div class="bg-slate-950 p-1 rounded border border-slate-800">Semantic Graph</div>
+              <div class="bg-slate-950 p-1 rounded border border-slate-800">Master Directories</div>
+            </div>
+          </div>
+
+          <!-- Tier 3: Split Trust & HITL -->
+          <div class="grid grid-cols-2 gap-2 text-[9px]">
+            <div class="bg-slate-900/95 border border-rose-500/30 rounded-xl p-2">
+              <div class="font-mono font-bold text-rose-400 mb-0.5">Trust & Governance</div>
+              <div class="text-slate-400">Zero-Knowledge Token Vault • Guardrails • SHA-256 Audit</div>
+            </div>
+            <div class="bg-slate-900/95 border border-emerald-500/30 rounded-xl p-2">
+              <div class="font-mono font-bold text-emerald-400 mb-0.5">Human-in-the-Loop</div>
+              <div class="text-slate-400">Supervise • Validate • Maker-Checker (≥ $250k Dual-Auth)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- ========================================== -->
+      <!-- QUADRANT 3: The Moats                      -->
+      <!-- ========================================== -->
+      <div class="quadrant-box rounded-2xl p-4 flex flex-col justify-between space-y-3 relative overflow-hidden">
+        <div>
+          <div class="flex justify-between items-center mb-1">
+            <h2 class="text-base font-extrabold text-white flex items-center gap-2">
+              <span class="w-6 h-6 rounded-lg bg-sky-600/30 border border-sky-500/50 flex items-center justify-center text-xs font-mono text-sky-300">3</span>
+              <span>The moats</span>
+            </h2>
+            <span class="text-[10px] font-mono uppercase bg-slate-800 text-slate-400 px-2 py-0.5 rounded">Defensibility</span>
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed mb-2">
+            Durable advantages that make PeX differentiated, defensible, and institutional-grade across global banking.
+          </p>
+        </div>
+
+        <!-- 2D Chart Illustration -->
+        <div class="bg-slate-950/90 border border-slate-800 rounded-xl p-2.5 relative h-28 flex flex-col justify-between overflow-hidden">
+          <div class="flex justify-between items-start text-[9px] font-mono text-slate-400">
+            <span>▲ Business Impact</span>
+            <span class="bg-sky-500/20 text-sky-300 border border-sky-400/40 px-2 py-0.5 rounded font-bold">PeX Advantage Zone (85%+ STP)</span>
+          </div>
+          
+          <!-- SVG Curve -->
+          <svg class="w-full h-16" viewBox="0 0 400 70" preserveAspectRatio="none">
+            <!-- Shaded Area -->
+            <path d="M 0 65 Q 120 60, 200 45 T 380 10 L 380 65 Z" fill="rgba(56, 189, 248, 0.08)" />
+            <!-- Main Curve -->
+            <path d="M 0 65 Q 120 60, 200 45 T 380 10" fill="none" stroke="#38bdf8" stroke-width="2.5" />
+            <!-- Dots -->
+            <circle cx="50" cy="63" r="2.5" fill="#64748b" />
+            <circle cx="110" cy="58" r="2.5" fill="#64748b" />
+            <circle cx="170" cy="50" r="2.5" fill="#64748b" />
+            <circle cx="230" cy="38" r="3" fill="#38bdf8" />
+            <circle cx="290" cy="24" r="3" fill="#38bdf8" />
+            <circle cx="350" cy="14" r="3.5" fill="#0284c7" />
+            <circle cx="380" cy="10" r="4" fill="#38bdf8" class="animate-ping" />
+          </svg>
+
+          <div class="flex justify-between items-end text-[9px] font-mono text-slate-400 border-t border-slate-800/80 pt-1">
+            <span>Low Complexity</span>
+            <span>Differentiation & Defensibility ▶</span>
+          </div>
+        </div>
+
+        <!-- 4 Moat Cards -->
+        <div class="grid grid-cols-4 gap-1.5 text-[9px]">
+          <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-2 space-y-1">
+            <div class="font-bold text-sky-400 flex items-center gap-1 font-mono">
+              <span>💾</span><span>Data Scale</span>
+            </div>
+            <ul class="text-slate-400 space-y-0.5 list-disc list-inside">
+              <li>18 BIAN models</li>
+              <li>Clean lineage</li>
+              <li>Audit provenance</li>
+            </ul>
+          </div>
+
+          <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-2 space-y-1">
+            <div class="font-bold text-emerald-400 flex items-center gap-1 font-mono">
+              <span>🏦</span><span>Domain Depth</span>
+            </div>
+            <ul class="text-slate-400 space-y-0.5 list-disc list-inside">
+              <li>41 pre-built profiles</li>
+              <li>ISO 20022 MX/MT</li>
+              <li>ISO 7064 Modulo</li>
+            </ul>
+          </div>
+
+          <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-2 space-y-1">
+            <div class="font-bold text-purple-400 flex items-center gap-1 font-mono">
+              <span>🤖</span><span>AI & HITL</span>
+            </div>
+            <ul class="text-slate-400 space-y-0.5 list-disc list-inside">
+              <li>Multi-hypothesis</li>
+              <li>Elimination proofs</li>
+              <li>100% Advisory</li>
+            </ul>
+          </div>
+
+          <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-2 space-y-1">
+            <div class="font-bold text-amber-400 flex items-center gap-1 font-mono">
+              <span>🌐</span><span>Network Effects</span>
+            </div>
+            <ul class="text-slate-400 space-y-0.5 list-disc list-inside">
+              <li>Any LLM gateway</li>
+              <li>Policy-as-Code</li>
+              <li>Corridor learning</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- ========================================== -->
+      <!-- QUADRANT 4: The Expansion Play             -->
+      <!-- ========================================== -->
+      <div class="quadrant-box rounded-2xl p-4 flex flex-col justify-between space-y-3 relative overflow-hidden">
+        <div>
+          <div class="flex justify-between items-center mb-1">
+            <h2 class="text-base font-extrabold text-white flex items-center gap-2">
+              <span class="w-6 h-6 rounded-lg bg-sky-600/30 border border-sky-500/50 flex items-center justify-center text-xs font-mono text-sky-300">4</span>
+              <span>The expansion play</span>
+            </h2>
+            <span class="text-[10px] font-mono uppercase bg-slate-800 text-slate-400 px-2 py-0.5 rounded">Growth Roadmap</span>
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed mb-2">
+            Scaling institutional impact across payment rails, exception profiles, and operating jurisdictions.
+          </p>
+        </div>
+
+        <!-- Horizontal Timeline Progression Curve -->
+        <div class="bg-slate-950/90 border border-slate-800 rounded-xl p-2.5 relative space-y-2">
+          <!-- Timeline stages header -->
+          <div class="grid grid-cols-5 text-center text-[10px] font-mono font-bold text-slate-300">
+            <div>
+              <span class="text-sky-400">Launch</span>
+              <div class="text-[8px] text-slate-500 font-normal">1–3 profiles</div>
+            </div>
+            <div>
+              <span class="text-emerald-400">Scale</span>
+              <div class="text-[8px] text-slate-500 font-normal">4–10 profiles</div>
+            </div>
+            <div>
+              <span class="text-purple-400">Expand</span>
+              <div class="text-[8px] text-slate-500 font-normal">11–25 profiles</div>
+            </div>
+            <div>
+              <span class="text-amber-400">Industrialize</span>
+              <div class="text-[8px] text-slate-500 font-normal">25–41 profiles</div>
+            </div>
+            <div>
+              <span class="text-pink-400">Transform</span>
+              <div class="text-[8px] text-slate-500 font-normal">Enterprise-wide</div>
+            </div>
+          </div>
+
+          <!-- Visual S-Curve Track -->
+          <div class="relative flex items-center justify-between px-3 py-1">
+            <div class="absolute left-3 right-3 h-1 bg-slate-800 rounded-full"></div>
+            <div class="absolute left-3 w-3/4 h-1 bg-gradient-to-r from-sky-500 via-purple-500 to-amber-500 rounded-full"></div>
+            
+            <div class="w-3.5 h-3.5 rounded-full bg-sky-500 border-2 border-slate-950 z-10 shadow"></div>
+            <div class="w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-slate-950 z-10 shadow"></div>
+            <div class="w-3.5 h-3.5 rounded-full bg-purple-500 border-2 border-slate-950 z-10 shadow"></div>
+            <div class="w-3.5 h-3.5 rounded-full bg-amber-500 border-2 border-slate-950 z-10 shadow"></div>
+            <div class="w-3.5 h-3.5 rounded-full bg-slate-700 border-2 border-slate-950 z-10 shadow"></div>
+          </div>
+
+          <div class="flex justify-between items-center text-[9px] font-mono text-slate-400 pt-0.5">
+            <span class="text-sky-400 font-bold">📍 Pilot (1 Rail / Corridor)</span>
+            <span class="text-purple-300 font-bold">📍 Regional (2–3 Clearing Rails)</span>
+            <span class="text-slate-400 font-bold">🌐 Global Multi-Rail</span>
+          </div>
+        </div>
+
+        <!-- 5 Capability Expansion Cards -->
+        <div class="grid grid-cols-5 gap-1.5 text-[8.5px]">
+          <div class="bg-slate-900/90 border border-slate-800 rounded-lg p-1.5 space-y-0.5">
+            <div class="font-bold text-sky-400">Client & Treasury</div>
+            <div class="text-slate-400 leading-tight">• Self-service portal</div>
+            <div class="text-slate-400 leading-tight">• Webhook alerts</div>
+          </div>
+          <div class="bg-slate-900/90 border border-slate-800 rounded-lg p-1.5 space-y-0.5">
+            <div class="font-bold text-rose-400">Risk & FCC</div>
+            <div class="text-slate-400 leading-tight">• Disambiguation</div>
+            <div class="text-slate-400 leading-tight">• Corridor parity</div>
+          </div>
+          <div class="bg-slate-900/90 border border-slate-800 rounded-lg p-1.5 space-y-0.5">
+            <div class="font-bold text-emerald-400">Operations</div>
+            <div class="text-slate-400 leading-tight">• Auto-triage dossier</div>
+            <div class="text-slate-400 leading-tight">• BIC & IBAN repair</div>
+          </div>
+          <div class="bg-slate-900/90 border border-slate-800 rounded-lg p-1.5 space-y-0.5">
+            <div class="font-bold text-amber-400">Nostro & Liquidity</div>
+            <div class="text-slate-400 leading-tight">• Cutoff protection</div>
+            <div class="text-slate-400 leading-tight">• Settlement returns</div>
+          </div>
+          <div class="bg-slate-900/90 border border-slate-800 rounded-lg p-1.5 space-y-0.5">
+            <div class="font-bold text-purple-400">Rails & Data</div>
+            <div class="text-slate-400 leading-tight">• Cross-rail gateway</div>
+            <div class="text-slate-400 leading-tight">• "Any LLM" engine</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Bottom Anchor Banner -->
+    <div class="p-3.5 bg-gradient-to-r from-slate-950 via-sky-950/70 to-slate-950 rounded-2xl border border-sky-500/40 text-center space-y-1 shadow-inner">
+      <div class="text-xs md:text-sm font-extrabold text-slate-100">
+        PeX is more than an exception tool — it is the foundation for trusted cognitive transaction banking.
+      </div>
+      <div class="text-[11px] font-mono text-sky-400 font-bold">
+        Context that connects. Intelligence that scales. Outcomes that matter.
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>

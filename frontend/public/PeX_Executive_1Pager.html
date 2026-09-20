@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PeX Executive 1-Pager — Institutional Solution & Architecture Brief</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #0b132b; color: #f8fafc; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+    @media print {
+      body { background-color: white; color: black; }
+      .no-print { display: none; }
+    }
+  </style>
+</head>
+<body class="p-4 md:p-8 min-h-screen flex items-center justify-center">
+
+  <div class="max-w-6xl w-full bg-slate-900/95 border border-slate-800 rounded-3xl p-6 md:p-8 shadow-2xl space-y-6">
+    
+    <!-- Top Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-800 pb-5 gap-4">
+      <div>
+        <div class="flex items-center space-x-2">
+          <span class="text-[10px] font-bold uppercase tracking-widest font-mono bg-sky-500/20 text-sky-400 border border-sky-400/30 px-2.5 py-0.5 rounded">
+            CAPGEMINI FINANCIAL SERVICES • EXECUTIVE ASSET BRIEF
+          </span>
+        </div>
+        <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-white mt-1">
+          PeX: Payment Exception Platform
+        </h1>
+        <p class="text-xs text-slate-400">
+          Cognitive Resolution, Multi-Rail Enrichment & Responsible Governance Overlay for Tier-1 Transaction Banking
+        </p>
+      </div>
+
+      <div class="flex items-center space-x-3 shrink-0">
+        <span class="px-3 py-1.5 bg-slate-800 rounded-xl border border-slate-700 text-xs font-mono text-emerald-400 font-bold flex items-center space-x-2">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span>41 PROFILES • 5 BIAN DOMAINS</span>
+        </span>
+        <button onclick="window.print()" class="no-print px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold font-mono transition-all shadow-sm">
+          🖨️ Print 1-Pager
+        </button>
+      </div>
+    </div>
+
+    <!-- 4 Core Executive Quadrants -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+      <!-- Quadrant 1: Market Drivers & Friction -->
+      <div class="bg-slate-950/80 border border-rose-900/50 rounded-2xl p-5 space-y-3 relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-1.5 h-full bg-rose-500"></div>
+        <div class="flex justify-between items-center pl-1">
+          <span class="text-[11px] font-bold uppercase font-mono text-rose-400 flex items-center space-x-1.5">
+            <span>📊</span>
+            <span>1. MARKET DYNAMICS & INDUSTRY FRICTION</span>
+          </span>
+          <span class="text-[10px] font-mono text-slate-500">The Problem</span>
+        </div>
+        
+        <ul class="space-y-2 text-xs text-slate-300 pl-1">
+          <li class="flex items-start space-x-2">
+            <span class="text-rose-400 font-bold">►</span>
+            <div><strong class="text-white">$20.9B Annual Global Failed Payments Drain:</strong> US and European banks absorb $18.4B annually in manual tracer investigation fees and bilateral correspondent repair charges. <em class="text-slate-400">(LexisNexis Global Treasury Survey)</em></div>
+          </li>
+          <li class="flex items-start space-x-2">
+            <span class="text-rose-400 font-bold">►</span>
+            <div><strong class="text-white">30%–45% Exception Volume Surge (ISO 20022 Mandate):</strong> Elimination of MT103 legacy fallback and strict MX XML schemas (<code class="text-[10px] bg-slate-900 px-1 py-0.5 rounded text-sky-400">&lt;StrtNm&gt;</code>, <code class="text-[10px] bg-slate-900 px-1 py-0.5 rounded text-sky-400">&lt;Purp&gt;</code>) crush straight-through processing. <em class="text-slate-400">(SWIFT PMPG & Celent)</em></div>
+          </li>
+          <li class="flex items-start space-x-2">
+            <span class="text-rose-400 font-bold">►</span>
+            <div><strong class="text-white">$35 to $75 Direct Cost per Exception Ticket:</strong> Swivel-chair operators average 4.5 to 24 hours per exception ticket searching fragmented core banking databases. <em class="text-slate-400">(Capgemini World Payments Report)</em></div>
+          </li>
+          <li class="flex items-start space-x-2">
+            <span class="text-rose-400 font-bold">►</span>
+            <div><strong class="text-white">64% Corporate Client Churn Threat:</strong> Corporate treasury clients cite unnotified exception delays and friction as the #1 reason for switching primary cash management banks. <em class="text-slate-400">(LexisNexis Corporate Treasury Benchmark)</em></div>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Quadrant 2: Targeted Business Impact & Speed -->
+      <div class="bg-slate-950/80 border border-emerald-900/50 rounded-2xl p-5 space-y-3 relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-1.5 h-full bg-emerald-500"></div>
+        <div class="flex justify-between items-center pl-1">
+          <span class="text-[11px] font-bold uppercase font-mono text-emerald-400 flex items-center space-x-1.5">
+            <span>📈</span>
+            <span>2. TARGETED BUSINESS IMPACT & OPERATIONAL VELOCITY</span>
+          </span>
+          <span class="text-[10px] font-mono text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded">Expected ROI</span>
+        </div>
+        
+        <ul class="space-y-2 text-xs text-slate-300 pl-1">
+          <li class="flex items-start space-x-2">
+            <span class="text-emerald-400 font-bold">►</span>
+            <div><strong class="text-white">85%+ STP Rate Restored:</strong> Restores clean straight-through processing rates by deterministically repairing account numbers, BIC routing, and purpose tags prior to clearing cutoff.</div>
+          </li>
+          <li class="flex items-start space-x-2">
+            <span class="text-emerald-400 font-bold">►</span>
+            <div><strong class="text-white">MTTR Slashed to &lt; 3 Minutes (from 24h):</strong> Autonomous 5-step evidentiary dossier assembly and deterministic rule validation cuts triage latency by over 95%.</div>
+          </li>
+          <li class="flex items-start space-x-2">
+            <span class="text-emerald-400 font-bold">►</span>
+            <div><strong class="text-white">4.2x Operator Capacity Multiplier:</strong> Operations teams absorb 4x higher transaction volumes during peak clearing cutoffs without expanding operations headcount. <em class="text-slate-400">(Gartner & Celent FS Benchmark)</em></div>
+          </li>
+          <li class="flex items-start space-x-2">
+            <span class="text-emerald-400 font-bold">►</span>
+            <div><strong class="text-white">Projected 60%–75% Operational Touch-Cost Takeout:</strong> Direct savings on bilateral SWIFT tracer fees ($12–$50/wire) and Federal Reserve late cutoff extension penalties ($1k–$10k/event).</div>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Quadrant 3: Asset Readiness & Structured Phasing -->
+      <div class="bg-slate-950/80 border border-sky-900/50 rounded-2xl p-5 space-y-3 relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-1.5 h-full bg-sky-500"></div>
+        <div class="flex justify-between items-center pl-1">
+          <span class="text-[11px] font-bold uppercase font-mono text-sky-400 flex items-center space-x-1.5">
+            <span>⚡</span>
+            <span>3. ASSET READINESS & 4-PHASE DELIVERY BLUEPRINT</span>
+          </span>
+          <span class="text-[10px] font-mono text-sky-300 font-bold bg-sky-500/10 px-2 py-0.5 rounded">Structured Rollout</span>
+        </div>
+        
+        <ul class="space-y-2 text-xs text-slate-300 pl-1">
+          <li class="flex items-start space-x-2">
+            <span class="text-sky-400 font-bold">►</span>
+            <div><strong class="text-white">41 Pre-Built Exception Taxonomy Profiles:</strong> Immediate 94%+ market coverage across all 5 BIAN Domains (Data Quality, Processing, Compliance, Client Treasury, Settlement Returns).</div>
+          </li>
+          <li class="flex items-start space-x-2">
+            <span class="text-sky-400 font-bold">►</span>
+            <div><strong class="text-white">Universal Multi-Rail Connectivity:</strong> Native adapters for SWIFT CBPR+ (<code class="text-[10px] bg-slate-900 px-1 py-0.5 rounded text-sky-400">pacs.008</code>, <code class="text-[10px] bg-slate-900 px-1 py-0.5 rounded text-sky-400">pacs.004</code>), Fedwire IBM MQ, CHIPS, TARGET2, CHAPS, and central SSI vaults.</div>
+          </li>
+          <li class="flex items-start space-x-2">
+            <span class="text-sky-400 font-bold">►</span>
+            <div><strong class="text-white">Non-Invasive Core Overlay:</strong> Sits cleanly above existing payment engines and ledgers—zero expensive core replacements or legacy disruption.</div>
+          </li>
+          <li class="flex items-start space-x-2">
+            <span class="text-sky-400 font-bold">►</span>
+            <div><strong class="text-white">Proven 4-Phase Path to Live Production:</strong>
+              <div class="text-[11px] text-slate-400 mt-1 grid grid-cols-2 gap-1 font-mono">
+                <div>• Phase 1: Sandbox Pilot (Wks 1–4)</div>
+                <div>• Phase 2: Shadow Evaluation (Wks 5–8)</div>
+                <div>• Phase 3: Governed Assisted (Wks 9–14)</div>
+                <div>• Phase 4: Production Cutover (Wks 15–20)</div>
+              </div>
+            </div>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Quadrant 4: Trust, Governance & Responsible AI -->
+      <div class="bg-slate-950/80 border border-purple-900/50 rounded-2xl p-5 space-y-3 relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-1.5 h-full bg-purple-500"></div>
+        <div class="flex justify-between items-center pl-1">
+          <span class="text-[11px] font-bold uppercase font-mono text-purple-400 flex items-center space-x-1.5">
+            <span>🛡️</span>
+            <span>4. INSTITUTIONAL TRUST & RESPONSIBLE AI</span>
+          </span>
+          <span class="text-[10px] font-mono text-purple-300 font-bold bg-purple-500/10 px-2 py-0.5 rounded">Fed SR 11-7 / EU AI Act</span>
+        </div>
+        
+        <ul class="space-y-2 text-xs text-slate-300 pl-1">
+          <li class="flex items-start space-x-2">
+            <span class="text-purple-400 font-bold">►</span>
+            <div><strong class="text-white">100% Advisory Model (Zero Autonomous Releases):</strong> AI never releases funds unattended; mandatory Maker-Checker RACI & Dual-Auth (≥ $250k) strictly enforced.</div>
+          </li>
+          <li class="flex items-start space-x-2">
+            <span class="text-purple-400 font-bold">►</span>
+            <div><strong class="text-white">Zero-Knowledge Token Vault (Zero Model Training):</strong> PANs, IBANs, and Tax IDs sanitized in-memory before inference; zero customer data retained or trained on.</div>
+          </li>
+          <li class="flex items-start space-x-2">
+            <span class="text-purple-400 font-bold">►</span>
+            <div><strong class="text-white">Deterministic Grounding (0% Hallucination Tolerance):</strong> Modulo check digit math (ISO 7064) and SWIFT master directories replace probabilistic guesswork with 4-part proof.</div>
+          </li>
+          <li class="flex items-start space-x-2">
+            <span class="text-purple-400 font-bold">►</span>
+            <div><strong class="text-white">Supervisory & Audit-Ready:</strong> Aligned to Federal Reserve SR 11-7 model tiering, EU AI Act High-Risk standards, and sealed in an immutable SHA-256 Merkle provenance ledger.</div>
+          </li>
+        </ul>
+      </div>
+
+    </div>
+
+    <!-- 5. NEW FULL-WIDTH HORIZONTAL TECHNICAL ARCHITECTURE SECTION -->
+    <div class="bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border border-sky-500/30 rounded-2xl p-5 space-y-3 relative shadow-inner">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-2">
+        <div class="flex items-center space-x-2">
+          <span class="text-xs font-bold font-mono text-sky-400 uppercase tracking-wider flex items-center space-x-1.5">
+            <span>⚙️</span>
+            <span>5. TECHNICAL ARCHITECTURE & AI DESIGN PRINCIPLES</span>
+          </span>
+          <span class="text-[10px] bg-sky-500/10 text-sky-300 px-2 py-0.5 rounded font-mono border border-sky-500/30">
+            Enterprise Architecture Blueprint
+          </span>
+        </div>
+        <span class="text-[10px] font-mono text-slate-400">
+          Thought-Through AI Engineering • Zero Vendor Lock-In
+        </span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
+        
+        <!-- Pillar A: Canonical Semantic Layer -->
+        <div class="p-3.5 bg-slate-900/90 rounded-xl border border-slate-800 space-y-1.5">
+          <div class="text-sky-400 font-bold font-mono text-[11px] flex items-center space-x-1">
+            <span>🏛️</span>
+            <span>CANONICAL SEMANTIC LAYER</span>
+          </div>
+          <p class="text-slate-300 text-[11px] leading-relaxed">
+            18 BIAN-aligned relational tables normalize fragmented SWIFT MX/MT, Fedwire MQ, and Core Banking formats into a unified transaction graph with zero data loss.
+          </p>
+        </div>
+
+        <!-- Pillar B: Model-Agnostic LLM Gateway -->
+        <div class="p-3.5 bg-slate-900/90 rounded-xl border border-slate-800 space-y-1.5">
+          <div class="text-emerald-400 font-bold font-mono text-[11px] flex items-center space-x-1">
+            <span>🤖</span>
+            <span>"ANY LLM" INTEROPERABILITY</span>
+          </div>
+          <p class="text-slate-300 text-[11px] leading-relaxed">
+            Pluggable Model Gateway supports Google Cloud Vertex (Gemini), Azure OpenAI (GPT-4o), AWS Bedrock (Claude), or private air-gapped on-prem models with strict ZDR.
+          </p>
+        </div>
+
+        <!-- Pillar C: Deterministic Guardrail Kernel -->
+        <div class="p-3.5 bg-slate-900/90 rounded-xl border border-slate-800 space-y-1.5">
+          <div class="text-purple-400 font-bold font-mono text-[11px] flex items-center space-x-1">
+            <span>🎯</span>
+            <span>DETERMINISTIC GUARDRAIL KERNEL</span>
+          </div>
+          <p class="text-slate-300 text-[11px] leading-relaxed">
+            Combines ISO 7064 arithmetic C-engines, real-time ICD adapter buses, and Redis idempotency locks to guarantee mathematical correctness before human review.
+          </p>
+        </div>
+
+        <!-- Pillar D: Cryptographic Audit Provenance -->
+        <div class="p-3.5 bg-slate-900/90 rounded-xl border border-slate-800 space-y-1.5">
+          <div class="text-amber-400 font-bold font-mono text-[11px] flex items-center space-x-1">
+            <span>⛓️</span>
+            <span>SHA-256 PROVENANCE CHAIN</span>
+          </div>
+          <p class="text-slate-300 text-[11px] leading-relaxed">
+            Every diagnostic step, evidence payload, proposed change, and approver signature is hashed and cryptographically linked in an immutable audit ledger.
+          </p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Bottom Proof-Points Footer -->
+    <div class="p-4 bg-slate-950 rounded-2xl border border-slate-800 text-[11px] text-slate-400 flex flex-col md:flex-row justify-between items-center gap-2 font-mono">
+      <div>
+        <span class="text-slate-200 font-bold">Verified Research Citations:</span> LexisNexis Global Treasury Survey • Capgemini World Payments Report (WPR) • SWIFT PMPG 2026 Telemetry • Federal Reserve Circular No. 6
+      </div>
+      <div class="text-sky-400 font-semibold">
+        Capgemini Financial Services • PeX Enterprise
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>
