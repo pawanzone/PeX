@@ -38,7 +38,10 @@ if ingested:
 print("\n=== 5. Test Checker Approval ===")
 pending = [c for c in cases if c["status"] == "PENDING_APPROVAL"]
 if pending:
-    target_case = pending[0]["case_id"]
+    # Pick a case matching standard Operations Approver, or pick matching token
+    target_obj = next((c for c in pending if c.get("queue") != "Compliance" and (c.get("amount", 0) < 250000)), pending[0])
+    target_case = target_obj["case_id"]
+    token_id = "CMP-4420" if target_obj.get("queue") == "Compliance" else "APR-3191"
     appr_resp = api_call(
         "http://127.0.0.1:8000/api/approvals/submit",
         data={
@@ -46,10 +49,10 @@ if pending:
             "action": "APPROVE",
             "comments": "Level 1 authorization verified against persistent database."
         },
-        headers={"Authorization": "Bearer pex-token-APR-3191"},
+        headers={"Authorization": f"Bearer pex-token-{token_id}"},
         method="POST"
     )
-    print(f"Approval for {target_case}: {appr_resp['message']} | Next stage: {appr_resp['next_stage']}")
+    print(f"Approval for {target_case} by {token_id}: {appr_resp['message']} | Next stage: {appr_resp['next_stage']}")
 
 print("\n=== 6. Cryptographic Audit Hash Chain Verification ===")
 chain_verify = api_call("http://127.0.0.1:8000/api/audit/verify-chain")

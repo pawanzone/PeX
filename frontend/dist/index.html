@@ -112,7 +112,7 @@
       const [interactiveTokenDemoInput, setInteractiveTokenDemoInput] = useState("GB82WEST12345698765432");
       const [copiedTokenResult, setCopiedTokenResult] = useState(false);
       const [approvalsFilterMode, setApprovalsFilterMode] = useState("MY_DESK");
-      const [approvalsSubTab, setApprovalsSubTab] = useState("decision");
+      const [approvalsSubTab, setApprovalsSubTab] = useState("timeline");
       const [overviewTableFilter, setOverviewTableFilter] = useState("ACTIONABLE"); // "ACTIONABLE", "ALL_TOP"
       const [isNotificationMenuOpen, setIsNotificationMenuOpen] = useState(false);
       const [isPingSending, setIsPingSending] = useState(false);
@@ -2611,34 +2611,22 @@
                             </div>
                           )}
 
-                          {/* Row C: Segmented Sub-Tab Bar */}
+                          {/* Row C: Segmented Sub-Tab Bar (Chronological Workflow: Audit Timeline -> Checkpoints -> Proofs -> Hypotheses -> AI Rationale) */}
                           <div className="flex border-t border-slate-100 pt-3 space-x-1 font-mono text-xs font-bold overflow-x-auto">
                             <button
-                              onClick={() => setApprovalsSubTab("decision")}
+                              onClick={() => setApprovalsSubTab("timeline")}
                               className={`py-1.5 px-3 rounded-lg transition-all flex items-center space-x-1.5 shrink-0 ${
-                                approvalsSubTab === "decision"
+                                approvalsSubTab === "timeline"
                                   ? "bg-sky-600 text-white shadow-sm"
                                   : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                               }`}
                             >
-                              <span>⚡</span>
-                              <span>AI Rationale & Routing</span>
-                            </button>
-
-                            <button
-                              onClick={() => setApprovalsSubTab("proofs")}
-                              className={`py-1.5 px-3 rounded-lg transition-all flex items-center space-x-1.5 shrink-0 ${
-                                approvalsSubTab === "proofs"
-                                  ? "bg-sky-600 text-white shadow-sm"
-                                  : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-                              }`}
-                            >
-                              <span>🔍</span>
-                              <span>5-Step Proofs</span>
+                              <span>🕒</span>
+                              <span>Audit Timeline</span>
                               <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                                approvalsSubTab === "proofs" ? "bg-sky-800 text-sky-100" : "bg-slate-200 text-slate-700"
+                                approvalsSubTab === "timeline" ? "bg-sky-800 text-sky-100" : "bg-slate-200 text-slate-700"
                               }`}>
-                                {recommendation?.step_by_step_assessment ? `${recommendation.step_by_step_assessment.filter(s => s.is_passed).length}/5` : "0/5"}
+                                {(activeCase.audit_timeline || []).length}
                               </span>
                             </button>
 
@@ -2660,6 +2648,23 @@
                             </button>
 
                             <button
+                              onClick={() => setApprovalsSubTab("proofs")}
+                              className={`py-1.5 px-3 rounded-lg transition-all flex items-center space-x-1.5 shrink-0 ${
+                                approvalsSubTab === "proofs"
+                                  ? "bg-sky-600 text-white shadow-sm"
+                                  : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                              }`}
+                            >
+                              <span>🔍</span>
+                              <span>5-Step Proofs</span>
+                              <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                                approvalsSubTab === "proofs" ? "bg-sky-800 text-sky-100" : "bg-slate-200 text-slate-700"
+                              }`}>
+                                {recommendation?.step_by_step_assessment ? `${recommendation.step_by_step_assessment.filter(s => s.is_passed).length}/5` : "0/5"}
+                              </span>
+                            </button>
+
+                            <button
                               onClick={() => setApprovalsSubTab("hypotheses")}
                               className={`py-1.5 px-3 rounded-lg transition-all flex items-center space-x-1.5 shrink-0 ${
                                 approvalsSubTab === "hypotheses"
@@ -2672,20 +2677,15 @@
                             </button>
 
                             <button
-                              onClick={() => setApprovalsSubTab("timeline")}
+                              onClick={() => setApprovalsSubTab("decision")}
                               className={`py-1.5 px-3 rounded-lg transition-all flex items-center space-x-1.5 shrink-0 ${
-                                approvalsSubTab === "timeline"
+                                approvalsSubTab === "decision"
                                   ? "bg-sky-600 text-white shadow-sm"
                                   : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                               }`}
                             >
-                              <span>🕒</span>
-                              <span>Audit Timeline</span>
-                              <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                                approvalsSubTab === "timeline" ? "bg-sky-800 text-sky-100" : "bg-slate-200 text-slate-700"
-                              }`}>
-                                {(activeCase.audit_timeline || []).length}
-                              </span>
+                              <span>⚡</span>
+                              <span>AI Rationale & Routing</span>
                             </button>
                           </div>
                         </div>
@@ -2696,98 +2696,103 @@
                         <div className="flex-1 overflow-y-auto p-6 space-y-6">
                           <div className="max-w-5xl mx-auto space-y-5">
                             
-                            {/* TAB 1: AI DECISION & RATIONALE */}
-                            {approvalsSubTab === "decision" && (
-                              <div className="space-y-4">
-                                {activeCase.status === "INGESTED" || !recommendation ? (
-                                  <div className="bg-white rounded-2xl border border-dashed border-sky-300 p-8 space-y-4 text-center">
-                                    <div className="w-12 h-12 rounded-full bg-sky-50 text-sky-600 text-2xl flex items-center justify-center mx-auto border border-sky-200">
-                                      ⚡
-                                    </div>
-                                    <div className="space-y-1">
-                                      <h4 className="text-sm font-bold text-slate-800">Governed AI Recommendation: Staged for Generation</h4>
-                                      <p className="text-xs text-slate-500 max-w-md mx-auto">
-                                        Click <strong className="text-sky-700">"⚡ Run Governed AI Repair & Ground Evidence"</strong> in the hero bar above to query external ICD adapters, assemble the evidence dossier, and execute the 5 canonical checks.
-                                      </p>
-                                    </div>
+                            {/* TAB 1: AUDIT TIMELINE & CUSTODY */}
+                            {approvalsSubTab === "timeline" && (
+                              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                                <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+                                  <div className="flex items-center space-x-2 text-slate-900 font-bold text-xs uppercase font-mono tracking-wider">
+                                    <span className="text-base">🕒</span>
+                                    <span>WHO DID WHAT TILL NOW — CASE AUDIT & CUSTODY TIMELINE</span>
                                   </div>
-                                ) : (
-                                  <div className="bg-white rounded-2xl border border-sky-200 shadow-sm overflow-hidden">
-                                    <div className="bg-sky-900 text-white px-6 py-4 flex justify-between items-center">
-                                      <div>
-                                        <h3 className="text-sm font-bold">Governed AI Recommendation: {recommendation.action_type}</h3>
-                                        <p className="text-[11px] text-sky-200">BIAN {activeCase.domain} domain operational standard</p>
-                                      </div>
-
-                                      <span className="text-xs font-mono font-bold text-emerald-400 bg-sky-800 px-3 py-1 rounded-lg border border-emerald-400/40">
-                                        Confidence: {(recommendation.confidence_score * 100).toFixed(1)}%
-                                      </span>
-                                    </div>
-
-                                    <div className="p-6 space-y-5">
-                                      {/* Next Step Routing Advisory */}
-                                      <div className="bg-sky-50 border border-sky-200 rounded-xl p-3.5 flex items-start space-x-2.5 text-xs shadow-sm">
-                                        <span className="text-base leading-none">👉</span>
-                                        <div className="space-y-0.5">
-                                          <strong className="text-sky-900 font-bold uppercase font-mono text-[11px] block">RECOMMENDED NEXT ACTION & ROUTING:</strong>
-                                          <p className="text-slate-800 font-medium">
-                                            {activeCase.status === "INGESTED" && "Analyst (Maker) should review evidence and trigger 'Run AI Repair' before submitting to Approvals Desk."}
-                                            {activeCase.status === "RECOMMENDED" && "AI validation complete. Maker should submit case to Approvals Desk for Checker authorization."}
-                                            {activeCase.status === "RETURNED_FOR_REWORK" && "Action required by Maker (Priya Nair) to update invoice/account details and re-submit to Checker."}
-                                            {activeCase.status === "PENDING_APPROVAL" && (
-                                              activeCase.queue === "Compliance" 
-                                                ? "Route to Compliance Approver (Marisol Vega) for specialized sanctions/KYC clearance." 
-                                                : activeCase.amount >= 250000 
-                                                  ? "Step 1 of 2: Route to Operations Approver (Daniel Osei) for operational verification. Will advance to Tier 2 Risk." 
-                                                  : "Route to Operations Approver (Daniel Osei) for 1-tier approval and final settlement dispatch."
-                                            )}
-                                            {activeCase.status === "AWAITING_SECOND_APPROVAL" && "Step 2 of 2: Route to Risk Approver (Kenji Watanabe) for high-value Dual Authorization sign-off (>= $250,000)."}
-                                            {activeCase.status === "APPROVED" && "All governance approvals complete. Ready for Governed Settlement Dispatch by Operations Lead or System Kernel."}
-                                            {activeCase.status === "SETTLED" && "Case is fully settled and reconciled against external banking ledger. No further human actions required."}
-                                          </p>
-                                        </div>
-                                      </div>
-
-                                      {/* AI Rationale */}
-                                      <div className="space-y-1">
-                                        <span className="text-xs font-bold text-slate-700 uppercase font-mono">AI Reasoning Rationale</span>
-                                        <p className="text-xs text-slate-700 bg-slate-50 p-3.5 rounded-xl border border-slate-200 leading-relaxed">
-                                          {recommendation.rationale}
-                                        </p>
-                                      </div>
-
-                                      {/* Risk Evaluation Matrix */}
-                                      {recommendation.risk_evaluation && (
-                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                          <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl">
-                                            <span className="text-[10px] font-mono text-slate-500 font-bold uppercase">RISK LEVEL</span>
-                                            <div className="text-xs font-bold text-slate-800 mt-0.5">{recommendation.risk_evaluation.risk_level || "MEDIUM"}</div>
-                                          </div>
-                                          <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl">
-                                            <span className="text-[10px] font-mono text-slate-500 font-bold uppercase">RISK SCORE</span>
-                                            <div className="text-xs font-bold text-slate-800 mt-0.5">{((recommendation.risk_evaluation.risk_score || 0.15) * 100).toFixed(0)} / 100</div>
-                                          </div>
-                                          <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl">
-                                            <span className="text-[10px] font-mono text-slate-500 font-bold uppercase">DUAL AUTH REQUIRED</span>
-                                            <div className="text-xs font-bold text-slate-800 mt-0.5">{recommendation.risk_evaluation.dual_auth_required ? "YES (>= $250k)" : "NO"}</div>
-                                          </div>
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-                                )}
-
-                                {/* Privacy boundary */}
-                                <div className="bg-slate-100 border border-slate-200 rounded-xl p-3.5 flex flex-wrap justify-between items-center text-xs text-slate-600 gap-2">
-                                  <span>
-                                    <strong>PII Tokenization Shield:</strong> Debtor Token <code className="text-sky-700">{activeCase.debtor_party?.token_ref || 'TOK-PARTY-...'}</code> | Creditor Token <code className="text-sky-700">{activeCase.creditor_party?.token_ref || 'TOK-PARTY-...'}</code>
+                                  <span className="text-[10px] font-mono text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full font-bold">
+                                    {(activeCase.audit_timeline || []).length} LIFECYCLE STEPS RECORDED
                                   </span>
-                                  <span className="font-mono text-[10px] bg-slate-200 px-2 py-0.5 rounded text-slate-700 font-bold">ZERO PII EXPOSED</span>
+                                </div>
+
+                                <div className="relative pl-6 space-y-3.5 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
+                                  {(activeCase.audit_timeline || []).map((item, idx) => (
+                                    <div key={idx} className="relative flex items-start space-x-3 text-xs">
+                                      <span className="absolute -left-6 top-1 w-5 h-5 rounded-full bg-white border-2 border-sky-500 text-[10px] flex items-center justify-center font-bold shadow-sm">
+                                        {item.icon || "•"}
+                                      </span>
+                                      <div className="flex-1 bg-slate-50 hover:bg-slate-100/70 p-3.5 rounded-xl border border-slate-200 transition-all space-y-1">
+                                        <div className="flex justify-between items-center">
+                                          <div className="flex items-center space-x-2">
+                                            <strong className="text-slate-900 font-bold text-xs">{item.action_title}</strong>
+                                            <span className={`text-[9px] font-bold font-mono px-2 py-0.5 rounded ${
+                                              item.badge_color === "blue" ? "bg-blue-100 text-blue-800" :
+                                              item.badge_color === "emerald" ? "bg-emerald-100 text-emerald-800" :
+                                              item.badge_color === "amber" ? "bg-amber-100 text-amber-800" :
+                                              item.badge_color === "purple" ? "bg-purple-100 text-purple-800" :
+                                              "bg-slate-200 text-slate-700"
+                                            }`}>
+                                              {item.actor_role}
+                                            </span>
+                                            <span className="text-[11px] text-slate-600 font-medium font-mono">({item.actor_name})</span>
+                                          </div>
+                                          <span className="text-[10px] font-mono text-slate-400">
+                                            {new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} UTC
+                                          </span>
+                                        </div>
+                                        <p className="text-[11px] text-slate-600 font-sans mt-0.5">{item.summary}</p>
+                                      </div>
+                                    </div>
+                                  ))}
                                 </div>
                               </div>
                             )}
 
-                            {/* TAB 2: 5-STEP CANONICAL PROOFS */}
+                            {/* TAB 2: OPERATOR CHECKPOINTS */}
+                            {approvalsSubTab === "checkpoints" && (
+                              <div className="bg-sky-50/90 border border-sky-200 rounded-2xl p-5 space-y-3 shadow-sm">
+                                <div className="flex justify-between items-center">
+                                  <div className="flex items-center space-x-2 text-sky-900 font-bold text-xs uppercase font-mono tracking-wider">
+                                    <span className="text-base">🎯</span>
+                                    <span>WHAT YOU SHOULD CHECK ON THIS ERROR ({activeCase.profile})</span>
+                                  </div>
+                                  <span className="text-[10px] font-mono font-bold bg-sky-200/80 text-sky-900 px-2.5 py-0.5 rounded-full border border-sky-300">
+                                    OPERATOR TRIAGE CHECKLIST &rarr; MAPPED TO 5 CANONICAL CHECKS
+                                  </span>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                                  {(activeCase.guided_questions || recommendation?.guided_questions || []).map((gq, idx) => (
+                                    <div key={idx} className="bg-white p-4 rounded-xl border border-sky-200 space-y-2 shadow-sm flex flex-col justify-between">
+                                      <div className="space-y-1">
+                                        <div className="flex justify-between items-center">
+                                          <span className="text-[10px] font-bold text-sky-800 font-mono uppercase bg-sky-50 px-2 py-0.5 rounded border border-sky-100">
+                                            CHECKPOINT #{idx + 1}: {gq.category}
+                                          </span>
+                                        </div>
+                                        <p className="text-xs font-semibold text-slate-800 leading-snug">{gq.question}</p>
+                                        <p className="text-[11px] text-slate-500 italic mt-0.5">SOP Tip: {gq.investigation_tip}</p>
+                                      </div>
+
+                                      <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] font-mono">
+                                        <span className="text-slate-600 font-medium flex items-center space-x-1">
+                                          <span>🔗 Proved by:</span>
+                                          <strong className="text-sky-900 font-bold">
+                                            {idx === 0 ? "Steps 1 & 2 (Directory / Format)" : "Steps 3, 4 & 5 (Ledger / Math / Policy)"}
+                                          </strong>
+                                        </span>
+                                        {activeCase.status === "INGESTED" || !recommendation ? (
+                                          <span className="bg-amber-50 text-amber-800 border border-amber-300 px-2 py-0.5 rounded font-bold">
+                                            ⏳ PENDING AI RUN
+                                          </span>
+                                        ) : (
+                                          <span className="bg-emerald-50 text-emerald-800 border border-emerald-300 px-2 py-0.5 rounded font-bold flex items-center space-x-1">
+                                            <span>✓</span>
+                                            <span>VERIFIED & GROUNDED</span>
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* TAB 3: 5-STEP CANONICAL PROOFS */}
                             {approvalsSubTab === "proofs" && (
                               <div className="space-y-4">
                                 {activeCase.status === "INGESTED" || !recommendation?.step_by_step_assessment ? (
@@ -2895,56 +2900,6 @@
                               </div>
                             )}
 
-                            {/* TAB 3: OPERATOR CHECKPOINTS */}
-                            {approvalsSubTab === "checkpoints" && (
-                              <div className="bg-sky-50/90 border border-sky-200 rounded-2xl p-5 space-y-3 shadow-sm">
-                                <div className="flex justify-between items-center">
-                                  <div className="flex items-center space-x-2 text-sky-900 font-bold text-xs uppercase font-mono tracking-wider">
-                                    <span className="text-base">🎯</span>
-                                    <span>WHAT YOU SHOULD CHECK ON THIS ERROR ({activeCase.profile})</span>
-                                  </div>
-                                  <span className="text-[10px] font-mono font-bold bg-sky-200/80 text-sky-900 px-2.5 py-0.5 rounded-full border border-sky-300">
-                                    OPERATOR TRIAGE CHECKLIST &rarr; MAPPED TO 5 CANONICAL CHECKS
-                                  </span>
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
-                                  {(activeCase.guided_questions || recommendation?.guided_questions || []).map((gq, idx) => (
-                                    <div key={idx} className="bg-white p-4 rounded-xl border border-sky-200 space-y-2 shadow-sm flex flex-col justify-between">
-                                      <div className="space-y-1">
-                                        <div className="flex justify-between items-center">
-                                          <span className="text-[10px] font-bold text-sky-800 font-mono uppercase bg-sky-50 px-2 py-0.5 rounded border border-sky-100">
-                                            CHECKPOINT #{idx + 1}: {gq.category}
-                                          </span>
-                                        </div>
-                                        <p className="text-xs font-semibold text-slate-800 leading-snug">{gq.question}</p>
-                                        <p className="text-[11px] text-slate-500 italic mt-0.5">SOP Tip: {gq.investigation_tip}</p>
-                                      </div>
-
-                                      <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] font-mono">
-                                        <span className="text-slate-600 font-medium flex items-center space-x-1">
-                                          <span>🔗 Proved by:</span>
-                                          <strong className="text-sky-900 font-bold">
-                                            {idx === 0 ? "Steps 1 & 2 (Directory / Format)" : "Steps 3, 4 & 5 (Ledger / Math / Policy)"}
-                                          </strong>
-                                        </span>
-                                        {activeCase.status === "INGESTED" || !recommendation ? (
-                                          <span className="bg-amber-50 text-amber-800 border border-amber-300 px-2 py-0.5 rounded font-bold">
-                                            ⏳ PENDING AI RUN
-                                          </span>
-                                        ) : (
-                                          <span className="bg-emerald-50 text-emerald-800 border border-emerald-300 px-2 py-0.5 rounded font-bold flex items-center space-x-1">
-                                            <span>✓</span>
-                                            <span>VERIFIED & GROUNDED</span>
-                                          </span>
-                                        )}
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-
                             {/* TAB 4: ROOT-CAUSE HYPOTHESES (CONTROL SR-03) */}
                             {approvalsSubTab === "hypotheses" && (
                               <div className="bg-white p-6 rounded-2xl border border-purple-200 shadow-sm space-y-4">
@@ -3025,52 +2980,96 @@
                               </div>
                             )}
 
-                            {/* TAB 5: AUDIT TIMELINE & CUSTODY */}
-                            {approvalsSubTab === "timeline" && (
-                              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                                <div className="flex justify-between items-center border-b border-slate-100 pb-3">
-                                  <div className="flex items-center space-x-2 text-slate-900 font-bold text-xs uppercase font-mono tracking-wider">
-                                    <span className="text-base">🕒</span>
-                                    <span>WHO DID WHAT TILL NOW — CASE AUDIT & CUSTODY TIMELINE</span>
-                                  </div>
-                                  <span className="text-[10px] font-mono text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full font-bold">
-                                    {(activeCase.audit_timeline || []).length} LIFECYCLE STEPS RECORDED
-                                  </span>
-                                </div>
-
-                                <div className="relative pl-6 space-y-3.5 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
-                                  {(activeCase.audit_timeline || []).map((item, idx) => (
-                                    <div key={idx} className="relative flex items-start space-x-3 text-xs">
-                                      <span className="absolute -left-6 top-1 w-5 h-5 rounded-full bg-white border-2 border-sky-500 text-[10px] flex items-center justify-center font-bold shadow-sm">
-                                        {item.icon || "•"}
-                                      </span>
-                                      <div className="flex-1 bg-slate-50 hover:bg-slate-100/70 p-3.5 rounded-xl border border-slate-200 transition-all space-y-1">
-                                        <div className="flex justify-between items-center">
-                                          <div className="flex items-center space-x-2">
-                                            <strong className="text-slate-900 font-bold text-xs">{item.action_title}</strong>
-                                            <span className={`text-[9px] font-bold font-mono px-2 py-0.5 rounded ${
-                                              item.badge_color === "blue" ? "bg-blue-100 text-blue-800" :
-                                              item.badge_color === "emerald" ? "bg-emerald-100 text-emerald-800" :
-                                              item.badge_color === "amber" ? "bg-amber-100 text-amber-800" :
-                                              item.badge_color === "purple" ? "bg-purple-100 text-purple-800" :
-                                              "bg-slate-200 text-slate-700"
-                                            }`}>
-                                              {item.actor_role}
-                                            </span>
-                                            <span className="text-[11px] text-slate-600 font-medium font-mono">({item.actor_name})</span>
-                                          </div>
-                                          <span className="text-[10px] font-mono text-slate-400">
-                                            {new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} UTC
-                                          </span>
-                                        </div>
-                                        <p className="text-[11px] text-slate-600 font-sans mt-0.5">{item.summary}</p>
-                                      </div>
+                            {/* TAB 5: AI DECISION & RATIONALE */}
+                            {approvalsSubTab === "decision" && (
+                              <div className="space-y-4">
+                                {activeCase.status === "INGESTED" || !recommendation ? (
+                                  <div className="bg-white rounded-2xl border border-dashed border-sky-300 p-8 space-y-4 text-center">
+                                    <div className="w-12 h-12 rounded-full bg-sky-50 text-sky-600 text-2xl flex items-center justify-center mx-auto border border-sky-200">
+                                      ⚡
                                     </div>
-                                  ))}
+                                    <div className="space-y-1">
+                                      <h4 className="text-sm font-bold text-slate-800">Governed AI Recommendation: Staged for Generation</h4>
+                                      <p className="text-xs text-slate-500 max-w-md mx-auto">
+                                        Click <strong className="text-sky-700">"⚡ Run Governed AI Repair & Ground Evidence"</strong> in the hero bar above to query external ICD adapters, assemble the evidence dossier, and execute the 5 canonical checks.
+                                      </p>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="bg-white rounded-2xl border border-sky-200 shadow-sm overflow-hidden">
+                                    <div className="bg-sky-900 text-white px-6 py-4 flex justify-between items-center">
+                                      <div>
+                                        <h3 className="text-sm font-bold">Governed AI Recommendation: {recommendation.action_type}</h3>
+                                        <p className="text-[11px] text-sky-200">BIAN {activeCase.domain} domain operational standard</p>
+                                      </div>
+
+                                      <span className="text-xs font-mono font-bold text-emerald-400 bg-sky-800 px-3 py-1 rounded-lg border border-emerald-400/40">
+                                        Confidence: {(recommendation.confidence_score * 100).toFixed(1)}%
+                                      </span>
+                                    </div>
+
+                                    <div className="p-6 space-y-5">
+                                      {/* Next Step Routing Advisory */}
+                                      <div className="bg-sky-50 border border-sky-200 rounded-xl p-3.5 flex items-start space-x-2.5 text-xs shadow-sm">
+                                        <span className="text-base leading-none">👉</span>
+                                        <div className="space-y-0.5">
+                                          <strong className="text-sky-900 font-bold uppercase font-mono text-[11px] block">RECOMMENDED NEXT ACTION & ROUTING:</strong>
+                                          <p className="text-slate-800 font-medium">
+                                            {activeCase.status === "INGESTED" && "Analyst (Maker) should review evidence and trigger 'Run AI Repair' before submitting to Approvals Desk."}
+                                            {activeCase.status === "RECOMMENDED" && "AI validation complete. Maker should submit case to Approvals Desk for Checker authorization."}
+                                            {activeCase.status === "RETURNED_FOR_REWORK" && "Action required by Maker (Priya Nair) to update invoice/account details and re-submit to Checker."}
+                                            {activeCase.status === "PENDING_APPROVAL" && (
+                                              activeCase.queue === "Compliance" 
+                                                ? "Route to Compliance Approver (Marisol Vega) for specialized sanctions/KYC clearance." 
+                                                : activeCase.amount >= 250000 
+                                                  ? "Step 1 of 2: Route to Operations Approver (Daniel Osei) for operational verification. Will advance to Tier 2 Risk." 
+                                                  : "Route to Operations Approver (Daniel Osei) for 1-tier approval and final settlement dispatch."
+                                            )}
+                                            {activeCase.status === "AWAITING_SECOND_APPROVAL" && "Step 2 of 2: Route to Risk Approver (Kenji Watanabe) for high-value Dual Authorization sign-off (>= $250,000)."}
+                                            {activeCase.status === "APPROVED" && "All governance approvals complete. Ready for Governed Settlement Dispatch by Operations Lead or System Kernel."}
+                                            {activeCase.status === "SETTLED" && "Case is fully settled and reconciled against external banking ledger. No further human actions required."}
+                                          </p>
+                                        </div>
+                                      </div>
+
+                                      {/* AI Rationale */}
+                                      <div className="space-y-1">
+                                        <span className="text-xs font-bold text-slate-700 uppercase font-mono">AI Reasoning Rationale</span>
+                                        <p className="text-xs text-slate-700 bg-slate-50 p-3.5 rounded-xl border border-slate-200 leading-relaxed">
+                                          {recommendation.rationale}
+                                        </p>
+                                      </div>
+
+                                      {/* Risk Evaluation Matrix */}
+                                      {recommendation.risk_evaluation && (
+                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                          <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                                            <span className="text-[10px] font-mono text-slate-500 font-bold uppercase">RISK LEVEL</span>
+                                            <div className="text-xs font-bold text-slate-800 mt-0.5">{recommendation.risk_evaluation.risk_level || "MEDIUM"}</div>
+                                          </div>
+                                          <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                                            <span className="text-[10px] font-mono text-slate-500 font-bold uppercase">RISK SCORE</span>
+                                            <div className="text-xs font-bold text-slate-800 mt-0.5">{((recommendation.risk_evaluation.risk_score || 0.15) * 100).toFixed(0)} / 100</div>
+                                          </div>
+                                          <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                                            <span className="text-[10px] font-mono text-slate-500 font-bold uppercase">DUAL AUTH REQUIRED</span>
+                                            <div className="text-xs font-bold text-slate-800 mt-0.5">{recommendation.risk_evaluation.dual_auth_required ? "YES (>= $250k)" : "NO"}</div>
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Privacy boundary */}
+                                <div className="bg-slate-100 border border-slate-200 rounded-xl p-3.5 flex flex-wrap justify-between items-center text-xs text-slate-600 gap-2">
+                                  <span>
+                                    <strong>PII Tokenization Shield:</strong> Debtor Token <code className="text-sky-700">{activeCase.debtor_party?.token_ref || 'TOK-PARTY-...'}</code> | Creditor Token <code className="text-sky-700">{activeCase.creditor_party?.token_ref || 'TOK-PARTY-...'}</code>
+                                  </span>
+                                  <span className="font-mono text-[10px] bg-slate-200 px-2 py-0.5 rounded text-slate-700 font-bold">ZERO PII EXPOSED</span>
                                 </div>
                               </div>
                             )}
-
                           </div>
                         </div>
 
