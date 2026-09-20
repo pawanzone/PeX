@@ -21,7 +21,7 @@ html_content = r'''<!DOCTYPE html>
   <div id="root"></div>
 
   <script type="text/babel">
-    const { useState, useEffect, useMemo } = React;
+    const { useState, useEffect, useMemo, useRef } = React;
 
     // Error Boundary to prevent any crash from blanking out the UI
     class ErrorBoundary extends React.Component {
@@ -159,8 +159,16 @@ html_content = r'''<!DOCTYPE html>
       const [wlSortCol, setWlSortCol] = useState("amount"); // "case_id", "domain", "profile", "amount", "counterparty", "status"
       const [wlSortDir, setWlSortDir] = useState("desc"); // "asc", "desc"
 
+      // Notification Center Ref for Click-Outside Dismissal
+      const notificationMenuRef = useRef(null);
+
       useEffect(() => {
         loadInitialData();
+        const handleClickOutside = (e) => {
+          if (notificationMenuRef.current && !notificationMenuRef.current.contains(e.target)) {
+            setIsNotificationMenuOpen(false);
+          }
+        };
         const handleGlobalKeyDown = (e) => {
           if (e.key === "Escape") {
             setSelectedEvidenceStep(null);
@@ -168,10 +176,15 @@ html_content = r'''<!DOCTYPE html>
             setSelectedAuditEvent(null);
             setIsPersonaModalOpen(false);
             setSettlementReceiptModalCase(null);
+            setIsNotificationMenuOpen(false);
           }
         };
+        document.addEventListener("mousedown", handleClickOutside);
         window.addEventListener("keydown", handleGlobalKeyDown);
-        return () => window.removeEventListener("keydown", handleGlobalKeyDown);
+        return () => {
+          document.removeEventListener("mousedown", handleClickOutside);
+          window.removeEventListener("keydown", handleGlobalKeyDown);
+        };
       }, []);
 
       const loadInitialData = async () => {
@@ -1487,7 +1500,7 @@ html_content = r'''<!DOCTYPE html>
                 </div>
 
                 {/* 🔔 SLA Expedite Notification Center */}
-                <div className="relative">
+                <div className="relative" ref={notificationMenuRef}>
                   <button
                     onClick={() => setIsNotificationMenuOpen(!isNotificationMenuOpen)}
                     className="relative p-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all flex items-center justify-center border border-slate-200"
