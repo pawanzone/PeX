@@ -144,8 +144,8 @@ def run_ai_repair(case_id: str, analyst_id: Optional[str] = Query("OP-9012")):
     }
 
 @router.post("/{case_id}/submit-to-checker")
-def submit_to_checker(case_id: str, analyst_id: str = "OP-9012"):
-    """Analyst Maker Action: Confirms AI proposal and submits to Checker Approvals Queue."""
+def submit_to_checker(case_id: str, analyst_id: str = "OP-9012", notes: Optional[str] = Query(None)):
+    """Analyst Maker Action: Confirms AI proposal and submits to Checker Approvals Queue with optional handover notes."""
     case = repo.get_case(case_id)
     if not case:
         raise HTTPException(status_code=404, detail=f"Case {case_id} not found")
@@ -153,8 +153,11 @@ def submit_to_checker(case_id: str, analyst_id: str = "OP-9012"):
     actor = get_persona(analyst_id or "OP-9012")
     actor_name = actor.name if actor else "Payment Analyst"
     actor_role_str = actor.role.value if actor else "OPERATOR"
-        
+    
+    submission_note = notes.strip() if (notes and notes.strip()) else f"Maker ({actor_name}) reviewed AI repair and submitted case to Approvals Desk for Checker authorization."
+    
     case["status"] = LifecycleStage.PENDING_APPROVAL
+    case["maker_notes"] = submission_note
     if "audit_timeline" not in case:
         case["audit_timeline"] = []
     case["audit_timeline"].append({
@@ -165,7 +168,7 @@ def submit_to_checker(case_id: str, analyst_id: str = "OP-9012"):
         "badge_color": "blue",
         "action_title": "Submitted to Checker Queue",
         "icon": "📤",
-        "summary": f"Maker ({actor_name}) reviewed AI repair and submitted case to Approvals Desk for Checker authorization."
+        "summary": submission_note
     })
     repo.save_case(case)
     
@@ -176,7 +179,7 @@ def submit_to_checker(case_id: str, analyst_id: str = "OP-9012"):
         actor_id=analyst_id,
         actor_role=actor_role_str,
         action_name="SUBMIT_TO_CHECKER",
-        details=f"Maker {actor_name} ({analyst_id}) reviewed AI repair and submitted case {case_id} to Approvals Desk.",
+        details=f"Maker {actor_name} ({analyst_id}) submitted case {case_id} to Approvals Desk. Note: {submission_note}",
         control_tags=["Maker sign-off", "Segregation of duties active", "Pending checker approval"]
     )
     

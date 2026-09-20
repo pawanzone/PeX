@@ -136,11 +136,13 @@ html_content = r'''<!DOCTYPE html>
       const [sops, setSops] = useState([]);
       const [activeSkillsData, setActiveSkillsData] = useState(null);
 
-      // Decision Modal States
+      // Decision & Handover Modal States
       const [decisionModalOpen, setDecisionModalOpen] = useState(false);
       const [pendingActionType, setPendingActionType] = useState(null);
       const [decisionComments, setDecisionComments] = useState("");
       const [makerNotes, setMakerNotes] = useState("");
+      const [makerSubmitModalOpen, setMakerSubmitModalOpen] = useState(false);
+      const [makerSubmitNotes, setMakerSubmitNotes] = useState("");
 
       // Audit Inspection Modal State
       const [selectedAuditEvent, setSelectedAuditEvent] = useState(null);
@@ -878,14 +880,25 @@ html_content = r'''<!DOCTYPE html>
         }
       };
 
-      const handleSubmitToChecker = async () => {
+      const openMakerSubmitModal = () => {
+        if (activeCase?.status === "RETURNED_FOR_REWORK") {
+          setMakerSubmitNotes("Verified updated commercial invoice and confirmed correct beneficiary account details. Resubmitted for Checker sign-off.");
+        } else {
+          setMakerSubmitNotes("Verified against supporting documentation and confirmed repaired beneficiary details. Ready for Checker sign-off.");
+        }
+        setMakerSubmitModalOpen(true);
+      };
+
+      const handleConfirmMakerSubmit = async () => {
         if (!activeCase) return;
+        setMakerSubmitModalOpen(false);
         setActionMsg(null);
         setActionErr(null);
         try {
-          const res = await fetch(`${API_BASE}/cases/${activeCase.case_id}/submit-to-checker?analyst_id=${currentPersona.user_id}`, { method: "POST" }).then(r => r.json());
+          const noteParam = encodeURIComponent(makerSubmitNotes || "");
+          const res = await fetch(`${API_BASE}/cases/${activeCase.case_id}/submit-to-checker?analyst_id=${currentPersona.user_id}&notes=${noteParam}`, { method: "POST" }).then(r => r.json());
           if (res.success) {
-            setActionMsg(`Case ${activeCase.case_id} submitted to Approvals Queue for Checker authorization.`);
+            setActionMsg(`Case ${activeCase.case_id} submitted to Approvals Desk with Maker handover notes.`);
             await refreshCases();
             await loadCaseDetail(activeCase.case_id);
           }
@@ -893,6 +906,8 @@ html_content = r'''<!DOCTYPE html>
           setActionErr(e.message || "Network error");
         }
       };
+
+      const handleSubmitToChecker = openMakerSubmitModal;
 
       const openDecisionModal = (actionType) => {
         setPendingActionType(actionType);
@@ -2398,6 +2413,100 @@ html_content = r'''<!DOCTYPE html>
                             </div>
                           </div>
 
+                          {/* Row B.0: Active Institutional Handover & Comments Callout Banner */}
+                          {(() => {
+                            const timeline = activeCase.audit_timeline || [];
+                            const lastRework = [...timeline].reverse().find(t => (t.action_title || "").includes("Rework") || (t.action_title || "").includes("Returned") || t.badge_color === "amber");
+                            const lastTier1 = [...timeline].reverse().find(t => (t.action_title || "").includes("Approval") || (t.action_title || "").includes("Sign-off") || (t.action_title || "").includes("Approved") || t.badge_color === "emerald" || t.badge_color === "purple");
+                            const lastMaker = [...timeline].reverse().find(t => (t.action_title || "").includes("Submitted") || (t.actor_role || "").includes("MAKER"));
+
+                            if (activeCase.status === "RETURNED_FOR_REWORK") {
+                              return (
+                                <div className="p-3 bg-amber-50 border border-amber-300 rounded-xl flex items-start space-x-2.5 text-xs text-amber-950 shadow-xs">
+                                  <span className="text-base leading-none">⚠️</span>
+                                  <div className="space-y-0.5 flex-1">
+                                    <div className="flex justify-between items-center">
+                                      <span className="font-bold font-mono text-[10px] text-amber-900 uppercase">
+                                        CASE RETURNED FOR REWORK BY {lastRework?.actor_name || "Approver"} ({lastRework?.actor_role || "Operations Approver"}):
+                                      </span>
+                                      <span className="text-[10px] font-mono text-amber-700">
+                                        {lastRework?.timestamp ? new Date(lastRework.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + " UTC" : ""}
+                                      </span>
+                                    </div>
+                                    <p className="font-semibold italic font-sans text-amber-900 text-[11px]">
+                                      "{lastRework?.summary || "Please verify updated commercial invoice number and counterparty standing instructions with client."}"
+                                    </p>
+                                  </div>
+                                </div>
+                              );
+                            }
+
+                            if (activeCase.status === "AWAITING_SECOND_APPROVAL") {
+                              return (
+                                <div className="p-3 bg-purple-50 border border-purple-300 rounded-xl flex items-start space-x-2.5 text-xs text-purple-950 shadow-xs">
+                                  <span className="text-base leading-none">🛡️</span>
+                                  <div className="space-y-0.5 flex-1">
+                                    <div className="flex justify-between items-center">
+                                      <span className="font-bold font-mono text-[10px] text-purple-900 uppercase">
+                                        LEVEL 1 APPROVED BY {lastTier1?.actor_name || "Daniel Osei"} ({lastTier1?.actor_role || "Operations Approver"}) — AWAITING TIER-2 DUAL AUTH:
+                                      </span>
+                                      <span className="text-[10px] font-mono text-purple-700">
+                                        {lastTier1?.timestamp ? new Date(lastTier1.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + " UTC" : ""}
+                                      </span>
+                                    </div>
+                                    <p className="font-semibold italic font-sans text-purple-900 text-[11px]">
+                                      "{lastTier1?.summary || "Level 1 operational verification complete. Mandatory second distinct officer sign-off required (>= $250,000)."}"
+                                    </p>
+                                  </div>
+                                </div>
+                              );
+                            }
+
+                            if (activeCase.status === "PENDING_APPROVAL" && (activeCase.maker_notes || lastMaker)) {
+                              return (
+                                <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl flex items-start space-x-2.5 text-xs text-blue-950 shadow-xs">
+                                  <span className="text-base leading-none">📝</span>
+                                  <div className="space-y-0.5 flex-1">
+                                    <div className="flex justify-between items-center">
+                                      <span className="font-bold font-mono text-[10px] text-blue-900 uppercase">
+                                        MAKER HANDOVER VERIFICATION NOTE ({lastMaker?.actor_name || "Priya Nair"}):
+                                      </span>
+                                      <span className="text-[10px] font-mono text-blue-700">
+                                        {lastMaker?.timestamp ? new Date(lastMaker.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + " UTC" : ""}
+                                      </span>
+                                    </div>
+                                    <p className="font-semibold italic font-sans text-blue-900 text-[11px]">
+                                      "{activeCase.maker_notes || lastMaker?.summary || "Maker reviewed AI repair and submitted case to Approvals Desk."}"
+                                    </p>
+                                  </div>
+                                </div>
+                              );
+                            }
+
+                            if (activeCase.status === "APPROVED" && lastTier1) {
+                              return (
+                                <div className="p-3 bg-emerald-50 border border-emerald-300 rounded-xl flex items-start space-x-2.5 text-xs text-emerald-950 shadow-xs">
+                                  <span className="text-base leading-none">✓</span>
+                                  <div className="space-y-0.5 flex-1">
+                                    <div className="flex justify-between items-center">
+                                      <span className="font-bold font-mono text-[10px] text-emerald-900 uppercase">
+                                        AUTHORIZED FOR CLEARING RELEASE BY {lastTier1?.actor_name || "Approver"} ({lastTier1?.actor_role || "Checker"}):
+                                      </span>
+                                      <span className="text-[10px] font-mono text-emerald-700">
+                                        {lastTier1?.timestamp ? new Date(lastTier1.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + " UTC" : ""}
+                                      </span>
+                                    </div>
+                                    <p className="font-semibold italic font-sans text-emerald-900 text-[11px]">
+                                      "{lastTier1?.summary || "Verified against BIAN standards. Approved for automated clearing dispatch."}"
+                                    </p>
+                                  </div>
+                                </div>
+                              );
+                            }
+
+                            return null;
+                          })()}
+
                           {/* Row B: Side-by-Side Diff + 1-Click Institutional Decision Row */}
                           <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 pt-1 items-stretch">
                             
@@ -2750,7 +2859,10 @@ html_content = r'''<!DOCTYPE html>
                                             {new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} UTC
                                           </span>
                                         </div>
-                                        <p className="text-[11px] text-slate-600 font-sans mt-0.5">{item.summary}</p>
+                                        <div className="mt-1.5 p-2.5 bg-white rounded-lg border border-slate-200 text-[11px] text-slate-800 flex items-start space-x-2 shadow-xs">
+                                          <span className="text-xs text-sky-600 shrink-0 mt-0.5">💬</span>
+                                          <p className="font-sans italic leading-relaxed text-slate-700">"{item.summary}"</p>
+                                        </div>
                                       </div>
                                     </div>
                                   ))}
@@ -5049,6 +5161,68 @@ html_content = r'''<!DOCTYPE html>
                       className="px-5 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl font-bold shadow-md"
                     >
                       Confirm Decision & Sign Audit Trail &rarr;
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Maker Handover Submission Modal */}
+          {makerSubmitModalOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+              <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-lg overflow-hidden">
+                <div className="bg-slate-900 px-6 py-4 text-white flex justify-between items-center">
+                  <div>
+                    <h3 className="text-sm font-bold flex items-center space-x-2">
+                      <span>📤</span>
+                      <span>Submit Case to Approvals Desk</span>
+                    </h3>
+                    <p className="text-[11px] text-slate-400">Maker: {currentPersona.name} ({currentPersona.title})</p>
+                  </div>
+                  <button onClick={() => setMakerSubmitModalOpen(false)} className="text-slate-400 hover:text-white">✕</button>
+                </div>
+                <div className="p-6 space-y-4 text-xs">
+                  <div className="p-3 bg-sky-50 border border-sky-200 rounded-xl space-y-1">
+                    <div className="text-[10px] font-bold text-sky-800 uppercase font-mono">TARGET ROUTING DESTINATION:</div>
+                    <div className="text-xs font-semibold text-slate-800">
+                      {activeCase?.queue === "Compliance"
+                        ? "Compliance Approvals Desk (Marisol Vega — Compliance Approver)"
+                        : activeCase?.amount >= 250000
+                          ? "Tier-1 Operations Approvals Desk (Daniel Osei — Will require Tier-2 Risk Dual-Auth)"
+                          : "Operations Approvals Desk (Daniel Osei — 1-Tier Approval)"}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase font-mono">
+                      MAKER HANDOVER VERIFICATION NOTE / COMMENT
+                    </label>
+                    <textarea
+                      value={makerSubmitNotes}
+                      onChange={e => setMakerSubmitNotes(e.target.value)}
+                      placeholder="Explain what was verified (e.g. supporting invoice, client confirmation, directory lookup)..."
+                      rows="3"
+                      className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-sky-500 focus:outline-none"
+                      required
+                    />
+                    <p className="text-[10px] text-slate-400 mt-1">
+                      This handover note will be permanently sealed into the SHA-256 audit ledger and displayed directly to the Approver.
+                    </p>
+                  </div>
+
+                  <div className="flex justify-end space-x-2 pt-2">
+                    <button
+                      onClick={() => setMakerSubmitModalOpen(false)}
+                      className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleConfirmMakerSubmit}
+                      className="px-5 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl font-bold shadow-md flex items-center space-x-1"
+                    >
+                      <span>Submit to Approver &rarr;</span>
                     </button>
                   </div>
                 </div>
