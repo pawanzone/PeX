@@ -142,6 +142,7 @@ html_content = r'''<!DOCTYPE html>
       const [overviewTableFilter, setOverviewTableFilter] = useState("ACTIONABLE"); // "ACTIONABLE", "ALL_TOP"
       const [overviewDomainFilter, setOverviewDomainFilter] = useState("ALL");
       const [overviewCurrencyFilter, setOverviewCurrencyFilter] = useState("ALL");
+      const [overviewSlaFilter, setOverviewSlaFilter] = useState("ALL"); // "ALL", "CRITICAL_1H", "URGENT_4H", "NORMAL_24H", "BREACHED", "SETTLED"
       const [isNotificationMenuOpen, setIsNotificationMenuOpen] = useState(false);
       const [isPingSending, setIsPingSending] = useState(false);
 
@@ -1683,6 +1684,14 @@ html_content = r'''<!DOCTYPE html>
         } else if (overviewCurrencyFilter !== "ALL" && c.currency !== overviewCurrencyFilter) {
           return false;
         }
+        if (overviewSlaFilter !== "ALL") {
+          const slaCat = getCaseSlaStatus(c, currentTime).category;
+          if (overviewSlaFilter === "SETTLED") {
+            if (c.status !== "SETTLED") return false;
+          } else {
+            if (slaCat !== overviewSlaFilter) return false;
+          }
+        }
         if (overviewTableFilter === "ACTIONABLE") return isMatchingRoleQueue(c);
         return true;
       });
@@ -2213,66 +2222,74 @@ html_content = r'''<!DOCTYPE html>
                         /* MAKER / OPERATOR WORKLOAD COUNTERS (4 CARDS = 94 TOTAL) */
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                           <div 
-                            onClick={() => { setOverviewTableFilter("ACTIONABLE"); }}
-                            className="bg-slate-800/80 hover:bg-slate-800 p-3 rounded-xl border border-slate-700/60 transition-all cursor-pointer group"
+                            onClick={() => { setFilterDimension("lifecycle"); setActiveDimensionFilter("INGESTED"); setWlStatus("All"); setTab("worklist"); }}
+                            className="bg-slate-800/80 hover:bg-slate-800 hover:border-sky-400/60 p-3 rounded-xl border border-slate-700/60 transition-all cursor-pointer group"
+                            title="Click to open Repair Queue filtered to Ingested/Open exceptions"
                           >
                             <div className="text-[10px] uppercase font-mono text-slate-400 flex items-center justify-between">
                               <span>1. AI Repair</span>
-                              <span className="text-xs">⚡</span>
+                              <span className="text-xs group-hover:scale-110 transition-transform">⚡</span>
                             </div>
                             <div className="text-xl font-black font-mono text-sky-400 mt-1">
                               {cases.filter(c => c.status === "INGESTED" || c.status === "RECOMMENDED").length} Cases
                             </div>
-                            <div className="text-[9px] text-slate-400 mt-0.5 truncate">
-                              ${cases.filter(c => c.status === "INGESTED" || c.status === "RECOMMENDED").reduce((acc, c) => acc + (c.amount || 0), 0).toLocaleString(undefined, { maximumFractionDigits: 0 })} Ingested
+                            <div className="text-[9px] text-sky-300/80 mt-0.5 truncate flex items-center justify-between">
+                              <span>${cases.filter(c => c.status === "INGESTED" || c.status === "RECOMMENDED").reduce((acc, c) => acc + (c.amount || 0), 0).toLocaleString(undefined, { maximumFractionDigits: 0 })} Ingested</span>
+                              <span className="text-[8px] opacity-0 group-hover:opacity-100 transition-opacity text-sky-400 font-bold">&rarr;</span>
                             </div>
                           </div>
 
                           <div 
-                            onClick={() => { setSelectedCaseId(cases.find(c => c.status === "RETURNED_FOR_REWORK")?.case_id || null); setTab("approvals"); }}
-                            className="bg-slate-800/80 hover:bg-slate-800 p-3 rounded-xl border border-amber-500/40 transition-all cursor-pointer group bg-gradient-to-br from-slate-800/80 to-amber-950/20"
+                            onClick={() => { setFilterDimension("lifecycle"); setActiveDimensionFilter("RETURNED_FOR_REWORK"); setWlStatus("All"); setTab("worklist"); }}
+                            className="bg-slate-800/80 hover:bg-slate-800 hover:border-amber-400/80 p-3 rounded-xl border border-amber-500/40 transition-all cursor-pointer group bg-gradient-to-br from-slate-800/80 to-amber-950/20"
+                            title="Click to open Repair Queue filtered to Returned for Rework exceptions"
                           >
                             <div className="text-[10px] uppercase font-mono text-amber-400 flex items-center justify-between">
                               <span>2. Rework</span>
-                              <span className="text-xs">⚠️</span>
+                              <span className="text-xs group-hover:scale-110 transition-transform">⚠️</span>
                             </div>
                             <div className="text-xl font-black font-mono text-amber-300 mt-1">
                               {cases.filter(c => c.status === "RETURNED_FOR_REWORK").length} Items
                             </div>
-                            <div className="text-[9px] text-amber-400/80 mt-0.5 truncate">
-                              Checker feedback
+                            <div className="text-[9px] text-amber-400/90 mt-0.5 truncate flex items-center justify-between">
+                              <span>Checker feedback</span>
+                              <span className="text-[8px] opacity-0 group-hover:opacity-100 transition-opacity text-amber-300 font-bold">&rarr;</span>
                             </div>
                           </div>
 
                           <div 
-                            onClick={() => { setTab("worklist"); }}
-                            className="bg-slate-800/80 hover:bg-slate-800 p-3 rounded-xl border border-purple-500/40 transition-all cursor-pointer group"
+                            onClick={() => { setFilterDimension("lifecycle"); setActiveDimensionFilter("PENDING_APPROVAL"); setWlStatus("All"); setTab("worklist"); }}
+                            className="bg-slate-800/80 hover:bg-slate-800 hover:border-purple-400/60 p-3 rounded-xl border border-purple-500/40 transition-all cursor-pointer group"
+                            title="Click to view cases pending Checker Review"
                           >
                             <div className="text-[10px] uppercase font-mono text-purple-400 flex items-center justify-between">
                               <span>3. In Review</span>
-                              <span className="text-xs">⏳</span>
+                              <span className="text-xs group-hover:scale-110 transition-transform">⏳</span>
                             </div>
                             <div className="text-xl font-black font-mono text-purple-300 mt-1">
                               {cases.filter(c => c.status === "PENDING_APPROVAL" || c.status === "AWAITING_SECOND_APPROVAL").length} Cases
                             </div>
-                            <div className="text-[9px] text-slate-400 mt-0.5 truncate">
-                              At Checker Desk
+                            <div className="text-[9px] text-purple-300/80 mt-0.5 truncate flex items-center justify-between">
+                              <span>At Checker Desk</span>
+                              <span className="text-[8px] opacity-0 group-hover:opacity-100 transition-opacity text-purple-300 font-bold">&rarr;</span>
                             </div>
                           </div>
 
                           <div 
-                            onClick={() => { setTab("worklist"); }}
-                            className="bg-slate-800/80 hover:bg-slate-800 p-3 rounded-xl border border-emerald-500/40 transition-all cursor-pointer group bg-gradient-to-br from-slate-800/80 to-emerald-950/20"
+                            onClick={() => { setFilterDimension("lifecycle"); setActiveDimensionFilter("SETTLED"); setWlStatus("All"); setTab("worklist"); }}
+                            className="bg-slate-800/80 hover:bg-slate-800 hover:border-emerald-400/60 p-3 rounded-xl border border-emerald-500/40 transition-all cursor-pointer group bg-gradient-to-br from-slate-800/80 to-emerald-950/20"
+                            title="Click to view Settled and Approved cases"
                           >
                             <div className="text-[10px] uppercase font-mono text-emerald-400 flex items-center justify-between">
                               <span>4. Approved/Done</span>
-                              <span className="text-xs">🏁</span>
+                              <span className="text-xs group-hover:scale-110 transition-transform">🏁</span>
                             </div>
                             <div className="text-xl font-black font-mono text-emerald-300 mt-1">
                               {cases.filter(c => c.status === "APPROVED" || c.status === "SETTLED").length} Cases
                             </div>
-                            <div className="text-[9px] text-emerald-400/80 mt-0.5 truncate">
-                              {cases.filter(c => c.status === "APPROVED").length} Ready • {settledCount} Settled
+                            <div className="text-[9px] text-emerald-400/80 mt-0.5 truncate flex items-center justify-between">
+                              <span>{cases.filter(c => c.status === "APPROVED").length} Ready • {settledCount} Settled</span>
+                              <span className="text-[8px] opacity-0 group-hover:opacity-100 transition-opacity text-emerald-300 font-bold">&rarr;</span>
                             </div>
                           </div>
                         </div>
@@ -2281,7 +2298,8 @@ html_content = r'''<!DOCTYPE html>
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                           <div 
                             onClick={() => setStpBatchDrawerOpen(true)}
-                            className="bg-slate-800/80 hover:bg-slate-800 p-3 rounded-xl border border-amber-500/50 transition-all cursor-pointer group bg-gradient-to-br from-slate-800/80 to-amber-950/30 shadow-inner"
+                            className="bg-slate-800/80 hover:bg-slate-800 hover:border-amber-400 p-3 rounded-xl border border-amber-500/50 transition-all cursor-pointer group bg-gradient-to-br from-slate-800/80 to-amber-950/30 shadow-inner"
+                            title="Click to open 1-Click Fast-Lane Batch Release Drawer"
                           >
                             <div className="text-[10px] uppercase font-mono text-amber-400 flex items-center justify-between">
                               <span className="font-bold">1. Fast-Lane</span>
@@ -2290,56 +2308,71 @@ html_content = r'''<!DOCTYPE html>
                             <div className="text-xl font-black font-mono text-amber-300 mt-1">
                               {stpEligibleCases.length} Cases
                             </div>
-                            <div className="text-[9px] text-slate-300 mt-0.5 truncate">
-                              ${stpEligibleCases.reduce((acc, c) => acc + (c.amount || 0), 0).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} Ready
+                            <div className="text-[9px] text-amber-300/80 mt-0.5 truncate flex items-center justify-between">
+                              <span>${stpEligibleCases.reduce((acc, c) => acc + (c.amount || 0), 0).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} Ready</span>
+                              <span className="text-[8px] opacity-0 group-hover:opacity-100 transition-opacity text-amber-300 font-bold">&rarr;</span>
                             </div>
                           </div>
 
                           <div 
-                            onClick={() => setTab("approvals")}
-                            className="bg-slate-800/80 hover:bg-slate-800 p-3 rounded-xl border border-sky-500/40 transition-all cursor-pointer group"
+                            onClick={() => {
+                              const topPending = cases.find(c => isMatchingApprovalsDeskQueue(c));
+                              if (topPending) {
+                                setSelectedCaseId(topPending.case_id);
+                                loadCaseDetail(topPending.case_id);
+                              }
+                              setApprovalsFilterMode("MY_DESK");
+                              setTab("approvals");
+                            }}
+                            className="bg-slate-800/80 hover:bg-slate-800 hover:border-sky-400 p-3 rounded-xl border border-sky-500/40 transition-all cursor-pointer group ring-1 ring-sky-400/30"
+                            title="Click to open My Approvals Desk (Actionable exceptions for me)"
                           >
                             <div className="text-[10px] uppercase font-mono text-sky-400 flex items-center justify-between">
-                              <span>2. Approvals</span>
-                              <span className="text-xs">📋</span>
+                              <span className="font-bold">2. Approvals Desk</span>
+                              <span className="text-xs group-hover:scale-110 transition-transform">📋</span>
                             </div>
                             <div className="text-xl font-black font-mono text-sky-300 mt-1">
                               {cases.filter(c => isMatchingApprovalsDeskQueue(c)).length} Cases
                             </div>
-                            <div className="text-[9px] text-slate-400 mt-0.5 truncate">
-                              ${cases.filter(c => isMatchingApprovalsDeskQueue(c)).reduce((acc, c) => acc + (c.amount || 0), 0).toLocaleString(undefined, { maximumFractionDigits: 0 })} Value
+                            <div className="text-[9px] text-sky-300/80 mt-0.5 truncate flex items-center justify-between">
+                              <span>${cases.filter(c => isMatchingApprovalsDeskQueue(c)).reduce((acc, c) => acc + (c.amount || 0), 0).toLocaleString(undefined, { maximumFractionDigits: 0 })} Value</span>
+                              <span className="text-[8px] opacity-0 group-hover:opacity-100 transition-opacity text-sky-300 font-bold">&rarr;</span>
                             </div>
                           </div>
 
                           <div 
-                            onClick={() => { setTab("worklist"); }}
-                            className="bg-slate-800/80 hover:bg-slate-800 p-3 rounded-xl border border-purple-500/40 transition-all cursor-pointer group"
+                            onClick={() => { setFilterDimension("role"); setActiveDimensionFilter("IN_REVIEW_OTHERS"); setWlStatus("All"); setTab("worklist"); }}
+                            className="bg-slate-800/80 hover:bg-slate-800 hover:border-purple-400/60 p-3 rounded-xl border border-purple-500/40 transition-all cursor-pointer group"
+                            title="Click to view exceptions currently in Maker Preparation Queue"
                           >
                             <div className="text-[10px] uppercase font-mono text-purple-400 flex items-center justify-between">
                               <span>3. Maker Prep</span>
-                              <span className="text-xs">⚙️</span>
+                              <span className="text-xs group-hover:scale-110 transition-transform">⚙️</span>
                             </div>
                             <div className="text-xl font-black font-mono text-purple-300 mt-1">
                               {cases.filter(c => c.status === "INGESTED" || c.status === "RECOMMENDED" || c.status === "RETURNED_FOR_REWORK").length} Cases
                             </div>
-                            <div className="text-[9px] text-slate-400 mt-0.5 truncate">
-                              Open in Maker queue
+                            <div className="text-[9px] text-purple-300/80 mt-0.5 truncate flex items-center justify-between">
+                              <span>Open in Maker queue</span>
+                              <span className="text-[8px] opacity-0 group-hover:opacity-100 transition-opacity text-purple-300 font-bold">&rarr;</span>
                             </div>
                           </div>
 
                           <div 
-                            onClick={() => { setTab("worklist"); }}
-                            className="bg-slate-800/80 hover:bg-slate-800 p-3 rounded-xl border border-emerald-500/40 transition-all cursor-pointer group bg-gradient-to-br from-slate-800/80 to-emerald-950/20"
+                            onClick={() => { setFilterDimension("lifecycle"); setActiveDimensionFilter("SETTLED"); setWlStatus("All"); setTab("worklist"); }}
+                            className="bg-slate-800/80 hover:bg-slate-800 hover:border-emerald-400/60 p-3 rounded-xl border border-emerald-500/40 transition-all cursor-pointer group bg-gradient-to-br from-slate-800/80 to-emerald-950/20"
+                            title="Click to view Settled and Approved cases"
                           >
                             <div className="text-[10px] uppercase font-mono text-emerald-400 flex items-center justify-between">
                               <span>4. Settled/Done</span>
-                              <span className="text-xs">🏁</span>
+                              <span className="text-xs group-hover:scale-110 transition-transform">🏁</span>
                             </div>
                             <div className="text-xl font-black font-mono text-emerald-300 mt-1">
                               {cases.filter(c => c.status === "APPROVED" || c.status === "SETTLED").length} Cases
                             </div>
-                            <div className="text-[9px] text-emerald-400/80 mt-0.5 truncate">
-                              {cases.filter(c => c.status === "APPROVED").length} Ready • {settledCount} Settled
+                            <div className="text-[9px] text-emerald-400/80 mt-0.5 truncate flex items-center justify-between">
+                              <span>{cases.filter(c => c.status === "APPROVED").length} Ready • {settledCount} Settled</span>
+                              <span className="text-[8px] opacity-0 group-hover:opacity-100 transition-opacity text-emerald-300 font-bold">&rarr;</span>
                             </div>
                           </div>
                         </div>
@@ -2607,52 +2640,117 @@ html_content = r'''<!DOCTYPE html>
 
                     {/* Right Side: 5-State SLA Cutoff Urgency Quick Counters (Sums to 94 Total) */}
                     <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-mono">
-                      <span className="px-2 py-0.5 rounded-lg bg-rose-50 text-rose-800 border border-rose-200 font-bold" title="Critical: Less than 1 hour to RTGS clearing deadline">
+                      <span className="text-slate-400 font-bold uppercase text-[9px] mr-0.5">SLA Cutoff:</span>
+                      
+                      <button 
+                        onClick={() => setOverviewSlaFilter(overviewSlaFilter === "CRITICAL_1H" ? "ALL" : "CRITICAL_1H")}
+                        className={`px-2 py-0.5 rounded-lg border font-bold transition-all cursor-pointer ${
+                          overviewSlaFilter === "CRITICAL_1H" 
+                            ? "bg-rose-600 text-white border-rose-700 ring-2 ring-rose-400 shadow-sm font-extrabold" 
+                            : "bg-rose-50 hover:bg-rose-100 text-rose-800 border-rose-200"
+                        }`}
+                        title="Click to filter dashboard table by Critical SLA (<1h to clearing deadline)"
+                      >
                         🔴 &lt;1h: {cases.filter(c => getCaseSlaStatus(c, currentTime).category === "CRITICAL_1H").length}
-                      </span>
-                      <span className="px-2 py-0.5 rounded-lg bg-amber-50 text-amber-800 border border-amber-200 font-bold" title="Urgent: 1 to 4 hours to clearing cutoff">
+                      </button>
+
+                      <button 
+                        onClick={() => setOverviewSlaFilter(overviewSlaFilter === "URGENT_4H" ? "ALL" : "URGENT_4H")}
+                        className={`px-2 py-0.5 rounded-lg border font-bold transition-all cursor-pointer ${
+                          overviewSlaFilter === "URGENT_4H" 
+                            ? "bg-amber-600 text-white border-amber-700 ring-2 ring-amber-400 shadow-sm font-extrabold" 
+                            : "bg-amber-50 hover:bg-amber-100 text-amber-800 border-amber-200"
+                        }`}
+                        title="Click to filter dashboard table by Urgent SLA (1 to 4h to clearing cutoff)"
+                      >
                         🟡 1-4h: {cases.filter(c => getCaseSlaStatus(c, currentTime).category === "URGENT_4H").length}
-                      </span>
-                      <span className="px-2 py-0.5 rounded-lg bg-slate-50 text-slate-700 border border-slate-200" title="Safe SLA operating buffer">
+                      </button>
+
+                      <button 
+                        onClick={() => setOverviewSlaFilter(overviewSlaFilter === "NORMAL_24H" ? "ALL" : "NORMAL_24H")}
+                        className={`px-2 py-0.5 rounded-lg border font-semibold transition-all cursor-pointer ${
+                          overviewSlaFilter === "NORMAL_24H" 
+                            ? "bg-slate-800 text-white border-slate-900 ring-2 ring-slate-400 shadow-sm font-extrabold" 
+                            : "bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200"
+                        }`}
+                        title="Click to filter dashboard table by Safe SLA operating buffer"
+                      >
                         🟢 Safe: {cases.filter(c => getCaseSlaStatus(c, currentTime).category === "NORMAL_24H").length}
-                      </span>
-                      <span className="px-2 py-0.5 rounded-lg bg-rose-100 text-rose-900 border border-rose-300 font-bold" title="SLA target exceeded">
+                      </button>
+
+                      <button 
+                        onClick={() => setOverviewSlaFilter(overviewSlaFilter === "BREACHED" ? "ALL" : "BREACHED")}
+                        className={`px-2 py-0.5 rounded-lg border font-bold transition-all cursor-pointer ${
+                          overviewSlaFilter === "BREACHED" 
+                            ? "bg-red-700 text-white border-red-800 ring-2 ring-red-400 shadow-sm font-extrabold" 
+                            : "bg-rose-100 hover:bg-rose-200 text-rose-900 border border-rose-300"
+                        }`}
+                        title="Click to filter dashboard table by Overdue / Breached SLA"
+                      >
                         ⚠️ Overdue: {cases.filter(c => getCaseSlaStatus(c, currentTime).category === "BREACHED").length}
-                      </span>
-                      <span className="px-2 py-0.5 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold" title="Settled & closed">
+                      </button>
+
+                      <button 
+                        onClick={() => setOverviewSlaFilter(overviewSlaFilter === "SETTLED" ? "ALL" : "SETTLED")}
+                        className={`px-2 py-0.5 rounded-lg border font-bold transition-all cursor-pointer ${
+                          overviewSlaFilter === "SETTLED" 
+                            ? "bg-emerald-700 text-white border-emerald-800 ring-2 ring-emerald-400 shadow-sm font-extrabold" 
+                            : "bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200"
+                        }`}
+                        title="Click to filter dashboard table by Settled cases"
+                      >
                         🏁 Settled: {settledCount}
-                      </span>
+                      </button>
+
                       <button
-                        onClick={() => setTab("worklist")}
-                        className="text-xs font-semibold text-sky-600 hover:text-sky-800 ml-1 flex items-center space-x-0.5"
+                        onClick={() => {
+                          if (overviewSlaFilter !== "ALL") {
+                            setFilterDimension("sla");
+                            setActiveDimensionFilter(overviewSlaFilter);
+                          }
+                          setTab("worklist");
+                        }}
+                        className="text-xs font-semibold text-sky-600 hover:text-sky-800 ml-1 flex items-center space-x-0.5 transition-colors"
+                        title={overviewSlaFilter !== "ALL" ? `Open full Worklist filtered to ${overviewSlaFilter}` : "Open Full Worklist"}
                       >
                         <span>Full Worklist &rarr;</span>
                       </button>
                     </div>
                   </div>
 
-                  {/* TIER 3: PRIORITY ACTIONABLE WORKLIST TABLE (HIGH DENSITY) */}
+                  {/* TIER 3: PRIORITY ACTIONABLE WORKLIST TABLE (HIGH DENSITY ZERO-SCROLL) */}
                   <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden space-y-0">
                     
                     {/* Table Header Bar */}
                     <div className="p-4 border-b border-slate-100 flex flex-wrap justify-between items-center gap-3 bg-slate-50/50">
                       <div className="flex items-center space-x-3">
                         <div>
-                          <div className="flex items-center space-x-2">
+                          <div className="flex flex-wrap items-center gap-2">
                             <h3 className="text-sm font-black text-slate-900 font-mono uppercase tracking-tight">Priority Actionable Queue</h3>
                             <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-sky-100 text-sky-800 font-bold border border-sky-200">
                               {overviewDisplayCases.length} OF {overviewFilteredCases.length} CASES
                             </span>
                             {overviewDomainFilter !== "ALL" && (
                               <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-800 font-bold border border-indigo-200 flex items-center space-x-1">
-                                <span>Domain: {DOMAIN_STYLES[overviewDomainFilter]?.label}</span>
-                                <button onClick={() => setOverviewDomainFilter("ALL")} className="hover:text-red-600">✕</button>
+                                <span>Domain: {DOMAIN_STYLES[overviewDomainFilter]?.label?.replace(/ \/ .*/, '')}</span>
+                                <button onClick={() => setOverviewDomainFilter("ALL")} className="hover:text-red-600 ml-0.5">✕</button>
                               </span>
                             )}
                             {overviewCurrencyFilter !== "ALL" && (
                               <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 font-bold border border-amber-200 flex items-center space-x-1">
                                 <span>Rail: {overviewCurrencyFilter}</span>
-                                <button onClick={() => setOverviewCurrencyFilter("ALL")} className="hover:text-red-600">✕</button>
+                                <button onClick={() => setOverviewCurrencyFilter("ALL")} className="hover:text-red-600 ml-0.5">✕</button>
+                              </span>
+                            )}
+                            {overviewSlaFilter !== "ALL" && (
+                              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-rose-50 text-rose-800 font-bold border border-rose-200 flex items-center space-x-1">
+                                <span>SLA: {
+                                  overviewSlaFilter === "CRITICAL_1H" ? "🔴 <1h" :
+                                  overviewSlaFilter === "URGENT_4H" ? "🟡 1-4h" :
+                                  overviewSlaFilter === "NORMAL_24H" ? "🟢 Safe" :
+                                  overviewSlaFilter === "BREACHED" ? "⚠️ Overdue" : "🏁 Settled"
+                                }</span>
+                                <button onClick={() => setOverviewSlaFilter("ALL")} className="hover:text-red-600 ml-0.5">✕</button>
                               </span>
                             )}
                           </div>
@@ -2696,19 +2794,27 @@ html_content = r'''<!DOCTYPE html>
                       </div>
                     </div>
 
-                    {/* Table Body */}
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left text-xs whitespace-nowrap">
+                    {/* Table Body (Table-Fixed Zero-Scroll Layout) */}
+                    <div className="overflow-hidden">
+                      <table className="w-full text-left text-xs table-fixed">
+                        <colgroup>
+                          <col style={{ width: "13%" }} />
+                          <col style={{ width: "18%" }} />
+                          <col style={{ width: "12%" }} />
+                          <col style={{ width: "11%" }} />
+                          <col style={{ width: "23%" }} />
+                          <col style={{ width: "9%" }} />
+                          <col style={{ width: "14%" }} />
+                        </colgroup>
                         <thead className="bg-slate-100/70 text-slate-600 uppercase font-mono text-[10px] border-b border-slate-200 select-none">
                           <tr>
-                            <th className="px-4 py-2.5">Case ID & Priority</th>
-                            <th className="px-3 py-2.5">BIAN Domain & Profile</th>
-                            <th className="px-3 py-2.5">Amount & Rail</th>
-                            <th className="px-3 py-2.5">Clearing SLA</th>
-                            <th className="px-3 py-2.5">Proposed Field Repair Diff</th>
-                            <th className="px-3 py-2.5">AI Confidence</th>
-                            <th className="px-3 py-2.5">Status</th>
-                            <th className="px-4 py-2.5 text-right">Guided Action</th>
+                            <th className="px-3 py-2.5">Case ID & Flags</th>
+                            <th className="px-2.5 py-2.5">Domain & Profile</th>
+                            <th className="px-2.5 py-2.5">Amount & Rail</th>
+                            <th className="px-2.5 py-2.5">Clearing SLA</th>
+                            <th className="px-2.5 py-2.5">Proposed Field Repair Diff</th>
+                            <th className="px-2 py-2.5">AI Conf</th>
+                            <th className="px-3 py-2.5 text-right">Status & Action</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 text-slate-700">
@@ -2725,26 +2831,26 @@ html_content = r'''<!DOCTYPE html>
                             let canAction = false;
                             let buttonText = "Investigate";
                             if (isSettled) {
-                              buttonText = "✓ Settlement Receipt";
+                              buttonText = "✓ Settlement";
                             } else if (c.status === "APPROVED") {
                               canAction = currentPersona.role !== "OPERATOR";
                               buttonText = canAction ? "Review & Dispatch" : "Awaiting Dispatch";
                             } else if (currentPersona.role_type === "MAKER") {
                               canAction = isUninvestigated || isRework;
-                              buttonText = isRework ? "⚠️ Rework Case" : isUninvestigated ? "⚡ AI Repair" : "In Review";
+                              buttonText = isRework ? "⚠️ Rework" : isUninvestigated ? "⚡ AI Repair" : "In Review";
                             } else if (currentPersona.role === "OPERATIONS_APPROVER") {
                               canAction = (isPendingApproval && c.queue !== "Compliance") || isEscalatedToMe;
-                              buttonText = isPendingApproval ? (c.queue === "Compliance" ? "View Compliance" : "Review & Authorize") : isEscalatedToMe ? "Review & Action" : "View";
+                              buttonText = isPendingApproval ? (c.queue === "Compliance" ? "Compliance" : "Authorize") : isEscalatedToMe ? "Review & Action" : "View";
                             } else if (currentPersona.role === "RISK_APPROVER") {
                               canAction = isDualAuth || isEscalatedToMe;
-                              buttonText = isDualAuth ? "Authorize Dual-Auth" : isEscalatedToMe ? "Review Dual Auth" : "View";
+                              buttonText = isDualAuth ? "Dual-Auth" : isEscalatedToMe ? "Review Dual" : "View";
                             } else if (currentPersona.role === "COMPLIANCE_APPROVER") {
                               canAction = c.queue === "Compliance" || isDualAuth || isEscalatedToMe;
-                              buttonText = "Review Compliance";
+                              buttonText = "Compliance";
                             }
 
                             const domStyle = DOMAIN_STYLES[c.domain] || DOMAIN_STYLES["DATA_QUALITY"];
-                            const slaInfo = getCaseSlaStatus(c);
+                            const slaInfo = getCaseSlaStatus(c, currentTime);
                             const mutation = getCaseFieldMutation(c);
                             const confScore = c.ai_confidence ? (c.ai_confidence * 100).toFixed(1) : "95.0";
 
@@ -2759,72 +2865,78 @@ html_content = r'''<!DOCTYPE html>
                                     : "hover:bg-slate-50/80"
                                 }`}
                               >
-                                {/* Case ID & Priority */}
-                                <td className="px-4 py-3 font-mono whitespace-nowrap">
-                                  <div className="flex items-center space-x-1.5">
-                                    {isEscalatedToMe && <span className="text-xs animate-bounce" title="Expedited to you">🔔</span>}
-                                    <span className="font-bold text-sky-700">{c.case_id}</span>
+                                {/* Case ID & Flags (13%) */}
+                                <td className="px-3 py-2.5 font-mono min-w-0">
+                                  <div className="flex items-center space-x-1 truncate">
+                                    {isEscalatedToMe && <span className="text-xs shrink-0 animate-bounce" title="Expedited to you">🔔</span>}
+                                    <span className="font-bold text-sky-700 truncate" title={c.case_id}>{c.case_id}</span>
                                     {isFastLane && (
-                                      <span className="px-1.5 py-0.2 rounded text-[9px] font-bold font-mono bg-amber-100 text-amber-800 border border-amber-300">
-                                        ⚡ FAST-LANE
+                                      <span className="px-1 py-0.2 rounded text-[8px] font-bold font-mono bg-amber-100 text-amber-800 border border-amber-300 shrink-0" title="1-Click Fast-Lane Eligible">
+                                        ⚡ FAST
                                       </span>
                                     )}
                                   </div>
                                 </td>
 
-                                {/* Domain & Profile */}
-                                <td className="px-3 py-3 whitespace-nowrap">
-                                  <div className="flex flex-col space-y-0.5">
-                                    <div className="flex items-center space-x-1.5">
-                                      <span className={`px-1.5 py-0.2 rounded text-[9px] font-mono font-semibold border ${domStyle.badge}`}>
-                                        {domStyle.icon} {domStyle.label.replace(/ \/ .*/, '')}
+                                {/* Domain & Profile (18%) */}
+                                <td className="px-2.5 py-2.5 min-w-0">
+                                  <div className="flex flex-col space-y-0.5 min-w-0">
+                                    <div className="flex items-center space-x-1 truncate">
+                                      <span className={`px-1 py-0.2 rounded text-[8px] font-mono font-semibold border shrink-0 ${domStyle.badge}`}>
+                                        {domStyle.icon}
                                       </span>
-                                      <span className="font-mono text-xs font-bold text-slate-900">{c.profile}</span>
+                                      <span className="font-mono text-xs font-bold text-slate-900 truncate" title={c.profile}>{c.profile}</span>
                                     </div>
-                                    <span className="text-[10px] text-slate-500 truncate max-w-[200px]">{c.counterparty}</span>
+                                    <span className="text-[10px] text-slate-500 truncate" title={c.counterparty || c.creditor_party?.party_name || "Counterparty"}>
+                                      {c.counterparty || c.creditor_party?.party_name || "Nordhavn Components"}
+                                    </span>
                                   </div>
                                 </td>
 
-                                {/* Amount & Rail */}
-                                <td className="px-3 py-3 whitespace-nowrap font-mono">
-                                  <div className="font-bold text-slate-900 text-xs">
-                                    {c.currency} {c.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                {/* Amount & Rail (12%) */}
+                                <td className="px-2.5 py-2.5 font-mono min-w-0">
+                                  <div className="font-bold text-slate-900 text-xs truncate" title={`${c.currency} ${c.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}>
+                                    {c.currency} {c.amount.toLocaleString(undefined, { maximumFractionDigits: 0 })}
                                   </div>
-                                  <div className="text-[10px] text-slate-400">
+                                  <div className="text-[10px] text-slate-400 truncate">
                                     {c.payment_rail || (c.currency === "USD" ? "Fedwire" : c.currency === "EUR" ? "TARGET2" : "CHAPS")}
                                   </div>
                                 </td>
 
-                                {/* Clearing SLA */}
-                                <td className="px-3 py-3 whitespace-nowrap">
-                                  <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-semibold border ${slaInfo.badge}`}>
+                                {/* Clearing SLA (11%) */}
+                                <td className="px-2.5 py-2.5 min-w-0">
+                                  <span className={`px-1.5 py-0.5 rounded text-[9px] font-mono font-semibold border block text-center truncate ${slaInfo.badge}`} title={slaInfo.drawerLabel || slaInfo.label}>
                                     {slaInfo.label}
                                   </span>
                                 </td>
 
-                                {/* Proposed Field Mutation Diff */}
-                                <td className="px-3 py-3 whitespace-nowrap font-mono">
-                                  <div className="flex items-center space-x-1.5 text-[11px]">
-                                    <span className="text-red-500 line-through truncate max-w-[90px]" title={mutation.original}>
-                                      {mutation.original}
-                                    </span>
-                                    <span className="text-slate-400 font-bold">&rarr;</span>
-                                    <span className="text-emerald-700 font-bold truncate max-w-[95px]" title={mutation.repaired}>
-                                      {mutation.repaired}
-                                    </span>
-                                    <span className={`px-1.5 py-0.2 rounded text-[9px] font-bold border ${mutation.badgeColor}`}>
-                                      {mutation.badge}
-                                    </span>
+                                {/* Proposed Field Mutation Diff (23%) */}
+                                <td className="px-2.5 py-2.5 font-mono min-w-0">
+                                  <div className="flex flex-col space-y-0.5 min-w-0">
+                                    <div className="flex items-center space-x-1 text-[10px] truncate">
+                                      <span className="text-red-500 line-through truncate max-w-[75px]" title={mutation.original}>
+                                        {mutation.original}
+                                      </span>
+                                      <span className="text-slate-400 font-bold shrink-0">&rarr;</span>
+                                      <span className="text-emerald-700 font-bold truncate max-w-[80px]" title={mutation.repaired}>
+                                        {mutation.repaired}
+                                      </span>
+                                    </div>
+                                    <div className="truncate">
+                                      <span className={`px-1 py-0.2 rounded text-[8px] font-bold border truncate inline-block max-w-full ${mutation.badgeColor}`} title={mutation.badge}>
+                                        {mutation.badge}
+                                      </span>
+                                    </div>
                                   </div>
                                 </td>
 
-                                {/* AI Confidence */}
-                                <td className="px-3 py-3 whitespace-nowrap font-mono">
-                                  <div className="flex items-center space-x-1.5">
+                                {/* AI Confidence (9%) */}
+                                <td className="px-2 py-2.5 font-mono min-w-0">
+                                  <div className="flex flex-col space-y-1">
                                     <span className="text-xs font-bold text-slate-800">{confScore}%</span>
-                                    <div className="w-12 bg-slate-100 rounded-full h-1.5">
+                                    <div className="w-full bg-slate-100 rounded-full h-1">
                                       <div 
-                                        className={`h-1.5 rounded-full ${
+                                        className={`h-1 rounded-full ${
                                           parseFloat(confScore) >= 90 ? "bg-emerald-500" : parseFloat(confScore) >= 75 ? "bg-amber-500" : "bg-rose-500"
                                         }`} 
                                         style={{ width: `${confScore}%` }}
@@ -2833,10 +2945,10 @@ html_content = r'''<!DOCTYPE html>
                                   </div>
                                 </td>
 
-                                {/* Status */}
-                                <td className="px-3 py-3 whitespace-nowrap">
-                                  <div className="flex items-center space-x-1.5">
-                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold font-mono ${
+                                {/* Status & Action CTA (14%) */}
+                                <td className="px-3 py-2.5 text-right min-w-0">
+                                  <div className="flex flex-col items-end space-y-1">
+                                    <span className={`px-1.5 py-0.2 rounded-full text-[8px] font-bold font-mono truncate max-w-full ${
                                       c.status === "SETTLED" ? "bg-emerald-50 text-emerald-700 border border-emerald-200" :
                                       c.status === "APPROVED" ? "bg-blue-50 text-blue-700 border border-blue-200" :
                                       c.status === "AWAITING_SECOND_APPROVAL" ? "bg-purple-50 text-purple-700 border border-purple-200" :
@@ -2846,43 +2958,39 @@ html_content = r'''<!DOCTYPE html>
                                     }`}>
                                       {c.status}
                                     </span>
+                                    {isSettled ? (
+                                      <button
+                                        onClick={() => setSettlementReceiptModalCase(c)}
+                                        className="px-2 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded font-semibold text-[10px] transition-all shadow-xs"
+                                      >
+                                        ✓ Receipt
+                                      </button>
+                                    ) : isFastLane && currentPersona.role_type === "CHECKER" ? (
+                                      <button
+                                        onClick={() => setStpBatchDrawerOpen(true)}
+                                        className="px-2 py-0.5 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded font-black text-[10px] transition-all shadow-xs flex items-center space-x-0.5"
+                                      >
+                                        <span>⚡ Release</span>
+                                      </button>
+                                    ) : (
+                                      <button
+                                        onClick={() => { setSelectedCaseId(c.case_id); loadCaseDetail(c.case_id); setTab("approvals"); }}
+                                        className={`px-2 py-0.5 rounded font-bold text-[10px] transition-all shadow-xs truncate max-w-full ${
+                                          canAction 
+                                            ? isPendingApproval 
+                                              ? "bg-emerald-600 hover:bg-emerald-700 text-white" 
+                                              : isDualAuth 
+                                              ? "bg-purple-600 hover:bg-purple-700 text-white"
+                                              : isRework 
+                                              ? "bg-amber-600 hover:bg-amber-700 text-white"
+                                              : "bg-sky-600 hover:bg-sky-700 text-white"
+                                            : "bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-800"
+                                        }`}
+                                      >
+                                        {buttonText} &rarr;
+                                      </button>
+                                    )}
                                   </div>
-                                </td>
-
-                                {/* Guided Action */}
-                                <td className="px-4 py-3 text-right whitespace-nowrap">
-                                  {isSettled ? (
-                                    <button
-                                      onClick={() => setSettlementReceiptModalCase(c)}
-                                      className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-semibold text-xs transition-all shadow-xs"
-                                    >
-                                      ✓ Settlement
-                                    </button>
-                                  ) : isFastLane && currentPersona.role_type === "CHECKER" ? (
-                                    <button
-                                      onClick={() => setStpBatchDrawerOpen(true)}
-                                      className="px-3 py-1 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-lg font-extrabold text-xs transition-all shadow-xs flex items-center space-x-1 ml-auto"
-                                    >
-                                      <span>⚡ 1-Click Release</span>
-                                    </button>
-                                  ) : (
-                                    <button
-                                      onClick={() => { setSelectedCaseId(c.case_id); loadCaseDetail(c.case_id); setTab("approvals"); }}
-                                      className={`px-3 py-1 rounded-lg font-semibold text-xs transition-all shadow-xs ${
-                                        canAction 
-                                          ? isPendingApproval 
-                                            ? "bg-emerald-600 hover:bg-emerald-700 text-white" 
-                                            : isDualAuth 
-                                            ? "bg-purple-600 hover:bg-purple-700 text-white"
-                                            : isRework 
-                                            ? "bg-amber-600 hover:bg-amber-700 text-white"
-                                            : "bg-sky-600 hover:bg-sky-700 text-white"
-                                          : "bg-slate-100 text-slate-400 hover:bg-slate-200 hover:text-slate-700"
-                                      }`}
-                                    >
-                                      {buttonText} &rarr;
-                                    </button>
-                                  )}
                                 </td>
                               </tr>
                             );
