@@ -74,12 +74,25 @@ def get_raw_skill_markdown(filename: str, raw: bool = Query(False, description="
         safe_name = f"{safe_name}.md"
 
     skills_dir = skill_policy_service.skills_dir
-    target_file = skills_dir / "references" / safe_name
-    if not target_file.exists():
-        if safe_name.lower() == "skill.md":
-            target_file = skills_dir / "SKILL.md"
-        else:
-            raise HTTPException(status_code=404, detail=f"SME Playbook '{safe_name}' not found")
+    ws_root = skills_dir.parent.parent.parent
+
+    # Candidate file locations
+    candidates = [
+        skills_dir / "references" / safe_name,
+        skills_dir / "resources" / safe_name,
+        skills_dir / safe_name,
+        ws_root / safe_name,
+        ws_root / "backend" / safe_name,
+    ]
+
+    target_file = None
+    for cand in candidates:
+        if cand.exists() and cand.is_file():
+            target_file = cand
+            break
+
+    if not target_file:
+        raise HTTPException(status_code=404, detail=f"SME Playbook / Markdown document '{safe_name}' not found")
 
     content = target_file.read_text(encoding="utf-8")
 

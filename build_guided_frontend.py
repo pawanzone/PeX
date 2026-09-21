@@ -158,6 +158,7 @@ html_content = r'''<!DOCTYPE html>
       const [ontologySelectedCaseId, setOntologySelectedCaseId] = useState(null);
       const [sops, setSops] = useState([]);
       const [activeSkillsData, setActiveSkillsData] = useState(null);
+      const [skillsSubTab, setSkillsSubTab] = useState("all");
 
       // Decision & Handover Modal States
       const [decisionModalOpen, setDecisionModalOpen] = useState(false);
@@ -3744,163 +3745,381 @@ html_content = r'''<!DOCTYPE html>
                 </div>
               )}
 
-              {/* SME SKILLS HUB TAB (5 CANONICAL BIAN DOMAINS - 41 EXCEPTION PROFILES) */}
+              {/* SME SKILLS HUB TAB (COMPREHENSIVE LIVING DOCUMENTATION & PLAYBOOKS) */}
               {tab === "skills_hub" && (
                 <div className="p-8 max-w-7xl mx-auto space-y-8">
                   <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 p-6 rounded-2xl border border-slate-700 shadow-xl text-white">
                     <div>
                       <div className="flex items-center space-x-2">
                         <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-sky-500/20 text-sky-300 border border-sky-500/30">
-                          BIAN CANONICAL TAXONOMY
+                          LIVING RUNTIME KNOWLEDGE BASE
                         </span>
-                        <span className="text-xs text-slate-400 font-mono">5 DOMAIN PLAYBOOKS • 41 EXCEPTION PROFILES</span>
+                        <span className="text-xs text-slate-400 font-mono">5 BIAN DOMAINS • 6 GRANULAR SOPS • 3 MASTER BLUEPRINTS</span>
                       </div>
-                      <h1 className="text-2xl font-bold tracking-tight text-white mt-1.5">SME Skills & Governed Decision Playbooks</h1>
+                      <h1 className="text-2xl font-bold tracking-tight text-white mt-1.5">SME Skills, Playbooks & Architecture Documents</h1>
                       <p className="text-xs text-slate-300 mt-1 max-w-2xl">
-                        Living Markdown standard operating procedures parsed at runtime by <code className="text-sky-300">SkillPolicyService</code> to govern deterministic AI reasoner algorithms, validation trees, and multi-tier approval thresholds.
+                        Living Markdown specifications and Standard Operating Procedures. Click on any card to open the interactive, color-coded Markdown & JSON document in a new browser tab.
                       </p>
                     </div>
 
                     <div className="flex items-center space-x-3 shrink-0">
                       <span className="text-xs font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-3 py-1.5 rounded-xl font-bold flex items-center space-x-2 shadow-inner">
                         <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                        <span>5 DOMAIN PLAYBOOKS ACTIVE</span>
+                        <span>14 LIVING DOCUMENTS ONLINE</span>
                       </span>
                     </div>
                   </div>
 
-                  {/* 5 Domain Grid Cards */}
+                  {/* Filter / Subtab Controls */}
+                  <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 pb-3">
+                    <button
+                      onClick={() => setSkillsSubTab("all")}
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 ${skillsSubTab === "all" ? "bg-slate-900 text-white shadow-sm" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
+                    >
+                      <span>📑</span>
+                      <span>All Documents (14)</span>
+                    </button>
+
+                    <button
+                      onClick={() => setSkillsSubTab("bian_domains")}
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 ${skillsSubTab === "bian_domains" ? "bg-sky-600 text-white shadow-sm" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
+                    >
+                      <span>🏛️</span>
+                      <span>5 BIAN Domain Frameworks (41 Profiles)</span>
+                    </button>
+
+                    <button
+                      onClick={() => setSkillsSubTab("granular_sops")}
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 ${skillsSubTab === "granular_sops" ? "bg-purple-600 text-white shadow-sm" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
+                    >
+                      <span>📋</span>
+                      <span>Granular Operational SOPs (SOP-114 to 401)</span>
+                    </button>
+
+                    <button
+                      onClick={() => setSkillsSubTab("master_blueprints")}
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 ${skillsSubTab === "master_blueprints" ? "bg-indigo-600 text-white shadow-sm" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
+                    >
+                      <span>📚</span>
+                      <span>Architecture & Master Specifications</span>
+                    </button>
+                  </div>
+
+                  {/* Document Cards Grid */}
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {(() => {
-                      const domainMeta = {
-                        data_quality_domain_playbook: {
+                      const allDocs = [
+                        // 1. 5 BIAN Domain Frameworks
+                        {
+                          category: "bian_domains",
+                          key: "data_quality_domain_playbook",
+                          filename: "data_quality_domain_playbook.md",
                           code: "BIAN-DQ-DOM-01",
-                          title: "Data Quality & Syntax Domain",
-                          count: "9 Profiles",
+                          title: "Data Quality & Syntax Domain Playbook",
+                          type: "BIAN DOMAIN FRAMEWORK",
+                          tag: "9 Profiles",
                           icon: "📐",
                           accent: "from-sky-500 to-blue-600",
                           border: "border-sky-200 hover:border-sky-400",
                           badgeBg: "bg-sky-50 text-sky-700 border-sky-200",
                           queue: "Repair Queue",
                           standards: "ISO 13616 (IBAN), ISO 7064 MOD-97-10, ISO 9362 (BIC), UK CoP / EPC VoP",
-                          profiles: ["INVALID_IBAN", "INVALID_BIC", "MISSING_BENEFICIARY_DATA", "MISSING_REMITTANCE_INFO", "INVALID_ADDRESS_FORMAT", "MISSING_PURPOSE_CODE", "INVALID_ACCOUNT_NUMBER", "INVALID_ROUTING_CODE", "BENEFICIARY_NAME_MISMATCH"]
+                          profiles: ["INVALID_IBAN", "INVALID_BIC", "MISSING_BENEFICIARY_DATA", "MISSING_REMITTANCE_INFO", "INVALID_ADDRESS_FORMAT", "MISSING_PURPOSE_CODE", "INVALID_ACCOUNT_NUMBER", "INVALID_ROUTING_CODE", "BENEFICIARY_NAME_MISMATCH"],
+                          desc: "Exhaustive resolution logic, country length matrices, and deterministic Modulo-97 checksum permutations across all 9 data quality error types."
                         },
-                        processing_domain_playbook: {
+                        {
+                          category: "bian_domains",
+                          key: "processing_domain_playbook",
+                          filename: "processing_domain_playbook.md",
                           code: "BIAN-PROC-DOM-02",
-                          title: "Processing & Lifecycle Domain",
-                          count: "9 Profiles",
+                          title: "Processing & Lifecycle Domain Playbook",
+                          type: "BIAN DOMAIN FRAMEWORK",
+                          tag: "9 Profiles",
                           icon: "⚙️",
                           accent: "from-indigo-500 to-purple-600",
                           border: "border-indigo-200 hover:border-indigo-400",
                           badgeBg: "bg-indigo-50 text-indigo-700 border-indigo-200",
                           queue: "Investigation / Repair Queue",
                           standards: "ISO 20022 XSD, SWIFT CBPR+, RTGS Cutoff Schedules, 4-Point Duplicate Matrix",
-                          profiles: ["DUPLICATE_PAYMENT", "ROUTING_FAILURE", "ISO20022_VALIDATION_ERROR", "CUTOFF_MISSED", "CORRUPTED_MESSAGE_FORMAT", "INTERMEDIARY_BANK_REJECTION", "NETWORK_TIMEOUT", "QUEUE_PROCESSING_FAILURE", "PAYMENT_HELD_FOR_REPAIR"]
+                          profiles: ["DUPLICATE_PAYMENT", "ROUTING_FAILURE", "ISO20022_VALIDATION_ERROR", "CUTOFF_MISSED", "CORRUPTED_MESSAGE_FORMAT", "INTERMEDIARY_BANK_REJECTION", "NETWORK_TIMEOUT", "QUEUE_PROCESSING_FAILURE", "PAYMENT_HELD_FOR_REPAIR"],
+                          desc: "4-point duplicate burst detection, clearing corridor substitution, RTGS cutoff deadline rolls, and network timeout handling."
                         },
-                        compliance_domain_playbook: {
+                        {
+                          category: "bian_domains",
+                          key: "compliance_domain_playbook",
+                          filename: "compliance_domain_playbook.md",
                           code: "BIAN-COMP-DOM-03",
-                          title: "Compliance & Sanctions Domain",
-                          count: "8 Profiles",
+                          title: "Compliance & Sanctions Domain Playbook",
+                          type: "BIAN DOMAIN FRAMEWORK",
+                          tag: "8 Profiles",
                           icon: "🛡️",
                           accent: "from-rose-500 to-pink-600",
                           border: "border-rose-200 hover:border-rose-400",
                           badgeBg: "bg-rose-50 text-rose-700 border-rose-200",
                           queue: "Compliance Queue",
                           standards: "OFAC SDN, FATF Rec 16, Wolfsberg AML Principles, EU AMLD6",
-                          profiles: ["SANCTIONS_SUSPECTED", "AML_ALERT", "PEP_MATCH", "RESTRICTED_CORRIDOR", "ADVERSE_MEDIA_MATCH", "HIGH_RISK_JURISDICTION", "REGULATORY_REPORTING_REQUIRED", "CUSTOMER_WATCHLIST_MATCH"]
+                          profiles: ["SANCTIONS_SUSPECTED", "AML_ALERT", "PEP_MATCH", "RESTRICTED_CORRIDOR", "ADVERSE_MEDIA_MATCH", "HIGH_RISK_JURISDICTION", "REGULATORY_REPORTING_REQUIRED", "CUSTOMER_WATCHLIST_MATCH"],
+                          desc: "4-tier fuzzy match screening, secondary identifier disambiguation (Tax ID, DOB, UBO), and strict segregation of duties for Compliance Approvers."
                         },
-                        client_treasury_domain_playbook: {
+                        {
+                          category: "bian_domains",
+                          key: "client_treasury_domain_playbook",
+                          filename: "client_treasury_domain_playbook.md",
                           code: "BIAN-TREA-DOM-04",
-                          title: "Client & Treasury Domain",
-                          count: "8 Profiles",
+                          title: "Client & Treasury Domain Playbook",
+                          type: "BIAN DOMAIN FRAMEWORK",
+                          tag: "8 Profiles",
                           icon: "🏛️",
                           accent: "from-amber-500 to-orange-600",
                           border: "border-amber-200 hover:border-amber-400",
                           badgeBg: "bg-amber-50 text-amber-700 border-amber-200",
                           queue: "Treasury / Risk Queue",
                           standards: "Basel III (BCBS 248), Wolfsberg CDD / 30-Day Waiver, ISO 20022 camt.053, FX Global Code",
-                          profiles: ["KYC_EXPIRED", "INSUFFICIENT_FUNDS", "NOSTRO_SHORTFALL", "FX_RATE_UNAVAILABLE", "AUTHORIZATION_MISSING", "LIMIT_BREACH", "LIQUIDITY_CONSTRAINT", "CREDIT_EXPOSURE_BREACH"]
+                          profiles: ["KYC_EXPIRED", "INSUFFICIENT_FUNDS", "NOSTRO_SHORTFALL", "FX_RATE_UNAVAILABLE", "AUTHORIZATION_MISSING", "LIMIT_BREACH", "LIQUIDITY_CONSTRAINT", "CREDIT_EXPOSURE_BREACH"],
+                          desc: "Wolfsberg CDD periodic reviews, 30-day provisional KYC waivers, intraday Nostro sweep liquidity, and high-value ($250k+) dual authorization."
                         },
-                        settlement_returns_domain_playbook: {
+                        {
+                          category: "bian_domains",
+                          key: "settlement_returns_domain_playbook",
+                          filename: "settlement_returns_domain_playbook.md",
                           code: "BIAN-SETT-DOM-05",
-                          title: "Settlement & Returns Domain",
-                          count: "7 Profiles",
+                          title: "Settlement & Returns Domain Playbook",
+                          type: "BIAN DOMAIN FRAMEWORK",
+                          tag: "7 Profiles",
                           icon: "🔄",
                           accent: "from-emerald-500 to-teal-600",
                           border: "border-emerald-200 hover:border-emerald-400",
                           badgeBg: "bg-emerald-50 text-emerald-700 border-emerald-200",
                           queue: "Settlement / Returns Queue",
                           standards: "ISO 20022 pacs.004 Return Codes, camt.056 Recall, SWIFT E&I 5-Step Workflow",
-                          profiles: ["RETURNED_PAYMENT", "ACCOUNT_CLOSED", "BENEFICIARY_ACCOUNT_FROZEN", "RECONCILIATION_BREAK", "SETTLEMENT_FAILURE", "FUNDS_TRAPPED_AT_CORRESPONDENT", "UNMATCHED_CREDIT"]
+                          profiles: ["RETURNED_PAYMENT", "ACCOUNT_CLOSED", "BENEFICIARY_ACCOUNT_FROZEN", "RECONCILIATION_BREAK", "SETTLEMENT_FAILURE", "FUNDS_TRAPPED_AT_CORRESPONDENT", "UNMATCHED_CREDIT"],
+                          desc: "ISO 20022 pacs.004 return reason codes (AC04, AC06, AG01), ledger reconciliation break balancing, and suspense escrow re-credits."
+                        },
+
+                        // 2. Granular Operational SOPs
+                        {
+                          category: "granular_sops",
+                          key: "iban_repair_playbook",
+                          filename: "iban_repair_playbook.md",
+                          code: "SOP-114-IBAN",
+                          title: "Beneficiary IBAN Validation & Transposition Repair",
+                          type: "OPERATIONAL SOP",
+                          tag: "ISO 13616 / MOD-97",
+                          icon: "🔍",
+                          accent: "from-blue-600 to-cyan-600",
+                          border: "border-blue-200 hover:border-blue-400",
+                          badgeBg: "bg-blue-50 text-blue-700 border-blue-200",
+                          queue: "Repair Queue",
+                          standards: "ISO 13616 / ISO 7064 MOD-97-10 Deterministic Step-by-Step",
+                          profiles: ["INVALID_IBAN"],
+                          desc: "Granular mathematical steps for ISO 7064 MOD-97-10 check digit verification, national BBAN matrices, and SSI directory matching."
+                        },
+                        {
+                          category: "granular_sops",
+                          key: "bic_routing_playbook",
+                          filename: "bic_routing_playbook.md",
+                          code: "SOP-115-BIC",
+                          title: "Invalid BIC & SWIFT Routing Resolution",
+                          type: "OPERATIONAL SOP",
+                          tag: "ISO 9362 / LEI",
+                          icon: "🌐",
+                          accent: "from-sky-600 to-indigo-600",
+                          border: "border-sky-200 hover:border-sky-400",
+                          badgeBg: "bg-sky-50 text-sky-700 border-sky-200",
+                          queue: "Routing Queue",
+                          standards: "ISO 9362 4-Part Structure & SWIFT BIC Plus",
+                          profiles: ["INVALID_BIC", "ROUTING_FAILURE"],
+                          desc: "8-to-11 character branch expansion, bank merger LEI mapping, decommissioned branch routing, and cutoff window buffers."
+                        },
+                        {
+                          category: "granular_sops",
+                          key: "duplicate_detection_playbook",
+                          filename: "duplicate_detection_playbook.md",
+                          code: "SOP-204-DUP",
+                          title: "Duplicate Payment & Burst Detection SOP",
+                          type: "OPERATIONAL SOP",
+                          tag: "Risk & Fraud",
+                          icon: "👥",
+                          accent: "from-purple-600 to-pink-600",
+                          border: "border-purple-200 hover:border-purple-400",
+                          badgeBg: "bg-purple-50 text-purple-700 border-purple-200",
+                          queue: "Risk / Investigation Queue",
+                          standards: "FFIEC Retail Payment Systems / Basel Framework",
+                          profiles: ["DUPLICATE_PAYMENT"],
+                          desc: "4-point vector matching protocol (Beneficiary, Remittance, Amount, 30m window) and disambiguation of ERP retries vs payroll batches."
+                        },
+                        {
+                          category: "granular_sops",
+                          key: "sanctions_clearing_playbook",
+                          filename: "sanctions_clearing_playbook.md",
+                          code: "SOP-301-SAN",
+                          title: "Sanctions Clearance & Homonym Disambiguation",
+                          type: "OPERATIONAL SOP",
+                          tag: "Compliance Legal",
+                          icon: "⚖️",
+                          accent: "from-rose-600 to-red-600",
+                          border: "border-rose-200 hover:border-rose-400",
+                          badgeBg: "bg-rose-50 text-rose-700 border-rose-200",
+                          queue: "Compliance Queue",
+                          standards: "OFAC SDN / EU Directives / FATF Recommendation 16",
+                          profiles: ["SANCTIONS_SUSPECTED", "PEP_MATCH", "RESTRICTED_CORRIDOR"],
+                          desc: "Secondary identifier cross-examination checklist (Tax ID, Incorporation Date, Address, UBO) for clearing 85%-97% fuzzy matches."
+                        },
+                        {
+                          category: "granular_sops",
+                          key: "kyc_waiver_playbook",
+                          filename: "kyc_waiver_playbook.md",
+                          code: "SOP-302-KYC",
+                          title: "KYC Expiration & Provisional Waiver Governance",
+                          type: "OPERATIONAL SOP",
+                          tag: "Compliance / Risk",
+                          icon: "📑",
+                          accent: "from-amber-600 to-yellow-600",
+                          border: "border-amber-200 hover:border-amber-400",
+                          badgeBg: "bg-amber-50 text-amber-700 border-amber-200",
+                          queue: "Compliance / Treasury Queue",
+                          standards: "Wolfsberg AML Principles / Customer Due Diligence (CDD)",
+                          profiles: ["KYC_EXPIRED"],
+                          desc: "Criteria for granting 30-day provisional waivers for low-risk corporates with clean 24-month histories and refresh underway."
+                        },
+                        {
+                          category: "granular_sops",
+                          key: "return_processing_playbook",
+                          filename: "return_processing_playbook.md",
+                          code: "SOP-401-RET",
+                          title: "Returned Payment & pacs.004 Reconciliation SOP",
+                          type: "OPERATIONAL SOP",
+                          tag: "Settlement Operations",
+                          icon: "💱",
+                          accent: "from-emerald-600 to-teal-600",
+                          border: "border-emerald-200 hover:border-emerald-400",
+                          badgeBg: "bg-emerald-50 text-emerald-700 border-emerald-200",
+                          queue: "Settlement / Returns Queue",
+                          standards: "ISO 20022 pacs.004.001.09 / CBPR+",
+                          profiles: ["RETURNED_PAYMENT", "ACCOUNT_CLOSED", "RECONCILIATION_BREAK"],
+                          desc: "Incoming pacs.004 UETR correlation, return code mapping (AC04, AC06, AG01), fee deductions, and suspense ledger re-credits."
+                        },
+
+                        // 3. Architecture & Master Specifications
+                        {
+                          category: "master_blueprints",
+                          key: "PeX_41_Exception_Taxonomy_SME_Architecture_Cards",
+                          filename: "PeX_41_Exception_Taxonomy_SME_Architecture_Cards.md",
+                          code: "ARCH-TAX-41",
+                          title: "41 Exception Taxonomy & SME Architecture Cards",
+                          type: "MASTER TAXONOMY SPECIFICATION",
+                          tag: "Complete 41 Profiles",
+                          icon: "🗂️",
+                          accent: "from-slate-700 to-slate-900",
+                          border: "border-slate-300 hover:border-slate-500",
+                          badgeBg: "bg-slate-100 text-slate-800 border-slate-300",
+                          queue: "All Queues",
+                          standards: "BIAN 12.0 / ISO 20022 / EPC Rulebook",
+                          profiles: ["ALL 41 EXCEPTION PROFILES"],
+                          desc: "Master 41-card specification detailing root causes, detection vectors, deterministic algorithms, and consequence simulations."
+                        },
+                        {
+                          category: "master_blueprints",
+                          key: "PeX_Master_PRD_and_Technical_Blueprint",
+                          filename: "PeX_Master_PRD_and_Technical_Blueprint.md",
+                          code: "BLUEPRINT-PRD-01",
+                          title: "PeX Master PRD & Technical Architecture Blueprint",
+                          type: "ENTERPRISE BLUEPRINT",
+                          tag: "End-to-End System PRD",
+                          icon: "🏗️",
+                          accent: "from-indigo-700 to-slate-900",
+                          border: "border-indigo-300 hover:border-indigo-500",
+                          badgeBg: "bg-indigo-50 text-indigo-800 border-indigo-200",
+                          queue: "Core Engineering",
+                          standards: "Bank-Agnostic Multi-Rail Architecture",
+                          profiles: ["ENTERPRISE PLATFORM SPECIFICATION"],
+                          desc: "Complete functional requirements, data pipeline architecture, cryptographic provenance ledger, and AI reasoner boundaries."
+                        },
+                        {
+                          category: "master_blueprints",
+                          key: "SKILL",
+                          filename: "SKILL.md",
+                          code: "SKILL-CORE-01",
+                          title: "Payment Exception Resolution AI Skill Specification",
+                          type: "AGENTIC AI SKILL",
+                          tag: "Active AI Skill Contract",
+                          icon: "🧠",
+                          accent: "from-purple-700 to-indigo-900",
+                          border: "border-purple-300 hover:border-purple-500",
+                          badgeBg: "bg-purple-50 text-purple-800 border-purple-200",
+                          queue: "Governed AI Gateway",
+                          standards: "Agentic Decision Contract & Attributions",
+                          profiles: ["GOVERNED REASONING ENGINE"],
+                          desc: "Defines runtime AI reasoning instructions, evidence attribution weights (MOD-97 30%, SSI 25%, Velocity 20%), and safety boundaries."
                         }
-                      };
+                      ];
 
-                      const playbooks = (activeSkillsData && activeSkillsData.playbooks) ? activeSkillsData.playbooks : {};
+                      const filteredDocs = skillsSubTab === "all" 
+                        ? allDocs 
+                        : allDocs.filter(d => d.category === skillsSubTab);
 
-                      return Object.entries(domainMeta).map(([key, meta]) => {
-                        const pb = playbooks[key] || {
-                          filename: key + ".md",
-                          title: meta.title,
-                          content: "",
-                          last_modified: new Date().toISOString()
-                        };
-
+                      return filteredDocs.map((doc) => {
                         const openInNewTab = () => {
-                          const url = `${API_BASE}/copilot/skills/raw/${pb.filename}`;
+                          const url = `${API_BASE}/copilot/skills/raw/${doc.filename}`;
                           window.open(url, '_blank');
                         };
 
                         return (
-                          <div key={key} className={`bg-white rounded-2xl border ${meta.border} shadow-sm hover:shadow-md transition-all p-6 flex flex-col justify-between space-y-5 group`}>
+                          <div key={doc.filename} className={`bg-white rounded-2xl border ${doc.border} shadow-sm hover:shadow-md transition-all p-6 flex flex-col justify-between space-y-5 group`}>
                             <div className="space-y-4">
                               {/* Header */}
                               <div className="flex justify-between items-start">
                                 <div className="flex items-center space-x-3">
-                                  <div className={`w-10 h-10 rounded-xl bg-gradient-to-tr ${meta.accent} text-white flex items-center justify-center text-lg shadow-sm shrink-0`}>
-                                    {meta.icon}
+                                  <div className={`w-10 h-10 rounded-xl bg-gradient-to-tr ${doc.accent} text-white flex items-center justify-center text-lg shadow-sm shrink-0`}>
+                                    {doc.icon}
                                   </div>
                                   <div>
                                     <div className="flex items-center space-x-2">
-                                      <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold border ${meta.badgeBg}`}>
-                                        {meta.code}
+                                      <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold border ${doc.badgeBg}`}>
+                                        {doc.code}
                                       </span>
                                       <span className="text-[10px] font-mono text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded font-semibold flex items-center space-x-1">
                                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                                         <span>ACTIVE RUNTIME</span>
                                       </span>
                                     </div>
-                                    <h3 className="text-base font-bold text-slate-900 mt-1">{meta.title}</h3>
+                                    <h3 className="text-base font-bold text-slate-900 mt-1">{doc.title}</h3>
                                   </div>
                                 </div>
 
-                                <span className="text-xs font-mono font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">
-                                  {meta.count}
+                                <span className="text-xs font-mono font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200 shrink-0">
+                                  {doc.tag}
                                 </span>
                               </div>
+
+                              {/* Description */}
+                              <p className="text-xs text-slate-600 leading-relaxed">
+                                {doc.desc}
+                              </p>
 
                               {/* Metadata & Standards */}
                               <div className="bg-slate-50 border border-slate-100 rounded-xl p-3.5 space-y-2 text-xs">
                                 <div className="flex justify-between items-center text-slate-600">
-                                  <span className="font-semibold text-slate-700">Governing Standards:</span>
-                                  <span className="font-mono text-[11px] text-slate-600 truncate max-w-xs">{meta.standards}</span>
+                                  <span className="font-semibold text-slate-700">Standards:</span>
+                                  <span className="font-mono text-[11px] text-slate-600 truncate max-w-xs">{doc.standards}</span>
                                 </div>
                                 <div className="flex justify-between items-center text-slate-600">
                                   <span className="font-semibold text-slate-700">Target Queue:</span>
-                                  <span className="font-mono text-[11px] text-indigo-700 font-bold">{meta.queue}</span>
+                                  <span className="font-mono text-[11px] text-indigo-700 font-bold">{doc.queue}</span>
                                 </div>
                                 <div className="flex justify-between items-center text-slate-600">
                                   <span className="font-semibold text-slate-700">Document File:</span>
-                                  <span className="font-mono text-[11px] text-sky-700 font-semibold">{pb.filename}</span>
+                                  <span className="font-mono text-[11px] text-sky-700 font-semibold">{doc.filename}</span>
                                 </div>
                               </div>
 
                               {/* Covered Exception Profiles Pills */}
                               <div>
                                 <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-2">
-                                  Covered Exception Profiles ({meta.profiles.length})
+                                  Mapped Exception Profiles ({doc.profiles.length})
                                 </label>
                                 <div className="flex flex-wrap gap-1.5">
-                                  {meta.profiles.map(p => (
+                                  {doc.profiles.map(p => (
                                     <span key={p} className="px-2 py-0.5 bg-slate-100 text-slate-700 border border-slate-200 rounded text-[10px] font-mono font-medium hover:bg-sky-50 hover:text-sky-800 hover:border-sky-300 transition">
                                       {p}
                                     </span>
@@ -3912,7 +4131,7 @@ html_content = r'''<!DOCTYPE html>
                             {/* Card Footer Actions */}
                             <div className="border-t border-slate-100 pt-4 flex items-center justify-between gap-3">
                               <div className="text-[11px] font-mono text-slate-400">
-                                {pb.content ? `${pb.content.length.toLocaleString()} chars` : "Dynamic SOP"}
+                                Markdown Document
                               </div>
 
                               <div className="flex items-center space-x-2">
