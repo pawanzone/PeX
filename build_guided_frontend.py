@@ -2421,7 +2421,6 @@ html_content = r'''<!DOCTYPE html>
                                         ⚡ FAST-LANE
                                       </span>
                                     )}
-                                    </span>
                                     {hasAnyActiveExpedite && (
                                       <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold font-mono border whitespace-nowrap ${
                                         isEscalatedToMe 
@@ -2720,7 +2719,6 @@ html_content = r'''<!DOCTYPE html>
                                         ⚡ FAST-LANE
                                       </span>
                                     )}
-                                    </span>
                                     {hasAnyActiveExpedite && (
                                       <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold font-mono border whitespace-nowrap ${
                                         isEscalatedToMe 
@@ -2807,22 +2805,23 @@ html_content = r'''<!DOCTYPE html>
                             >
                               <div className="flex justify-between items-center">
                                 <span className="font-mono text-xs font-bold text-slate-900">{c.case_id}</span>
-                                <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded font-semibold ${
-                                  c.status === "SETTLED" ? "bg-emerald-100 text-emerald-800" :
-                                  c.status === "APPROVED" ? "bg-blue-100 text-blue-800" :
-                                  c.status === "AWAITING_SECOND_APPROVAL" ? "bg-purple-100 text-purple-800" :
-                                  c.status === "RETURNED_FOR_REWORK" ? "bg-amber-200 text-amber-900 font-bold" :
-                                  c.status === "INGESTED" ? "bg-slate-100 text-slate-700" :
-                                  "bg-amber-100 text-amber-800"
-                                }`}>
-                                  {c.status}
+                                <div className="flex items-center space-x-1">
+                                  <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded font-semibold ${
+                                    c.status === "SETTLED" ? "bg-emerald-100 text-emerald-800" :
+                                    c.status === "APPROVED" ? "bg-blue-100 text-blue-800" :
+                                    c.status === "AWAITING_SECOND_APPROVAL" ? "bg-purple-100 text-purple-800" :
+                                    c.status === "RETURNED_FOR_REWORK" ? "bg-amber-200 text-amber-900 font-bold" :
+                                    c.status === "INGESTED" ? "bg-slate-100 text-slate-700" :
+                                    "bg-amber-100 text-amber-800"
+                                  }`}>
+                                    {c.status}
+                                  </span>
+                                  {stpEligibleCases.some(e => e.case_id === c.case_id) && (
+                                    <span className="px-1.5 py-0.5 rounded text-[9px] font-bold font-mono bg-amber-50 text-amber-800 border border-amber-300 whitespace-nowrap shadow-xs">
+                                      ⚡ FAST-LANE
                                     </span>
-                                    {stpEligibleCases.some(e => e.case_id === c.case_id) && (
-                                      <span className="px-1.5 py-0.5 rounded text-[9px] font-bold font-mono bg-amber-50 text-amber-800 border border-amber-300 whitespace-nowrap shadow-xs">
-                                        ⚡ FAST-LANE
-                                      </span>
-                                    )}
-                                </span>
+                                  )}
+                                </div>
                               </div>
                               <div className="text-xs font-medium text-slate-700 mt-1 truncate">{c.creditor_party?.party_name}</div>
                               <div className="flex justify-between items-center text-[11px] text-slate-500 mt-1.5">
