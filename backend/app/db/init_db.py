@@ -69,6 +69,16 @@ def seed_initial_data(db: Session, force_reseed: bool = False):
         print(f"[PeX DB] Persistent database contains {case_count} cases. Skipping seed.")
         return
 
+    # Clean dependent tables for fresh seed
+    db.query(ApprovalRecordModel).delete()
+    db.query(AuditEventModel).delete()
+    db.query(CaseModel).delete()
+    db.query(RecommendationModel).delete()
+    db.query(GovernedActionModel).delete()
+    db.query(DeliveryReceiptModel).delete()
+    db.query(TokenVaultModel).delete()
+    db.commit()
+
     # Import data_loader to generate benchmark fixtures
     from app.services.data_loader import (
         all_profiles,
@@ -101,12 +111,14 @@ def seed_initial_data(db: Session, force_reseed: bool = False):
             uetr = f"UETR-2026-{prefix}-{i:04d}-A8"
             payment_ref = f"PAY-2026-{i:06d}"
 
-            if i % 3 == 0:
-                amount = 45000.0 + (i * 1250.50)
-            elif i % 3 == 1:
-                amount = 325000.0 + (i * 4500.0)
+            if i % 4 == 0:
+                amount = 3500.0 + (i * 180.0)  # Micro-repairs ($3.5k - $18k) qualified for STP Fast-Lane
+            elif i % 4 == 1:
+                amount = 8500.0 + (i * 150.0) if domain in [ExceptionDomain.DATA_QUALITY, ExceptionDomain.PROCESSING] else 45000.0 + (i * 850.50)
+            elif i % 4 == 2:
+                amount = 325000.0 + (i * 4500.0)  # High-Value Dual-Auth ($325k+)
             else:
-                amount = 1450000.0 + (i * 9800.0)
+                amount = 1450000.0 + (i * 9800.0)  # Institutional Treasury wires ($1.45M+)
 
             if i % 7 == 0:
                 status = LifecycleStage.INGESTED
@@ -381,10 +393,14 @@ def seed_initial_data(db: Session, force_reseed: bool = False):
     db.commit()
     print(f"[PeX DB] Successfully seeded {db.query(CaseModel).count()} cases, {db.query(AuditEventModel).count()} audit events, and {db.query(UserModel).count()} users into persistent DB.")
 
-def seed_policy_rules(db: Session):
+def seed_policy_rules(db: Session, force_reseed: bool = False):
     """Populates baseline business policy rules and governance thresholds."""
-    if db.query(PolicyRuleModel).count() > 0:
+    if db.query(PolicyRuleModel).count() > 0 and not force_reseed:
         return
+
+    if force_reseed:
+        db.query(PolicyRuleModel).delete()
+        db.commit()
 
     now = datetime.utcnow()
     rules = [
@@ -411,10 +427,10 @@ def seed_policy_rules(db: Session):
         PolicyRuleModel(
             rule_id="RULE-FASTLANE-01",
             name="Micro-Repair Straight-Through Fast Lane (<$25k)",
-            natural_language_prompt="Auto-qualify micro repairs under $25,000 with >95% confidence for 1-click fast-lane",
+            natural_language_prompt="Auto-qualify micro repairs under $25,000 with >90% confidence for 1-click fast-lane",
             category="STP_FAST_LANE",
-            domain="FORMAT_SYNTAX",
-            conditions={"logic": "AND", "clauses": [{"field": "amount", "operator": "<=", "value": 25000.0}, {"field": "confidence", "operator": ">=", "value": 0.95}]},
+            domain="ALL",
+            conditions={"logic": "AND", "clauses": [{"field": "amount", "operator": "<=", "value": 25000.0}, {"field": "confidence", "operator": ">=", "value": 0.90}]},
             actions={"auto_qualify_fast_lane": True, "one_click_eligible": True, "target_queue": "Repair"},
             status="ACTIVE",
             version="1.0",
@@ -490,10 +506,14 @@ def seed_policy_rules(db: Session):
     db.commit()
     print(f"[PeX DB] Seeded {len(rules)} business policy rules.")
 
-def seed_icd_configs(db: Session):
+def seed_icd_configs(db: Session, force_reseed: bool = False):
     """Populates external ICD bank adapter configurations."""
-    if db.query(ICDConfigurationModel).count() > 0:
+    if db.query(ICDConfigurationModel).count() > 0 and not force_reseed:
         return
+
+    if force_reseed:
+        db.query(ICDConfigurationModel).delete()
+        db.commit()
 
     now = datetime.utcnow()
     configs = [
@@ -600,7 +620,7 @@ def init_db(force_reseed: bool = False):
     try:
         seed_users(db)
         seed_initial_data(db, force_reseed=force_reseed)
-        seed_policy_rules(db)
-        seed_icd_configs(db)
+        seed_policy_rules(db, force_reseed=force_reseed)
+        seed_icd_configs(db, force_reseed=force_reseed)
     finally:
         db.close()

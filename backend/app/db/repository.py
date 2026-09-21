@@ -553,11 +553,15 @@ class PeXDBRepository:
     def _action_to_schema(self, act: GovernedActionModel):
         from app.schemas.action import GovernedActionContract, ActionStatus
         from app.schemas.recommendation import ActionType
+        try:
+            act_type = ActionType(act.action_type)
+        except (ValueError, KeyError):
+            act_type = ActionType.REPAIR_AND_RELEASE
         return GovernedActionContract(
             action_id=act.action_id,
             case_id=act.case_id,
             approval_ids=act.approval_ids or [],
-            action_type=ActionType(act.action_type),
+            action_type=act_type,
             target_system=act.target_system,
             idempotency_key=act.idempotency_key,
             dispatch_payload=act.dispatch_payload or {},

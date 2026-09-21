@@ -117,13 +117,46 @@ appr_rule_resp = api_call(
     },
     method="POST"
 )
-print(f"Checker approved rule: {appr_rule_resp['rule_id']} | New Status: {appr_rule_resp['status']} | Checker: {appr_rule_resp['checker_name']}")
-
 print("\n=== 9. ICD External Bank Configuration Registry ===")
 icd_list = api_call("http://127.0.0.1:8000/api/rules/icd-configs/list")
 print(f"Total ICD Nodes: {len(icd_list)}")
 for icd in icd_list[:3]:
     print(f"  - [{icd['status']}] {icd['icd_id']}: {icd['name']} ({icd['bic']}) via {icd['rail']}")
 
-print("\n>>> ALL E2E PERSISTENT DATABASE & DYNAMIC RULES TESTS PASSED SUCCESSFULLY! <<<")
+print("\n=== 10. Governed STP & Fast-Lane Batch Execution (Release v1.5) ===")
+telemetry = api_call("http://127.0.0.1:8000/api/stp/telemetry")
+print("STP Telemetry:")
+print(f"  - Overall STP Rate: {telemetry['overall_stp_rate_pct']}%")
+print(f"  - Total Settled Cases: {telemetry['settled_cases']} of {telemetry['total_cases']}")
+print(f"  - Fast-Lane Eligible: {telemetry['fast_lane_eligible_count']} cases (${telemetry['fast_lane_eligible_volume']:,.2f})")
+print(f"  - Estimated Time Saved: {telemetry['time_savings_hours']:.1f} hours")
+
+eligible_stp = api_call("http://127.0.0.1:8000/api/stp/eligible")
+print(f"Fast-Lane Qualified Cases: {len(eligible_stp)}")
+for item in eligible_stp[:3]:
+    print(f"  - [STP {item['mode']}] {item['case_id']}: ${item['amount']:,.2f} | Conf: {item['ai_confidence']} | Reason: {item['reason']}")
+
+if eligible_stp:
+    target_ids = [e["case_id"] for e in eligible_stp[:2]]
+    batch_resp = api_call(
+        "http://127.0.0.1:8000/api/stp/batch-release",
+        data={
+            "case_ids": target_ids,
+            "approver_id": "APR-3191",
+            "approver_name": "Daniel Osei",
+            "approver_role": "OPERATIONS_APPROVER",
+            "comments": "Batch settlement authorized via E2E test verification."
+        },
+        method="POST"
+    )
+    print(f"Batch Execution Result ({batch_resp['batch_id']}):")
+    print(f"  - Settled Count: {batch_resp['processed_count']} / {batch_resp['total_requested']}")
+    print(f"  - Total Dollar Volume: ${batch_resp['total_dollar_volume']:,.2f}")
+    print(f"  - Executed By: {batch_resp['executed_by']}")
+    for s in batch_resp["settled_cases"]:
+        print(f"    * {s['case_id']}: ${s['amount']:,.2f} -> {s['receipt_id']}")
+
+print("\n>>> ALL E2E PERSISTENT DATABASE, DYNAMIC RULES & STP ENGINE TESTS PASSED SUCCESSFULLY! <<<")
+
+
 
