@@ -1677,7 +1677,8 @@ html_content = r'''<!DOCTYPE html>
         return (b.amount || 0) - (a.amount || 0);
       });
 
-      const overviewFilteredCases = sortedCases.filter(c => {
+      // Dynamic Dimensional Filter Context for Overview Table
+      const overviewDimensionFilteredCases = sortedCases.filter(c => {
         if (overviewDomainFilter !== "ALL" && c.domain !== overviewDomainFilter) return false;
         if (overviewCurrencyFilter === "OTHER_FX") {
           if (["USD", "EUR", "GBP"].includes(c.currency)) return false;
@@ -1692,9 +1693,14 @@ html_content = r'''<!DOCTYPE html>
             if (slaCat !== overviewSlaFilter) return false;
           }
         }
-        if (overviewTableFilter === "ACTIONABLE") return isMatchingRoleQueue(c);
         return true;
       });
+
+      const overviewDimensionActionableCases = overviewDimensionFilteredCases.filter(c => isMatchingRoleQueue(c));
+
+      const overviewFilteredCases = overviewTableFilter === "ACTIONABLE" 
+        ? overviewDimensionActionableCases 
+        : overviewDimensionFilteredCases;
 
       const overviewDisplayCases = overviewFilteredCases.slice(0, 15);
 
@@ -2459,11 +2465,15 @@ html_content = r'''<!DOCTYPE html>
                           const isSelected = overviewCurrencyFilter === "USD";
                           return (
                             <div 
-                              onClick={() => setOverviewCurrencyFilter(isSelected ? "ALL" : "USD")}
+                              onClick={() => {
+                                const next = isSelected ? "ALL" : "USD";
+                                setOverviewCurrencyFilter(next);
+                                if (next !== "ALL") setOverviewTableFilter("ALL_TOP");
+                              }}
                               className={`p-2.5 rounded-xl border cursor-pointer transition-all ${
                                 isSelected ? "bg-amber-50/90 border-amber-400 ring-2 ring-amber-300 shadow-sm" : "bg-slate-50/70 hover:bg-slate-100/80 border-slate-200"
                               }`}
-                              title="Click to filter table by USD / Fedwire exceptions"
+                              title="Click to filter table by USD / Fedwire exceptions (shows all USD cases)"
                             >
                               <div className="flex justify-between items-center">
                                 <span className="text-[10px] font-mono font-extrabold text-slate-800 truncate">Fedwire</span>
@@ -2490,11 +2500,15 @@ html_content = r'''<!DOCTYPE html>
                           const isSelected = overviewCurrencyFilter === "EUR";
                           return (
                             <div 
-                              onClick={() => setOverviewCurrencyFilter(isSelected ? "ALL" : "EUR")}
+                              onClick={() => {
+                                const next = isSelected ? "ALL" : "EUR";
+                                setOverviewCurrencyFilter(next);
+                                if (next !== "ALL") setOverviewTableFilter("ALL_TOP");
+                              }}
                               className={`p-2.5 rounded-xl border cursor-pointer transition-all ${
                                 isSelected ? "bg-emerald-50/90 border-emerald-400 ring-2 ring-emerald-300 shadow-sm" : "bg-slate-50/70 hover:bg-slate-100/80 border-slate-200"
                               }`}
-                              title="Click to filter table by EUR / TARGET2 exceptions"
+                              title="Click to filter table by EUR / TARGET2 exceptions (shows all EUR cases)"
                             >
                               <div className="flex justify-between items-center">
                                 <span className="text-[10px] font-mono font-extrabold text-slate-800 truncate">TARGET2</span>
@@ -2521,11 +2535,15 @@ html_content = r'''<!DOCTYPE html>
                           const isSelected = overviewCurrencyFilter === "GBP";
                           return (
                             <div 
-                              onClick={() => setOverviewCurrencyFilter(isSelected ? "ALL" : "GBP")}
+                              onClick={() => {
+                                const next = isSelected ? "ALL" : "GBP";
+                                setOverviewCurrencyFilter(next);
+                                if (next !== "ALL") setOverviewTableFilter("ALL_TOP");
+                              }}
                               className={`p-2.5 rounded-xl border cursor-pointer transition-all ${
                                 isSelected ? "bg-rose-50/90 border-rose-400 ring-2 ring-rose-300 shadow-sm" : "bg-rose-50/40 hover:bg-rose-50/70 border-rose-200"
                               }`}
-                              title="Click to filter table by GBP / CHAPS exceptions"
+                              title="Click to filter table by GBP / CHAPS exceptions (shows all 8 GBP cases)"
                             >
                               <div className="flex justify-between items-center">
                                 <span className="text-[10px] font-mono font-extrabold text-slate-800 truncate">CHAPS</span>
@@ -2552,7 +2570,11 @@ html_content = r'''<!DOCTYPE html>
                           const isSelected = overviewCurrencyFilter === "OTHER_FX";
                           return (
                             <div 
-                              onClick={() => setOverviewCurrencyFilter(isSelected ? "ALL" : "OTHER_FX")}
+                              onClick={() => {
+                                const next = isSelected ? "ALL" : "OTHER_FX";
+                                setOverviewCurrencyFilter(next);
+                                if (next !== "ALL") setOverviewTableFilter("ALL_TOP");
+                              }}
                               className={`p-2.5 rounded-xl border cursor-pointer transition-all ${
                                 isSelected ? "bg-purple-50/90 border-purple-400 ring-2 ring-purple-300 shadow-sm" : "bg-slate-50/70 hover:bg-slate-100/80 border-slate-200"
                               }`}
@@ -2620,7 +2642,11 @@ html_content = r'''<!DOCTYPE html>
                         return (
                           <button
                             key={domKey}
-                            onClick={() => setOverviewDomainFilter(isSelected ? "ALL" : domKey)}
+                            onClick={() => {
+                              const next = isSelected ? "ALL" : domKey;
+                              setOverviewDomainFilter(next);
+                              if (next !== "ALL") setOverviewTableFilter("ALL_TOP");
+                            }}
                             className={`px-3 py-1.5 rounded-xl text-xs font-mono font-semibold transition-all flex items-center space-x-1.5 border ${
                               isSelected 
                                 ? "bg-slate-900 text-white border-slate-900 shadow-sm" 
@@ -2643,7 +2669,11 @@ html_content = r'''<!DOCTYPE html>
                       <span className="text-slate-400 font-bold uppercase text-[9px] mr-0.5">SLA Cutoff:</span>
                       
                       <button 
-                        onClick={() => setOverviewSlaFilter(overviewSlaFilter === "CRITICAL_1H" ? "ALL" : "CRITICAL_1H")}
+                        onClick={() => {
+                          const next = overviewSlaFilter === "CRITICAL_1H" ? "ALL" : "CRITICAL_1H";
+                          setOverviewSlaFilter(next);
+                          if (next !== "ALL") setOverviewTableFilter("ALL_TOP");
+                        }}
                         className={`px-2 py-0.5 rounded-lg border font-bold transition-all cursor-pointer ${
                           overviewSlaFilter === "CRITICAL_1H" 
                             ? "bg-rose-600 text-white border-rose-700 ring-2 ring-rose-400 shadow-sm font-extrabold" 
@@ -2655,7 +2685,11 @@ html_content = r'''<!DOCTYPE html>
                       </button>
 
                       <button 
-                        onClick={() => setOverviewSlaFilter(overviewSlaFilter === "URGENT_4H" ? "ALL" : "URGENT_4H")}
+                        onClick={() => {
+                          const next = overviewSlaFilter === "URGENT_4H" ? "ALL" : "URGENT_4H";
+                          setOverviewSlaFilter(next);
+                          if (next !== "ALL") setOverviewTableFilter("ALL_TOP");
+                        }}
                         className={`px-2 py-0.5 rounded-lg border font-bold transition-all cursor-pointer ${
                           overviewSlaFilter === "URGENT_4H" 
                             ? "bg-amber-600 text-white border-amber-700 ring-2 ring-amber-400 shadow-sm font-extrabold" 
@@ -2667,7 +2701,11 @@ html_content = r'''<!DOCTYPE html>
                       </button>
 
                       <button 
-                        onClick={() => setOverviewSlaFilter(overviewSlaFilter === "NORMAL_24H" ? "ALL" : "NORMAL_24H")}
+                        onClick={() => {
+                          const next = overviewSlaFilter === "NORMAL_24H" ? "ALL" : "NORMAL_24H";
+                          setOverviewSlaFilter(next);
+                          if (next !== "ALL") setOverviewTableFilter("ALL_TOP");
+                        }}
                         className={`px-2 py-0.5 rounded-lg border font-semibold transition-all cursor-pointer ${
                           overviewSlaFilter === "NORMAL_24H" 
                             ? "bg-slate-800 text-white border-slate-900 ring-2 ring-slate-400 shadow-sm font-extrabold" 
@@ -2679,7 +2717,11 @@ html_content = r'''<!DOCTYPE html>
                       </button>
 
                       <button 
-                        onClick={() => setOverviewSlaFilter(overviewSlaFilter === "BREACHED" ? "ALL" : "BREACHED")}
+                        onClick={() => {
+                          const next = overviewSlaFilter === "BREACHED" ? "ALL" : "BREACHED";
+                          setOverviewSlaFilter(next);
+                          if (next !== "ALL") setOverviewTableFilter("ALL_TOP");
+                        }}
                         className={`px-2 py-0.5 rounded-lg border font-bold transition-all cursor-pointer ${
                           overviewSlaFilter === "BREACHED" 
                             ? "bg-red-700 text-white border-red-800 ring-2 ring-red-400 shadow-sm font-extrabold" 
@@ -2691,7 +2733,11 @@ html_content = r'''<!DOCTYPE html>
                       </button>
 
                       <button 
-                        onClick={() => setOverviewSlaFilter(overviewSlaFilter === "SETTLED" ? "ALL" : "SETTLED")}
+                        onClick={() => {
+                          const next = overviewSlaFilter === "SETTLED" ? "ALL" : "SETTLED";
+                          setOverviewSlaFilter(next);
+                          if (next !== "ALL") setOverviewTableFilter("ALL_TOP");
+                        }}
                         className={`px-2 py-0.5 rounded-lg border font-bold transition-all cursor-pointer ${
                           overviewSlaFilter === "SETTLED" 
                             ? "bg-emerald-700 text-white border-emerald-800 ring-2 ring-emerald-400 shadow-sm font-extrabold" 
@@ -2755,9 +2801,21 @@ html_content = r'''<!DOCTYPE html>
                             )}
                           </div>
                           <p className="text-xs text-slate-500 mt-0.5">
-                            {overviewTableFilter === "ACTIONABLE" 
-                              ? `Priority exceptions requiring immediate investigation or sign-off by ${currentPersona.name} (${currentPersona.role})` 
-                              : `High-value platform exceptions ranked by SLA cutoff deadline`}
+                            {overviewTableFilter === "ACTIONABLE" ? (
+                              overviewCurrencyFilter !== "ALL" || overviewDomainFilter !== "ALL" || overviewSlaFilter !== "ALL" ? (
+                                `Showing ${overviewDimensionActionableCases.length} actionable exceptions for ${currentPersona.name} (${currentPersona.role}) out of ${overviewDimensionFilteredCases.length} in this filter`
+                              ) : currentPersona.role_type === "MAKER" ? (
+                                `Showing ${overviewDimensionActionableCases.length} actionable tasks for ${currentPersona.name} (${cases.filter(c => c.status === "INGESTED" || c.status === "RECOMMENDED").length} AI Repair + ${cases.filter(c => c.status === "RETURNED_FOR_REWORK").length} Rework)`
+                              ) : (
+                                `Showing ${overviewDimensionActionableCases.length} approval cases awaiting authorization by ${currentPersona.name} (${currentPersona.role})`
+                              )
+                            ) : (
+                              overviewCurrencyFilter !== "ALL" || overviewDomainFilter !== "ALL" || overviewSlaFilter !== "ALL" ? (
+                                `Showing all ${overviewDimensionFilteredCases.length} exceptions in active filter (${overviewDimensionActionableCases.length} Actionable for ${currentPersona.name.split(' ')[0]}, ${overviewDimensionFilteredCases.length - overviewDimensionActionableCases.length} in Other Desks / Settled)`
+                              ) : (
+                                `All ${cases.length} platform exceptions ranked by SLA cutoff deadline and value`
+                              )
+                            )}
                           </p>
                         </div>
                       </div>
@@ -2769,16 +2827,32 @@ html_content = r'''<!DOCTYPE html>
                             className={`px-3 py-1 rounded-lg transition-all ${
                               overviewTableFilter === "ACTIONABLE" ? "bg-white text-sky-800 shadow-sm font-extrabold" : "text-slate-600 hover:text-slate-900"
                             }`}
+                            title={
+                              currentPersona.role_type === "MAKER" 
+                                ? `Actionable Maker Tasks: ${overviewDimensionActionableCases.length} (AI Repair + Rework)` 
+                                : `Actionable Approvals Desk: ${overviewDimensionActionableCases.length} (Pending Authorization)`
+                            }
                           >
-                            ⚡ Actionable for Me ({overviewActionableCases.length})
+                            ⚡ {
+                              overviewCurrencyFilter !== "ALL" ? `Actionable ${overviewCurrencyFilter === "OTHER_FX" ? "FX" : overviewCurrencyFilter}` :
+                              overviewDomainFilter !== "ALL" ? `Actionable ${DOMAIN_STYLES[overviewDomainFilter]?.label?.replace(/ \/ .*/, '')}` :
+                              overviewSlaFilter !== "ALL" ? "Actionable SLA" :
+                              currentPersona.role_type === "MAKER" ? "My Maker Tasks" : "My Approvals"
+                            } ({overviewDimensionActionableCases.length})
                           </button>
                           <button
                             onClick={() => setOverviewTableFilter("ALL_TOP")}
                             className={`px-3 py-1 rounded-lg transition-all ${
                               overviewTableFilter === "ALL_TOP" ? "bg-white text-sky-800 shadow-sm font-extrabold" : "text-slate-600 hover:text-slate-900"
                             }`}
+                            title={`All exceptions in active filter scope (${overviewDimensionFilteredCases.length} cases)`}
                           >
-                            🌐 All Platform Cases ({cases.length})
+                            🌐 {
+                              overviewCurrencyFilter !== "ALL" ? `All ${overviewCurrencyFilter === "OTHER_FX" ? "FX" : overviewCurrencyFilter} Cases` :
+                              overviewDomainFilter !== "ALL" ? `All ${DOMAIN_STYLES[overviewDomainFilter]?.label?.replace(/ \/ .*/, '')}` :
+                              overviewSlaFilter !== "ALL" ? "All SLA Cases" :
+                              "All Platform Cases"
+                            } ({overviewDimensionFilteredCases.length})
                           </button>
                         </div>
 
@@ -3297,15 +3371,20 @@ html_content = r'''<!DOCTYPE html>
                     <div className="p-3.5 border-b border-slate-100 space-y-2.5">
                       <div className="flex items-center justify-between">
                         <div>
-                          <h2 className="text-xs font-bold uppercase tracking-wider text-slate-700 font-mono">APPROVALS QUEUE</h2>
+                          <h2 className="text-xs font-bold uppercase tracking-wider text-slate-700 font-mono">
+                            {currentPersona.role_type === "MAKER" ? "MAKER REWORK QUEUE" : "APPROVALS QUEUE"}
+                          </h2>
                           <p className="text-[11px] text-slate-400 font-mono">
-                            {approvalsQueueCases.length} {approvalsFilterMode === "MY_DESK" ? `Actionable for ${currentPersona.name.split(' ')[0]}` : "In Review by Other Desks"}
+                            {currentPersona.role_type === "MAKER"
+                              ? `${approvalsQueueCases.length} ${approvalsFilterMode === "MY_DESK" ? "Rework Items from Checkers" : "Cases in Approver Review"}`
+                              : `${approvalsQueueCases.length} ${approvalsFilterMode === "MY_DESK" ? `Actionable for ${currentPersona.name.split(' ')[0]}` : "In Review by Other Desks"}`
+                            }
                           </p>
                         </div>
                         <button onClick={refreshCases} className="p-1 text-slate-400 hover:text-slate-800 rounded hover:bg-slate-100 transition-all" title="Refresh list">↻</button>
                       </div>
 
-                      {/* Segmented Filter Toggle (2 Tabs Only: My Desk & Others) */}
+                      {/* Segmented Filter Toggle (2 Tabs: My Tasks & Others) */}
                       <div className="grid grid-cols-2 gap-1.5 bg-slate-100 p-1 rounded-lg text-xs font-mono font-bold">
                         <button
                           onClick={() => setApprovalsFilterMode("MY_DESK")}
@@ -3314,7 +3393,7 @@ html_content = r'''<!DOCTYPE html>
                           }`}
                           title={`Cases actionable by your role (${currentPersona.role})`}
                         >
-                          My Desk ({actionableMeCount})
+                          {currentPersona.role_type === "MAKER" ? `Rework for Me (${actionableMeCount})` : `My Desk (${actionableMeCount})`}
                         </button>
                         <button
                           onClick={() => setApprovalsFilterMode("OTHERS")}
@@ -3323,10 +3402,25 @@ html_content = r'''<!DOCTYPE html>
                           }`}
                           title={`In-review approval cases pending other desks (${inReviewCount} - ${actionableMeCount} = ${othersCount})`}
                         >
-                          Others ({othersCount})
+                          {currentPersona.role_type === "MAKER" ? `Approver Desk (${othersCount})` : `Others (${othersCount})`}
                         </button>
                       </div>
                     </div>
+
+                    {/* Maker Task Scope Context Banner */}
+                    {currentPersona.role_type === "MAKER" && (
+                      <div className="p-3 bg-amber-50/90 border-b border-amber-200 text-amber-900 text-xs space-y-1">
+                        <div className="font-bold flex items-center justify-between text-[11px]">
+                          <span>🛠️ Maker Task Breakdown</span>
+                          <button onClick={() => setTab("worklist")} className="text-sky-700 hover:text-sky-900 font-extrabold underline text-[10px]">
+                            Repair Queue ({cases.filter(c => c.status === "INGESTED" || c.status === "RECOMMENDED").length}) &rarr;
+                          </button>
+                        </div>
+                        <p className="text-[10px] text-amber-800 leading-tight">
+                          You have <strong>{actionableMeCount} Rework cases</strong> returned by Checkers here, and <strong>{cases.filter(c => c.status === "INGESTED" || c.status === "RECOMMENDED").length} uninvestigated cases</strong> in the Repair Queue (<strong>{actionableMeCount + cases.filter(c => c.status === "INGESTED" || c.status === "RECOMMENDED").length} total tasks</strong>).
+                        </p>
+                      </div>
+                    )}
 
                     <div className="flex-1 overflow-y-auto divide-y divide-slate-100">
                       {approvalsQueueCases.length === 0 ? (
