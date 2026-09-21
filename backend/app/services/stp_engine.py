@@ -568,7 +568,7 @@ class STPEngine:
             {
                 "case_id": "PEX-STP-0101",
                 "profile": "INVALID_IBAN",
-                "domain": "FORMAT_SYNTAX",
+                "domain": "DATA_QUALITY",
                 "amount": 8450.00,
                 "currency": "GBP",
                 "payment_rail": "CHAPS",
@@ -586,7 +586,7 @@ class STPEngine:
             {
                 "case_id": "PEX-STP-0102",
                 "profile": "INVALID_BIC",
-                "domain": "FORMAT_SYNTAX",
+                "domain": "DATA_QUALITY",
                 "amount": 14200.00,
                 "currency": "EUR",
                 "payment_rail": "TARGET2",
@@ -676,7 +676,7 @@ class STPEngine:
             {
                 "case_id": "PEX-STP-0107",
                 "profile": "INVALID_ADDRESS_FORMAT",
-                "domain": "FORMAT_SYNTAX",
+                "domain": "DATA_QUALITY",
                 "amount": 11750.00,
                 "currency": "EUR",
                 "payment_rail": "TARGET2",

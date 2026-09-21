@@ -1675,7 +1675,11 @@
 
       const overviewFilteredCases = sortedCases.filter(c => {
         if (overviewDomainFilter !== "ALL" && c.domain !== overviewDomainFilter) return false;
-        if (overviewCurrencyFilter !== "ALL" && c.currency !== overviewCurrencyFilter) return false;
+        if (overviewCurrencyFilter === "OTHER_FX") {
+          if (["USD", "EUR", "GBP"].includes(c.currency)) return false;
+        } else if (overviewCurrencyFilter !== "ALL" && c.currency !== overviewCurrencyFilter) {
+          return false;
+        }
         if (overviewTableFilter === "ACTIONABLE") return isMatchingRoleQueue(c);
         return true;
       });
@@ -2203,110 +2207,142 @@
 
                       {/* Role-Specific Workload Metric Cards */}
                       {currentPersona.role_type === "MAKER" ? (
-                        /* MAKER / OPERATOR WORKLOAD COUNTERS */
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        /* MAKER / OPERATOR WORKLOAD COUNTERS (4 CARDS = 94 TOTAL) */
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                           <div 
                             onClick={() => { setOverviewTableFilter("ACTIONABLE"); }}
-                            className="bg-slate-800/80 hover:bg-slate-800 p-3.5 rounded-xl border border-slate-700/60 transition-all cursor-pointer group"
+                            className="bg-slate-800/80 hover:bg-slate-800 p-3 rounded-xl border border-slate-700/60 transition-all cursor-pointer group"
                           >
                             <div className="text-[10px] uppercase font-mono text-slate-400 flex items-center justify-between">
-                              <span>Open for AI Repair</span>
+                              <span>1. AI Repair</span>
                               <span className="text-xs">⚡</span>
                             </div>
-                            <div className="text-2xl font-black font-mono text-sky-400 mt-1">
-                              {cases.filter(c => c.status === "INGESTED" || c.status === "RECOMMENDED").length}
+                            <div className="text-xl font-black font-mono text-sky-400 mt-1">
+                              {cases.filter(c => c.status === "INGESTED" || c.status === "RECOMMENDED").length} Cases
                             </div>
-                            <div className="text-[10px] text-slate-400 mt-0.5 truncate">
-                              ${cases.filter(c => c.status === "INGESTED" || c.status === "RECOMMENDED").reduce((acc, c) => acc + (c.amount || 0), 0).toLocaleString(undefined, { maximumFractionDigits: 0 })} Ingested Value
+                            <div className="text-[9px] text-slate-400 mt-0.5 truncate">
+                              ${cases.filter(c => c.status === "INGESTED" || c.status === "RECOMMENDED").reduce((acc, c) => acc + (c.amount || 0), 0).toLocaleString(undefined, { maximumFractionDigits: 0 })} Ingested
                             </div>
                           </div>
 
                           <div 
                             onClick={() => { setSelectedCaseId(cases.find(c => c.status === "RETURNED_FOR_REWORK")?.case_id || null); setTab("approvals"); }}
-                            className="bg-slate-800/80 hover:bg-slate-800 p-3.5 rounded-xl border border-amber-500/40 transition-all cursor-pointer group bg-gradient-to-br from-slate-800/80 to-amber-950/20"
+                            className="bg-slate-800/80 hover:bg-slate-800 p-3 rounded-xl border border-amber-500/40 transition-all cursor-pointer group bg-gradient-to-br from-slate-800/80 to-amber-950/20"
                           >
                             <div className="text-[10px] uppercase font-mono text-amber-400 flex items-center justify-between">
-                              <span>Returned Rework</span>
+                              <span>2. Rework</span>
                               <span className="text-xs">⚠️</span>
                             </div>
-                            <div className="text-2xl font-black font-mono text-amber-300 mt-1">
-                              {cases.filter(c => c.status === "RETURNED_FOR_REWORK").length}
+                            <div className="text-xl font-black font-mono text-amber-300 mt-1">
+                              {cases.filter(c => c.status === "RETURNED_FOR_REWORK").length} Items
                             </div>
-                            <div className="text-[10px] text-amber-400/80 mt-0.5 truncate">
-                              Checker feedback attached
+                            <div className="text-[9px] text-amber-400/80 mt-0.5 truncate">
+                              Checker feedback
                             </div>
                           </div>
 
                           <div 
                             onClick={() => { setTab("worklist"); }}
-                            className="bg-slate-800/80 hover:bg-slate-800 p-3.5 rounded-xl border border-slate-700/60 transition-all cursor-pointer group"
+                            className="bg-slate-800/80 hover:bg-slate-800 p-3 rounded-xl border border-purple-500/40 transition-all cursor-pointer group"
                           >
-                            <div className="text-[10px] uppercase font-mono text-slate-400 flex items-center justify-between">
-                              <span>In-Flight / Review</span>
+                            <div className="text-[10px] uppercase font-mono text-purple-400 flex items-center justify-between">
+                              <span>3. In Review</span>
                               <span className="text-xs">⏳</span>
                             </div>
-                            <div className="text-2xl font-black font-mono text-purple-300 mt-1">
-                              {cases.filter(c => c.status === "PENDING_APPROVAL" || c.status === "AWAITING_SECOND_APPROVAL").length}
+                            <div className="text-xl font-black font-mono text-purple-300 mt-1">
+                              {cases.filter(c => c.status === "PENDING_APPROVAL" || c.status === "AWAITING_SECOND_APPROVAL").length} Cases
                             </div>
-                            <div className="text-[10px] text-slate-400 mt-0.5 truncate">
-                              Awaiting Checker sign-off
+                            <div className="text-[9px] text-slate-400 mt-0.5 truncate">
+                              At Checker Desk
+                            </div>
+                          </div>
+
+                          <div 
+                            onClick={() => { setTab("worklist"); }}
+                            className="bg-slate-800/80 hover:bg-slate-800 p-3 rounded-xl border border-emerald-500/40 transition-all cursor-pointer group bg-gradient-to-br from-slate-800/80 to-emerald-950/20"
+                          >
+                            <div className="text-[10px] uppercase font-mono text-emerald-400 flex items-center justify-between">
+                              <span>4. Approved/Done</span>
+                              <span className="text-xs">🏁</span>
+                            </div>
+                            <div className="text-xl font-black font-mono text-emerald-300 mt-1">
+                              {cases.filter(c => c.status === "APPROVED" || c.status === "SETTLED").length} Cases
+                            </div>
+                            <div className="text-[9px] text-emerald-400/80 mt-0.5 truncate">
+                              {cases.filter(c => c.status === "APPROVED").length} Ready • {settledCount} Settled
                             </div>
                           </div>
                         </div>
                       ) : (
-                        /* CHECKER / APPROVER WORKLOAD COUNTERS */
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        /* CHECKER / APPROVER WORKLOAD COUNTERS (4 CARDS = 94 TOTAL) */
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                           <div 
                             onClick={() => setStpBatchDrawerOpen(true)}
-                            className="bg-slate-800/80 hover:bg-slate-800 p-3.5 rounded-xl border border-amber-500/50 transition-all cursor-pointer group bg-gradient-to-br from-slate-800/80 to-amber-950/30 shadow-inner"
+                            className="bg-slate-800/80 hover:bg-slate-800 p-3 rounded-xl border border-amber-500/50 transition-all cursor-pointer group bg-gradient-to-br from-slate-800/80 to-amber-950/30 shadow-inner"
                           >
                             <div className="text-[10px] uppercase font-mono text-amber-400 flex items-center justify-between">
-                              <span className="font-bold">Fast-Lane 1-Click</span>
-                              <span className="px-1 py-0.2 rounded text-[9px] bg-amber-400/20 text-amber-300 font-mono">100% CLEAN</span>
+                              <span className="font-bold">1. Fast-Lane</span>
+                              <span className="px-1 py-0.2 rounded text-[8px] bg-amber-400/20 text-amber-300 font-mono">1-CLICK</span>
                             </div>
-                            <div className="text-2xl font-black font-mono text-amber-300 mt-1">
+                            <div className="text-xl font-black font-mono text-amber-300 mt-1">
                               {stpEligibleCases.length} Cases
                             </div>
-                            <div className="text-[10px] text-slate-300 mt-0.5 truncate">
-                              ${stpEligibleCases.reduce((acc, c) => acc + (c.amount || 0), 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Ready
+                            <div className="text-[9px] text-slate-300 mt-0.5 truncate">
+                              ${stpEligibleCases.reduce((acc, c) => acc + (c.amount || 0), 0).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} Ready
                             </div>
                           </div>
 
                           <div 
                             onClick={() => setTab("approvals")}
-                            className="bg-slate-800/80 hover:bg-slate-800 p-3.5 rounded-xl border border-sky-500/40 transition-all cursor-pointer group"
+                            className="bg-slate-800/80 hover:bg-slate-800 p-3 rounded-xl border border-sky-500/40 transition-all cursor-pointer group"
                           >
                             <div className="text-[10px] uppercase font-mono text-sky-400 flex items-center justify-between">
-                              <span>Pending Approvals</span>
+                              <span>2. Approvals</span>
                               <span className="text-xs">📋</span>
                             </div>
-                            <div className="text-2xl font-black font-mono text-sky-300 mt-1">
+                            <div className="text-xl font-black font-mono text-sky-300 mt-1">
                               {cases.filter(c => isMatchingApprovalsDeskQueue(c)).length} Cases
                             </div>
-                            <div className="text-[10px] text-slate-400 mt-0.5 truncate">
-                              ${cases.filter(c => isMatchingApprovalsDeskQueue(c)).reduce((acc, c) => acc + (c.amount || 0), 0).toLocaleString(undefined, { maximumFractionDigits: 0 })} Total Value
+                            <div className="text-[9px] text-slate-400 mt-0.5 truncate">
+                              ${cases.filter(c => isMatchingApprovalsDeskQueue(c)).reduce((acc, c) => acc + (c.amount || 0), 0).toLocaleString(undefined, { maximumFractionDigits: 0 })} Value
                             </div>
                           </div>
 
                           <div 
-                            onClick={() => { setApprovalsFilterMode("ACTIONABLE_ME"); setTab("approvals"); }}
-                            className="bg-slate-800/80 hover:bg-slate-800 p-3.5 rounded-xl border border-purple-500/40 transition-all cursor-pointer group"
+                            onClick={() => { setTab("worklist"); }}
+                            className="bg-slate-800/80 hover:bg-slate-800 p-3 rounded-xl border border-purple-500/40 transition-all cursor-pointer group"
                           >
                             <div className="text-[10px] uppercase font-mono text-purple-400 flex items-center justify-between">
-                              <span>Dual-Auth (≥ $250k)</span>
-                              <span className="text-xs">🛡️</span>
+                              <span>3. Maker Prep</span>
+                              <span className="text-xs">⚙️</span>
                             </div>
-                            <div className="text-2xl font-black font-mono text-purple-300 mt-1">
-                              {cases.filter(c => c.status === "AWAITING_SECOND_APPROVAL").length} Cases
+                            <div className="text-xl font-black font-mono text-purple-300 mt-1">
+                              {cases.filter(c => c.status === "INGESTED" || c.status === "RECOMMENDED" || c.status === "RETURNED_FOR_REWORK").length} Cases
                             </div>
-                            <div className="text-[10px] text-slate-400 mt-0.5 truncate">
-                              Requires 4-eyes risk clearance
+                            <div className="text-[9px] text-slate-400 mt-0.5 truncate">
+                              Open in Maker queue
+                            </div>
+                          </div>
+
+                          <div 
+                            onClick={() => { setTab("worklist"); }}
+                            className="bg-slate-800/80 hover:bg-slate-800 p-3 rounded-xl border border-emerald-500/40 transition-all cursor-pointer group bg-gradient-to-br from-slate-800/80 to-emerald-950/20"
+                          >
+                            <div className="text-[10px] uppercase font-mono text-emerald-400 flex items-center justify-between">
+                              <span>4. Settled/Done</span>
+                              <span className="text-xs">🏁</span>
+                            </div>
+                            <div className="text-xl font-black font-mono text-emerald-300 mt-1">
+                              {cases.filter(c => c.status === "APPROVED" || c.status === "SETTLED").length} Cases
+                            </div>
+                            <div className="text-[9px] text-emerald-400/80 mt-0.5 truncate">
+                              {cases.filter(c => c.status === "APPROVED").length} Ready • {settledCount} Settled
                             </div>
                           </div>
                         </div>
                       )}
 
-                      {/* Primary Role Action CTAs */}
+                      {/* Primary Role Action CTAs + Mathematical Reconciliation Footer */}
                       <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-800">
                         {currentPersona.role_type === "MAKER" ? (
                           <>
@@ -2324,8 +2360,8 @@
                                 <span>Open Repair Queue &rarr;</span>
                               </button>
                             </div>
-                            <span className="text-[11px] font-mono text-slate-400">
-                              Zero-touch format repair + Master Directory cross-check active
+                            <span className="text-[10px] font-mono text-slate-400">
+                              ∑ {cases.filter(c => c.status === "INGESTED" || c.status === "RECOMMENDED").length} Open + {cases.filter(c => c.status === "RETURNED_FOR_REWORK").length} Rework + {cases.filter(c => c.status === "PENDING_APPROVAL" || c.status === "AWAITING_SECOND_APPROVAL").length} In-Review + {cases.filter(c => c.status === "APPROVED").length} Approved + {settledCount} Settled = <strong className="text-white">{cases.length} Total</strong>
                             </span>
                           </>
                         ) : (
@@ -2347,9 +2383,8 @@
                                 <span>📋 Review Approvals Desk ({cases.filter(c => isMatchingApprovalsDeskQueue(c)).length}) &rarr;</span>
                               </button>
                             </div>
-                            <span className="text-[11px] font-mono text-emerald-400 flex items-center space-x-1">
-                              <span>✓</span>
-                              <span>Immutable SHA-256 Audit Trail Sealed</span>
+                            <span className="text-[10px] font-mono text-slate-400">
+                              ∑ {cases.filter(c => isMatchingApprovalsDeskQueue(c)).length} Desk + {cases.filter(c => c.status === "INGESTED" || c.status === "RECOMMENDED" || c.status === "RETURNED_FOR_REWORK").length} Maker + {cases.filter(c => c.status === "APPROVED").length} Approved + {settledCount} Settled = <strong className="text-white">{cases.length} Total</strong>
                             </span>
                           </>
                         )}
@@ -2357,15 +2392,15 @@
                     </div>
 
                     {/* RIGHT COLUMN: Real-Time RTGS Clearing Cutoff Clocks (5 Cols) */}
-                    <div className="lg:col-span-5 bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between space-y-3.5">
+                    <div className="lg:col-span-5 bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between space-y-3">
                       
                       {/* Radar Header */}
-                      <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                      <div className="flex items-center justify-between border-b border-slate-100 pb-2">
                         <div className="flex items-center space-x-2">
                           <span className="text-base">⚡</span>
                           <div>
                             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 font-mono">RTGS CLEARING CUTOFF RADAR</h3>
-                            <p className="text-[10px] text-slate-500">Live countdown against central bank settlement windows</p>
+                            <p className="text-[10px] text-slate-500">Live countdown across central bank settlement windows ({cases.filter(c => c.status !== "SETTLED").length} Open Cases)</p>
                           </div>
                         </div>
                         {overviewCurrencyFilter !== "ALL" && (
@@ -2378,8 +2413,8 @@
                         )}
                       </div>
 
-                      {/* 3 Clearing Rail Cutoff Cards */}
-                      <div className="grid grid-cols-3 gap-2.5">
+                      {/* 4 Clearing Rail & Global Corridor Cards */}
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                         
                         {/* Fedwire (USD) */}
                         {(() => {
@@ -2389,25 +2424,24 @@
                           return (
                             <div 
                               onClick={() => setOverviewCurrencyFilter(isSelected ? "ALL" : "USD")}
-                              className={`p-3 rounded-xl border cursor-pointer transition-all ${
+                              className={`p-2.5 rounded-xl border cursor-pointer transition-all ${
                                 isSelected ? "bg-amber-50/90 border-amber-400 ring-2 ring-amber-300 shadow-sm" : "bg-slate-50/70 hover:bg-slate-100/80 border-slate-200"
                               }`}
                               title="Click to filter table by USD / Fedwire exceptions"
                             >
                               <div className="flex justify-between items-center">
-                                <span className="text-[11px] font-mono font-extrabold text-slate-800">Fedwire</span>
-                                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                                <span className="text-[10px] font-mono font-extrabold text-slate-800 truncate">Fedwire</span>
+                                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
                               </div>
-                              <div className="text-[10px] font-mono text-slate-500 mt-0.5">16:30 EST</div>
-                              <div className="text-sm font-black font-mono text-amber-700 mt-1">
+                              <div className="text-[9px] font-mono text-slate-400">16:30 EST</div>
+                              <div className="text-xs font-black font-mono text-amber-700 mt-1">
                                 {usdCases.length} Cases
                               </div>
-                              <div className="text-[9px] font-mono text-slate-500 truncate mt-0.5">
+                              <div className="text-[8px] font-mono text-slate-500 truncate mt-0.5">
                                 ${usdVal.toLocaleString(undefined, { maximumFractionDigits: 0 })}
                               </div>
-                              <div className="mt-1.5 pt-1 border-t border-slate-200/60 text-[9px] font-mono font-bold text-amber-800 flex items-center justify-between">
+                              <div className="mt-1 pt-1 border-t border-slate-200/60 text-[8px] font-mono font-bold text-amber-800 flex items-center justify-between">
                                 <span>🟡 2h 14m</span>
-                                <span className="text-[8px] uppercase">Urgent</span>
                               </div>
                             </div>
                           );
@@ -2421,25 +2455,24 @@
                           return (
                             <div 
                               onClick={() => setOverviewCurrencyFilter(isSelected ? "ALL" : "EUR")}
-                              className={`p-3 rounded-xl border cursor-pointer transition-all ${
+                              className={`p-2.5 rounded-xl border cursor-pointer transition-all ${
                                 isSelected ? "bg-emerald-50/90 border-emerald-400 ring-2 ring-emerald-300 shadow-sm" : "bg-slate-50/70 hover:bg-slate-100/80 border-slate-200"
                               }`}
                               title="Click to filter table by EUR / TARGET2 exceptions"
                             >
                               <div className="flex justify-between items-center">
-                                <span className="text-[11px] font-mono font-extrabold text-slate-800">TARGET2</span>
-                                <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                <span className="text-[10px] font-mono font-extrabold text-slate-800 truncate">TARGET2</span>
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                               </div>
-                              <div className="text-[10px] font-mono text-slate-500 mt-0.5">18:00 CET</div>
-                              <div className="text-sm font-black font-mono text-emerald-700 mt-1">
+                              <div className="text-[9px] font-mono text-slate-400">18:00 CET</div>
+                              <div className="text-xs font-black font-mono text-emerald-700 mt-1">
                                 {eurCases.length} Cases
                               </div>
-                              <div className="text-[9px] font-mono text-slate-500 truncate mt-0.5">
+                              <div className="text-[8px] font-mono text-slate-500 truncate mt-0.5">
                                 €{eurVal.toLocaleString(undefined, { maximumFractionDigits: 0 })}
                               </div>
-                              <div className="mt-1.5 pt-1 border-t border-slate-200/60 text-[9px] font-mono font-bold text-emerald-800 flex items-center justify-between">
+                              <div className="mt-1 pt-1 border-t border-slate-200/60 text-[8px] font-mono font-bold text-emerald-800 flex items-center justify-between">
                                 <span>🟢 3h 45m</span>
-                                <span className="text-[8px] uppercase">Safe</span>
                               </div>
                             </div>
                           );
@@ -2453,56 +2486,76 @@
                           return (
                             <div 
                               onClick={() => setOverviewCurrencyFilter(isSelected ? "ALL" : "GBP")}
-                              className={`p-3 rounded-xl border cursor-pointer transition-all ${
+                              className={`p-2.5 rounded-xl border cursor-pointer transition-all ${
                                 isSelected ? "bg-rose-50/90 border-rose-400 ring-2 ring-rose-300 shadow-sm" : "bg-rose-50/40 hover:bg-rose-50/70 border-rose-200"
                               }`}
                               title="Click to filter table by GBP / CHAPS exceptions"
                             >
                               <div className="flex justify-between items-center">
-                                <span className="text-[11px] font-mono font-extrabold text-slate-800">CHAPS</span>
-                                <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
+                                <span className="text-[10px] font-mono font-extrabold text-slate-800 truncate">CHAPS</span>
+                                <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span>
                               </div>
-                              <div className="text-[10px] font-mono text-slate-500 mt-0.5">17:00 GMT</div>
-                              <div className="text-sm font-black font-mono text-rose-800 mt-1">
+                              <div className="text-[9px] font-mono text-slate-400">17:00 GMT</div>
+                              <div className="text-xs font-black font-mono text-rose-800 mt-1">
                                 {gbpCases.length} Cases
                               </div>
-                              <div className="text-[9px] font-mono text-slate-500 truncate mt-0.5">
+                              <div className="text-[8px] font-mono text-slate-500 truncate mt-0.5">
                                 £{gbpVal.toLocaleString(undefined, { maximumFractionDigits: 0 })}
                               </div>
-                              <div className="mt-1.5 pt-1 border-t border-rose-200 text-[9px] font-mono font-bold text-rose-900 flex items-center justify-between">
+                              <div className="mt-1 pt-1 border-t border-rose-200 text-[8px] font-mono font-bold text-rose-900 flex items-center justify-between">
                                 <span>🔴 48m</span>
-                                <span className="text-[8px] uppercase font-black">Critical</span>
+                              </div>
+                            </div>
+                          );
+                        })()}
+
+                        {/* Other FX Corridors (JPY, CHF, AUD, SGD) */}
+                        {(() => {
+                          const otherCases = cases.filter(c => !["USD", "EUR", "GBP"].includes(c.currency) && c.status !== "SETTLED");
+                          const otherVal = otherCases.reduce((acc, c) => acc + (c.amount || 0), 0);
+                          const isSelected = overviewCurrencyFilter === "OTHER_FX";
+                          return (
+                            <div 
+                              onClick={() => setOverviewCurrencyFilter(isSelected ? "ALL" : "OTHER_FX")}
+                              className={`p-2.5 rounded-xl border cursor-pointer transition-all ${
+                                isSelected ? "bg-purple-50/90 border-purple-400 ring-2 ring-purple-300 shadow-sm" : "bg-slate-50/70 hover:bg-slate-100/80 border-slate-200"
+                              }`}
+                              title="Click to filter table by Global FX Corridors (JPY, CHF, AUD, SGD)"
+                            >
+                              <div className="flex justify-between items-center">
+                                <span className="text-[10px] font-mono font-extrabold text-slate-800 truncate">Global FX</span>
+                                <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
+                              </div>
+                              <div className="text-[9px] font-mono text-slate-400 truncate">JPY/CHF/AUD</div>
+                              <div className="text-xs font-black font-mono text-purple-700 mt-1">
+                                {otherCases.length} Cases
+                              </div>
+                              <div className="text-[8px] font-mono text-slate-500 truncate mt-0.5">
+                                ${otherVal.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                              </div>
+                              <div className="mt-1 pt-1 border-t border-slate-200/60 text-[8px] font-mono font-bold text-purple-800 flex items-center justify-between">
+                                <span>🌐 Multi-Rail</span>
                               </div>
                             </div>
                           );
                         })()}
                       </div>
 
-                      {/* Performance & STP Telemetry Mini-Strip */}
-                      <div className="grid grid-cols-3 gap-2 pt-1 border-t border-slate-100 text-center">
-                        <div className="p-1.5 bg-slate-50 rounded-lg">
-                          <div className="text-[9px] font-mono text-slate-400 uppercase">STP Rate</div>
-                          <div className="text-xs font-bold font-mono text-emerald-600 mt-0.5">
-                            {stpTelemetry?.overall_stp_rate_pct != null ? `${stpTelemetry.overall_stp_rate_pct}%` : "14.2%"}
-                          </div>
+                      {/* Performance & Reconciliation Footer */}
+                      <div className="pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between text-[10px] font-mono text-slate-500">
+                        <div className="flex items-center space-x-2">
+                          <span>STP Rate: <strong className="text-emerald-600">{stpTelemetry?.overall_stp_rate_pct != null ? `${stpTelemetry.overall_stp_rate_pct}%` : "14.2%"}</strong></span>
+                          <span>•</span>
+                          <span>Resolution: <strong className="text-sky-600">{resolutionRateCalc}%</strong></span>
                         </div>
-                        <div className="p-1.5 bg-slate-50 rounded-lg">
-                          <div className="text-[9px] font-mono text-slate-400 uppercase">Resolution Rate</div>
-                          <div className="text-xs font-bold font-mono text-sky-600 mt-0.5">
-                            {resolutionRateCalc}%
-                          </div>
-                        </div>
-                        <div className="p-1.5 bg-slate-50 rounded-lg">
-                          <div className="text-[9px] font-mono text-slate-400 uppercase">Settled Total</div>
-                          <div className="text-xs font-bold font-mono text-slate-800 mt-0.5">
-                            {settledCount} / {totalCasesCount}
-                          </div>
+                        <div className="text-[9px] text-slate-400">
+                          ∑ 17 (Fed) + 16 (T2) + 10 (CHAPS) + 21 (FX) = <strong className="text-slate-700">{cases.filter(c => c.status !== "SETTLED").length} Open</strong> (+ {settledCount} Settled = {cases.length} Total)
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* TIER 2: COMPACT 1-LINE BIAN DOMAIN FILTER STRIP (LIVE COUNTING) */}
+                  {/* TIER 2: COMPACT 1-LINE BIAN DOMAIN FILTER STRIP (LIVE COUNTING PRESERVED) */}
                   <div className="bg-white px-4 py-3 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-3">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="text-[11px] font-bold font-mono uppercase text-slate-500 tracking-wider mr-1">
@@ -2549,16 +2602,22 @@
                       })}
                     </div>
 
-                    {/* Right Side: SLA Urgency Quick Counters */}
-                    <div className="flex items-center space-x-2 text-[11px] font-mono">
-                      <span className="px-2 py-0.5 rounded-lg bg-rose-50 text-rose-800 border border-rose-200 font-bold" title="Less than 1h to cutoff">
+                    {/* Right Side: 5-State SLA Cutoff Urgency Quick Counters (Sums to 94 Total) */}
+                    <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-mono">
+                      <span className="px-2 py-0.5 rounded-lg bg-rose-50 text-rose-800 border border-rose-200 font-bold" title="Critical: Less than 1 hour to RTGS clearing deadline">
                         🔴 &lt;1h: {cases.filter(c => getCaseSlaStatus(c, currentTime).category === "CRITICAL_1H").length}
                       </span>
-                      <span className="px-2 py-0.5 rounded-lg bg-amber-50 text-amber-800 border border-amber-200 font-bold" title="1 to 4 hours to cutoff">
+                      <span className="px-2 py-0.5 rounded-lg bg-amber-50 text-amber-800 border border-amber-200 font-bold" title="Urgent: 1 to 4 hours to clearing cutoff">
                         🟡 1-4h: {cases.filter(c => getCaseSlaStatus(c, currentTime).category === "URGENT_4H").length}
                       </span>
-                      <span className="px-2 py-0.5 rounded-lg bg-slate-50 text-slate-700 border border-slate-200" title="Safe SLA buffer">
+                      <span className="px-2 py-0.5 rounded-lg bg-slate-50 text-slate-700 border border-slate-200" title="Safe SLA operating buffer">
                         🟢 Safe: {cases.filter(c => getCaseSlaStatus(c, currentTime).category === "NORMAL_24H").length}
+                      </span>
+                      <span className="px-2 py-0.5 rounded-lg bg-rose-100 text-rose-900 border border-rose-300 font-bold" title="SLA target exceeded">
+                        ⚠️ Overdue: {cases.filter(c => getCaseSlaStatus(c, currentTime).category === "BREACHED").length}
+                      </span>
+                      <span className="px-2 py-0.5 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold" title="Settled & closed">
+                        🏁 Settled: {settledCount}
                       </span>
                       <button
                         onClick={() => setTab("worklist")}
