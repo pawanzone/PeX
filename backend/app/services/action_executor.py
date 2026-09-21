@@ -73,7 +73,7 @@ class ActionExecutor:
         repo.actions[actual_idempotency_key] = action_contract
         repo.receipts[action_contract.action_id] = receipt
 
-        case["status"] = LifecycleStage.SETTLED
+        case["status"] = LifecycleStage.SETTLED.value
         case["settled_at"] = datetime.utcnow().isoformat()
         case["expedite_ping"] = None
         

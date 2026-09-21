@@ -105,7 +105,7 @@ class ApprovalEngine:
 
         repo.save_approval(record)
 
-        case["status"] = next_stage
+        case["status"] = next_stage.value if hasattr(next_stage, "value") else str(next_stage)
         case["expedite_ping"] = None
         if "approval_history" not in case:
             case["approval_history"] = []

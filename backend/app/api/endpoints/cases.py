@@ -156,7 +156,7 @@ def submit_to_checker(case_id: str, analyst_id: str = "OP-9012", notes: Optional
     
     submission_note = notes.strip() if (notes and notes.strip()) else f"Maker ({actor_name}) reviewed AI repair and submitted case to Approvals Desk for Checker authorization."
     
-    case["status"] = LifecycleStage.PENDING_APPROVAL
+    case["status"] = LifecycleStage.PENDING_APPROVAL.value
     case["maker_notes"] = submission_note
     if "audit_timeline" not in case:
         case["audit_timeline"] = []
