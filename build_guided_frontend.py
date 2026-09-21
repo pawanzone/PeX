@@ -267,7 +267,11 @@ html_content = r'''<!DOCTYPE html>
           fetch(`${API_BASE}/governance/controls`).then(r => r.json()).then(setGovData);
           fetch(`${API_BASE}/copilot/sops`).then(r => r.json()).then(setSops);
           fetch(`${API_BASE}/copilot/skills/active`).then(r => r.json()).then(setActiveSkillsData);
-          loadRulesAndIcd();
+        } catch (e) {
+          console.error("Initial load error:", e);
+        }
+        loadRulesAndIcd();
+      };
 
       // =========================================================================
       // RULE & POLICY STUDIO API HANDLERS (RELEASE v1.4)
@@ -456,11 +460,6 @@ html_content = r'''<!DOCTYPE html>
           loadRulesAndIcd();
         } catch (e) {
           setActionErr(e.message || "ICD approval failed");
-        }
-      };
-
-        } catch (e) {
-          console.error("Initial load error:", e);
         }
       };
 
