@@ -3744,36 +3744,192 @@ html_content = r'''<!DOCTYPE html>
                 </div>
               )}
 
-              {/* SME SKILLS HUB TAB (NEW) */}
+              {/* SME SKILLS HUB TAB (5 CANONICAL BIAN DOMAINS - 41 EXCEPTION PROFILES) */}
               {tab === "skills_hub" && (
                 <div className="p-8 max-w-7xl mx-auto space-y-8">
-                  <div>
-                    <h1 className="text-2xl font-bold text-slate-900 tracking-tight">SME Skills & Decision Playbooks</h1>
-                    <p className="text-xs text-slate-500 mt-1">Living Markdown Playbooks governing runtime AI reasoning across all 41 exception types</p>
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 p-6 rounded-2xl border border-slate-700 shadow-xl text-white">
+                    <div>
+                      <div className="flex items-center space-x-2">
+                        <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-sky-500/20 text-sky-300 border border-sky-500/30">
+                          BIAN CANONICAL TAXONOMY
+                        </span>
+                        <span className="text-xs text-slate-400 font-mono">5 DOMAIN PLAYBOOKS • 41 EXCEPTION PROFILES</span>
+                      </div>
+                      <h1 className="text-2xl font-bold tracking-tight text-white mt-1.5">SME Skills & Governed Decision Playbooks</h1>
+                      <p className="text-xs text-slate-300 mt-1 max-w-2xl">
+                        Living Markdown standard operating procedures parsed at runtime by <code className="text-sky-300">SkillPolicyService</code> to govern deterministic AI reasoner algorithms, validation trees, and multi-tier approval thresholds.
+                      </p>
+                    </div>
+
+                    <div className="flex items-center space-x-3 shrink-0">
+                      <span className="text-xs font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-3 py-1.5 rounded-xl font-bold flex items-center space-x-2 shadow-inner">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span>5 DOMAIN PLAYBOOKS ACTIVE</span>
+                      </span>
+                    </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                    {activeSkillsData && Object.entries(activeSkillsData.playbooks || {}).map(([key, pb]) => (
-                      <div key={key} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
-                        <div className="flex justify-between items-center">
-                          <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-purple-50 text-purple-700 border border-purple-200">
-                            SME PLAYBOOK
-                          </span>
-                          <span className="text-[10px] font-mono text-slate-400">
-                            {new Date(pb.last_modified).toLocaleDateString()}
-                          </span>
-                        </div>
-                        <h3 className="text-sm font-bold text-slate-900">{pb.title}</h3>
-                        <p className="text-xs text-slate-500 font-mono">{pb.filename}</p>
-                        <div className="border-t border-slate-100 pt-2 flex justify-between items-center text-xs">
-                          <span className="text-emerald-600 font-semibold flex items-center space-x-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                            <span>ACTIVE IN RUNTIME</span>
-                          </span>
-                          <span className="font-mono text-slate-400 text-[11px]">{pb.content.length} chars</span>
-                        </div>
-                      </div>
-                    ))}
+                  {/* 5 Domain Grid Cards */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {(() => {
+                      const domainMeta = {
+                        data_quality_domain_playbook: {
+                          code: "BIAN-DQ-DOM-01",
+                          title: "Data Quality & Syntax Domain",
+                          count: "9 Profiles",
+                          icon: "📐",
+                          accent: "from-sky-500 to-blue-600",
+                          border: "border-sky-200 hover:border-sky-400",
+                          badgeBg: "bg-sky-50 text-sky-700 border-sky-200",
+                          queue: "Repair Queue",
+                          standards: "ISO 13616 (IBAN), ISO 7064 MOD-97-10, ISO 9362 (BIC), UK CoP / EPC VoP",
+                          profiles: ["INVALID_IBAN", "INVALID_BIC", "MISSING_BENEFICIARY_DATA", "MISSING_REMITTANCE_INFO", "INVALID_ADDRESS_FORMAT", "MISSING_PURPOSE_CODE", "INVALID_ACCOUNT_NUMBER", "INVALID_ROUTING_CODE", "BENEFICIARY_NAME_MISMATCH"]
+                        },
+                        processing_domain_playbook: {
+                          code: "BIAN-PROC-DOM-02",
+                          title: "Processing & Lifecycle Domain",
+                          count: "9 Profiles",
+                          icon: "⚙️",
+                          accent: "from-indigo-500 to-purple-600",
+                          border: "border-indigo-200 hover:border-indigo-400",
+                          badgeBg: "bg-indigo-50 text-indigo-700 border-indigo-200",
+                          queue: "Investigation / Repair Queue",
+                          standards: "ISO 20022 XSD, SWIFT CBPR+, RTGS Cutoff Schedules, 4-Point Duplicate Matrix",
+                          profiles: ["DUPLICATE_PAYMENT", "ROUTING_FAILURE", "ISO20022_VALIDATION_ERROR", "CUTOFF_MISSED", "CORRUPTED_MESSAGE_FORMAT", "INTERMEDIARY_BANK_REJECTION", "NETWORK_TIMEOUT", "QUEUE_PROCESSING_FAILURE", "PAYMENT_HELD_FOR_REPAIR"]
+                        },
+                        compliance_domain_playbook: {
+                          code: "BIAN-COMP-DOM-03",
+                          title: "Compliance & Sanctions Domain",
+                          count: "8 Profiles",
+                          icon: "🛡️",
+                          accent: "from-rose-500 to-pink-600",
+                          border: "border-rose-200 hover:border-rose-400",
+                          badgeBg: "bg-rose-50 text-rose-700 border-rose-200",
+                          queue: "Compliance Queue",
+                          standards: "OFAC SDN, FATF Rec 16, Wolfsberg AML Principles, EU AMLD6",
+                          profiles: ["SANCTIONS_SUSPECTED", "AML_ALERT", "PEP_MATCH", "RESTRICTED_CORRIDOR", "ADVERSE_MEDIA_MATCH", "HIGH_RISK_JURISDICTION", "REGULATORY_REPORTING_REQUIRED", "CUSTOMER_WATCHLIST_MATCH"]
+                        },
+                        client_treasury_domain_playbook: {
+                          code: "BIAN-TREA-DOM-04",
+                          title: "Client & Treasury Domain",
+                          count: "8 Profiles",
+                          icon: "🏛️",
+                          accent: "from-amber-500 to-orange-600",
+                          border: "border-amber-200 hover:border-amber-400",
+                          badgeBg: "bg-amber-50 text-amber-700 border-amber-200",
+                          queue: "Treasury / Risk Queue",
+                          standards: "Basel III (BCBS 248), Wolfsberg CDD / 30-Day Waiver, ISO 20022 camt.053, FX Global Code",
+                          profiles: ["KYC_EXPIRED", "INSUFFICIENT_FUNDS", "NOSTRO_SHORTFALL", "FX_RATE_UNAVAILABLE", "AUTHORIZATION_MISSING", "LIMIT_BREACH", "LIQUIDITY_CONSTRAINT", "CREDIT_EXPOSURE_BREACH"]
+                        },
+                        settlement_returns_domain_playbook: {
+                          code: "BIAN-SETT-DOM-05",
+                          title: "Settlement & Returns Domain",
+                          count: "7 Profiles",
+                          icon: "🔄",
+                          accent: "from-emerald-500 to-teal-600",
+                          border: "border-emerald-200 hover:border-emerald-400",
+                          badgeBg: "bg-emerald-50 text-emerald-700 border-emerald-200",
+                          queue: "Settlement / Returns Queue",
+                          standards: "ISO 20022 pacs.004 Return Codes, camt.056 Recall, SWIFT E&I 5-Step Workflow",
+                          profiles: ["RETURNED_PAYMENT", "ACCOUNT_CLOSED", "BENEFICIARY_ACCOUNT_FROZEN", "RECONCILIATION_BREAK", "SETTLEMENT_FAILURE", "FUNDS_TRAPPED_AT_CORRESPONDENT", "UNMATCHED_CREDIT"]
+                        }
+                      };
+
+                      const playbooks = (activeSkillsData && activeSkillsData.playbooks) ? activeSkillsData.playbooks : {};
+
+                      return Object.entries(domainMeta).map(([key, meta]) => {
+                        const pb = playbooks[key] || {
+                          filename: key + ".md",
+                          title: meta.title,
+                          content: "",
+                          last_modified: new Date().toISOString()
+                        };
+
+                        const openInNewTab = () => {
+                          const url = `${API_BASE}/copilot/skills/raw/${pb.filename}`;
+                          window.open(url, '_blank');
+                        };
+
+                        return (
+                          <div key={key} className={`bg-white rounded-2xl border ${meta.border} shadow-sm hover:shadow-md transition-all p-6 flex flex-col justify-between space-y-5 group`}>
+                            <div className="space-y-4">
+                              {/* Header */}
+                              <div className="flex justify-between items-start">
+                                <div className="flex items-center space-x-3">
+                                  <div className={`w-10 h-10 rounded-xl bg-gradient-to-tr ${meta.accent} text-white flex items-center justify-center text-lg shadow-sm shrink-0`}>
+                                    {meta.icon}
+                                  </div>
+                                  <div>
+                                    <div className="flex items-center space-x-2">
+                                      <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold border ${meta.badgeBg}`}>
+                                        {meta.code}
+                                      </span>
+                                      <span className="text-[10px] font-mono text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded font-semibold flex items-center space-x-1">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                        <span>ACTIVE RUNTIME</span>
+                                      </span>
+                                    </div>
+                                    <h3 className="text-base font-bold text-slate-900 mt-1">{meta.title}</h3>
+                                  </div>
+                                </div>
+
+                                <span className="text-xs font-mono font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">
+                                  {meta.count}
+                                </span>
+                              </div>
+
+                              {/* Metadata & Standards */}
+                              <div className="bg-slate-50 border border-slate-100 rounded-xl p-3.5 space-y-2 text-xs">
+                                <div className="flex justify-between items-center text-slate-600">
+                                  <span className="font-semibold text-slate-700">Governing Standards:</span>
+                                  <span className="font-mono text-[11px] text-slate-600 truncate max-w-xs">{meta.standards}</span>
+                                </div>
+                                <div className="flex justify-between items-center text-slate-600">
+                                  <span className="font-semibold text-slate-700">Target Queue:</span>
+                                  <span className="font-mono text-[11px] text-indigo-700 font-bold">{meta.queue}</span>
+                                </div>
+                                <div className="flex justify-between items-center text-slate-600">
+                                  <span className="font-semibold text-slate-700">Document File:</span>
+                                  <span className="font-mono text-[11px] text-sky-700 font-semibold">{pb.filename}</span>
+                                </div>
+                              </div>
+
+                              {/* Covered Exception Profiles Pills */}
+                              <div>
+                                <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-2">
+                                  Covered Exception Profiles ({meta.profiles.length})
+                                </label>
+                                <div className="flex flex-wrap gap-1.5">
+                                  {meta.profiles.map(p => (
+                                    <span key={p} className="px-2 py-0.5 bg-slate-100 text-slate-700 border border-slate-200 rounded text-[10px] font-mono font-medium hover:bg-sky-50 hover:text-sky-800 hover:border-sky-300 transition">
+                                      {p}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Card Footer Actions */}
+                            <div className="border-t border-slate-100 pt-4 flex items-center justify-between gap-3">
+                              <div className="text-[11px] font-mono text-slate-400">
+                                {pb.content ? `${pb.content.length.toLocaleString()} chars` : "Dynamic SOP"}
+                              </div>
+
+                              <div className="flex items-center space-x-2">
+                                <button
+                                  onClick={openInNewTab}
+                                  className="px-3.5 py-2 rounded-xl text-xs font-bold bg-sky-600 hover:bg-sky-700 text-white shadow-sm hover:shadow transition flex items-center space-x-1.5 group-hover:ring-2 group-hover:ring-sky-500/30"
+                                >
+                                  <span>📄</span>
+                                  <span>Open .md in New Tab</span>
+                                  <span className="text-[10px] opacity-80 font-mono">↗</span>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      });
+                    })()}
                   </div>
                 </div>
               )}

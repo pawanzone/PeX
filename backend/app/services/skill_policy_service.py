@@ -74,14 +74,14 @@ class SkillPolicyService:
                     "last_modified": datetime.fromtimestamp(f.stat().st_mtime).isoformat()
                 }
 
-                # Dynamically extract country IBAN lengths if in iban_repair_playbook
-                if "iban" in f.stem.lower():
+                # Dynamically extract country IBAN lengths from Data Quality playbook
+                if "iban" in f.stem.lower() or "data_quality" in f.stem.lower():
                     lengths = re.findall(r"\*\*([A-Z]{2})\s*\([^)]*\)\*\*:\s*(\d+)\s*chars", text)
                     for code, length in lengths:
                         policies["parameters"]["country_iban_lengths"][code] = int(length)
 
-                # Dynamically extract Dual Auth threshold if in kyc or dual auth playbook
-                if "kyc" in f.stem.lower() or "dual" in f.stem.lower():
+                # Dynamically extract Dual Auth threshold from Treasury / Compliance playbooks
+                if "kyc" in f.stem.lower() or "dual" in f.stem.lower() or "treasury" in f.stem.lower() or "compliance" in f.stem.lower():
                     da_match = re.search(r"\\ge\s*\$([0-9,]+)", text)
                     if da_match:
                         try:
@@ -90,8 +90,8 @@ class SkillPolicyService:
                         except ValueError:
                             pass
 
-                # Dynamically extract duplicate burst window
-                if "duplicate" in f.stem.lower():
+                # Dynamically extract duplicate burst window from Processing playbook
+                if "duplicate" in f.stem.lower() or "processing" in f.stem.lower():
                     dup_match = re.search(r"\\Delta t\s*\\le\s*(\d+)\\text{\s*minutes}", text)
                     if dup_match:
                         policies["parameters"]["duplicate_window_minutes"] = int(dup_match.group(1))
