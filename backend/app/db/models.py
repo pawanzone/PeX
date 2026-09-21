@@ -180,3 +180,50 @@ class RawBankEventModel(Base):
     event_type = Column(String(64), nullable=False)
     raw_payload = Column(JSON, nullable=False)
     ingested_at = Column(DateTime, default=datetime.utcnow)
+
+class PolicyRuleModel(Base):
+    """Governed Business Policy Rules & Dynamic Thresholds (Maker-Checker Lifecycle)."""
+    __tablename__ = "policy_rules"
+
+    rule_id = Column(String(64), primary_key=True, index=True)
+    name = Column(String(128), nullable=False)
+    natural_language_prompt = Column(Text, nullable=False)
+    category = Column(String(64), nullable=False, default="APPROVAL_GATING") # APPROVAL_GATING, STP_FAST_LANE, ROUTING, SLA_URGENCY
+    domain = Column(String(64), nullable=False, default="ALL")
+    conditions = Column(JSON, nullable=False, default=dict)
+    actions = Column(JSON, nullable=False, default=dict)
+    status = Column(String(32), nullable=False, default="ACTIVE") # ACTIVE, PENDING_APPROVAL, DRAFT, REJECTED, RETIRED
+    version = Column(String(16), default="1.0")
+    impact_summary = Column(String(256), nullable=True)
+    maker_id = Column(String(64), nullable=True)
+    maker_name = Column(String(128), nullable=True)
+    maker_notes = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    checker_id = Column(String(64), nullable=True)
+    checker_name = Column(String(128), nullable=True)
+    checker_comments = Column(Text, nullable=True)
+    approved_at = Column(DateTime, nullable=True)
+
+class ICDConfigurationModel(Base):
+    """Governed External Bank & Clearing Node Integrations (ICD Adapter Registry)."""
+    __tablename__ = "icd_configurations"
+
+    icd_id = Column(String(64), primary_key=True, index=True)
+    name = Column(String(128), nullable=False)
+    institution_name = Column(String(128), nullable=False)
+    bic = Column(String(32), nullable=False, index=True)
+    rail = Column(String(64), nullable=False, default="SWIFT_CBPR+") # FEDWIRE, SWIFT_CBPR+, TARGET2, CHAPS
+    adapter_type = Column(String(64), nullable=False, default="DIRECTORY_LOOKUP") # DIRECTORY_LOOKUP, NOSTRO_ALM, SANCTIONS_GATEWAY, CORE_LEDGER
+    endpoint_url = Column(String(256), nullable=False)
+    latency_ms = Column(Integer, default=12)
+    status = Column(String(32), nullable=False, default="ACTIVE") # ACTIVE, PENDING_APPROVAL, DRAFT, DISABLED
+    config_payload = Column(JSON, default=dict)
+    maker_id = Column(String(64), nullable=True)
+    maker_name = Column(String(128), nullable=True)
+    maker_notes = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    checker_id = Column(String(64), nullable=True)
+    checker_name = Column(String(128), nullable=True)
+    checker_comments = Column(Text, nullable=True)
+    approved_at = Column(DateTime, nullable=True)
+

@@ -3,7 +3,7 @@ from fastapi import APIRouter
 
 from app.api.endpoints import (
     auth, cases, events, approvals, actions, analytics,
-    adapters, governance, ontology, copilot, audit
+    adapters, governance, ontology, copilot, audit, rules
 )
 
 api_router = APIRouter()
@@ -19,3 +19,4 @@ api_router.include_router(governance.router, prefix="/governance", tags=["Contro
 api_router.include_router(ontology.router, prefix="/ontology", tags=["Payment Ontology"])
 api_router.include_router(copilot.router, prefix="/copilot", tags=["AI Copilot"])
 api_router.include_router(audit.router, prefix="/audit", tags=["Continuous Audit & Provenance"])
+api_router.include_router(rules.router)

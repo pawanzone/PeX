@@ -14,6 +14,8 @@ from app.db.models import (
     GovernedActionModel,
     DeliveryReceiptModel,
     RawBankEventModel,
+    PolicyRuleModel,
+    ICDConfigurationModel,
 )
 from app.core.security import DEMO_PERSONAS
 from app.core.tokenization import token_vault
@@ -379,6 +381,218 @@ def seed_initial_data(db: Session, force_reseed: bool = False):
     db.commit()
     print(f"[PeX DB] Successfully seeded {db.query(CaseModel).count()} cases, {db.query(AuditEventModel).count()} audit events, and {db.query(UserModel).count()} users into persistent DB.")
 
+def seed_policy_rules(db: Session):
+    """Populates baseline business policy rules and governance thresholds."""
+    if db.query(PolicyRuleModel).count() > 0:
+        return
+
+    now = datetime.utcnow()
+    rules = [
+        PolicyRuleModel(
+            rule_id="RULE-DUAL-AUTH-01",
+            name="High-Value Dual Authorization ($250,000+)",
+            natural_language_prompt="Anything more than $250,000 will go to 2-level approvals",
+            category="APPROVAL_GATING",
+            domain="ALL",
+            conditions={"logic": "AND", "clauses": [{"field": "amount", "operator": ">=", "value": 250000.0}]},
+            actions={"set_dual_auth_required": True, "required_tiers": 2, "tier_1_role": "OPERATIONS_APPROVER", "tier_2_role": "RISK_APPROVER"},
+            status="ACTIVE",
+            version="1.0",
+            impact_summary="Enforces mandatory Tier-2 Risk Approver sign-off on transactions exceeding $250k.",
+            maker_id="OP-8821",
+            maker_name="Priya Sharma",
+            maker_notes="Standard enterprise dual-authorization threshold policy mandated by Risk Committee.",
+            checker_id="RSK-7714",
+            checker_name="Kenji Watanabe",
+            checker_comments="Verified and approved for production enforcement.",
+            created_at=now,
+            approved_at=now
+        ),
+        PolicyRuleModel(
+            rule_id="RULE-FASTLANE-01",
+            name="Micro-Repair Straight-Through Fast Lane (<$25k)",
+            natural_language_prompt="Auto-qualify micro repairs under $25,000 with >95% confidence for 1-click fast-lane",
+            category="STP_FAST_LANE",
+            domain="FORMAT_SYNTAX",
+            conditions={"logic": "AND", "clauses": [{"field": "amount", "operator": "<=", "value": 25000.0}, {"field": "confidence", "operator": ">=", "value": 0.95}]},
+            actions={"auto_qualify_fast_lane": True, "one_click_eligible": True, "target_queue": "Repair"},
+            status="ACTIVE",
+            version="1.0",
+            impact_summary="Enables 1-click batch execution for high-confidence minor format repairs under $25k.",
+            maker_id="OP-8821",
+            maker_name="Priya Sharma",
+            maker_notes="Accelerates low-risk syntax exceptions without manual step-by-step review.",
+            checker_id="APR-4421",
+            checker_name="Daniel Vance",
+            checker_comments="Approved for low-risk micro exceptions.",
+            created_at=now,
+            approved_at=now
+        ),
+        PolicyRuleModel(
+            rule_id="RULE-EUR-TREASURY-01",
+            name="EUR High-Liquidity Treasury Routing (€1M+)",
+            natural_language_prompt="Route EUR wires over €1M to Treasury Desk",
+            category="ROUTING",
+            domain="CLIENT_TREASURY",
+            conditions={"logic": "AND", "clauses": [{"field": "amount", "operator": ">=", "value": 1000000.0}, {"field": "currency", "operator": "==", "value": "EUR"}]},
+            actions={"target_queue": "Treasury", "override_priority": "HIGH"},
+            status="ACTIVE",
+            version="1.0",
+            impact_summary="Directs high-value Euro payment exceptions to Treasury liquidity desks.",
+            maker_id="OP-8821",
+            maker_name="Priya Sharma",
+            maker_notes="Prevents end-of-day TARGET2 cutoff bottlenecks.",
+            checker_id="APR-4421",
+            checker_name="Daniel Vance",
+            checker_comments="Approved liquidity management routing rule.",
+            created_at=now,
+            approved_at=now
+        ),
+        PolicyRuleModel(
+            rule_id="RULE-SANCTIONS-ROUTING-01",
+            name="High-Risk OFAC Sanctions Mandatory Quarantine",
+            natural_language_prompt="Transactions involving sanctioned countries route immediately to Compliance Desk",
+            category="ROUTING",
+            domain="SANCTIONS_AML",
+            conditions={"logic": "AND", "clauses": [{"field": "creditor_country", "operator": "in", "value": ["CU", "IR", "SY", "KP"]}]},
+            actions={"target_queue": "Compliance", "override_priority": "CRITICAL"},
+            status="ACTIVE",
+            version="1.0",
+            impact_summary="Instant quarantine for high-risk OFAC jurisdictions.",
+            maker_id="OP-8821",
+            maker_name="Priya Sharma",
+            maker_notes="Statutory requirement for OFAC / EU sanctions embargoes.",
+            checker_id="CMP-9902",
+            checker_name="Elena Rostova",
+            checker_comments="Mandatory compliance gate verified and active.",
+            created_at=now,
+            approved_at=now
+        ),
+        PolicyRuleModel(
+            rule_id="RULE-PENDING-SAMPLE-01",
+            name="Ultra-High Value Tier-3 Board Authorization ($500k+)",
+            natural_language_prompt="Transactions over $500,000 require 3-tier board authorization",
+            category="APPROVAL_GATING",
+            domain="ALL",
+            conditions={"logic": "AND", "clauses": [{"field": "amount", "operator": ">=", "value": 500000.0}]},
+            actions={"set_dual_auth_required": True, "required_tiers": 3, "tier_1_role": "OPERATIONS_APPROVER", "tier_2_role": "RISK_APPROVER"},
+            status="PENDING_APPROVAL",
+            version="1.0",
+            impact_summary="Pending review by Risk Officer for ultra-high value transactions.",
+            maker_id="OP-8821",
+            maker_name="Priya Sharma",
+            maker_notes="Submitted to enhance controls around half-million dollar disbursements.",
+            created_at=now
+        )
+    ]
+    for r in rules:
+        db.add(r)
+    db.commit()
+    print(f"[PeX DB] Seeded {len(rules)} business policy rules.")
+
+def seed_icd_configs(db: Session):
+    """Populates external ICD bank adapter configurations."""
+    if db.query(ICDConfigurationModel).count() > 0:
+        return
+
+    now = datetime.utcnow()
+    configs = [
+        ICDConfigurationModel(
+            icd_id="ICD-JPMC-NY",
+            name="JPMorgan Chase NY Settlement Node",
+            institution_name="JPMorgan Chase Bank, N.A.",
+            bic="CHASUS33",
+            rail="FEDWIRE",
+            adapter_type="CORE_LEDGER",
+            endpoint_url="https://fedwire.clearing.jpmorgan.internal/v2/settlement",
+            latency_ms=8,
+            status="ACTIVE",
+            config_payload={"heartbeat_interval_sec": 5, "max_batch_size": 500, "tls_version": "1.3"},
+            maker_id="OP-8821",
+            maker_name="Priya Sharma",
+            maker_notes="Primary USD Fedwire settlement node.",
+            checker_id="APR-4421",
+            checker_name="Daniel Vance",
+            created_at=now,
+            approved_at=now
+        ),
+        ICDConfigurationModel(
+            icd_id="ICD-DEUT-FRA",
+            name="Deutsche Bank Frankfurt Nostro Hub",
+            institution_name="Deutsche Bank AG Frankfurt",
+            bic="DEUTDEDD",
+            rail="TARGET2",
+            adapter_type="NOSTRO_ALM",
+            endpoint_url="https://nostro.clearing.deutsche-bank.internal/target2/inbound",
+            latency_ms=14,
+            status="ACTIVE",
+            config_payload={"clearing_cutoff_cet": "17:00", "currency": "EUR"},
+            maker_id="OP-8821",
+            maker_name="Priya Sharma",
+            maker_notes="Euro correspondent clearing adapter.",
+            checker_id="APR-4421",
+            checker_name="Daniel Vance",
+            created_at=now,
+            approved_at=now
+        ),
+        ICDConfigurationModel(
+            icd_id="ICD-BARC-LON",
+            name="Barclays UK RTGS Directory Lookup",
+            institution_name="Barclays Bank PLC London",
+            bic="BARCGB22",
+            rail="CHAPS",
+            adapter_type="DIRECTORY_LOOKUP",
+            endpoint_url="https://directory.rtgs.barclays.internal/api/sortcode-bic",
+            latency_ms=11,
+            status="ACTIVE",
+            config_payload={"sortcode_validation": True, "rail": "CHAPS"},
+            maker_id="OP-8821",
+            maker_name="Priya Sharma",
+            checker_id="APR-4421",
+            checker_name="Daniel Vance",
+            created_at=now,
+            approved_at=now
+        ),
+        ICDConfigurationModel(
+            icd_id="ICD-SWIFT-CBPR",
+            name="SWIFT CBPR+ Translation & Validation Gateway",
+            institution_name="SWIFT SC La Hulpe",
+            bic="SWIFTUS33",
+            rail="SWIFT_CBPR+",
+            adapter_type="SANCTIONS_GATEWAY",
+            endpoint_url="https://gateway.cbpr.swift.internal/v3/validation",
+            latency_ms=22,
+            status="ACTIVE",
+            config_payload={"schema_version": "pacs.008.001.10", "iso_mode": "STRICT"},
+            maker_id="OP-8821",
+            maker_name="Priya Sharma",
+            checker_id="CMP-9902",
+            checker_name="Elena Rostova",
+            created_at=now,
+            approved_at=now
+        ),
+        ICDConfigurationModel(
+            icd_id="ICD-BNP-PAR",
+            name="BNP Paribas Paris SEPA Instant Node",
+            institution_name="BNP Paribas SA Paris",
+            bic="BNPAFRPP",
+            rail="TARGET2",
+            adapter_type="DIRECTORY_LOOKUP",
+            endpoint_url="https://api.clearing.bnpparibas.internal/sepa/dir",
+            latency_ms=16,
+            status="PENDING_APPROVAL",
+            config_payload={"clearing_type": "SEPA_INSTANT", "cutoff_utc": "16:30"},
+            maker_id="OP-8821",
+            maker_name="Priya Sharma",
+            maker_notes="Requesting approval to onboard BNP Paribas SEPA Instant clearing adapter for expedited European payments.",
+            created_at=now
+        )
+    ]
+    for c in configs:
+        db.add(c)
+    db.commit()
+    print(f"[PeX DB] Seeded {len(configs)} ICD configuration nodes.")
+
 def init_db(force_reseed: bool = False):
     """Entrypoint to initialize database tables and seed baseline data."""
     create_tables()
@@ -386,5 +600,7 @@ def init_db(force_reseed: bool = False):
     try:
         seed_users(db)
         seed_initial_data(db, force_reseed=force_reseed)
+        seed_policy_rules(db)
+        seed_icd_configs(db)
     finally:
         db.close()

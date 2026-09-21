@@ -15,6 +15,8 @@ from app.db.models import (
     DeliveryReceiptModel,
     UserModel,
     RolePermissionModel,
+    PolicyRuleModel,
+    ICDConfigurationModel,
 )
 from app.core.hashing import calculate_event_hash
 
@@ -39,6 +41,8 @@ class PeXDBRepository:
         self._approvals_cache: Dict[str, List[Any]] = {}
         self._actions_cache: Dict[str, Any] = {}
         self._receipts_cache: Dict[str, Any] = {}
+        self._rules_cache: Dict[str, Dict[str, Any]] = {}
+        self._icd_cache: Dict[str, Dict[str, Any]] = {}
         self._latest_hash: str = "0" * 64
 
     def load_all_data(self):
@@ -82,6 +86,18 @@ class PeXDBRepository:
             for rcpt in db_receipts:
                 self._receipts_cache[rcpt.action_id] = self._receipt_to_schema(rcpt)
 
+            # Sync Policy Rules
+            db_rules = db.query(PolicyRuleModel).all()
+            self._rules_cache.clear()
+            for r in db_rules:
+                self._rules_cache[r.rule_id] = self._rule_to_dict(r)
+
+            # Sync ICD Configurations
+            db_icds = db.query(ICDConfigurationModel).all()
+            self._icd_cache.clear()
+            for icd in db_icds:
+                self._icd_cache[icd.icd_id] = self._icd_to_dict(icd)
+
             # Sync Latest Hash
             latest_ev = db.query(AuditEventModel).order_by(desc(AuditEventModel.event_index)).first()
             if latest_ev:
@@ -96,7 +112,7 @@ class PeXDBRepository:
                 token_vault._raw_to_token[t.raw_value.strip().replace(" ", "").upper()] = t.token_value
                 token_vault._token_to_raw[t.token_value] = t.raw_value.strip().replace(" ", "").upper()
 
-            print(f"[PeX Repo] Synced {len(self._case_cache)} cases and latest hash {self._latest_hash[:8]}... from DB.")
+            print(f"[PeX Repo] Synced {len(self._case_cache)} cases, {len(self._rules_cache)} rules, {len(self._icd_cache)} ICD nodes, latest hash {self._latest_hash[:8]}... from DB.")
         finally:
             db.close()
 
@@ -549,6 +565,232 @@ class PeXDBRepository:
             dispatched_at=act.dispatched_at,
             settled_at=act.settled_at
         )
+
+    def _rule_to_dict(self, r: PolicyRuleModel) -> Dict[str, Any]:
+        return {
+            "rule_id": r.rule_id,
+            "name": r.name,
+            "natural_language_prompt": r.natural_language_prompt,
+            "category": r.category,
+            "domain": r.domain,
+            "conditions": r.conditions or {},
+            "actions": r.actions or {},
+            "status": r.status,
+            "version": r.version,
+            "impact_summary": r.impact_summary,
+            "maker_id": r.maker_id,
+            "maker_name": r.maker_name,
+            "maker_notes": r.maker_notes,
+            "created_at": r.created_at.isoformat() if r.created_at else None,
+            "checker_id": r.checker_id,
+            "checker_name": r.checker_name,
+            "checker_comments": r.checker_comments,
+            "approved_at": r.approved_at.isoformat() if r.approved_at else None,
+        }
+
+    def _icd_to_dict(self, icd: ICDConfigurationModel) -> Dict[str, Any]:
+        return {
+            "icd_id": icd.icd_id,
+            "name": icd.name,
+            "institution_name": icd.institution_name,
+            "bic": icd.bic,
+            "rail": icd.rail,
+            "adapter_type": icd.adapter_type,
+            "endpoint_url": icd.endpoint_url,
+            "latency_ms": icd.latency_ms,
+            "status": icd.status,
+            "config_payload": icd.config_payload or {},
+            "maker_id": icd.maker_id,
+            "maker_name": icd.maker_name,
+            "maker_notes": icd.maker_notes,
+            "created_at": icd.created_at.isoformat() if icd.created_at else None,
+            "checker_id": icd.checker_id,
+            "checker_name": icd.checker_name,
+            "checker_comments": icd.checker_comments,
+            "approved_at": icd.approved_at.isoformat() if icd.approved_at else None,
+        }
+
+    def get_policy_rules(self, status: Optional[str] = None) -> List[Dict[str, Any]]:
+        """Returns all policy rules, optionally filtered by status."""
+        rules = list(self._rules_cache.values())
+        if status:
+            return [r for r in rules if r.get("status") == status]
+        return rules
+
+    def get_policy_rule(self, rule_id: str) -> Optional[Dict[str, Any]]:
+        """Returns a single policy rule by ID."""
+        return self._rules_cache.get(rule_id)
+
+    def save_policy_rule(self, rule_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Creates or updates a policy rule in persistent DB and syncs cache."""
+        db: Session = SessionLocal()
+        try:
+            rule_id = rule_data.get("rule_id")
+            existing = db.query(PolicyRuleModel).filter(PolicyRuleModel.rule_id == rule_id).first() if rule_id else None
+
+            if existing:
+                for k, v in rule_data.items():
+                    if hasattr(existing, k) and k not in ["created_at"]:
+                        setattr(existing, k, v)
+                db.commit()
+                db.refresh(existing)
+                result = self._rule_to_dict(existing)
+            else:
+                new_rule = PolicyRuleModel(
+                    rule_id=rule_data.get("rule_id"),
+                    name=rule_data.get("name"),
+                    natural_language_prompt=rule_data.get("natural_language_prompt"),
+                    category=rule_data.get("category", "APPROVAL_GATING"),
+                    domain=rule_data.get("domain", "ALL"),
+                    conditions=rule_data.get("conditions", {}),
+                    actions=rule_data.get("actions", {}),
+                    status=rule_data.get("status", "PENDING_APPROVAL"),
+                    version=rule_data.get("version", "1.0"),
+                    impact_summary=rule_data.get("impact_summary"),
+                    maker_id=rule_data.get("maker_id"),
+                    maker_name=rule_data.get("maker_name"),
+                    maker_notes=rule_data.get("maker_notes"),
+                    created_at=datetime.utcnow()
+                )
+                db.add(new_rule)
+                db.commit()
+                db.refresh(new_rule)
+                result = self._rule_to_dict(new_rule)
+
+            self._rules_cache[result["rule_id"]] = result
+            return result
+        finally:
+            db.close()
+
+    def approve_policy_rule(
+        self,
+        rule_id: str,
+        checker_id: str,
+        checker_name: str,
+        comments: Optional[str] = None
+    ) -> Optional[Dict[str, Any]]:
+        """Checker approves and activates a policy rule with full audit trail."""
+        db: Session = SessionLocal()
+        try:
+            rule = db.query(PolicyRuleModel).filter(PolicyRuleModel.rule_id == rule_id).first()
+            if not rule:
+                return None
+            rule.status = "ACTIVE"
+            rule.checker_id = checker_id
+            rule.checker_name = checker_name
+            rule.checker_comments = comments or "Approved by Checker"
+            rule.approved_at = datetime.utcnow()
+            db.commit()
+            db.refresh(rule)
+            result = self._rule_to_dict(rule)
+            self._rules_cache[result["rule_id"]] = result
+            return result
+        finally:
+            db.close()
+
+    def reject_policy_rule(
+        self,
+        rule_id: str,
+        checker_id: str,
+        checker_name: str,
+        comments: str
+    ) -> Optional[Dict[str, Any]]:
+        """Checker rejects or returns a policy rule with mandatory comments."""
+        db: Session = SessionLocal()
+        try:
+            rule = db.query(PolicyRuleModel).filter(PolicyRuleModel.rule_id == rule_id).first()
+            if not rule:
+                return None
+            rule.status = "REJECTED"
+            rule.checker_id = checker_id
+            rule.checker_name = checker_name
+            rule.checker_comments = comments
+            rule.approved_at = datetime.utcnow()
+            db.commit()
+            db.refresh(rule)
+            result = self._rule_to_dict(rule)
+            self._rules_cache[result["rule_id"]] = result
+            return result
+        finally:
+            db.close()
+
+    def get_icd_configs(self, status: Optional[str] = None) -> List[Dict[str, Any]]:
+        """Returns all external ICD bank configurations, optionally filtered by status."""
+        configs = list(self._icd_cache.values())
+        if status:
+            return [c for c in configs if c.get("status") == status]
+        return configs
+
+    def get_icd_config(self, icd_id: str) -> Optional[Dict[str, Any]]:
+        """Returns a single ICD configuration by ID."""
+        return self._icd_cache.get(icd_id)
+
+    def save_icd_config(self, config_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Creates or updates an ICD configuration node in persistent DB."""
+        db: Session = SessionLocal()
+        try:
+            icd_id = config_data.get("icd_id")
+            existing = db.query(ICDConfigurationModel).filter(ICDConfigurationModel.icd_id == icd_id).first() if icd_id else None
+
+            if existing:
+                for k, v in config_data.items():
+                    if hasattr(existing, k) and k not in ["created_at"]:
+                        setattr(existing, k, v)
+                db.commit()
+                db.refresh(existing)
+                result = self._icd_to_dict(existing)
+            else:
+                new_icd = ICDConfigurationModel(
+                    icd_id=config_data.get("icd_id"),
+                    name=config_data.get("name"),
+                    institution_name=config_data.get("institution_name"),
+                    bic=config_data.get("bic"),
+                    rail=config_data.get("rail", "SWIFT_CBPR+"),
+                    adapter_type=config_data.get("adapter_type", "DIRECTORY_LOOKUP"),
+                    endpoint_url=config_data.get("endpoint_url"),
+                    latency_ms=config_data.get("latency_ms", 12),
+                    status=config_data.get("status", "PENDING_APPROVAL"),
+                    config_payload=config_data.get("config_payload", {}),
+                    maker_id=config_data.get("maker_id"),
+                    maker_name=config_data.get("maker_name"),
+                    maker_notes=config_data.get("maker_notes"),
+                    created_at=datetime.utcnow()
+                )
+                db.add(new_icd)
+                db.commit()
+                db.refresh(new_icd)
+                result = self._icd_to_dict(new_icd)
+
+            self._icd_cache[result["icd_id"]] = result
+            return result
+        finally:
+            db.close()
+
+    def approve_icd_config(
+        self,
+        icd_id: str,
+        checker_id: str,
+        checker_name: str,
+        comments: Optional[str] = None
+    ) -> Optional[Dict[str, Any]]:
+        """Checker approves and activates an ICD bank node integration."""
+        db: Session = SessionLocal()
+        try:
+            icd = db.query(ICDConfigurationModel).filter(ICDConfigurationModel.icd_id == icd_id).first()
+            if not icd:
+                return None
+            icd.status = "ACTIVE"
+            icd.checker_id = checker_id
+            icd.checker_name = checker_name
+            icd.checker_comments = comments or "Approved by Checker"
+            icd.approved_at = datetime.utcnow()
+            db.commit()
+            db.refresh(icd)
+            result = self._icd_to_dict(icd)
+            self._icd_cache[result["icd_id"]] = result
+            return result
+        finally:
+            db.close()
 
     def _receipt_to_schema(self, rcpt: DeliveryReceiptModel):
         from app.schemas.action import DeliveryReceipt

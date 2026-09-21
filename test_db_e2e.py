@@ -1,17 +1,20 @@
-import urllib.request
+import requests
 import json
+
+session = requests.Session()
 
 def api_call(url, data=None, method="GET", headers=None):
     h = headers.copy() if headers else {}
-    h["Connection"] = "close"
-    if data is not None:
-        body = json.dumps(data).encode("utf-8")
-        h["Content-Type"] = "application/json"
+    if method == "GET":
+        resp = session.get(url, headers=h)
+    elif method == "POST":
+        resp = session.post(url, json=data, headers=h)
+    elif method == "PUT":
+        resp = session.put(url, json=data, headers=h)
     else:
-        body = None
-    req = urllib.request.Request(url, data=body, headers=h, method=method)
-    with urllib.request.urlopen(req) as resp:
-        return json.loads(resp.read().decode("utf-8"))
+        resp = session.request(method, url, json=data, headers=h)
+    resp.raise_for_status()
+    return resp.json()
 
 print("=== 1. Health Check ===")
 health = api_call("http://127.0.0.1:8000/health")
@@ -68,4 +71,59 @@ print(f"Total personas: {len(personas)}")
 for p in personas[:4]:
     print(f"  - {p['user_id']} ({p['name']}): Role {p['role']} | Max: ${p['max_approval_amount']:,.2f}")
 
-print("\n>>> ALL E2E PERSISTENT DATABASE TESTS PASSED SUCCESSFULLY! <<<")
+print("\n=== 8. Dynamic Policy Rule Synthesis & Maker-Checker Lifecycle ===")
+prompt_text = "Anything more than $250,000 will go to 2-level approvals"
+syn = api_call(
+    "http://127.0.0.1:8000/api/rules/synthesize",
+    data={"prompt": prompt_text},
+    method="POST"
+)
+print(f"Synthesized Rule: {syn['name']} | Category: {syn['category']}")
+print(f"Conditions AST: {json.dumps(syn['conditions'])}")
+print(f"Actions: {json.dumps(syn['actions'])}")
+
+sim = api_call(
+    "http://127.0.0.1:8000/api/rules/simulate",
+    data={"conditions": syn["conditions"], "actions": syn["actions"]},
+    method="POST"
+)
+print(f"Simulated live impact: {sim['matched_cases_count']}/{sim['total_cases_evaluated']} cases ({sim['match_percentage']}%), ${sim['total_dollar_volume_affected']:,.2f}")
+
+# Maker submits new draft
+submit_resp = api_call(
+    "http://127.0.0.1:8000/api/rules/submit",
+    data={
+        "name": syn["name"],
+        "natural_language_prompt": prompt_text,
+        "category": syn["category"],
+        "domain": syn["domain"],
+        "conditions": syn["conditions"],
+        "actions": syn["actions"],
+        "maker_id": "OP-8821",
+        "maker_name": "Priya Sharma",
+        "maker_notes": "Live test submission via Policy Studio."
+    },
+    method="POST"
+)
+print(f"Maker submitted rule: {submit_resp['rule_id']} | Status: {submit_resp['status']}")
+
+# Checker approves draft
+appr_rule_resp = api_call(
+    f"http://127.0.0.1:8000/api/rules/{submit_resp['rule_id']}/approve",
+    data={
+        "checker_id": "RSK-7714",
+        "checker_name": "Kenji Watanabe",
+        "comments": "Reviewed JSON AST and simulated impact. Approved for production."
+    },
+    method="POST"
+)
+print(f"Checker approved rule: {appr_rule_resp['rule_id']} | New Status: {appr_rule_resp['status']} | Checker: {appr_rule_resp['checker_name']}")
+
+print("\n=== 9. ICD External Bank Configuration Registry ===")
+icd_list = api_call("http://127.0.0.1:8000/api/rules/icd-configs/list")
+print(f"Total ICD Nodes: {len(icd_list)}")
+for icd in icd_list[:3]:
+    print(f"  - [{icd['status']}] {icd['icd_id']}: {icd['name']} ({icd['bic']}) via {icd['rail']}")
+
+print("\n>>> ALL E2E PERSISTENT DATABASE & DYNAMIC RULES TESTS PASSED SUCCESSFULLY! <<<")
+

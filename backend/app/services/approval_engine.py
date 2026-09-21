@@ -7,6 +7,7 @@ from app.schemas.approval import ApprovalRecord, ApprovalAction, UserRole, Appro
 from app.schemas.canonical import LifecycleStage
 from app.core.security import check_can_approve, get_persona
 from app.services.data_loader import repo
+from app.services.rule_engine import rule_engine
 from app.config import settings
 
 class ApprovalEngine:
@@ -39,8 +40,10 @@ class ApprovalEngine:
         rec_id = rec.recommendation_id if rec else "REC-MANUAL"
         approved_changes = submission.override_changes or (rec.proposed_changes if rec else [])
 
-        amount = float(case.get("amount", 0.0))
-        dual_auth = amount >= settings.DUAL_AUTH_THRESHOLD
+        # Dynamically evaluate active business rules & dual authorization policies
+        active_rules = repo.get_policy_rules(status="ACTIVE")
+        policy_eval = rule_engine.evaluate_case_policies(case, active_rules)
+        dual_auth = policy_eval.get("dual_auth_required", False)
         
         existing_approvals = repo.approvals.get(submission.case_id, [])
 
