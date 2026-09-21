@@ -298,10 +298,12 @@ html_content = r'''<!DOCTYPE html>
           const tel = await fetch(`${API_BASE}/stp/telemetry`).then(r => r.json());
           setStpTelemetry(tel);
           const elig = await fetch(`${API_BASE}/stp/eligible`).then(r => r.json());
-          setStpEligibleCases(elig || []);
-          if (elig && elig.length > 0) {
-            setSelectedStpCaseIds(elig.map(e => e.case_id));
-          }
+          const newEligible = elig || [];
+          setStpEligibleCases(newEligible);
+          setSelectedStpCaseIds(prev => {
+            const valid = prev.filter(id => newEligible.some(e => e.case_id === id));
+            return valid.length > 0 ? valid : newEligible.map(e => e.case_id);
+          });
         } catch (e) {
           console.error("Error loading STP data:", e);
         }
@@ -333,9 +335,10 @@ html_content = r'''<!DOCTYPE html>
           }
           const data = await res.json();
           setBatchReleaseResult(data);
-          setActionMsg(`⚡ SUCCESS: Batch ${data.batch_id} authorized & settled! Dispatched ${data.settled_count} cases ($${data.total_amount_settled.toLocaleString()}) across clearing rails.`);
-          loadInitialData();
-          loadStpData();
+          setSelectedStpCaseIds([]);
+          setActionMsg(`⚡ SUCCESS: Batch ${data.batch_id} authorized & settled! Dispatched ${data.processed_count} cases ($${Number(data.total_dollar_volume || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}) across clearing rails.`);
+          await loadInitialData();
+          await loadStpData();
         } catch (e) {
           setActionErr(e.message || "Batch release execution failed");
         } finally {
@@ -2029,7 +2032,7 @@ html_content = r'''<!DOCTYPE html>
                       <div className="bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/40">
                         <div className="text-[10px] uppercase font-mono text-slate-400">Current STP Rate</div>
                         <div className="text-lg font-bold font-mono text-emerald-400 mt-0.5">
-                          {stpTelemetry?.stp_rate_pct != null ? `${stpTelemetry.stp_rate_pct}%` : "14.2%"}
+                          {stpTelemetry?.overall_stp_rate_pct != null ? `${stpTelemetry.overall_stp_rate_pct}%` : "14.2%"}
                         </div>
                         <div className="text-[9px] text-slate-400 mt-0.5">Target: &ge; 10% on micro-exceptions</div>
                       </div>
@@ -2040,14 +2043,14 @@ html_content = r'''<!DOCTYPE html>
                           {stpEligibleCases.length} Cases
                         </div>
                         <div className="text-[9px] text-slate-400 mt-0.5">
-                          ${stpEligibleCases.reduce((acc, c) => acc + (c.amount || 0), 0).toLocaleString()} Total Value
+                          ${stpEligibleCases.reduce((acc, c) => acc + (c.amount || 0), 0).toLocaleString(undefined, { minimumFractionDigits: 2 })} Total Value
                         </div>
                       </div>
 
                       <div className="bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/40">
                         <div className="text-[10px] uppercase font-mono text-slate-400">Accelerated Volume</div>
                         <div className="text-lg font-bold font-mono text-sky-400 mt-0.5">
-                          ${(stpTelemetry?.total_stp_dollar_volume || 0).toLocaleString()}
+                          ${(stpTelemetry?.fast_lane_eligible_volume || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                         </div>
                         <div className="text-[9px] text-slate-400 mt-0.5">Settled with zero human delay</div>
                       </div>
@@ -2055,15 +2058,15 @@ html_content = r'''<!DOCTYPE html>
                       <div className="bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/40">
                         <div className="text-[10px] uppercase font-mono text-slate-400">Operational Hours Saved</div>
                         <div className="text-lg font-bold font-mono text-purple-300 mt-0.5">
-                          {stpTelemetry?.operational_hours_saved || "18.5"} hrs
+                          {stpTelemetry?.time_savings_hours != null ? `${stpTelemetry.time_savings_hours} hrs` : "18.5 hrs"}
                         </div>
-                        <div className="text-[9px] text-slate-400 mt-0.5">~15 min saved per micro-repair</div>
+                        <div className="text-[9px] text-slate-400 mt-0.5">~3.8 hrs saved per exception</div>
                       </div>
 
                       <div className="bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/40">
-                        <div className="text-[10px] uppercase font-mono text-slate-400">Avg Autonomous Latency</div>
+                        <div className="text-[10px] uppercase font-mono text-slate-400">Avg Resolution Time</div>
                         <div className="text-lg font-bold font-mono text-emerald-400 mt-0.5">
-                          {stpTelemetry?.avg_stp_latency_ms || 14} ms
+                          {stpTelemetry?.avg_resolution_seconds_stp != null ? `${stpTelemetry.avg_resolution_seconds_stp}s` : "1.8s"}
                         </div>
                         <div className="text-[9px] text-slate-400 mt-0.5">SHA-256 sealed & dispatched</div>
                       </div>
@@ -6616,17 +6619,17 @@ html_content = r'''<!DOCTYPE html>
                         <span>Batch Settlement Release Dispatched Successfully ({batchReleaseResult.batch_id})</span>
                       </div>
                       <span className="font-mono text-[11px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded border border-emerald-300">
-                        {batchReleaseResult.settled_count} Cases Settled
+                        {batchReleaseResult.processed_count} Cases Settled
                       </span>
                     </div>
                     <p className="text-emerald-800 text-[11px]">
                       {batchReleaseResult.message}
                     </p>
                     <div className="pt-2 border-t border-emerald-200 grid grid-cols-2 sm:grid-cols-4 gap-2 font-mono text-[10px]">
-                      <div>TOTAL VALUE: <strong>${batchReleaseResult.total_amount_settled?.toLocaleString()}</strong></div>
-                      <div>APPROVER: <strong>{batchReleaseResult.approver_name}</strong></div>
-                      <div>DISPATCH SYSTEM: <strong>{batchReleaseResult.dispatched_clearing_system}</strong></div>
-                      <div>SETTLED AT: <strong>{formatLocalDateTime(batchReleaseResult.settled_at)}</strong></div>
+                      <div>TOTAL VALUE: <strong>${Number(batchReleaseResult.total_dollar_volume || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</strong></div>
+                      <div>APPROVER: <strong>{batchReleaseResult.executed_by}</strong></div>
+                      <div>DISPATCH SYSTEM: <strong>SWIFT CBPR+ Fast-Lane Gateway</strong></div>
+                      <div>SETTLED AT: <strong>{formatLocalDateTime(batchReleaseResult.timestamp)}</strong></div>
                     </div>
                   </div>
                 )}
@@ -6785,8 +6788,8 @@ html_content = r'''<!DOCTYPE html>
                     {currentPersona.role !== "OPERATOR" && (
                       <button
                         onClick={handleExecuteBatchStp}
-                        disabled={isBatchReleasing || selectedStpCaseIds.length === 0}
-                        className="px-5 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 rounded-xl font-bold shadow-md flex items-center space-x-1.5 transition-all disabled:opacity-50"
+                        disabled={isBatchReleasing || selectedStpCaseIds.length === 0 || stpEligibleCases.length === 0}
+                        className="px-5 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 rounded-xl font-bold shadow-md flex items-center space-x-1.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <span>{isBatchReleasing ? "Dispatching Batch Settlement..." : `⚡ Authorize & Settle ${selectedStpCaseIds.length} Payments`}</span>
                       </button>
