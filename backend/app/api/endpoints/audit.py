@@ -8,7 +8,7 @@ from app.schemas.audit import AuditEvent, ProvenanceChain, HashVerificationResul
 router = APIRouter()
 
 @router.get("/stream", response_model=List[AuditEvent])
-def get_audit_stream(limit: int = 100):
+def get_audit_stream(limit: int = 1000):
     return audit_service.get_all_events(limit=limit)
 
 @router.get("/verify-chain", response_model=HashVerificationResult)
