@@ -109,6 +109,10 @@ class SubmitRuleRequest(BaseModel):
     maker_id: str
     maker_name: str
     maker_notes: Optional[str] = None
+    auto_approve: bool = False
+    checker_id: Optional[str] = None
+    checker_name: Optional[str] = None
+    checker_comments: Optional[str] = None
 
 class CheckerDecisionRequest(BaseModel):
     checker_id: str
@@ -148,3 +152,7 @@ class SubmitICDConfigRequest(BaseModel):
     maker_id: str
     maker_name: str
     maker_notes: Optional[str] = None
+    auto_approve: bool = False
+    checker_id: Optional[str] = None
+    checker_name: Optional[str] = None
+    checker_comments: Optional[str] = None

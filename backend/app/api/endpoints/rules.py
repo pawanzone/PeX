@@ -79,6 +79,9 @@ def submit_rule_for_approval(payload: SubmitRuleRequest):
         f"({impact.match_percentage}%) with ${impact.total_dollar_volume_affected:,.2f} aggregate exposure."
     )
 
+    status_val = "ACTIVE" if payload.auto_approve else "PENDING_APPROVAL"
+    approved_at_val = datetime.utcnow() if payload.auto_approve else None
+
     rule_data = {
         "rule_id": rule_id,
         "name": payload.name,
@@ -87,12 +90,16 @@ def submit_rule_for_approval(payload: SubmitRuleRequest):
         "domain": payload.domain,
         "conditions": payload.conditions,
         "actions": payload.actions,
-        "status": "PENDING_APPROVAL",
+        "status": status_val,
         "version": "1.0",
         "impact_summary": impact_summary,
         "maker_id": payload.maker_id,
         "maker_name": payload.maker_name,
         "maker_notes": payload.maker_notes or f"Draft submitted by {payload.maker_name} via Policy Studio.",
+        "checker_id": payload.checker_id if payload.auto_approve else None,
+        "checker_name": payload.checker_name if payload.auto_approve else None,
+        "checker_comments": payload.checker_comments or ("Directly authorized and implemented into production" if payload.auto_approve else None),
+        "approved_at": approved_at_val,
     }
 
     saved = repo.save_policy_rule(rule_data)
@@ -179,6 +186,9 @@ def submit_icd_config(payload: SubmitICDConfigRequest):
         bic_prefix = (payload.bic[:4] if len(payload.bic) >= 4 else "NODE").upper()
         icd_id = f"ICD-{bic_prefix}-{uuid.uuid4().hex[:4].upper()}"
 
+    status_val = "ACTIVE" if payload.auto_approve else "PENDING_APPROVAL"
+    approved_at_val = datetime.utcnow() if payload.auto_approve else None
+
     config_data = {
         "icd_id": icd_id,
         "name": payload.name,
@@ -188,11 +198,15 @@ def submit_icd_config(payload: SubmitICDConfigRequest):
         "adapter_type": payload.adapter_type,
         "endpoint_url": payload.endpoint_url,
         "latency_ms": payload.latency_ms,
-        "status": "PENDING_APPROVAL",
+        "status": status_val,
         "config_payload": payload.config_payload,
         "maker_id": payload.maker_id,
         "maker_name": payload.maker_name,
         "maker_notes": payload.maker_notes or f"ICD node submitted by {payload.maker_name}.",
+        "checker_id": payload.checker_id if payload.auto_approve else None,
+        "checker_name": payload.checker_name if payload.auto_approve else None,
+        "checker_comments": payload.checker_comments or ("Directly authorized and connected into clearing network" if payload.auto_approve else None),
+        "approved_at": approved_at_val,
     }
 
     saved = repo.save_icd_config(config_data)
