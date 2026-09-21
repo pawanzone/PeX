@@ -559,5 +559,355 @@ class STPEngine:
             active_stp_rules=stp_rules
         )
 
+    def seed_stp_sample_cases(self) -> Dict[str, Any]:
+        """Seeds 12 curated, realistic payment exception cases specifically qualified for STP Fast-Lane batch execution."""
+        from app.db.models import RecommendationModel
+        from app.core.tokenization import token_vault
+
+        sample_defs = [
+            {
+                "case_id": "PEX-STP-0101",
+                "profile": "INVALID_IBAN",
+                "domain": "FORMAT_SYNTAX",
+                "amount": 8450.00,
+                "currency": "GBP",
+                "payment_rail": "CHAPS",
+                "confidence": 0.98,
+                "debtor": "Apex Global Treasury (US)",
+                "creditor": "Nordhavn Components A/S",
+                "debtor_bic": "CHASUS33XXX",
+                "creditor_bic": "BARCGB22XXX",
+                "field_path": "creditor_account.iban",
+                "orig_val": "GB29MIDL40051512345678",
+                "prop_val": "GB29MIDL40051512345679",
+                "justification": "MOD-97 check digit transposition resolved via UK CHAPS sort-code directory.",
+                "reason": "Invalid IBAN checksum (MOD-97 calculation failure on character 24)."
+            },
+            {
+                "case_id": "PEX-STP-0102",
+                "profile": "INVALID_BIC",
+                "domain": "FORMAT_SYNTAX",
+                "amount": 14200.00,
+                "currency": "EUR",
+                "payment_rail": "TARGET2",
+                "confidence": 0.96,
+                "debtor": "Zurich Tech Logistics AG",
+                "creditor": "Vanguard BioPharma GmbH",
+                "debtor_bic": "UBSWCHZHXXX",
+                "creditor_bic": "DEUTDEDDXXX",
+                "field_path": "creditor_agent.bic",
+                "orig_val": "DEUTDEDDXX",
+                "prop_val": "DEUTDEDDXXX",
+                "justification": "ISO 9362 8-to-11 char BIC padding normalized against SWIFT Head Office directory.",
+                "reason": "Truncated 10-char BIC format rejected by TARGET2 clearing gateway."
+            },
+            {
+                "case_id": "PEX-STP-0103",
+                "profile": "MISSING_PURPOSE_CODE",
+                "domain": "DATA_QUALITY",
+                "amount": 3850.00,
+                "currency": "USD",
+                "payment_rail": "FEDWIRE",
+                "confidence": 0.99,
+                "debtor": "JPMorgan Commercial Client",
+                "creditor": "Apex Global Treasury",
+                "debtor_bic": "CHASUS33XXX",
+                "creditor_bic": "CHASUS33XXX",
+                "field_path": "payment_type_info.purpose_code",
+                "orig_val": "[NULL / MISSING]",
+                "prop_val": "SUPP",
+                "justification": "Inferred mandatory ISO 20022 SUPP commercial supplier code from invoice metadata.",
+                "reason": "Missing mandatory ISO 20022 external purpose code for cross-border commercial wire."
+            },
+            {
+                "case_id": "PEX-STP-0104",
+                "profile": "INVALID_ROUTING_CODE",
+                "domain": "DATA_QUALITY",
+                "amount": 18600.00,
+                "currency": "USD",
+                "payment_rail": "FEDWIRE",
+                "confidence": 0.95,
+                "debtor": "Sydney Infrastructure Ltd",
+                "creditor": "Atlas Mediterranean Marine",
+                "debtor_bic": "ANZBAU3MXXX",
+                "creditor_bic": "CHASUS33XXX",
+                "field_path": "creditor_agent.aba_routing",
+                "orig_val": "021000020",
+                "prop_val": "021000021",
+                "justification": "Federal Reserve Fedwire ABA routing check digit validated via FedLine directory.",
+                "reason": "Invalid 9-digit ABA routing transit check digit transposition."
+            },
+            {
+                "case_id": "PEX-STP-0105",
+                "profile": "BENEFICIARY_NAME_MISMATCH",
+                "domain": "DATA_QUALITY",
+                "amount": 9120.00,
+                "currency": "USD",
+                "payment_rail": "SWIFT_CBPR+",
+                "confidence": 0.94,
+                "debtor": "Bavaria Engine Works AG",
+                "creditor": "HarborView Supplier Ltd",
+                "debtor_bic": "HYVEDEMMXXX",
+                "creditor_bic": "WESTGB2LXXX",
+                "field_path": "creditor_party.party_name",
+                "orig_val": "HarborView Supp. Ltd",
+                "prop_val": "HarborView Supplier Ltd",
+                "justification": "Legal entity abbreviation expanded and matched against Confirmation of Payee (CoP) register.",
+                "reason": "Confirmation of Payee (CoP) name similarity divergence > 5% on abbreviated string."
+            },
+            {
+                "case_id": "PEX-STP-0106",
+                "profile": "MISSING_REMITTANCE_INFO",
+                "domain": "DATA_QUALITY",
+                "amount": 6400.00,
+                "currency": "GBP",
+                "payment_rail": "CHAPS",
+                "confidence": 0.97,
+                "debtor": "Nordhavn Components A/S",
+                "creditor": "Kyoto Precision Robotics",
+                "debtor_bic": "BARCGB22XXX",
+                "creditor_bic": "BOTKJPJTXXX",
+                "field_path": "remittance_info.unstructured",
+                "orig_val": "[EMPTY_TAG]",
+                "prop_val": "INV-2026-UK-88412",
+                "justification": "Extracted verified commercial invoice reference from debtor payment initiation payload.",
+                "reason": "Mandatory remittance information missing under UK RTGS Rulebook."
+            },
+            {
+                "case_id": "PEX-STP-0107",
+                "profile": "INVALID_ADDRESS_FORMAT",
+                "domain": "FORMAT_SYNTAX",
+                "amount": 11750.00,
+                "currency": "EUR",
+                "payment_rail": "TARGET2",
+                "confidence": 0.96,
+                "debtor": "Singapore FinTech Holding",
+                "creditor": "Vanguard BioPharma GmbH",
+                "debtor_bic": "DBSSSGSGXXX",
+                "creditor_bic": "DEUTDEDDXXX",
+                "field_path": "creditor_party.postal_address",
+                "orig_val": "Frankfurt AM Main 60311",
+                "prop_val": "Taunusanlage 8, 60329 Frankfurt am Main, DE",
+                "justification": "Unstructured postal address geocoded and normalized to ISO 20022 structured elements.",
+                "reason": "Unstructured street address rejected under CBPR+ Quality Mandate."
+            },
+            {
+                "case_id": "PEX-STP-0108",
+                "profile": "ISO20022_VALIDATION_ERROR",
+                "domain": "PROCESSING",
+                "amount": 4950.00,
+                "currency": "USD",
+                "payment_rail": "FEDWIRE",
+                "confidence": 0.99,
+                "debtor": "Atlas Mediterranean Marine",
+                "creditor": "Apex Global Treasury",
+                "debtor_bic": "NBGRGRAAXXX",
+                "creditor_bic": "CHASUS33XXX",
+                "field_path": "charge_bearer.code",
+                "orig_val": "SHAR",
+                "prop_val": "SHA",
+                "justification": "Invalid 4-character charge tag SHAR converted to standard 3-char ISO tag SHA.",
+                "reason": "XML Schema validation error: ChargeBearerType 'SHAR' does not match enumeration [DEBT, CRED, SHA, SLEV]."
+            },
+            {
+                "case_id": "PEX-STP-0109",
+                "profile": "ROUTING_FAILURE",
+                "domain": "PROCESSING",
+                "amount": 16300.00,
+                "currency": "USD",
+                "payment_rail": "SWIFT_CBPR+",
+                "confidence": 0.93,
+                "debtor": "Kyoto Precision Robotics",
+                "creditor": "HarborView Supplier Ltd",
+                "debtor_bic": "BOTKJPJTXXX",
+                "creditor_bic": "WESTGB2LXXX",
+                "field_path": "intermediary_agent.bic",
+                "orig_val": "CHASUS33OFF",
+                "prop_val": "CHASUS33XXX",
+                "justification": "Inactive offline intermediary BIC re-routed to primary active Nostro gateway node.",
+                "reason": "Intermediary institution offline in clearing directory routing table."
+            },
+            {
+                "case_id": "PEX-STP-0110",
+                "profile": "PAYMENT_HELD_FOR_REPAIR",
+                "domain": "PROCESSING",
+                "amount": 22500.00,
+                "currency": "USD",
+                "payment_rail": "FEDWIRE",
+                "confidence": 0.92,
+                "debtor": "HarborView Supplier Ltd",
+                "creditor": "Apex Global Treasury",
+                "debtor_bic": "WESTGB2LXXX",
+                "creditor_bic": "CHASUS33XXX",
+                "field_path": "settlement_priority",
+                "orig_val": "STND",
+                "prop_val": "HIGH",
+                "justification": "Expedited settlement priority tag applied to resolve payment queue hold.",
+                "reason": "Transaction paused in clearing queue awaiting operational priority assignment."
+            },
+            {
+                "case_id": "PEX-STP-0111",
+                "profile": "INVALID_ACCOUNT_NUMBER",
+                "domain": "DATA_QUALITY",
+                "amount": 7600.00,
+                "currency": "GBP",
+                "payment_rail": "CHAPS",
+                "confidence": 0.97,
+                "debtor": "Zurich Tech Logistics AG",
+                "creditor": "Nordhavn Components A/S",
+                "debtor_bic": "UBSWCHZHXXX",
+                "creditor_bic": "BARCGB22XXX",
+                "field_path": "creditor_account.account_number",
+                "orig_val": "400515-12345",
+                "prop_val": "40051500012345",
+                "justification": "Hyphenated legacy UK account padded to standard 14-digit clearing format.",
+                "reason": "Legacy account formatting non-compliant with pacs.008 schema specification."
+            },
+            {
+                "case_id": "PEX-STP-0112",
+                "profile": "MISSING_BENEFICIARY_DATA",
+                "domain": "DATA_QUALITY",
+                "amount": 12900.00,
+                "currency": "EUR",
+                "payment_rail": "TARGET2",
+                "confidence": 0.95,
+                "debtor": "Bavaria Engine Works AG",
+                "creditor": "Vanguard BioPharma GmbH",
+                "debtor_bic": "HYVEDEMMXXX",
+                "creditor_bic": "DEUTDEDDXXX",
+                "field_path": "creditor_party.country",
+                "orig_val": "[BLANK]",
+                "prop_val": "DE",
+                "justification": "ISO 3166-1 alpha-2 country code DE inferred from IBAN prefix DE89.",
+                "reason": "Missing mandatory creditor country code in pacs.008 payload."
+            }
+        ]
+
+        db: Session = SessionLocal()
+        created_ids = []
+        try:
+            now = datetime.utcnow()
+            for idx, s in enumerate(sample_defs):
+                cid = s["case_id"]
+                t_base = now - timedelta(minutes=10 + (idx * 5))
+                sla_due = t_base + timedelta(hours=4)
+                uetr = f"UETR-2026-STP-{idx+1:04d}-A8"
+                debtor_tok = token_vault.tokenize(s["debtor"], "PARTY")
+                creditor_tok = token_vault.tokenize(s["creditor"], "PARTY")
+
+                # 1. Upsert Case
+                db_case = db.query(CaseModel).filter(CaseModel.case_id == cid).first()
+                if not db_case:
+                    db_case = CaseModel(
+                        case_id=cid,
+                        payment_id=f"PMT-STP-{idx+1:06d}",
+                        uetr=uetr,
+                        payment_ref=f"PAY-STP-{idx+1:06d}",
+                        profile=s["profile"],
+                        domain=s["domain"],
+                        secondary_profiles=[],
+                        error_code=f"ERR_STP_{idx+1:03d}",
+                        reason=s["reason"],
+                        amount=s["amount"],
+                        currency=s["currency"],
+                        payment_rail=s["payment_rail"],
+                        debtor_party={"party_name": s["debtor"], "country": "US", "token_ref": debtor_tok},
+                        debtor_account={"account_number": f"US11APEX998877{idx+100:04d}", "token_ref": debtor_tok},
+                        creditor_party={"party_name": s["creditor"], "country": "GB", "token_ref": creditor_tok},
+                        creditor_account={"iban": f"GB82WEST1234569876{idx+100:04d}", "bank_bic": s["creditor_bic"], "token_ref": creditor_tok},
+                        queue="Repair",
+                        status="RECOMMENDED",
+                        severity="LOW" if s["amount"] < 10000 else "MEDIUM",
+                        priority="NORMAL",
+                        sla_due_at=sla_due.isoformat(),
+                        dual_auth_required=False,
+                        ai_confidence=s["confidence"],
+                        created_at=t_base.isoformat(),
+                        settled_at=None,
+                        approval_history=[],
+                        audit_timeline=[
+                            {
+                                "step_index": 1,
+                                "timestamp": t_base.isoformat(),
+                                "actor_name": "PeX Ingestion Gateway",
+                                "actor_role": "SYSTEM",
+                                "badge_color": "slate",
+                                "action_title": "Exception Ingested & Canonicalized",
+                                "icon": "📥",
+                                "summary": f"Payment wire received via {s['payment_rail']}. PII tokenized into isolated vault."
+                            },
+                            {
+                                "step_index": 2,
+                                "timestamp": (t_base + timedelta(minutes=2)).isoformat(),
+                                "actor_name": "PeX Governed AI Reasoner",
+                                "actor_role": "SYSTEM_AI",
+                                "badge_color": "blue",
+                                "action_title": "Autonomous Repair Synthesized",
+                                "icon": "⚡",
+                                "summary": f"AI Reasoner validated proposed repair ({s['field_path']}) with {int(s['confidence']*100)}% confidence under Governed STP Policy."
+                            }
+                        ],
+                        guided_questions=[]
+                    )
+                    db.add(db_case)
+                else:
+                    # Reset existing case to open RECOMMENDED status
+                    db_case.status = "RECOMMENDED"
+                    db_case.settled_at = None
+                    db_case.amount = s["amount"]
+                    db_case.ai_confidence = s["confidence"]
+                    db_case.reason = s["reason"]
+
+                # 2. Upsert Recommendation
+                rec_id = f"REC-{cid}"
+                db_rec = db.query(RecommendationModel).filter(RecommendationModel.case_id == cid).first()
+                if not db_rec:
+                    db_rec = RecommendationModel(
+                        recommendation_id=rec_id,
+                        case_id=cid,
+                        action_type="REPAIR_AND_RELEASE",
+                        confidence_score=s["confidence"],
+                        rationale=f"Automated repair validated under Governed STP Policy: {s['justification']}",
+                        proposed_changes=[{
+                            "field_path": s["field_path"],
+                            "original_value_masked": s["orig_val"],
+                            "proposed_value_masked": s["prop_val"],
+                            "justification": s["justification"],
+                            "validation_status": "VALIDATED_CHECKSUM_PASS"
+                        }],
+                        corroborating_evidence=[],
+                        risk_evaluation={
+                            "risk_score": 0.05,
+                            "risk_level": "LOW",
+                            "risk_factors": ["LOW_EXPOSURE_UNDER_25K", "CHECKSUM_VERIFIED", "OFAC_SANCTIONS_CLEAN"],
+                            "dual_auth_required": False
+                        },
+                        guided_questions=[]
+                    )
+                    db.add(db_rec)
+                else:
+                    db_rec.confidence_score = s["confidence"]
+                    db_rec.proposed_changes = [{
+                        "field_path": s["field_path"],
+                        "original_value_masked": s["orig_val"],
+                        "proposed_value_masked": s["prop_val"],
+                        "justification": s["justification"],
+                        "validation_status": "VALIDATED_CHECKSUM_PASS"
+                    }]
+
+                created_ids.append(cid)
+
+            db.commit()
+            repo.sync_from_db()
+
+            return {
+                "status": "SUCCESS",
+                "seeded_count": len(created_ids),
+                "case_ids": created_ids,
+                "message": f"Successfully seeded {len(created_ids)} high-confidence STP Fast-Lane candidates into persistent database."
+            }
+        finally:
+            db.close()
+
 # Global singleton
 stp_engine = STPEngine()

@@ -49,3 +49,8 @@ def execute_case_autonomous_stp(case_id: str):
         return stp_engine.execute_autonomous_stp(case_id)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+@router.post("/seed-sample-cases", response_model=Dict[str, Any])
+def seed_stp_sample_cases():
+    """Seeds 12 curated, realistic payment exception cases specifically qualified for STP Fast-Lane batch execution."""
+    return stp_engine.seed_stp_sample_cases()

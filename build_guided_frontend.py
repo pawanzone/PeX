@@ -370,6 +370,21 @@ html_content = r'''<!DOCTYPE html>
         }
       };
 
+      const handleSeedStpCases = async () => {
+        setActionMsg(null);
+        setActionErr(null);
+        try {
+          const res = await fetch(`${API_BASE}/stp/seed-sample-cases`, { method: "POST" });
+          if (!res.ok) throw new Error("Failed to seed STP sample cases");
+          const data = await res.json();
+          setActionMsg(`⚡ SUCCESS: Seeded ${data.seeded_count} fresh STP Fast-Lane benchmark cases!`);
+          await loadInitialData();
+          await loadStpData();
+        } catch (e) {
+          setActionErr(e.message || "Failed to generate sample cases");
+        }
+      };
+
       const loadRulesAndIcd = async () => {
         try {
           const rRes = await fetch(`${API_BASE}/rules`).then(r => r.json());
@@ -2017,6 +2032,13 @@ html_content = r'''<!DOCTYPE html>
                       </div>
 
                       <div className="flex items-center space-x-2">
+                        <button
+                          onClick={handleSeedStpCases}
+                          className="px-3 py-2 bg-slate-800/90 hover:bg-slate-700 text-amber-300 font-bold text-xs rounded-xl border border-amber-500/30 flex items-center space-x-1.5 transition-all shadow-sm"
+                          title="Generate 12 fresh sample STP Fast-Lane cases"
+                        >
+                          <span>🌱 Seed Sample Cases</span>
+                        </button>
                         <button
                           onClick={() => setStpBatchDrawerOpen(true)}
                           className="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-bold text-xs rounded-xl shadow-md flex items-center space-x-1.5 transition-all hover:scale-[1.02]"
@@ -6683,12 +6705,20 @@ html_content = r'''<!DOCTYPE html>
                   {/* Candidates Table with Expandable 360 Approver Dossier */}
                   <div className="flex-1 overflow-y-auto p-6 space-y-4">
                     {stpEligibleCases.length === 0 ? (
-                      <div className="p-12 text-center bg-slate-50 border rounded-2xl space-y-3 text-slate-500">
+                      <div className="p-12 text-center bg-slate-50 border rounded-2xl space-y-4 text-slate-500">
                         <div className="text-4xl">🛡️</div>
                         <h4 className="text-base font-bold text-slate-800">No Open Cases Currently In Fast-Lane Queue</h4>
                         <p className="text-xs max-w-lg mx-auto leading-relaxed text-slate-600">
                           All eligible micro-exceptions have already been settled or no remaining open exceptions meet the high-confidence policy thresholds (&le; $25,000, &ge; 90% confidence).
                         </p>
+                        <div className="pt-2">
+                          <button
+                            onClick={handleSeedStpCases}
+                            className="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-bold text-xs rounded-xl shadow-md inline-flex items-center space-x-2 transition-all hover:scale-105"
+                          >
+                            <span>⚡ Generate 12 Sample STP Fast-Lane Candidates</span>
+                          </button>
+                        </div>
                       </div>
                     ) : (
                       <div className="border border-slate-200 rounded-xl overflow-x-auto shadow-2xs">
