@@ -191,7 +191,7 @@ html_content = r'''<!DOCTYPE html>
 
       // Navigation & Core Data
       const [tab, setTab] = useState("command_center");
-      const [archView, setArchView] = useState("epc_diagram");
+      const [archView, setArchView] = useState("lifecycle_20steps");
       const [archIframeKey, setArchIframeKey] = useState(0);
       const [archFullscreen, setArchFullscreen] = useState(false);
       const [cases, setCases] = useState([]);
@@ -7396,9 +7396,10 @@ html_content = r'''<!DOCTYPE html>
                             <span>Download Slide JPG</span>
                           </a>
                         )}
-                        {["epc_diagram", "exec_slide", "icon_studio", "playbook", "executive_1pager"].includes(archView) && (
+                        {["lifecycle_20steps", "epc_diagram", "exec_slide", "icon_studio", "playbook", "executive_1pager"].includes(archView) && (
                           <a
                             href={
+                              archView === "lifecycle_20steps" ? "/PeX_20_Step_Lifecycle_Specification.html" :
                               archView === "epc_diagram" ? "/PeX_EPC_Workflow_Diagram.html" :
                               archView === "exec_slide" ? "/PeX_Event_Driven_Architecture_Slide.html" :
                               archView === "icon_studio" ? "/pex_executive_icons_customizer.html" :
@@ -7424,8 +7425,9 @@ html_content = r'''<!DOCTYPE html>
                     </div>
 
                     {/* View Switcher Pills */}
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 mt-6 pt-5 border-t border-slate-800">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-2 mt-6 pt-5 border-t border-slate-800">
                       {[
+                        { id: "lifecycle_20steps", title: "20-Step Lifecycle", sub: "BA & SME Workflow", badge: "SPEC v2.0", badgeColor: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30", icon: "📋" },
                         { id: "epc_diagram", title: "EPC Workflow", sub: "Bank -> PeX 9 Steps", badge: "APPROVED", badgeColor: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30", icon: "📊" },
                         { id: "exec_slide", title: "16:9 Slide", sub: "PPT Presentation", badge: "PPT READY", badgeColor: "bg-indigo-500/20 text-indigo-300 border-indigo-500/30", icon: "🖼️" },
                         { id: "pillars", title: "8 Pillars", sub: "AWS Roadmap", badge: "1 OF 8 IN PROGRESS", badgeColor: "bg-amber-500/20 text-amber-300 border-amber-500/30", icon: "🏛️" },
@@ -7647,7 +7649,8 @@ html_content = r'''<!DOCTYPE html>
                       <div className="px-6 py-3.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between text-xs text-slate-600">
                         <div className="flex items-center space-x-2">
                           <span className="font-bold text-slate-900">
-                            {archView === "epc_diagram" ? "Interactive EPC Workflow Diagram (Bank on Left -> PeX on Right)" :
+                            {archView === "lifecycle_20steps" ? "20-Step Payment Exception Resolution Lifecycle Specification (BA & SME Blueprint v2.0)" :
+                             archView === "epc_diagram" ? "Interactive EPC Workflow Diagram (Bank on Left -> PeX on Right)" :
                              archView === "exec_slide" ? "16:9 Executive Presentation Slide (Event-Driven Architecture)" :
                              archView === "icon_studio" ? "Executive Vector Icon Studio (189 Icons Across 25 Categories)" :
                              archView === "playbook" ? "41 Exception Playbooks Taxonomy Across 5 BIAN Domains" :
@@ -7672,6 +7675,7 @@ html_content = r'''<!DOCTYPE html>
                         <iframe
                           key={archIframeKey}
                           src={
+                            archView === "lifecycle_20steps" ? "/PeX_20_Step_Lifecycle_Specification.html" :
                             archView === "epc_diagram" ? "/PeX_EPC_Workflow_Diagram.html" :
                             archView === "exec_slide" ? "/PeX_Event_Driven_Architecture_Slide.html" :
                             archView === "icon_studio" ? "/pex_executive_icons_customizer.html" :
