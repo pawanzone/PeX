@@ -1253,6 +1253,27 @@
         }
       };
 
+      const handleSynthesizeAll = async () => {
+        const openList = cases.filter(c => c.status === "INGESTED" || c.status === "RECOMMENDED");
+        if (openList.length === 0) {
+          setActionMsg("All open exceptions in queue already have verified AI repair recommendations.");
+          return;
+        }
+        setActionMsg(`Governed AI Reasoner synthesizing recommendations across ${openList.length} open exceptions...`);
+        try {
+          for (const item of openList.slice(0, 10)) {
+            await fetch(`${API_BASE}/cases/${item.case_id}/run-ai-repair?analyst_id=${currentPersona.user_id}`, { method: "POST" });
+          }
+          await refreshCases();
+          if (activeCase) {
+            await loadCaseDetail(activeCase.case_id);
+          }
+          setActionMsg(`✓ Governed AI Reasoner completed deterministic repairs across open exception queue.`);
+        } catch (e) {
+          setActionErr(e.message || "Failed to synthesize open cases");
+        }
+      };
+
       const openMakerSubmitModal = () => {
         if (activeCase?.status === "RETURNED_FOR_REWORK") {
           setMakerSubmitNotes("Verified updated commercial invoice and confirmed correct beneficiary account details. Resubmitted for Checker sign-off.");
