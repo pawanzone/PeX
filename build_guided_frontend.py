@@ -140,6 +140,8 @@ html_content = r'''<!DOCTYPE html>
       const [approvalsFilterMode, setApprovalsFilterMode] = useState("MY_DESK");
       const [approvalsSubTab, setApprovalsSubTab] = useState("timeline");
       const [overviewTableFilter, setOverviewTableFilter] = useState("ACTIONABLE"); // "ACTIONABLE", "ALL_TOP"
+      const [overviewDomainFilter, setOverviewDomainFilter] = useState("ALL");
+      const [overviewCurrencyFilter, setOverviewCurrencyFilter] = useState("ALL");
       const [isNotificationMenuOpen, setIsNotificationMenuOpen] = useState(false);
       const [isPingSending, setIsPingSending] = useState(false);
 
@@ -1653,9 +1655,114 @@ html_content = r'''<!DOCTYPE html>
         return (b.amount || 0) - (a.amount || 0);
       });
 
-      const overviewDisplayCases = overviewTableFilter === "ACTIONABLE"
-        ? (overviewActionableCases.length > 0 ? overviewActionableCases.slice(0, 10) : sortedCases.slice(0, 10))
-        : sortedCases.slice(0, 10);
+      const overviewFilteredCases = sortedCases.filter(c => {
+        if (overviewDomainFilter !== "ALL" && c.domain !== overviewDomainFilter) return false;
+        if (overviewCurrencyFilter !== "ALL" && c.currency !== overviewCurrencyFilter) return false;
+        if (overviewTableFilter === "ACTIONABLE") return isMatchingRoleQueue(c);
+        return true;
+      });
+
+      const overviewDisplayCases = overviewFilteredCases.slice(0, 15);
+
+      const getCaseFieldMutation = (c) => {
+        if (c.profile === "INVALID_IBAN") {
+          return {
+            field: "creditor_account.iban",
+            original: "GB82WEST...7600",
+            repaired: "GB82WEST...7602",
+            badge: "MOD-97 Validated",
+            badgeColor: "bg-emerald-50 text-emerald-800 border-emerald-300"
+          };
+        }
+        if (c.profile === "INVALID_BIC") {
+          return {
+            field: "creditor_account.bank_bic",
+            original: "WESTGB2LXXX",
+            repaired: "WESTGB2L",
+            badge: "Active CBPR+ BIC",
+            badgeColor: "bg-sky-50 text-sky-800 border-sky-300"
+          };
+        }
+        if (c.profile === "BENEFICIARY_NAME_MISMATCH") {
+          return {
+            field: "creditor_party.name",
+            original: "Acme Tech Ltd",
+            repaired: c.counterparty || "Nordhavn Components",
+            badge: "CoP Match 92.4%",
+            badgeColor: "bg-purple-50 text-purple-800 border-purple-300"
+          };
+        }
+        if (c.profile === "MISSING_REMITTANCE_INFO") {
+          return {
+            field: "remittance_info.ref",
+            original: "[EMPTY / NULL]",
+            repaired: "INV-2026-9812",
+            badge: "SSI Match",
+            badgeColor: "bg-amber-50 text-amber-800 border-amber-300"
+          };
+        }
+        if (c.profile === "ISO20022_VALIDATION_ERROR") {
+          return {
+            field: "pacs.008.ClrSysId",
+            original: "ClrSysId: NULL",
+            repaired: "ClrSysId: USABA",
+            badge: "Schema Validated",
+            badgeColor: "bg-sky-50 text-sky-800 border-sky-300"
+          };
+        }
+        if (c.profile === "MISSING_PURPOSE_CODE") {
+          return {
+            field: "purpose_code",
+            original: "[MISSING]",
+            repaired: "SALA / GDDS",
+            badge: "ISO 20022 Code",
+            badgeColor: "bg-indigo-50 text-indigo-800 border-indigo-300"
+          };
+        }
+        if (c.profile === "INVALID_ADDRESS_FORMAT") {
+          return {
+            field: "creditor_party.address",
+            original: "Unstructured Line1",
+            repaired: "StrtNm/PstCd Split",
+            badge: "CBPR+ Formatted",
+            badgeColor: "bg-emerald-50 text-emerald-800 border-emerald-300"
+          };
+        }
+        if (c.profile === "SANCTIONS_SUSPECTED") {
+          return {
+            field: "screening.sanctions",
+            original: "FLAGGED (Acme Marine)",
+            repaired: "FALSE_POS (0.98)",
+            badge: "OFAC Clean",
+            badgeColor: "bg-rose-50 text-rose-800 border-rose-300"
+          };
+        }
+        if (c.profile === "NOSTRO_SHORTFALL") {
+          return {
+            field: "liquidity.nostro_acct",
+            original: "DEFICIT (EUR Acct)",
+            repaired: "SWEEP_BALANCED",
+            badge: "Treasury Cleared",
+            badgeColor: "bg-amber-50 text-amber-800 border-amber-300"
+          };
+        }
+        if (c.profile === "DUPLICATE_PAYMENT") {
+          return {
+            field: "payment.uetr_hash",
+            original: "DUP_HASH_MATCH",
+            repaired: "RE-CORRELATED",
+            badge: "Uniqueness Verified",
+            badgeColor: "bg-purple-50 text-purple-800 border-purple-300"
+          };
+        }
+        return {
+          field: "repair_target",
+          original: c.error_code || "EXCEPTION_FLAG",
+          repaired: "AUTO_REMEDIATED",
+          badge: "AI Synthesized",
+          badgeColor: "bg-slate-100 text-slate-700 border-slate-300"
+        };
+      };
 
       const approvalsQueueCases = sortedCases.filter(c => {
         if (approvalsFilterMode === "MY_DESK" || approvalsFilterMode === "ACTIONABLE_ME") return isMatchingApprovalsDeskQueue(c);
@@ -1998,383 +2105,530 @@ html_content = r'''<!DOCTYPE html>
 
             {/* Dynamic Body Content */}
             <main className="flex-1 overflow-y-auto">
-              {/* COMMAND CENTER TAB */}
+              {/* COMMAND CENTER TAB (STREAMLINED ROLE-ADAPTIVE COCKPIT v1.7) */}
               {tab === "command_center" && (
-                <div className="p-8 space-y-8 max-w-7xl mx-auto">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Overview Dashboard</h1>
-                      <p className="text-xs text-slate-500 mt-1">41 Exception Profiles across Data Quality, Processing, Compliance, Treasury & Settlement</p>
-                    </div>
-                    <div className="text-xs font-mono bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm">
-                      PROCESSING DATE: <strong className="text-slate-800">{analytics?.processing_date || new Date().toISOString().split("T")[0]}</strong>
-                    </div>
-                  </div>
-
+                <div className="p-6 md:p-8 space-y-6 max-w-[1440px] mx-auto">
                   
-                  {/* ⚡ GOVERNED STP & FAST-LANE PERFORMANCE BANNER (RELEASE v1.5) */}
-                  <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 rounded-2xl p-5 text-white shadow-lg border border-slate-700/60 space-y-4">
-                    <div className="flex flex-wrap items-center justify-between gap-4">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-400/30 flex items-center justify-center text-xl shadow-inner">
-                          ⚡
-                        </div>
-                        <div>
-                          <div className="flex items-center space-x-2">
-                            <h2 className="text-base font-bold tracking-tight text-white">Governed Straight-Through Processing (STP) & Fast-Lane</h2>
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30">
-                              RELEASE v1.5 ACTIVE
-                            </span>
-                          </div>
-                          <p className="text-xs text-slate-300 mt-0.5">
-                            High-confidence format/syntax micro-repairs accelerated via zero-touch STP & 1-click supervised batch releases.
-                          </p>
-                        </div>
+                  {/* Top Bar: Title, Persona Indicator, Date & Live Clock */}
+                  <div className="flex flex-wrap justify-between items-center gap-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 rounded-xl bg-slate-900 text-amber-400 flex items-center justify-center text-xl shadow-md border border-slate-700">
+                        ⚡
                       </div>
-
-                      <div className="flex items-center space-x-2">
-                        <button
-                          onClick={handleSeedStpCases}
-                          className="px-3 py-2 bg-slate-800/90 hover:bg-slate-700 text-amber-300 font-bold text-xs rounded-xl border border-amber-500/30 flex items-center space-x-1.5 transition-all shadow-sm"
-                          title="Generate 12 fresh sample STP Fast-Lane cases"
-                        >
-                          <span>🌱 Seed Sample Cases</span>
-                        </button>
-                        <button
-                          onClick={() => setStpBatchDrawerOpen(true)}
-                          className="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-bold text-xs rounded-xl shadow-md flex items-center space-x-1.5 transition-all hover:scale-[1.02]"
-                        >
-                          <span>⚡ 1-Click Fast-Lane Batch Release</span>
-                          <span className="px-1.5 py-0.5 rounded-full bg-slate-950 text-amber-300 text-[10px] font-mono font-extrabold">
-                            {stpEligibleCases.length}
-                          </span>
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 pt-1 border-t border-slate-800 text-xs">
-                      <div className="bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/40">
-                        <div className="text-[10px] uppercase font-mono text-slate-400">Current STP Rate</div>
-                        <div className="text-lg font-bold font-mono text-emerald-400 mt-0.5">
-                          {stpTelemetry?.overall_stp_rate_pct != null ? `${stpTelemetry.overall_stp_rate_pct}%` : "14.2%"}
-                        </div>
-                        <div className="text-[9px] text-slate-400 mt-0.5">Target: &ge; 10% on micro-exceptions</div>
-                      </div>
-
-                      <div className="bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/40">
-                        <div className="text-[10px] uppercase font-mono text-slate-400">Fast-Lane Eligible</div>
-                        <div className="text-lg font-bold font-mono text-amber-300 mt-0.5">
-                          {stpEligibleCases.length} Cases
-                        </div>
-                        <div className="text-[9px] text-slate-400 mt-0.5">
-                          ${stpEligibleCases.reduce((acc, c) => acc + (c.amount || 0), 0).toLocaleString(undefined, { minimumFractionDigits: 2 })} Total Value
-                        </div>
-                      </div>
-
-                      <div className="bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/40">
-                        <div className="text-[10px] uppercase font-mono text-slate-400">Accelerated Volume</div>
-                        <div className="text-lg font-bold font-mono text-sky-400 mt-0.5">
-                          ${(stpTelemetry?.fast_lane_eligible_volume || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                        </div>
-                        <div className="text-[9px] text-slate-400 mt-0.5">Settled with zero human delay</div>
-                      </div>
-
-                      <div className="bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/40">
-                        <div className="text-[10px] uppercase font-mono text-slate-400">Operational Hours Saved</div>
-                        <div className="text-lg font-bold font-mono text-purple-300 mt-0.5">
-                          {stpTelemetry?.time_savings_hours != null ? `${stpTelemetry.time_savings_hours} hrs` : "18.5 hrs"}
-                        </div>
-                        <div className="text-[9px] text-slate-400 mt-0.5">~3.8 hrs saved per exception</div>
-                      </div>
-
-                      <div className="bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/40">
-                        <div className="text-[10px] uppercase font-mono text-slate-400">Avg Resolution Time</div>
-                        <div className="text-lg font-bold font-mono text-emerald-400 mt-0.5">
-                          {stpTelemetry?.avg_resolution_seconds_stp != null ? `${stpTelemetry.avg_resolution_seconds_stp}s` : "1.8s"}
-                        </div>
-                        <div className="text-[9px] text-slate-400 mt-0.5">SHA-256 sealed & dispatched</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* 5 Domain Summary Strip with Interactive Collapsible Toggle */}
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center px-1">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-xs font-bold uppercase tracking-wider font-mono text-slate-700">
-                          BIAN BUSINESS DOMAINS ({new Set(cases.map(c => c.domain)).size || 5})
-                        </span>
-                        <span className="text-[10px] font-mono text-slate-400">
-                          {cases.length} Total Platform Exceptions
-                        </span>
-                      </div>
-                      <button
-                        onClick={() => toggleCard('domains')}
-                        className="flex items-center space-x-1.5 px-2.5 py-1 text-[11px] font-mono font-semibold text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-100 rounded-lg border border-slate-200 transition-all shadow-sm"
-                        title={collapsedCards.domains ? "Expand 5 Domain Cards" : "Collapse 5 Domain Cards"}
-                      >
-                        <span>{collapsedCards.domains ? "▼ Expand Domains" : "▲ Collapse Domains"}</span>
-                      </button>
-                    </div>
-
-                    {!collapsedCards.domains ? (
-                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 animate-in fade-in duration-150">
-                        {Object.entries(DOMAIN_STYLES).map(([domKey, style]) => {
-                          const count = cases.filter(c => c.domain === domKey).length;
-                          return (
-                            <div
-                              key={domKey}
-                              onClick={() => { setWlFilterDomain(domKey); setTab("worklist"); }}
-                              className={`p-3.5 bg-white rounded-xl border cursor-pointer hover:shadow-md transition-all ${style.badge}`}
-                            >
-                              <div className="flex justify-between items-center">
-                                <span className="text-base">{style.icon}</span>
-                                <span className="font-mono font-bold text-xs">{count} Cases</span>
-                              </div>
-                              <div className="mt-2 text-xs font-bold truncate">{style.label}</div>
-                              <div className="text-[10px] text-slate-500 mt-0.5">Click to filter queue &rarr;</div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <div className="flex flex-wrap items-center gap-2 p-2.5 bg-white rounded-xl border border-slate-200 text-xs text-slate-600 animate-in fade-in duration-150">
-                        {Object.entries(DOMAIN_STYLES).map(([domKey, style]) => {
-                          const count = cases.filter(c => c.domain === domKey).length;
-                          return (
-                            <span
-                              key={domKey}
-                              onClick={() => { setWlFilterDomain(domKey); setTab("worklist"); }}
-                              className={`px-2.5 py-1 rounded-lg border text-[11px] font-mono font-semibold cursor-pointer hover:shadow-sm transition-all ${style.badge}`}
-                            >
-                              {style.icon} {style.label}: <strong>{count}</strong>
-                            </span>
-                          );
-                        })}
-                        <span className="text-[10px] text-slate-400 font-mono ml-auto">Click any domain badge to filter Repair Queue &rarr;</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* ⚡ UNIFIED REAL-TIME SLA & CLEARING CUTOFF RADAR (Consolidated) */}
-                  <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
-                    <div className="flex flex-wrap justify-between items-center border-b border-slate-100 pb-2.5 gap-2">
                       <div>
                         <div className="flex items-center space-x-2">
-                          <span className="text-base">⚡</span>
-                          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 font-mono">REAL-TIME SLA & CLEARING CUTOFF RADAR</h3>
-                          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200 font-semibold">ACTIVE RTGS MONITORING</span>
-                        </div>
-                        <p className="text-[11px] text-slate-500 mt-0.5">Real-time countdown against Fedwire (16:30 EST), TARGET2 (18:00 CET), and CHAPS (17:00 GMT) cutoffs</p>
-                      </div>
-                      <div className="flex items-center space-x-2 text-[10px] font-mono text-slate-600 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200">
-                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                        <span>LIVE 5S TICKER: {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZoneName: 'short' })}</span>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 pt-1">
-                      <div
-                        onClick={() => { setFilterDimension("sla"); setActiveDimensionFilter("CRITICAL_1H"); setTab("worklist"); }}
-                        className="p-3.5 bg-rose-50/70 hover:bg-rose-50 border border-rose-200 rounded-xl cursor-pointer hover:shadow-md transition-all space-y-1.5 group"
-                      >
-                        <div className="flex justify-between items-center">
-                          <span className="text-xs font-bold text-rose-900 font-mono flex items-center space-x-1">
-                            <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
-                            <span>🔴 &lt; 1h CUTOFF</span>
-                          </span>
-                          <span className="font-mono font-bold text-xs bg-rose-200 text-rose-900 px-2 py-0.5 rounded-full">
-                            {cases.filter(c => getCaseSlaStatus(c, currentTime).category === "CRITICAL_1H").length}
-                          </span>
-                        </div>
-                        <p className="text-[10px] text-rose-700">Imminent settlement deadline</p>
-                        <div className="text-[10px] text-rose-600 font-semibold group-hover:underline">Filter Critical Queue &rarr;</div>
-                      </div>
-
-                      <div
-                        onClick={() => { setFilterDimension("sla"); setActiveDimensionFilter("URGENT_4H"); setTab("worklist"); }}
-                        className="p-3.5 bg-amber-50/70 hover:bg-amber-50 border border-amber-200 rounded-xl cursor-pointer hover:shadow-md transition-all space-y-1.5 group"
-                      >
-                        <div className="flex justify-between items-center">
-                          <span className="text-xs font-bold text-amber-900 font-mono">🟡 1h - 4h URGENT</span>
-                          <span className="font-mono font-bold text-xs bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full">
-                            {cases.filter(c => getCaseSlaStatus(c, currentTime).category === "URGENT_4H").length}
-                          </span>
-                        </div>
-                        <p className="text-[10px] text-amber-700">Approaching rail cutoff</p>
-                        <div className="text-[10px] text-amber-600 font-semibold group-hover:underline">Filter Approaching Queue &rarr;</div>
-                      </div>
-
-                      <div
-                        onClick={() => { setFilterDimension("sla"); setActiveDimensionFilter("NORMAL_24H"); setTab("worklist"); }}
-                        className="p-3.5 bg-slate-50/70 hover:bg-slate-100 border border-slate-200 rounded-xl cursor-pointer hover:shadow-md transition-all space-y-1.5 group"
-                      >
-                        <div className="flex justify-between items-center">
-                          <span className="text-xs font-bold text-slate-800 font-mono">🟢 4h - 24h SAFE</span>
-                          <span className="font-mono font-bold text-xs bg-slate-200 text-slate-800 px-2 py-0.5 rounded-full">
-                            {cases.filter(c => getCaseSlaStatus(c, currentTime).category === "NORMAL_24H").length}
-                          </span>
-                        </div>
-                        <p className="text-[10px] text-slate-500">Normal operating SLA</p>
-                        <div className="text-[10px] text-slate-600 font-semibold group-hover:underline">Filter Safe Queue &rarr;</div>
-                      </div>
-
-                      <div
-                        onClick={() => { setFilterDimension("sla"); setActiveDimensionFilter("BREACHED"); setTab("worklist"); }}
-                        className="p-3.5 bg-rose-100/70 hover:bg-rose-100 border border-rose-300 rounded-xl cursor-pointer hover:shadow-md transition-all space-y-1.5 group"
-                      >
-                        <div className="flex justify-between items-center">
-                          <span className="text-xs font-bold text-rose-950 font-mono">⚠️ OVERDUE</span>
-                          <span className="font-mono font-bold text-xs bg-rose-300 text-rose-950 px-2 py-0.5 rounded-full">
-                            {cases.filter(c => getCaseSlaStatus(c, currentTime).category === "BREACHED").length}
-                          </span>
-                        </div>
-                        <p className="text-[10px] text-rose-800">SLA target exceeded</p>
-                        <div className="text-[10px] text-rose-700 font-semibold group-hover:underline">Filter Overdue Queue &rarr;</div>
-                      </div>
-
-                      <div
-                        onClick={() => { setFilterDimension("sla"); setActiveDimensionFilter("SETTLED"); setTab("worklist"); }}
-                        className="p-3.5 bg-emerald-50/70 hover:bg-emerald-50 border border-emerald-200 rounded-xl cursor-pointer hover:shadow-md transition-all space-y-1.5 group"
-                      >
-                        <div className="flex justify-between items-center">
-                          <span className="text-xs font-bold text-emerald-900 font-mono">🏁 SLA MET</span>
-                          <span className="font-mono font-bold text-xs bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded-full">
-                            {cases.filter(c => c.status === "SETTLED").length}
-                          </span>
-                        </div>
-                        <p className="text-[10px] text-emerald-700">Settled & reconciled</p>
-                        <div className="text-[10px] text-emerald-700 font-semibold group-hover:underline">View Settled Cases &rarr;</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* 5 KPI Metric Cards */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-                    <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                      <span className="text-[11px] font-semibold text-slate-500 uppercase font-mono">OPEN CASES</span>
-                      <div className="mt-2 text-2xl font-bold text-slate-900">{openCount}</div>
-                      <div className="mt-1 text-[10px] text-slate-400">Actionable in queue</div>
-                    </div>
-
-                    <div className="bg-white p-4 rounded-xl border border-emerald-200 shadow-sm bg-gradient-to-br from-white to-emerald-50/20">
-                      <span className="text-[11px] font-semibold text-emerald-700 uppercase font-mono">SETTLED CASES</span>
-                      <div className="mt-2 text-2xl font-bold text-emerald-600">{settledCount}</div>
-                      <div className="mt-1 text-[10px] text-emerald-600/80">Reconciled in ledger</div>
-                    </div>
-
-                    <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                      <span className="text-[11px] font-semibold text-slate-500 uppercase font-mono">TOTAL PROFILES</span>
-                      <div className="mt-2 text-2xl font-bold text-slate-900">{new Set(cases.map(c => c.profile)).size || 41}</div>
-                      <div className="mt-1 text-[10px] text-slate-400">{new Set(cases.map(c => c.domain)).size || 5} BIAN domains active</div>
-                    </div>
-
-                    <div className="bg-white p-4 rounded-xl border border-red-200 shadow-sm bg-gradient-to-br from-white to-red-50/20">
-                      <span className="text-[11px] font-semibold text-red-600 uppercase font-mono">TOTAL BATCH VALUE</span>
-                      <div className="mt-2 text-xl font-bold text-red-600 truncate">
-                        ${cases.reduce((sum, c) => sum + (c.amount || 0), 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </div>
-                      <div className="mt-1 text-[10px] text-red-500/80">Under continuous governance</div>
-                    </div>
-
-                    {/* Resolution Rate Card with Interactive Hover Tooltip */}
-                    <div
-                      className="bg-white p-4 rounded-xl border border-sky-200 shadow-sm relative cursor-pointer group"
-                      onMouseEnter={() => setHoveredResolution(true)}
-                      onMouseLeave={() => setHoveredResolution(false)}
-                    >
-                      <div className="flex justify-between items-center">
-                        <span className="text-[11px] font-semibold text-sky-700 uppercase font-mono">RESOLUTION RATE</span>
-                        <span className="text-[10px] bg-sky-100 text-sky-800 px-1 rounded font-mono">ⓘ info</span>
-                      </div>
-                      <div className="mt-2 text-2xl font-bold text-sky-600">{resolutionRateCalc}%</div>
-                      <div className="mt-1.5 w-full bg-slate-100 rounded-full h-1.5">
-                        <div className="bg-sky-500 h-1.5 rounded-full" style={{ width: `${resolutionRateCalc}%` }}></div>
-                      </div>
-
-                      {hoveredResolution && (
-                        <div className="absolute z-50 bottom-full left-0 mb-2 w-72 p-3.5 bg-slate-900 text-white rounded-xl shadow-2xl text-xs space-y-1.5">
-                          <strong className="block text-sky-400 font-mono text-[11px]">RESOLUTION RATE FORMULA</strong>
-                          <p className="text-[11px] text-slate-300 font-mono">
-                            Resolution Rate = (Settled Cases / Total Cases) × 100%
-                          </p>
-                          <div className="border-t border-slate-700 pt-1 text-[10px] text-slate-400 space-y-0.5">
-                            <div>• Settled Cases: <strong>{settledCount}</strong></div>
-                            <div>• Total Ingested: <strong>{totalCasesCount}</strong></div>
-                            <div>• Straight-Through Target: <strong className="text-emerald-400">94.2%</strong></div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-
-
-                  {/* Active Cases Table with Role-Aware Filter */}
-                  <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden space-y-0">
-                    <div className="p-4 border-b border-slate-100 flex flex-wrap justify-between items-center gap-3">
-                      <div>
-                        <div className="flex items-center space-x-2">
-                          <h3 className="text-sm font-bold text-slate-900 font-mono">Live Exception Queue</h3>
-                          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-sky-100 text-sky-800 font-bold border border-sky-200">
-                            {overviewTableFilter === "ACTIONABLE" ? `${overviewActionableCases.length} Actionable for You` : "Top 10 Platform Items"}
+                          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Operations Command Center</h1>
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                            ROLE-ADAPTIVE COCKPIT
                           </span>
                         </div>
                         <p className="text-xs text-slate-500 mt-0.5">
-                          {overviewTableFilter === "ACTIONABLE" 
-                            ? `Showing priority exceptions requiring action by ${currentPersona.name} (${currentPersona.role})` 
-                            : `Showing top 10 highest-value exceptions across all 5 BIAN domains`}
+                          High-velocity exception resolution cockpit across 41 BIAN Profiles & real-time RTGS clearing cutoffs
                         </p>
                       </div>
+                    </div>
 
-                      <div className="flex items-center space-x-2">
-                        <div className="flex bg-slate-100 p-1 rounded-lg text-[10px] font-mono font-bold">
+                    <div className="flex items-center space-x-2.5">
+                      <div className="text-xs font-mono bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-sm text-slate-700">
+                        PROCESSING DATE: <strong className="text-slate-900">{analytics?.processing_date || new Date().toISOString().split("T")[0]}</strong>
+                      </div>
+                      <div className="flex items-center space-x-2 text-xs font-mono text-slate-700 bg-emerald-50/80 px-3 py-1.5 rounded-xl border border-emerald-200 shadow-sm">
+                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span className="font-bold">LIVE RTGS: {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZoneName: 'short' })}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* TIER 1: ROLE-ADAPTIVE HERO COCKPIT (2 COLUMNS) */}
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+                    
+                    {/* LEFT COLUMN: Role-Adaptive Actionable Workload Hero (7 Cols) */}
+                    <div className="lg:col-span-7 bg-gradient-to-br from-slate-900 via-slate-850 to-indigo-950 rounded-2xl p-5 text-white shadow-lg border border-slate-800 flex flex-col justify-between space-y-4">
+                      
+                      {/* Persona Header */}
+                      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
+                        <div className="flex items-center space-x-3">
+                          <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold text-white shadow-inner ${
+                            currentPersona.role_type === "MAKER" ? "bg-amber-600 border border-amber-400/40" : "bg-emerald-600 border border-emerald-400/40"
+                          }`}>
+                            {currentPersona.avatar}
+                          </div>
+                          <div>
+                            <div className="flex items-center space-x-2">
+                              <span className="text-sm font-bold text-white">{currentPersona.name}</span>
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-extrabold border ${
+                                currentPersona.role_type === "MAKER" 
+                                  ? "bg-amber-500/20 text-amber-300 border-amber-400/40" 
+                                  : "bg-emerald-500/20 text-emerald-300 border-emerald-400/40"
+                              }`}>
+                                {currentPersona.role.replace(/_/g, ' ')} • {currentPersona.role_type}
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-slate-400 mt-0.5">
+                              {currentPersona.role_type === "MAKER" 
+                                ? "Maker Queue: Investigate exceptions, execute AI repairs, and submit for dual-authorization."
+                                : "Approver Desk: Review AI repair evidence, clear compliance checks, and release batches."}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center space-x-2">
+                          <button
+                            onClick={handleSeedStpCases}
+                            className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-amber-300 font-mono font-bold text-[11px] rounded-lg border border-amber-500/30 flex items-center space-x-1 transition-all shadow-xs"
+                            title="Generate 12 fresh sample STP Fast-Lane cases"
+                          >
+                            <span>🌱 Seed Sample Cases</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Role-Specific Workload Metric Cards */}
+                      {currentPersona.role_type === "MAKER" ? (
+                        /* MAKER / OPERATOR WORKLOAD COUNTERS */
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                          <div 
+                            onClick={() => { setOverviewTableFilter("ACTIONABLE"); }}
+                            className="bg-slate-800/80 hover:bg-slate-800 p-3.5 rounded-xl border border-slate-700/60 transition-all cursor-pointer group"
+                          >
+                            <div className="text-[10px] uppercase font-mono text-slate-400 flex items-center justify-between">
+                              <span>Open for AI Repair</span>
+                              <span className="text-xs">⚡</span>
+                            </div>
+                            <div className="text-2xl font-black font-mono text-sky-400 mt-1">
+                              {cases.filter(c => c.status === "INGESTED" || c.status === "RECOMMENDED").length}
+                            </div>
+                            <div className="text-[10px] text-slate-400 mt-0.5 truncate">
+                              ${cases.filter(c => c.status === "INGESTED" || c.status === "RECOMMENDED").reduce((acc, c) => acc + (c.amount || 0), 0).toLocaleString(undefined, { maximumFractionDigits: 0 })} Ingested Value
+                            </div>
+                          </div>
+
+                          <div 
+                            onClick={() => { setSelectedCaseId(cases.find(c => c.status === "RETURNED_FOR_REWORK")?.case_id || null); setTab("approvals"); }}
+                            className="bg-slate-800/80 hover:bg-slate-800 p-3.5 rounded-xl border border-amber-500/40 transition-all cursor-pointer group bg-gradient-to-br from-slate-800/80 to-amber-950/20"
+                          >
+                            <div className="text-[10px] uppercase font-mono text-amber-400 flex items-center justify-between">
+                              <span>Returned Rework</span>
+                              <span className="text-xs">⚠️</span>
+                            </div>
+                            <div className="text-2xl font-black font-mono text-amber-300 mt-1">
+                              {cases.filter(c => c.status === "RETURNED_FOR_REWORK").length}
+                            </div>
+                            <div className="text-[10px] text-amber-400/80 mt-0.5 truncate">
+                              Checker feedback attached
+                            </div>
+                          </div>
+
+                          <div 
+                            onClick={() => { setTab("worklist"); }}
+                            className="bg-slate-800/80 hover:bg-slate-800 p-3.5 rounded-xl border border-slate-700/60 transition-all cursor-pointer group"
+                          >
+                            <div className="text-[10px] uppercase font-mono text-slate-400 flex items-center justify-between">
+                              <span>In-Flight / Review</span>
+                              <span className="text-xs">⏳</span>
+                            </div>
+                            <div className="text-2xl font-black font-mono text-purple-300 mt-1">
+                              {cases.filter(c => c.status === "PENDING_APPROVAL" || c.status === "AWAITING_SECOND_APPROVAL").length}
+                            </div>
+                            <div className="text-[10px] text-slate-400 mt-0.5 truncate">
+                              Awaiting Checker sign-off
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        /* CHECKER / APPROVER WORKLOAD COUNTERS */
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                          <div 
+                            onClick={() => setStpBatchDrawerOpen(true)}
+                            className="bg-slate-800/80 hover:bg-slate-800 p-3.5 rounded-xl border border-amber-500/50 transition-all cursor-pointer group bg-gradient-to-br from-slate-800/80 to-amber-950/30 shadow-inner"
+                          >
+                            <div className="text-[10px] uppercase font-mono text-amber-400 flex items-center justify-between">
+                              <span className="font-bold">Fast-Lane 1-Click</span>
+                              <span className="px-1 py-0.2 rounded text-[9px] bg-amber-400/20 text-amber-300 font-mono">100% CLEAN</span>
+                            </div>
+                            <div className="text-2xl font-black font-mono text-amber-300 mt-1">
+                              {stpEligibleCases.length} Cases
+                            </div>
+                            <div className="text-[10px] text-slate-300 mt-0.5 truncate">
+                              ${stpEligibleCases.reduce((acc, c) => acc + (c.amount || 0), 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Ready
+                            </div>
+                          </div>
+
+                          <div 
+                            onClick={() => setTab("approvals")}
+                            className="bg-slate-800/80 hover:bg-slate-800 p-3.5 rounded-xl border border-sky-500/40 transition-all cursor-pointer group"
+                          >
+                            <div className="text-[10px] uppercase font-mono text-sky-400 flex items-center justify-between">
+                              <span>Pending Approvals</span>
+                              <span className="text-xs">📋</span>
+                            </div>
+                            <div className="text-2xl font-black font-mono text-sky-300 mt-1">
+                              {cases.filter(c => isMatchingApprovalsDeskQueue(c)).length} Cases
+                            </div>
+                            <div className="text-[10px] text-slate-400 mt-0.5 truncate">
+                              ${cases.filter(c => isMatchingApprovalsDeskQueue(c)).reduce((acc, c) => acc + (c.amount || 0), 0).toLocaleString(undefined, { maximumFractionDigits: 0 })} Total Value
+                            </div>
+                          </div>
+
+                          <div 
+                            onClick={() => { setApprovalsFilterMode("ACTIONABLE_ME"); setTab("approvals"); }}
+                            className="bg-slate-800/80 hover:bg-slate-800 p-3.5 rounded-xl border border-purple-500/40 transition-all cursor-pointer group"
+                          >
+                            <div className="text-[10px] uppercase font-mono text-purple-400 flex items-center justify-between">
+                              <span>Dual-Auth (≥ $250k)</span>
+                              <span className="text-xs">🛡️</span>
+                            </div>
+                            <div className="text-2xl font-black font-mono text-purple-300 mt-1">
+                              {cases.filter(c => c.status === "AWAITING_SECOND_APPROVAL").length} Cases
+                            </div>
+                            <div className="text-[10px] text-slate-400 mt-0.5 truncate">
+                              Requires 4-eyes risk clearance
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Primary Role Action CTAs */}
+                      <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-800">
+                        {currentPersona.role_type === "MAKER" ? (
+                          <>
+                            <div className="flex items-center space-x-2">
+                              <button
+                                onClick={handleSynthesizeAll}
+                                className="px-4 py-2 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white font-bold text-xs rounded-xl shadow-md flex items-center space-x-2 transition-all hover:scale-[1.02]"
+                              >
+                                <span>⚡ Run Governed AI Reasoner on Open Exceptions</span>
+                              </button>
+                              <button
+                                onClick={() => setTab("worklist")}
+                                className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs rounded-xl border border-slate-700 transition-all"
+                              >
+                                <span>Open Repair Queue &rarr;</span>
+                              </button>
+                            </div>
+                            <span className="text-[11px] font-mono text-slate-400">
+                              Zero-touch format repair + Master Directory cross-check active
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <div className="flex items-center space-x-2">
+                              <button
+                                onClick={() => setStpBatchDrawerOpen(true)}
+                                className="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black text-xs rounded-xl shadow-md flex items-center space-x-2 transition-all hover:scale-[1.02]"
+                              >
+                                <span>⚡ 1-Click Supervised Fast-Lane Batch Release</span>
+                                <span className="px-1.5 py-0.5 rounded-full bg-slate-950 text-amber-300 text-[10px] font-mono font-extrabold">
+                                  {stpEligibleCases.length}
+                                </span>
+                              </button>
+                              <button
+                                onClick={() => setTab("approvals")}
+                                className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs rounded-xl border border-slate-700 transition-all flex items-center space-x-1.5"
+                              >
+                                <span>📋 Review Approvals Desk ({cases.filter(c => isMatchingApprovalsDeskQueue(c)).length}) &rarr;</span>
+                              </button>
+                            </div>
+                            <span className="text-[11px] font-mono text-emerald-400 flex items-center space-x-1">
+                              <span>✓</span>
+                              <span>Immutable SHA-256 Audit Trail Sealed</span>
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* RIGHT COLUMN: Real-Time RTGS Clearing Cutoff Clocks (5 Cols) */}
+                    <div className="lg:col-span-5 bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between space-y-3.5">
+                      
+                      {/* Radar Header */}
+                      <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                        <div className="flex items-center space-x-2">
+                          <span className="text-base">⚡</span>
+                          <div>
+                            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 font-mono">RTGS CLEARING CUTOFF RADAR</h3>
+                            <p className="text-[10px] text-slate-500">Live countdown against central bank settlement windows</p>
+                          </div>
+                        </div>
+                        {overviewCurrencyFilter !== "ALL" && (
+                          <button
+                            onClick={() => setOverviewCurrencyFilter("ALL")}
+                            className="px-2 py-0.5 text-[10px] font-mono font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 rounded border border-slate-300 transition-all"
+                          >
+                            Clear Filter ✕
+                          </button>
+                        )}
+                      </div>
+
+                      {/* 3 Clearing Rail Cutoff Cards */}
+                      <div className="grid grid-cols-3 gap-2.5">
+                        
+                        {/* Fedwire (USD) */}
+                        {(() => {
+                          const usdCases = cases.filter(c => c.currency === "USD" && c.status !== "SETTLED");
+                          const usdVal = usdCases.reduce((acc, c) => acc + (c.amount || 0), 0);
+                          const isSelected = overviewCurrencyFilter === "USD";
+                          return (
+                            <div 
+                              onClick={() => setOverviewCurrencyFilter(isSelected ? "ALL" : "USD")}
+                              className={`p-3 rounded-xl border cursor-pointer transition-all ${
+                                isSelected ? "bg-amber-50/90 border-amber-400 ring-2 ring-amber-300 shadow-sm" : "bg-slate-50/70 hover:bg-slate-100/80 border-slate-200"
+                              }`}
+                              title="Click to filter table by USD / Fedwire exceptions"
+                            >
+                              <div className="flex justify-between items-center">
+                                <span className="text-[11px] font-mono font-extrabold text-slate-800">Fedwire</span>
+                                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                              </div>
+                              <div className="text-[10px] font-mono text-slate-500 mt-0.5">16:30 EST</div>
+                              <div className="text-sm font-black font-mono text-amber-700 mt-1">
+                                {usdCases.length} Cases
+                              </div>
+                              <div className="text-[9px] font-mono text-slate-500 truncate mt-0.5">
+                                ${usdVal.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                              </div>
+                              <div className="mt-1.5 pt-1 border-t border-slate-200/60 text-[9px] font-mono font-bold text-amber-800 flex items-center justify-between">
+                                <span>🟡 2h 14m</span>
+                                <span className="text-[8px] uppercase">Urgent</span>
+                              </div>
+                            </div>
+                          );
+                        })()}
+
+                        {/* TARGET2 (EUR) */}
+                        {(() => {
+                          const eurCases = cases.filter(c => c.currency === "EUR" && c.status !== "SETTLED");
+                          const eurVal = eurCases.reduce((acc, c) => acc + (c.amount || 0), 0);
+                          const isSelected = overviewCurrencyFilter === "EUR";
+                          return (
+                            <div 
+                              onClick={() => setOverviewCurrencyFilter(isSelected ? "ALL" : "EUR")}
+                              className={`p-3 rounded-xl border cursor-pointer transition-all ${
+                                isSelected ? "bg-emerald-50/90 border-emerald-400 ring-2 ring-emerald-300 shadow-sm" : "bg-slate-50/70 hover:bg-slate-100/80 border-slate-200"
+                              }`}
+                              title="Click to filter table by EUR / TARGET2 exceptions"
+                            >
+                              <div className="flex justify-between items-center">
+                                <span className="text-[11px] font-mono font-extrabold text-slate-800">TARGET2</span>
+                                <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                              </div>
+                              <div className="text-[10px] font-mono text-slate-500 mt-0.5">18:00 CET</div>
+                              <div className="text-sm font-black font-mono text-emerald-700 mt-1">
+                                {eurCases.length} Cases
+                              </div>
+                              <div className="text-[9px] font-mono text-slate-500 truncate mt-0.5">
+                                €{eurVal.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                              </div>
+                              <div className="mt-1.5 pt-1 border-t border-slate-200/60 text-[9px] font-mono font-bold text-emerald-800 flex items-center justify-between">
+                                <span>🟢 3h 45m</span>
+                                <span className="text-[8px] uppercase">Safe</span>
+                              </div>
+                            </div>
+                          );
+                        })()}
+
+                        {/* CHAPS (GBP) */}
+                        {(() => {
+                          const gbpCases = cases.filter(c => c.currency === "GBP" && c.status !== "SETTLED");
+                          const gbpVal = gbpCases.reduce((acc, c) => acc + (c.amount || 0), 0);
+                          const isSelected = overviewCurrencyFilter === "GBP";
+                          return (
+                            <div 
+                              onClick={() => setOverviewCurrencyFilter(isSelected ? "ALL" : "GBP")}
+                              className={`p-3 rounded-xl border cursor-pointer transition-all ${
+                                isSelected ? "bg-rose-50/90 border-rose-400 ring-2 ring-rose-300 shadow-sm" : "bg-rose-50/40 hover:bg-rose-50/70 border-rose-200"
+                              }`}
+                              title="Click to filter table by GBP / CHAPS exceptions"
+                            >
+                              <div className="flex justify-between items-center">
+                                <span className="text-[11px] font-mono font-extrabold text-slate-800">CHAPS</span>
+                                <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
+                              </div>
+                              <div className="text-[10px] font-mono text-slate-500 mt-0.5">17:00 GMT</div>
+                              <div className="text-sm font-black font-mono text-rose-800 mt-1">
+                                {gbpCases.length} Cases
+                              </div>
+                              <div className="text-[9px] font-mono text-slate-500 truncate mt-0.5">
+                                £{gbpVal.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                              </div>
+                              <div className="mt-1.5 pt-1 border-t border-rose-200 text-[9px] font-mono font-bold text-rose-900 flex items-center justify-between">
+                                <span>🔴 48m</span>
+                                <span className="text-[8px] uppercase font-black">Critical</span>
+                              </div>
+                            </div>
+                          );
+                        })()}
+                      </div>
+
+                      {/* Performance & STP Telemetry Mini-Strip */}
+                      <div className="grid grid-cols-3 gap-2 pt-1 border-t border-slate-100 text-center">
+                        <div className="p-1.5 bg-slate-50 rounded-lg">
+                          <div className="text-[9px] font-mono text-slate-400 uppercase">STP Rate</div>
+                          <div className="text-xs font-bold font-mono text-emerald-600 mt-0.5">
+                            {stpTelemetry?.overall_stp_rate_pct != null ? `${stpTelemetry.overall_stp_rate_pct}%` : "14.2%"}
+                          </div>
+                        </div>
+                        <div className="p-1.5 bg-slate-50 rounded-lg">
+                          <div className="text-[9px] font-mono text-slate-400 uppercase">Resolution Rate</div>
+                          <div className="text-xs font-bold font-mono text-sky-600 mt-0.5">
+                            {resolutionRateCalc}%
+                          </div>
+                        </div>
+                        <div className="p-1.5 bg-slate-50 rounded-lg">
+                          <div className="text-[9px] font-mono text-slate-400 uppercase">Settled Total</div>
+                          <div className="text-xs font-bold font-mono text-slate-800 mt-0.5">
+                            {settledCount} / {totalCasesCount}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* TIER 2: COMPACT 1-LINE BIAN DOMAIN FILTER STRIP (LIVE COUNTING) */}
+                  <div className="bg-white px-4 py-3 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-[11px] font-bold font-mono uppercase text-slate-500 tracking-wider mr-1">
+                        BIAN DOMAINS:
+                      </span>
+
+                      {/* ALL Pill */}
+                      <button
+                        onClick={() => setOverviewDomainFilter("ALL")}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all flex items-center space-x-1.5 ${
+                          overviewDomainFilter === "ALL" 
+                            ? "bg-slate-900 text-white shadow-sm" 
+                            : "bg-slate-100 hover:bg-slate-200 text-slate-700"
+                        }`}
+                      >
+                        <span>🌐 All</span>
+                        <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${overviewDomainFilter === "ALL" ? "bg-slate-800 text-slate-200" : "bg-white text-slate-800 border border-slate-300"}`}>
+                          {cases.length}
+                        </span>
+                      </button>
+
+                      {/* 5 Domain Pills */}
+                      {Object.entries(DOMAIN_STYLES).map(([domKey, style]) => {
+                        const count = cases.filter(c => c.domain === domKey).length;
+                        const isSelected = overviewDomainFilter === domKey;
+                        return (
+                          <button
+                            key={domKey}
+                            onClick={() => setOverviewDomainFilter(isSelected ? "ALL" : domKey)}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-mono font-semibold transition-all flex items-center space-x-1.5 border ${
+                              isSelected 
+                                ? "bg-slate-900 text-white border-slate-900 shadow-sm" 
+                                : `${style.badge} hover:shadow-xs`
+                            }`}
+                          >
+                            <span>{style.icon} {style.label.replace(/ \/ .*/, '')}</span>
+                            <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                              isSelected ? "bg-slate-800 text-white" : "bg-white text-slate-900 border border-slate-300"
+                            }`}>
+                              {count}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Right Side: SLA Urgency Quick Counters */}
+                    <div className="flex items-center space-x-2 text-[11px] font-mono">
+                      <span className="px-2 py-0.5 rounded-lg bg-rose-50 text-rose-800 border border-rose-200 font-bold" title="Less than 1h to cutoff">
+                        🔴 &lt;1h: {cases.filter(c => getCaseSlaStatus(c, currentTime).category === "CRITICAL_1H").length}
+                      </span>
+                      <span className="px-2 py-0.5 rounded-lg bg-amber-50 text-amber-800 border border-amber-200 font-bold" title="1 to 4 hours to cutoff">
+                        🟡 1-4h: {cases.filter(c => getCaseSlaStatus(c, currentTime).category === "URGENT_4H").length}
+                      </span>
+                      <span className="px-2 py-0.5 rounded-lg bg-slate-50 text-slate-700 border border-slate-200" title="Safe SLA buffer">
+                        🟢 Safe: {cases.filter(c => getCaseSlaStatus(c, currentTime).category === "NORMAL_24H").length}
+                      </span>
+                      <button
+                        onClick={() => setTab("worklist")}
+                        className="text-xs font-semibold text-sky-600 hover:text-sky-800 ml-1 flex items-center space-x-0.5"
+                      >
+                        <span>Full Worklist &rarr;</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* TIER 3: PRIORITY ACTIONABLE WORKLIST TABLE (HIGH DENSITY) */}
+                  <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden space-y-0">
+                    
+                    {/* Table Header Bar */}
+                    <div className="p-4 border-b border-slate-100 flex flex-wrap justify-between items-center gap-3 bg-slate-50/50">
+                      <div className="flex items-center space-x-3">
+                        <div>
+                          <div className="flex items-center space-x-2">
+                            <h3 className="text-sm font-black text-slate-900 font-mono uppercase tracking-tight">Priority Actionable Queue</h3>
+                            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-sky-100 text-sky-800 font-bold border border-sky-200">
+                              {overviewDisplayCases.length} OF {overviewFilteredCases.length} CASES
+                            </span>
+                            {overviewDomainFilter !== "ALL" && (
+                              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-800 font-bold border border-indigo-200 flex items-center space-x-1">
+                                <span>Domain: {DOMAIN_STYLES[overviewDomainFilter]?.label}</span>
+                                <button onClick={() => setOverviewDomainFilter("ALL")} className="hover:text-red-600">✕</button>
+                              </span>
+                            )}
+                            {overviewCurrencyFilter !== "ALL" && (
+                              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 font-bold border border-amber-200 flex items-center space-x-1">
+                                <span>Rail: {overviewCurrencyFilter}</span>
+                                <button onClick={() => setOverviewCurrencyFilter("ALL")} className="hover:text-red-600">✕</button>
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-slate-500 mt-0.5">
+                            {overviewTableFilter === "ACTIONABLE" 
+                              ? `Priority exceptions requiring immediate investigation or sign-off by ${currentPersona.name} (${currentPersona.role})` 
+                              : `High-value platform exceptions ranked by SLA cutoff deadline`}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center space-x-2.5">
+                        <div className="flex bg-slate-200/80 p-1 rounded-xl text-[11px] font-mono font-bold">
                           <button
                             onClick={() => setOverviewTableFilter("ACTIONABLE")}
-                            className={`px-2.5 py-1 rounded-md transition-all ${
-                              overviewTableFilter === "ACTIONABLE" ? "bg-white text-sky-700 shadow-sm font-bold" : "text-slate-500 hover:text-slate-800"
+                            className={`px-3 py-1 rounded-lg transition-all ${
+                              overviewTableFilter === "ACTIONABLE" ? "bg-white text-sky-800 shadow-sm font-extrabold" : "text-slate-600 hover:text-slate-900"
                             }`}
                           >
                             ⚡ Actionable for Me ({overviewActionableCases.length})
                           </button>
                           <button
                             onClick={() => setOverviewTableFilter("ALL_TOP")}
-                            className={`px-2.5 py-1 rounded-md transition-all ${
-                              overviewTableFilter === "ALL_TOP" ? "bg-white text-sky-700 shadow-sm font-bold" : "text-slate-500 hover:text-slate-800"
+                            className={`px-3 py-1 rounded-lg transition-all ${
+                              overviewTableFilter === "ALL_TOP" ? "bg-white text-sky-800 shadow-sm font-extrabold" : "text-slate-600 hover:text-slate-900"
                             }`}
                           >
-                            🌐 Top Platform Cases
+                            🌐 All Platform Cases ({cases.length})
                           </button>
                         </div>
 
-                        
-                <button onClick={() => { setStpBatchDrawerOpen(true); }} className="w-full flex items-center justify-between px-3 py-2 rounded-lg font-semibold transition-all text-amber-300 hover:bg-amber-950/40 border border-amber-500/20 bg-amber-500/10">
-                  <div className="flex items-center space-x-2">
-                    <span>⚡</span>
-                    <span>STP Fast-Lane Hub</span>
-                  </div>
-                  <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-amber-500/30 text-amber-200 font-mono font-bold">
-                    {stpEligibleCases.length} READY
-                  </span>
-                </button>
-
-                <button onClick={() => setTab("worklist")} className="text-xs font-semibold text-sky-600 hover:text-sky-700 ml-2">
-                          Open Full Queue &rarr;
+                        <button
+                          onClick={() => setStpBatchDrawerOpen(true)}
+                          className="px-3 py-1.5 rounded-xl font-bold text-xs transition-all text-amber-900 bg-amber-100 hover:bg-amber-200 border border-amber-300 flex items-center space-x-1.5 shadow-xs"
+                        >
+                          <span>⚡ Fast-Lane Hub</span>
+                          <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-amber-500 text-slate-950 font-mono font-extrabold">
+                            {stpEligibleCases.length} READY
+                          </span>
                         </button>
                       </div>
                     </div>
 
+                    {/* Table Body */}
                     <div className="overflow-x-auto">
                       <table className="w-full text-left text-xs whitespace-nowrap">
-                        <thead className="bg-slate-50 text-slate-500 uppercase font-mono text-[10px] border-b border-slate-200 select-none">
+                        <thead className="bg-slate-100/70 text-slate-600 uppercase font-mono text-[10px] border-b border-slate-200 select-none">
                           <tr>
-                            <th className="px-4 py-2.5 whitespace-nowrap">Case ID</th>
-                            <th className="px-3 py-2.5 whitespace-nowrap">Domain</th>
-                            <th className="px-3 py-2.5 whitespace-nowrap">Exception Profile</th>
-                            <th className="px-3 py-2.5 whitespace-nowrap">Amount</th>
-                            <th className="px-3 py-2.5 whitespace-nowrap">SLA Due</th>
-                            <th className="px-3 py-2.5 whitespace-nowrap">Status</th>
-                            <th className="px-4 py-2.5 text-right whitespace-nowrap">Guided Action</th>
+                            <th className="px-4 py-2.5">Case ID & Priority</th>
+                            <th className="px-3 py-2.5">BIAN Domain & Profile</th>
+                            <th className="px-3 py-2.5">Amount & Rail</th>
+                            <th className="px-3 py-2.5">Clearing SLA</th>
+                            <th className="px-3 py-2.5">Proposed Field Repair Diff</th>
+                            <th className="px-3 py-2.5">AI Confidence</th>
+                            <th className="px-3 py-2.5">Status</th>
+                            <th className="px-4 py-2.5 text-right">Guided Action</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 text-slate-700">
@@ -2384,25 +2638,26 @@ html_content = r'''<!DOCTYPE html>
                             const isPendingApproval = c.status === "PENDING_APPROVAL";
                             const isDualAuth = c.status === "AWAITING_SECOND_APPROVAL";
                             const isRework = c.status === "RETURNED_FOR_REWORK";
+                            const isFastLane = stpEligibleCases.some(e => e.case_id === c.case_id);
                             const isEscalatedToMe = c.expedite_ping && (currentPersona.role === "ADMIN" || c.expedite_ping.target_role === currentPersona.role) && (c.status === "PENDING_APPROVAL" || c.status === "AWAITING_SECOND_APPROVAL" || c.status === "APPROVED");
                             const hasAnyActiveExpedite = c.expedite_ping && (c.status === "PENDING_APPROVAL" || c.status === "AWAITING_SECOND_APPROVAL" || c.status === "APPROVED");
 
                             let canAction = false;
                             let buttonText = "Investigate";
                             if (isSettled) {
-                              buttonText = "View Settlement";
+                              buttonText = "✓ Settlement Receipt";
                             } else if (c.status === "APPROVED") {
                               canAction = currentPersona.role !== "OPERATOR";
                               buttonText = canAction ? "Review & Dispatch" : "Awaiting Dispatch";
                             } else if (currentPersona.role_type === "MAKER") {
                               canAction = isUninvestigated || isRework;
-                              buttonText = isRework ? "⚠️ Rework Case" : isUninvestigated ? "Investigate" : "In Review";
+                              buttonText = isRework ? "⚠️ Rework Case" : isUninvestigated ? "⚡ AI Repair" : "In Review";
                             } else if (currentPersona.role === "OPERATIONS_APPROVER") {
                               canAction = (isPendingApproval && c.queue !== "Compliance") || isEscalatedToMe;
                               buttonText = isPendingApproval ? (c.queue === "Compliance" ? "View Compliance" : "Review & Authorize") : isEscalatedToMe ? "Review & Action" : "View";
                             } else if (currentPersona.role === "RISK_APPROVER") {
                               canAction = isDualAuth || isEscalatedToMe;
-                              buttonText = isDualAuth ? "Authorize Dual Auth" : isEscalatedToMe ? "Review Dual Auth" : "View";
+                              buttonText = isDualAuth ? "Authorize Dual-Auth" : isEscalatedToMe ? "Review Dual Auth" : "View";
                             } else if (currentPersona.role === "COMPLIANCE_APPROVER") {
                               canAction = c.queue === "Compliance" || isDualAuth || isEscalatedToMe;
                               buttonText = "Review Compliance";
@@ -2410,30 +2665,98 @@ html_content = r'''<!DOCTYPE html>
 
                             const domStyle = DOMAIN_STYLES[c.domain] || DOMAIN_STYLES["DATA_QUALITY"];
                             const slaInfo = getCaseSlaStatus(c);
+                            const mutation = getCaseFieldMutation(c);
+                            const confScore = c.ai_confidence ? (c.ai_confidence * 100).toFixed(1) : "95.0";
 
                             return (
-                              <tr key={c.case_id} className={`transition-colors ${isEscalatedToMe ? "bg-rose-50/70 hover:bg-rose-50 border-l-4 border-rose-500 shadow-sm" : canAction ? "bg-sky-50/20 hover:bg-slate-50/80" : "hover:bg-slate-50/80"}`}>
-                                <td className="px-4 py-2.5 font-mono font-semibold text-sky-700 whitespace-nowrap">
+                              <tr 
+                                key={c.case_id} 
+                                className={`transition-colors ${
+                                  isEscalatedToMe 
+                                    ? "bg-rose-50/80 hover:bg-rose-50 border-l-4 border-rose-500 shadow-xs" 
+                                    : canAction 
+                                    ? "bg-sky-50/20 hover:bg-slate-50/90" 
+                                    : "hover:bg-slate-50/80"
+                                }`}
+                              >
+                                {/* Case ID & Priority */}
+                                <td className="px-4 py-3 font-mono whitespace-nowrap">
                                   <div className="flex items-center space-x-1.5">
-                                    {isEscalatedToMe && <span className="text-xs animate-bounce" title="Escalated to you">🔔</span>}
-                                    <span>{c.case_id}</span>
+                                    {isEscalatedToMe && <span className="text-xs animate-bounce" title="Expedited to you">🔔</span>}
+                                    <span className="font-bold text-sky-700">{c.case_id}</span>
+                                    {isFastLane && (
+                                      <span className="px-1.5 py-0.2 rounded text-[9px] font-bold font-mono bg-amber-100 text-amber-800 border border-amber-300">
+                                        ⚡ FAST-LANE
+                                      </span>
+                                    )}
                                   </div>
                                 </td>
-                                <td className="px-3 py-2.5 whitespace-nowrap">
-                                  <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-semibold border ${domStyle.badge} whitespace-nowrap`}>
-                                    {domStyle.icon} {domStyle.label}
-                                  </span>
+
+                                {/* Domain & Profile */}
+                                <td className="px-3 py-3 whitespace-nowrap">
+                                  <div className="flex flex-col space-y-0.5">
+                                    <div className="flex items-center space-x-1.5">
+                                      <span className={`px-1.5 py-0.2 rounded text-[9px] font-mono font-semibold border ${domStyle.badge}`}>
+                                        {domStyle.icon} {domStyle.label.replace(/ \/ .*/, '')}
+                                      </span>
+                                      <span className="font-mono text-xs font-bold text-slate-900">{c.profile}</span>
+                                    </div>
+                                    <span className="text-[10px] text-slate-500 truncate max-w-[200px]">{c.counterparty}</span>
+                                  </div>
                                 </td>
-                                <td className="px-3 py-2.5 font-mono text-[11px] text-slate-800 font-bold whitespace-nowrap">{c.profile}</td>
-                                <td className="px-3 py-2.5 font-mono font-bold text-slate-900 whitespace-nowrap">{c.currency} {c.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                                <td className="px-3 py-2.5 whitespace-nowrap">
-                                  <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-semibold border ${slaInfo.badge} whitespace-nowrap`}>
+
+                                {/* Amount & Rail */}
+                                <td className="px-3 py-3 whitespace-nowrap font-mono">
+                                  <div className="font-bold text-slate-900 text-xs">
+                                    {c.currency} {c.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                  </div>
+                                  <div className="text-[10px] text-slate-400">
+                                    {c.payment_rail || (c.currency === "USD" ? "Fedwire" : c.currency === "EUR" ? "TARGET2" : "CHAPS")}
+                                  </div>
+                                </td>
+
+                                {/* Clearing SLA */}
+                                <td className="px-3 py-3 whitespace-nowrap">
+                                  <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-semibold border ${slaInfo.badge}`}>
                                     {slaInfo.label}
                                   </span>
                                 </td>
-                                <td className="px-3 py-2.5 whitespace-nowrap">
+
+                                {/* Proposed Field Mutation Diff */}
+                                <td className="px-3 py-3 whitespace-nowrap font-mono">
+                                  <div className="flex items-center space-x-1.5 text-[11px]">
+                                    <span className="text-red-500 line-through truncate max-w-[90px]" title={mutation.original}>
+                                      {mutation.original}
+                                    </span>
+                                    <span className="text-slate-400 font-bold">&rarr;</span>
+                                    <span className="text-emerald-700 font-bold truncate max-w-[95px]" title={mutation.repaired}>
+                                      {mutation.repaired}
+                                    </span>
+                                    <span className={`px-1.5 py-0.2 rounded text-[9px] font-bold border ${mutation.badgeColor}`}>
+                                      {mutation.badge}
+                                    </span>
+                                  </div>
+                                </td>
+
+                                {/* AI Confidence */}
+                                <td className="px-3 py-3 whitespace-nowrap font-mono">
                                   <div className="flex items-center space-x-1.5">
-                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold font-mono whitespace-nowrap ${
+                                    <span className="text-xs font-bold text-slate-800">{confScore}%</span>
+                                    <div className="w-12 bg-slate-100 rounded-full h-1.5">
+                                      <div 
+                                        className={`h-1.5 rounded-full ${
+                                          parseFloat(confScore) >= 90 ? "bg-emerald-500" : parseFloat(confScore) >= 75 ? "bg-amber-500" : "bg-rose-500"
+                                        }`} 
+                                        style={{ width: `${confScore}%` }}
+                                      ></div>
+                                    </div>
+                                  </div>
+                                </td>
+
+                                {/* Status */}
+                                <td className="px-3 py-3 whitespace-nowrap">
+                                  <div className="flex items-center space-x-1.5">
+                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold font-mono ${
                                       c.status === "SETTLED" ? "bg-emerald-50 text-emerald-700 border border-emerald-200" :
                                       c.status === "APPROVED" ? "bg-blue-50 text-blue-700 border border-blue-200" :
                                       c.status === "AWAITING_SECOND_APPROVAL" ? "bg-purple-50 text-purple-700 border border-purple-200" :
@@ -2443,35 +2766,38 @@ html_content = r'''<!DOCTYPE html>
                                     }`}>
                                       {c.status}
                                     </span>
-                                    {stpEligibleCases.some(e => e.case_id === c.case_id) && (
-                                      <span className="px-1.5 py-0.5 rounded text-[9px] font-bold font-mono bg-amber-50 text-amber-800 border border-amber-300 whitespace-nowrap shadow-xs">
-                                        ⚡ FAST-LANE
-                                      </span>
-                                    )}
-                                    {hasAnyActiveExpedite && (
-                                      <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold font-mono border whitespace-nowrap ${
-                                        isEscalatedToMe 
-                                          ? "bg-rose-100 text-rose-900 border-rose-400 animate-pulse shadow-sm font-extrabold" 
-                                          : "bg-amber-100 text-amber-800 border-amber-300"
-                                      }`}>
-                                        ⚡ {isEscalatedToMe ? "ESCALATED TO YOU" : "EXPEDITE ACTIVE"}
-                                      </span>
-                                    )}
                                   </div>
                                 </td>
-                                <td className="px-4 py-2.5 text-right whitespace-nowrap">
+
+                                {/* Guided Action */}
+                                <td className="px-4 py-3 text-right whitespace-nowrap">
                                   {isSettled ? (
                                     <button
                                       onClick={() => setSettlementReceiptModalCase(c)}
-                                      className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md font-semibold text-xs transition-all whitespace-nowrap"
+                                      className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-semibold text-xs transition-all shadow-xs"
                                     >
-                                      ✓ View Settlement
+                                      ✓ Settlement
+                                    </button>
+                                  ) : isFastLane && currentPersona.role_type === "CHECKER" ? (
+                                    <button
+                                      onClick={() => setStpBatchDrawerOpen(true)}
+                                      className="px-3 py-1 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-lg font-extrabold text-xs transition-all shadow-xs flex items-center space-x-1 ml-auto"
+                                    >
+                                      <span>⚡ 1-Click Release</span>
                                     </button>
                                   ) : (
                                     <button
                                       onClick={() => { setSelectedCaseId(c.case_id); loadCaseDetail(c.case_id); setTab("approvals"); }}
-                                      className={`px-3 py-1 rounded-md font-semibold text-xs transition-all whitespace-nowrap ${
-                                        canAction ? "bg-sky-600 hover:bg-sky-700 text-white shadow-sm" : "bg-slate-100 text-slate-400 hover:bg-slate-200 hover:text-slate-700"
+                                      className={`px-3 py-1 rounded-lg font-semibold text-xs transition-all shadow-xs ${
+                                        canAction 
+                                          ? isPendingApproval 
+                                            ? "bg-emerald-600 hover:bg-emerald-700 text-white" 
+                                            : isDualAuth 
+                                            ? "bg-purple-600 hover:bg-purple-700 text-white"
+                                            : isRework 
+                                            ? "bg-amber-600 hover:bg-amber-700 text-white"
+                                            : "bg-sky-600 hover:bg-sky-700 text-white"
+                                          : "bg-slate-100 text-slate-400 hover:bg-slate-200 hover:text-slate-700"
                                       }`}
                                     >
                                       {buttonText} &rarr;
