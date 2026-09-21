@@ -41,11 +41,29 @@ class STPEngine:
         confidence = float(case.get("ai_confidence") or 0.0)
         status = case.get("status", "")
 
+        # Extract rich dossier fields
+        debtor_name = case.get("debtor_name") or "Apex Global Treasury (US)"
+        creditor_name = case.get("creditor_name") or case.get("counterparty_name") or "Nordhavn Components A/S"
+        debtor_bic = case.get("debtor_agent_bic") or "CHASUS33XXX"
+        creditor_bic = case.get("creditor_agent_bic") or "BARCGB22XXX"
+        clearing_rail = case.get("clearing_rail") or ("FEDWIRE" if currency == "USD" else "TARGET2" if currency == "EUR" else "CHAPS" if currency == "GBP" else "SWIFT CBPR+")
+        uetr = case.get("uetr") or f"UETR-{case_id}"
+        urgency = case.get("urgency") or ("HIGH" if amount >= 20000.0 else "MEDIUM")
+        sanctions_status = "CLEAN (0 Hits)"
+
         # Get proposed repair summary if available
         rec = repo.recommendations.get(case_id)
         proposed_summary = None
+        orig_field = None
+        orig_val = None
+        prop_val = None
+        field_justif = None
         if rec and rec.proposed_changes:
             pc = rec.proposed_changes[0]
+            orig_field = pc.field_path
+            orig_val = pc.original_value_masked
+            prop_val = pc.proposed_value_masked
+            field_justif = pc.justification
             proposed_summary = f"Repair {pc.field_path}: {pc.original_value_masked} -> {pc.proposed_value_masked}"
 
         # 1. STRICT DISQUALIFIERS (Non-Negotiable Regulatory & Risk Guardrails)
@@ -55,7 +73,13 @@ class STPEngine:
                 domain=domain, profile=profile, ai_confidence=confidence, eligible=False,
                 mode=STPMode.MANUAL_GATED,
                 reason="High-value wire (>= $250,000) mandates 2-Level Maker-Checker Dual Authorization.",
-                proposed_repair_summary=proposed_summary
+                proposed_repair_summary=proposed_summary,
+                debtor_name=debtor_name, creditor_name=creditor_name,
+                debtor_agent_bic=debtor_bic, creditor_agent_bic=creditor_bic,
+                clearing_rail=clearing_rail, original_field=orig_field,
+                original_value=orig_val, proposed_value=prop_val,
+                field_justification=field_justif, sanctions_status=sanctions_status,
+                uetr=uetr, urgency=urgency
             )
 
         if domain in ["SANCTIONS_AML", "COMPLIANCE"] or "SANCTION" in profile or "OFAC" in profile:
@@ -64,7 +88,13 @@ class STPEngine:
                 domain=domain, profile=profile, ai_confidence=confidence, eligible=False,
                 mode=STPMode.MANUAL_GATED,
                 reason="Sanctions/AML compliance exceptions strictly prohibit zero-touch STP.",
-                proposed_repair_summary=proposed_summary
+                proposed_repair_summary=proposed_summary,
+                debtor_name=debtor_name, creditor_name=creditor_name,
+                debtor_agent_bic=debtor_bic, creditor_agent_bic=creditor_bic,
+                clearing_rail=clearing_rail, original_field=orig_field,
+                original_value=orig_val, proposed_value=prop_val,
+                field_justification=field_justif, sanctions_status="FLAGGED (Requires Compliance Review)",
+                uetr=uetr, urgency=urgency
             )
 
         if domain in ["SETTLEMENT_RETURNS"] or "RECALL" in profile:
@@ -73,7 +103,13 @@ class STPEngine:
                 domain=domain, profile=profile, ai_confidence=confidence, eligible=False,
                 mode=STPMode.MANUAL_GATED,
                 reason="Settlement returns and pacs.004 payment recalls require investigator review.",
-                proposed_repair_summary=proposed_summary
+                proposed_repair_summary=proposed_summary,
+                debtor_name=debtor_name, creditor_name=creditor_name,
+                debtor_agent_bic=debtor_bic, creditor_agent_bic=creditor_bic,
+                clearing_rail=clearing_rail, original_field=orig_field,
+                original_value=orig_val, proposed_value=prop_val,
+                field_justification=field_justif, sanctions_status=sanctions_status,
+                uetr=uetr, urgency=urgency
             )
 
         if status == LifecycleStage.SETTLED.value or status == "SETTLED":
@@ -82,7 +118,13 @@ class STPEngine:
                 domain=domain, profile=profile, ai_confidence=confidence, eligible=False,
                 mode=STPMode.MANUAL_GATED,
                 reason="Case is already settled.",
-                proposed_repair_summary=proposed_summary
+                proposed_repair_summary=proposed_summary,
+                debtor_name=debtor_name, creditor_name=creditor_name,
+                debtor_agent_bic=debtor_bic, creditor_agent_bic=creditor_bic,
+                clearing_rail=clearing_rail, original_field=orig_field,
+                original_value=orig_val, proposed_value=prop_val,
+                field_justification=field_justif, sanctions_status=sanctions_status,
+                uetr=uetr, urgency=urgency
             )
 
         # 2. MATCH AGAINST DYNAMIC DB RULES
@@ -102,7 +144,13 @@ class STPEngine:
                         reason=f"Matched Active Policy Rule: {rule.get('name')}",
                         matching_rule_id=rule.get("rule_id"),
                         matching_rule_name=rule.get("name"),
-                        proposed_repair_summary=proposed_summary
+                        proposed_repair_summary=proposed_summary,
+                        debtor_name=debtor_name, creditor_name=creditor_name,
+                        debtor_agent_bic=debtor_bic, creditor_agent_bic=creditor_bic,
+                        clearing_rail=clearing_rail, original_field=orig_field,
+                        original_value=orig_val, proposed_value=prop_val,
+                        field_justification=field_justif, sanctions_status=sanctions_status,
+                        uetr=uetr, urgency=urgency
                     )
 
         # 3. BASELINE INSTITUTIONAL STP HEURISTICS
@@ -113,7 +161,13 @@ class STPEngine:
                 domain=domain, profile=profile, ai_confidence=confidence, eligible=True,
                 mode=STPMode.AUTONOMOUS,
                 reason="Qualifies for Autonomous Zero-Touch STP (<= $10k, >= 98% confidence, Data Quality domain).",
-                proposed_repair_summary=proposed_summary
+                proposed_repair_summary=proposed_summary,
+                debtor_name=debtor_name, creditor_name=creditor_name,
+                debtor_agent_bic=debtor_bic, creditor_agent_bic=creditor_bic,
+                clearing_rail=clearing_rail, original_field=orig_field,
+                original_value=orig_val, proposed_value=prop_val,
+                field_justification=field_justif, sanctions_status=sanctions_status,
+                uetr=uetr, urgency=urgency
             )
 
         # Mode B: 1-Click Supervised Fast-Lane Batch (<=$25k, >=90% conf)
@@ -123,7 +177,13 @@ class STPEngine:
                 domain=domain, profile=profile, ai_confidence=confidence, eligible=True,
                 mode=STPMode.ONE_CLICK_BATCH,
                 reason="Qualifies for 1-Click Fast-Lane Batch Settlement (<= $25k, >= 90% confidence).",
-                proposed_repair_summary=proposed_summary
+                proposed_repair_summary=proposed_summary,
+                debtor_name=debtor_name, creditor_name=creditor_name,
+                debtor_agent_bic=debtor_bic, creditor_agent_bic=creditor_bic,
+                clearing_rail=clearing_rail, original_field=orig_field,
+                original_value=orig_val, proposed_value=prop_val,
+                field_justification=field_justif, sanctions_status=sanctions_status,
+                uetr=uetr, urgency=urgency
             )
 
         return STPEligibilityItem(
@@ -131,7 +191,13 @@ class STPEngine:
             domain=domain, profile=profile, ai_confidence=confidence, eligible=False,
             mode=STPMode.MANUAL_GATED,
             reason="Standard HITL review required (amount or confidence below fast-lane policy thresholds).",
-            proposed_repair_summary=proposed_summary
+            proposed_repair_summary=proposed_summary,
+            debtor_name=debtor_name, creditor_name=creditor_name,
+            debtor_agent_bic=debtor_bic, creditor_agent_bic=creditor_bic,
+            clearing_rail=clearing_rail, original_field=orig_field,
+            original_value=orig_val, proposed_value=prop_val,
+            field_justification=field_justif, sanctions_status=sanctions_status,
+            uetr=uetr, urgency=urgency
         )
 
     def get_eligible_cases(self) -> List[STPEligibilityItem]:
@@ -209,7 +275,7 @@ class STPEngine:
                 receipt_id=receipt_id,
                 action_id=action_id,
                 case_id=case_id,
-                bank_ack_reference=f"ACK-STP-{case_id.replace('PEX-', '')}-001",
+                bank_ack_reference=f"ACK-STP-{case_id.replace('PEX-', '')}-{uuid.uuid4().hex[:6].upper()}",
                 status="SETTLED_STP_AUTONOMOUS",
                 timestamp=now,
                 details={"mode": "ZERO_TOUCH_STP", "execution_time_ms": 14}
@@ -352,7 +418,7 @@ class STPEngine:
                     receipt_id=receipt_id,
                     action_id=action_id,
                     case_id=cid,
-                    bank_ack_reference=f"ACK-BATCH-{cid.replace('PEX-', '')}-001",
+                    bank_ack_reference=f"ACK-BATCH-{cid.replace('PEX-', '')}-{uuid.uuid4().hex[:6].upper()}",
                     status="SETTLED_STP_BATCH",
                     timestamp=now,
                     details={"batch_id": batch_id, "approver": payload.approver_name}

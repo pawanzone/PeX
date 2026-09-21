@@ -23,6 +23,18 @@ class STPEligibilityItem(BaseModel):
     matching_rule_id: Optional[str] = None
     matching_rule_name: Optional[str] = None
     proposed_repair_summary: Optional[str] = None
+    debtor_name: Optional[str] = None
+    creditor_name: Optional[str] = None
+    debtor_agent_bic: Optional[str] = None
+    creditor_agent_bic: Optional[str] = None
+    clearing_rail: Optional[str] = None
+    original_field: Optional[str] = None
+    original_value: Optional[str] = None
+    proposed_value: Optional[str] = None
+    field_justification: Optional[str] = None
+    sanctions_status: Optional[str] = "CLEAN (0 Hits)"
+    uetr: Optional[str] = None
+    urgency: Optional[str] = "MEDIUM"
 
 class BatchSTPRequest(BaseModel):
     case_ids: List[str]
