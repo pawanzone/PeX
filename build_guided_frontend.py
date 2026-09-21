@@ -1731,9 +1731,12 @@ html_content = r'''<!DOCTYPE html>
       });
 
       const overviewDimensionActionableCases = overviewDimensionFilteredCases.filter(c => isMatchingRoleQueue(c));
+      const overviewDimensionOpenCases = overviewDimensionFilteredCases.filter(c => c.status !== "SETTLED");
 
       const overviewFilteredCases = overviewTableFilter === "ACTIONABLE" 
         ? overviewDimensionActionableCases 
+        : overviewTableFilter === "OPEN_CUTOFF"
+        ? overviewDimensionOpenCases
         : overviewDimensionFilteredCases;
 
       const overviewDisplayCases = overviewFilteredCases.slice(0, 15);
@@ -2550,7 +2553,7 @@ html_content = r'''<!DOCTYPE html>
                               onClick={() => {
                                 const next = isSelected ? "ALL" : "USD";
                                 setOverviewCurrencyFilter(next);
-                                if (next !== "ALL") setOverviewTableFilter("ALL_TOP");
+                                if (next !== "ALL") setOverviewTableFilter("OPEN_CUTOFF");
                               }}
                               className={`p-2.5 rounded-xl border cursor-pointer transition-all ${
                                 isSelected ? "bg-amber-50/90 border-amber-400 ring-2 ring-amber-300 shadow-sm" : "bg-slate-50/70 hover:bg-slate-100/80 border-slate-200"
@@ -2585,7 +2588,7 @@ html_content = r'''<!DOCTYPE html>
                               onClick={() => {
                                 const next = isSelected ? "ALL" : "EUR";
                                 setOverviewCurrencyFilter(next);
-                                if (next !== "ALL") setOverviewTableFilter("ALL_TOP");
+                                if (next !== "ALL") setOverviewTableFilter("OPEN_CUTOFF");
                               }}
                               className={`p-2.5 rounded-xl border cursor-pointer transition-all ${
                                 isSelected ? "bg-emerald-50/90 border-emerald-400 ring-2 ring-emerald-300 shadow-sm" : "bg-slate-50/70 hover:bg-slate-100/80 border-slate-200"
@@ -2620,7 +2623,7 @@ html_content = r'''<!DOCTYPE html>
                               onClick={() => {
                                 const next = isSelected ? "ALL" : "GBP";
                                 setOverviewCurrencyFilter(next);
-                                if (next !== "ALL") setOverviewTableFilter("ALL_TOP");
+                                if (next !== "ALL") setOverviewTableFilter("OPEN_CUTOFF");
                               }}
                               className={`p-2.5 rounded-xl border cursor-pointer transition-all ${
                                 isSelected ? "bg-rose-50/90 border-rose-400 ring-2 ring-rose-300 shadow-sm" : "bg-rose-50/40 hover:bg-rose-50/70 border-rose-200"
@@ -2655,7 +2658,7 @@ html_content = r'''<!DOCTYPE html>
                               onClick={() => {
                                 const next = isSelected ? "ALL" : "OTHER_FX";
                                 setOverviewCurrencyFilter(next);
-                                if (next !== "ALL") setOverviewTableFilter("ALL_TOP");
+                                if (next !== "ALL") setOverviewTableFilter("OPEN_CUTOFF");
                               }}
                               className={`p-2.5 rounded-xl border cursor-pointer transition-all ${
                                 isSelected ? "bg-purple-50/90 border-purple-400 ring-2 ring-purple-300 shadow-sm" : "bg-slate-50/70 hover:bg-slate-100/80 border-slate-200"
@@ -2727,7 +2730,7 @@ html_content = r'''<!DOCTYPE html>
                             onClick={() => {
                               const next = isSelected ? "ALL" : domKey;
                               setOverviewDomainFilter(next);
-                              if (next !== "ALL") setOverviewTableFilter("ALL_TOP");
+                              if (next !== "ALL") setOverviewTableFilter("OPEN_CUTOFF");
                             }}
                             className={`px-3 py-1.5 rounded-xl text-xs font-mono font-semibold transition-all flex items-center space-x-1.5 border ${
                               isSelected 
@@ -2754,7 +2757,7 @@ html_content = r'''<!DOCTYPE html>
                         onClick={() => {
                           const next = overviewSlaFilter === "CRITICAL_1H" ? "ALL" : "CRITICAL_1H";
                           setOverviewSlaFilter(next);
-                          if (next !== "ALL") setOverviewTableFilter("ALL_TOP");
+                          if (next !== "ALL") setOverviewTableFilter("OPEN_CUTOFF");
                         }}
                         className={`px-2 py-0.5 rounded-lg border font-bold transition-all cursor-pointer ${
                           overviewSlaFilter === "CRITICAL_1H" 
@@ -2770,7 +2773,7 @@ html_content = r'''<!DOCTYPE html>
                         onClick={() => {
                           const next = overviewSlaFilter === "URGENT_4H" ? "ALL" : "URGENT_4H";
                           setOverviewSlaFilter(next);
-                          if (next !== "ALL") setOverviewTableFilter("ALL_TOP");
+                          if (next !== "ALL") setOverviewTableFilter("OPEN_CUTOFF");
                         }}
                         className={`px-2 py-0.5 rounded-lg border font-bold transition-all cursor-pointer ${
                           overviewSlaFilter === "URGENT_4H" 
@@ -2786,7 +2789,7 @@ html_content = r'''<!DOCTYPE html>
                         onClick={() => {
                           const next = overviewSlaFilter === "NORMAL_24H" ? "ALL" : "NORMAL_24H";
                           setOverviewSlaFilter(next);
-                          if (next !== "ALL") setOverviewTableFilter("ALL_TOP");
+                          if (next !== "ALL") setOverviewTableFilter("OPEN_CUTOFF");
                         }}
                         className={`px-2 py-0.5 rounded-lg border font-semibold transition-all cursor-pointer ${
                           overviewSlaFilter === "NORMAL_24H" 
@@ -2802,7 +2805,7 @@ html_content = r'''<!DOCTYPE html>
                         onClick={() => {
                           const next = overviewSlaFilter === "BREACHED" ? "ALL" : "BREACHED";
                           setOverviewSlaFilter(next);
-                          if (next !== "ALL") setOverviewTableFilter("ALL_TOP");
+                          if (next !== "ALL") setOverviewTableFilter("OPEN_CUTOFF");
                         }}
                         className={`px-2 py-0.5 rounded-lg border font-bold transition-all cursor-pointer ${
                           overviewSlaFilter === "BREACHED" 
@@ -2818,7 +2821,7 @@ html_content = r'''<!DOCTYPE html>
                         onClick={() => {
                           const next = overviewSlaFilter === "SETTLED" ? "ALL" : "SETTLED";
                           setOverviewSlaFilter(next);
-                          if (next !== "ALL") setOverviewTableFilter("ALL_TOP");
+                          if (next !== "ALL") setOverviewTableFilter("OPEN_CUTOFF");
                         }}
                         className={`px-2 py-0.5 rounded-lg border font-bold transition-all cursor-pointer ${
                           overviewSlaFilter === "SETTLED" 
@@ -2891,6 +2894,8 @@ html_content = r'''<!DOCTYPE html>
                               ) : (
                                 `Showing ${overviewDimensionActionableCases.length} approval cases awaiting authorization by ${currentPersona.name} (${currentPersona.role})`
                               )
+                            ) : overviewTableFilter === "OPEN_CUTOFF" ? (
+                              `Showing ${overviewDimensionOpenCases.length} open RTGS cutoff exceptions (${overviewDimensionActionableCases.length} Actionable for ${currentPersona.name.split(' ')[0]}, ${overviewDimensionOpenCases.length - overviewDimensionActionableCases.length} in Other Desks)`
                             ) : (
                               overviewCurrencyFilter !== "ALL" || overviewDomainFilter !== "ALL" || overviewSlaFilter !== "ALL" ? (
                                 `Showing all ${overviewDimensionFilteredCases.length} exceptions in active filter (${overviewDimensionActionableCases.length} Actionable for ${currentPersona.name.split(' ')[0]}, ${overviewDimensionFilteredCases.length - overviewDimensionActionableCases.length} in Other Desks / Settled)`
@@ -2922,6 +2927,19 @@ html_content = r'''<!DOCTYPE html>
                               currentPersona.role_type === "MAKER" ? "My Maker Tasks" : "My Approvals"
                             } ({overviewDimensionActionableCases.length})
                           </button>
+
+                          {overviewCurrencyFilter !== "ALL" && (
+                            <button
+                              onClick={() => setOverviewTableFilter("OPEN_CUTOFF")}
+                              className={`px-3 py-1 rounded-lg transition-all ${
+                                overviewTableFilter === "OPEN_CUTOFF" ? "bg-white text-sky-800 shadow-sm font-extrabold" : "text-slate-600 hover:text-slate-900"
+                              }`}
+                              title={`Open RTGS Cutoff cases matching Radar Card (${overviewDimensionOpenCases.length} cases)`}
+                            >
+                              🕒 Open {overviewCurrencyFilter === "GBP" ? "CHAPS" : overviewCurrencyFilter === "EUR" ? "TARGET2" : overviewCurrencyFilter === "USD" ? "Fedwire" : "FX"} ({overviewDimensionOpenCases.length})
+                            </button>
+                          )}
+
                           <button
                             onClick={() => setOverviewTableFilter("ALL_TOP")}
                             className={`px-3 py-1 rounded-lg transition-all ${
