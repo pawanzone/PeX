@@ -2471,7 +2471,7 @@ html_content = r'''<!DOCTYPE html>
                             title="Click to open Repair Queue filtered to Ingested/Open exceptions"
                           >
                             <div className="text-[10px] uppercase font-mono text-slate-400 flex items-center justify-between">
-                              <span>1. AI Repair</span>
+                              <span>1. Triage & Review</span>
                               <span className="text-xs group-hover:scale-110 transition-transform">⚡</span>
                             </div>
                             <div className="text-xl font-black font-mono text-sky-400 mt-1">
@@ -3058,7 +3058,7 @@ html_content = r'''<!DOCTYPE html>
                               overviewCurrencyFilter !== "ALL" || overviewDomainFilter !== "ALL" || overviewSlaFilter !== "ALL" ? (
                                 `Showing ${overviewDimensionActionableCases.length} actionable exceptions for ${currentPersona.name} (${currentPersona.role}) out of ${overviewDimensionFilteredCases.length} in this filter`
                               ) : currentPersona.role_type === "MAKER" ? (
-                                `Showing ${overviewDimensionActionableCases.length} actionable tasks for ${currentPersona.name} (${cases.filter(c => c.status === "INGESTED" || c.status === "RECOMMENDED").length} AI Repair + ${cases.filter(c => c.status === "RETURNED_FOR_REWORK").length} Rework)`
+                                `Showing ${overviewDimensionActionableCases.length} actionable tasks for ${currentPersona.name} (${cases.filter(c => c.status === "INGESTED" || c.status === "RECOMMENDED").length} Review & Submit + ${cases.filter(c => c.status === "RETURNED_FOR_REWORK").length} Rework)`
                               ) : (
                                 `Showing ${overviewDimensionActionableCases.length} approval cases awaiting authorization by ${currentPersona.name} (${currentPersona.role})`
                               )
@@ -3084,7 +3084,7 @@ html_content = r'''<!DOCTYPE html>
                             }`}
                             title={
                               currentPersona.role_type === "MAKER" 
-                                ? `Actionable Maker Tasks: ${overviewDimensionActionableCases.length} (AI Repair + Rework)` 
+                                ? `Actionable Maker Tasks: ${overviewDimensionActionableCases.length} (Review & Submit + Rework)` 
                                 : `Actionable Approvals Desk: ${overviewDimensionActionableCases.length} (Pending Authorization)`
                             }
                           >
@@ -3179,7 +3179,15 @@ html_content = r'''<!DOCTYPE html>
                               buttonText = canAction ? "Review & Dispatch" : "Awaiting Dispatch";
                             } else if (currentPersona.role_type === "MAKER") {
                               canAction = isUninvestigated || isRework;
-                              buttonText = isRework ? "⚠️ Rework" : isUninvestigated ? "⚡ AI Repair" : "In Review";
+                              if (isRework) {
+                                buttonText = "⚠️ Rework";
+                              } else if (c.status === "INGESTED") {
+                                buttonText = "⚡ Run Triage";
+                              } else if (c.status === "RECOMMENDED") {
+                                buttonText = "🔍 Review & Submit";
+                              } else {
+                                buttonText = "🔒 In Review";
+                              }
                             } else if (currentPersona.role === "OPERATIONS_APPROVER") {
                               canAction = (isPendingApproval && c.queue !== "Compliance") || isEscalatedToMe;
                               buttonText = isPendingApproval ? (c.queue === "Compliance" ? "Compliance" : "Authorize") : isEscalatedToMe ? "Review & Action" : "View";
