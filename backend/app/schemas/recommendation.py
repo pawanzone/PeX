@@ -66,8 +66,10 @@ class HypothesisRankingItem(BaseModel):
     hypothesis_id: str
     title: str
     confidence: float
-    status: str  # SELECTED, ELIMINATED
+    status: str  # SELECTED, ELIMINATED, ELIGIBLE_CANDIDATE
     elimination_reason: Optional[str] = None
+    candidate_value: Optional[str] = None
+    candidate_description: Optional[str] = None
 
 class AnomalyGuardrailItem(BaseModel):
     guardrail_name: str
@@ -97,6 +99,10 @@ class DecisionRecommendation(BaseModel):
     anomaly_guardrails: List[AnomalyGuardrailItem] = []
     consequence_simulation: Optional[ConsequenceSimulation] = None
     applied_policies: List[str] = []
+    
+    # Boundary Condition: Multi-Candidate Ambiguity & Human Disambiguation
+    ambiguity_detected: bool = False
+    ambiguity_message: Optional[str] = None
     
     model_identifier: str = "mock-governed-reasoner-v1"
     prompt_tokens: int = 0

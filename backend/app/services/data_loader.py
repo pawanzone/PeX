@@ -133,7 +133,7 @@ def build_rich_guided_recommendation(case_id: str, profile: ExceptionProfile, am
     elif profile == ExceptionProfile.BENEFICIARY_NAME_MISMATCH:
         action_type = ActionType.REPAIR_DATA
         conf_score = 0.91
-        rationale = f"Confirmation of Payee (CoP) partial match (92.4%). Trading name alias verified in Company House registry against '{creditor_name}'."
+        rationale = f"Confirmation of Payee (CoP) partial match (92.4%). Two active corporate accounts verified for '{creditor_name}' in master registry."
         proposed_changes = [ProposedFieldChange(
             field_path="creditor_party.party_name",
             original_value_masked="Acme Tech",
@@ -143,18 +143,39 @@ def build_rich_guided_recommendation(case_id: str, profile: ExceptionProfile, am
         )]
         guided_questions = [
             GuidedQuestionItem(category="NAME VERIFICATION", question="Is this a genuine corporate trading name discrepancy or an authorized redirection attempt?", investigation_tip="Cross-examine corporate registry trading names and secondary tax IDs."),
-            GuidedQuestionItem(category="FRAUD CHECK", question="Has the destination account number been recently modified by the supplier?", investigation_tip="Verify historical settlement track record on this account.")
+            GuidedQuestionItem(category="ACCOUNT DISAMBIGUATION", question="Which active corporate account is requested for this settlement tranche?", investigation_tip="Commercial invoice references Operating IBAN; Treasury mandate references Sweeping IBAN.")
         ]
         step_assessment = [
             StepAssessmentItem(step_number=1, step_title="Confirmation of Payee (CoP) Score", description="Fuzzy name matching algorithm", proof_detail="Jaro-Winkler similarity = 0.924 (Close Match Pass)", badge_label="CoP 92.4%", is_passed=True),
             StepAssessmentItem(step_number=2, step_title="Company Registry Verification", description="Official legal name lookup", proof_detail="Registered trading name confirmed in UK Companies House", badge_label="REGISTRY MATCH", is_passed=True),
-            StepAssessmentItem(step_number=3, step_title="MOD-97 Account Validation", description="Creditor account check", proof_detail="MOD-97 remainder = 1 on destination IBAN", badge_label="IBAN VALID", is_passed=True),
+            StepAssessmentItem(step_number=3, step_title="Multi-Account Registry Query", description="Beneficiary master account directory", proof_detail="2 active authorized accounts detected for Nordhavn Components A/S", badge_label="2 ACCOUNTS ACTIVE", is_passed=True),
             StepAssessmentItem(step_number=4, step_title="Debtor AP Match", description="Accounts payable ledger tie-out", proof_detail="Invoice #INV-2026-88 matches debtor approved PO", badge_label="PO VERIFIED", is_passed=True),
-            StepAssessmentItem(step_number=5, step_title="Mule Account Filter", description="Authorized Push Payment (APP) check", proof_detail="Zero fraud or rapid depletion flags on destination account", badge_label="SAFE ACCOUNT", is_passed=True)
+            StepAssessmentItem(step_number=5, step_title="Mule Account Filter", description="Authorized Push Payment (APP) check", proof_detail="Zero fraud or rapid depletion flags on destination accounts", badge_label="SAFE ACCOUNTS", is_passed=True)
         ]
         hypothesis_ranking = [
-            HypothesisRankingItem(hypothesis_id="HYP-1", title="Abbreviated corporate trade name used on wire", confidence=0.91, status="SELECTED"),
-            HypothesisRankingItem(hypothesis_id="HYP-2", title="Impersonation / Invoice Redirection Fraud", confidence=0.09, status="ELIMINATED", elimination_reason="Account tenure > 4 years with 28 prior settled payments")
+            HypothesisRankingItem(
+                hypothesis_id="HYP-1",
+                title=f"Primary Commercial Operating IBAN (London Branch)",
+                confidence=0.924,
+                status="ELIGIBLE_CANDIDATE",
+                candidate_value="GB82 WEST 1234 5698 7602",
+                candidate_description="Main operational trading account on file with 14 settled disbursements."
+            ),
+            HypothesisRankingItem(
+                hypothesis_id="HYP-2",
+                title=f"Corporate Treasury Sweeping IBAN (Edinburgh Node)",
+                confidence=0.898,
+                status="ELIGIBLE_CANDIDATE",
+                candidate_value="GB82 WEST 1234 5698 9914",
+                candidate_description="Secondary liquidity pooling account on file with active standing authorization."
+            ),
+            HypothesisRankingItem(
+                hypothesis_id="HYP-3",
+                title="Impersonation / Invoice Redirection Fraud",
+                confidence=0.012,
+                status="ELIMINATED",
+                elimination_reason="Account tenure > 4 years with 28 prior settled payments"
+            )
         ]
 
     elif profile in [ExceptionProfile.MISSING_BENEFICIARY_DATA, ExceptionProfile.MISSING_REMITTANCE_INFO, ExceptionProfile.INVALID_ADDRESS_FORMAT, ExceptionProfile.MISSING_PURPOSE_CODE, ExceptionProfile.INVALID_ACCOUNT_NUMBER, ExceptionProfile.INVALID_ROUTING_CODE]:
@@ -401,6 +422,9 @@ def build_rich_guided_recommendation(case_id: str, profile: ExceptionProfile, am
             HypothesisRankingItem(hypothesis_id="HYP-1", title="Standard exception repair", confidence=0.90, status="SELECTED")
         ]
 
+    has_ambiguity = (profile == ExceptionProfile.BENEFICIARY_NAME_MISMATCH) or (case_id == "PEX-BEN-0050")
+    amb_msg = "Multi-Candidate Ambiguity: Two eligible active accounts detected for counterparty. AI policy prohibits automated tie-breaking without Human Operator selection." if has_ambiguity else None
+
     return DecisionRecommendation(
         recommendation_id=f"REC-{case_id}",
         case_id=case_id,
@@ -408,6 +432,8 @@ def build_rich_guided_recommendation(case_id: str, profile: ExceptionProfile, am
         confidence_score=conf_score,
         rationale=rationale,
         proposed_changes=proposed_changes,
+        ambiguity_detected=has_ambiguity,
+        ambiguity_message=amb_msg,
         corroborating_evidence=[
             CorroboratingEvidenceRef(evidence_id="EVD-01", evidence_type="DIRECTORY_SSI", citation=f"BIAN {domain.value} Policy Registry §4.1"),
             CorroboratingEvidenceRef(evidence_id="EVD-02", evidence_type="MOD97_CHECK", citation="ISO 7064 Mathematical Verification Engine")

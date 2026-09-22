@@ -522,10 +522,18 @@ class PeXDBRepository:
         if "dual_auth_required" not in risk_data:
             risk_data["dual_auth_required"] = False
 
+        act_raw = r.action_type
+        if isinstance(act_raw, str) and act_raw.startswith("ActionType."):
+            act_raw = act_raw.split(".", 1)[1]
+        try:
+            act_val = ActionType(act_raw)
+        except Exception:
+            act_val = ActionType.REPAIR_DATA
+
         return DecisionRecommendation(
             recommendation_id=r.recommendation_id,
             case_id=r.case_id,
-            action_type=ActionType(r.action_type),
+            action_type=act_val,
             confidence_score=r.confidence_score,
             rationale=r.rationale,
             proposed_changes=[ProposedFieldChange(**c) for c in (r.proposed_changes or [])],
@@ -537,11 +545,76 @@ class PeXDBRepository:
             anomaly_guardrails=[AnomalyGuardrailItem(**a) for a in (r.anomaly_guardrails or [])],
             consequence_simulation=ConsequenceSimulation(**r.consequence_simulation) if r.consequence_simulation else None,
             applied_policies=r.applied_policies or [],
+            ambiguity_detected=getattr(r, "ambiguity_detected", False) or False,
+            ambiguity_message=getattr(r, "ambiguity_message", None),
             model_identifier=r.model_identifier,
             prompt_tokens=r.prompt_tokens,
             completion_tokens=r.completion_tokens,
             generated_at=r.generated_at
         )
+
+    def save_recommendation(self, rec: Any):
+        """Persists or updates a DecisionRecommendation in database and cache."""
+        case_id = rec.case_id if hasattr(rec, "case_id") else rec.get("case_id")
+        self._recommendations_cache[case_id] = rec
+
+        db: Session = SessionLocal()
+        try:
+            rec_id = rec.recommendation_id if hasattr(rec, "recommendation_id") else rec.get("recommendation_id")
+            existing = db.query(RecommendationModel).filter(RecommendationModel.case_id == case_id).first()
+            
+            raw_dict = rec.dict() if hasattr(rec, "dict") else (rec.model_dump() if hasattr(rec, "model_dump") else dict(rec))
+            act_str = raw_dict.get("action_type", "REPAIR_DATA")
+            if hasattr(act_str, "value"):
+                act_str = act_str.value
+            elif isinstance(act_str, str) and act_str.startswith("ActionType."):
+                act_str = act_str.split(".", 1)[1]
+            
+            if existing:
+                existing.action_type = str(act_str)
+                existing.confidence_score = float(raw_dict.get("confidence_score", 0.9))
+                existing.rationale = str(raw_dict.get("rationale", ""))
+                existing.proposed_changes = _sanitize_for_json(raw_dict.get("proposed_changes", []))
+                existing.corroborating_evidence = _sanitize_for_json(raw_dict.get("corroborating_evidence", []))
+                existing.risk_evaluation = _sanitize_for_json(raw_dict.get("risk_evaluation", {}))
+                existing.guided_questions = _sanitize_for_json(raw_dict.get("guided_questions", []))
+                existing.step_by_step_assessment = _sanitize_for_json(raw_dict.get("step_by_step_assessment", []))
+                existing.hypothesis_ranking = _sanitize_for_json(raw_dict.get("hypothesis_ranking", []))
+                existing.anomaly_guardrails = _sanitize_for_json(raw_dict.get("anomaly_guardrails", []))
+                existing.consequence_simulation = _sanitize_for_json(raw_dict.get("consequence_simulation", {}))
+                existing.applied_policies = _sanitize_for_json(raw_dict.get("applied_policies", []))
+                existing.ambiguity_detected = bool(raw_dict.get("ambiguity_detected", False))
+                existing.ambiguity_message = raw_dict.get("ambiguity_message")
+            else:
+                new_rec = RecommendationModel(
+                    recommendation_id=rec_id or f"REC-{case_id}",
+                    case_id=case_id,
+                    action_type=str(act_str),
+                    confidence_score=float(raw_dict.get("confidence_score", 0.9)),
+                    rationale=str(raw_dict.get("rationale", "")),
+                    proposed_changes=_sanitize_for_json(raw_dict.get("proposed_changes", [])),
+                    corroborating_evidence=_sanitize_for_json(raw_dict.get("corroborating_evidence", [])),
+                    risk_evaluation=_sanitize_for_json(raw_dict.get("risk_evaluation", {})),
+                    guided_questions=_sanitize_for_json(raw_dict.get("guided_questions", [])),
+                    step_by_step_assessment=_sanitize_for_json(raw_dict.get("step_by_step_assessment", [])),
+                    hypothesis_ranking=_sanitize_for_json(raw_dict.get("hypothesis_ranking", [])),
+                    anomaly_guardrails=_sanitize_for_json(raw_dict.get("anomaly_guardrails", [])),
+                    consequence_simulation=_sanitize_for_json(raw_dict.get("consequence_simulation", {})),
+                    applied_policies=_sanitize_for_json(raw_dict.get("applied_policies", [])),
+                    ambiguity_detected=bool(raw_dict.get("ambiguity_detected", False)),
+                    ambiguity_message=raw_dict.get("ambiguity_message"),
+                    model_identifier=raw_dict.get("model_identifier", "mock-governed-reasoner-v1"),
+                    prompt_tokens=int(raw_dict.get("prompt_tokens", 0)),
+                    completion_tokens=int(raw_dict.get("completion_tokens", 0)),
+                    generated_at=raw_dict.get("generated_at") or datetime.utcnow()
+                )
+                db.add(new_rec)
+            db.commit()
+        except Exception as e:
+            db.rollback()
+            print(f"[PeX DB Error] Failed to save recommendation for {case_id}: {e}")
+        finally:
+            db.close()
 
     def _approval_to_schema(self, a: ApprovalRecordModel):
         from app.schemas.approval import ApprovalRecord, ApprovalAction, UserRole

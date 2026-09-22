@@ -143,6 +143,59 @@ def run_ai_repair(case_id: str, analyst_id: Optional[str] = Query("OP-9012")):
         "recommendation": rec.dict()
     }
 
+class DisambiguationRequest(BaseModel):
+    selected_hypothesis_id: str
+    candidate_value: str
+    rationale: str
+    operator_id: Optional[str] = "OP-9012"
+
+@router.post("/{case_id}/disambiguate-hypothesis")
+def disambiguate_hypothesis(case_id: str, payload: DisambiguationRequest):
+    """Maker / Operator Action: Resolves multi-candidate AI ambiguity by explicitly selecting the verified account candidate with human rationale."""
+    case = repo.get_case(case_id)
+    if not case:
+        raise HTTPException(status_code=404, detail=f"Case {case_id} not found")
+        
+    actor = get_persona(payload.operator_id or "OP-9012")
+    actor_name = actor.name if actor else "Operator"
+    actor_role_str = actor.role.value if actor else "OPERATOR"
+    
+    rec = repo.recommendations.get(case_id)
+    if rec:
+        for hyp in rec.hypothesis_ranking:
+            if hyp.hypothesis_id == payload.selected_hypothesis_id:
+                hyp.status = "SELECTED"
+            elif hyp.status == "ELIGIBLE_CANDIDATE":
+                hyp.status = "ELIMINATED"
+                hyp.elimination_reason = f"Operator selected {payload.selected_hypothesis_id} based on commercial trade verification."
+        
+        if rec.proposed_changes:
+            rec.proposed_changes[0].proposed_value_masked = payload.candidate_value
+            rec.proposed_changes[0].justification = f"Human Operator Disambiguation: {payload.rationale}"
+            
+        rec.ambiguity_detected = False
+        rec.rationale = f"Human Disambiguation Applied by {actor_name}: {payload.rationale}"
+        repo.save_recommendation(rec)
+        
+    audit_service.log_event(
+        case_id=case_id,
+        correlation_id=case.get("uetr", ""),
+        stage_name="ANALYST_REPAIR",
+        actor_id=actor.user_id if actor else "OP-9012",
+        actor_role=actor_role_str,
+        action_name="HUMAN_DISAMBIGUATION_APPLIED",
+        details=f"Operator {actor_name} disambiguated multiple high-confidence AI hypotheses and selected {payload.selected_hypothesis_id} ({payload.candidate_value}). Human Rationale: {payload.rationale}",
+        control_tags=["Human tie-breaker enforced", "Zero AI speculation", "Audit stamped"]
+    )
+    
+    repo.save_case(case)
+    return {
+        "success": True,
+        "message": f"Disambiguation applied: {payload.selected_hypothesis_id} selected",
+        "case": case,
+        "recommendation": rec.dict() if rec else None
+    }
+
 @router.post("/{case_id}/submit-to-checker")
 def submit_to_checker(case_id: str, analyst_id: str = "OP-9012", notes: Optional[str] = Query(None)):
     """Analyst Maker Action: Confirms AI proposal and submits to Checker Approvals Queue with optional handover notes."""

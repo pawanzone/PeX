@@ -317,6 +317,12 @@ html_content = r'''<!DOCTYPE html>
       const [ruleMakerNotes, setRuleMakerNotes] = useState("");
       const [rulesFilterStatus, setRulesFilterStatus] = useState("ALL");
       const [ruleInspectModalRule, setRuleInspectModalRule] = useState(null);
+      const [editingRuleId, setEditingRuleId] = useState(null);
+
+      // Multi-Hypothesis Disambiguation State
+      const [selectedDisambigHypothesis, setSelectedDisambigHypothesis] = useState("HYP-1");
+      const [disambigRationale, setDisambigRationale] = useState("Verified against commercial trade invoice #INV-2026-88 and debtor AP purchase order.");
+      const [disambiguating, setDisambiguating] = useState(false);
       
       // Checker Decision Modal for Policy Rules
       const [ruleCheckerModalOpen, setRuleCheckerModalOpen] = useState(false);
@@ -499,6 +505,11 @@ html_content = r'''<!DOCTYPE html>
 
       const handleSynthesizeRule = async () => {
         if (!rulePrompt.trim()) return;
+        await handleSynthesizeRuleWithPrompt(rulePrompt.trim(), ruleCategory, ruleDomain);
+      };
+
+      const handleSynthesizeRuleWithPrompt = async (promptText, cat, dom) => {
+        if (!promptText || !promptText.trim()) return;
         setSynthesizing(true);
         setActionMsg(null);
         setActionErr(null);
@@ -506,7 +517,7 @@ html_content = r'''<!DOCTYPE html>
           const res = await fetch(`${API_BASE}/rules/synthesize`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ prompt: rulePrompt.trim(), category: ruleCategory, domain: ruleDomain })
+            body: JSON.stringify({ prompt: promptText.trim(), category: cat, domain: dom })
           });
           if (!res.ok) throw new Error(await res.text());
           const data = await res.json();
@@ -516,6 +527,40 @@ html_content = r'''<!DOCTYPE html>
           setActionErr(e.message || "Synthesis failed");
         } finally {
           setSynthesizing(false);
+        }
+      };
+
+      const handleApplyDisambiguation = async (selectedHypId, candVal) => {
+        if (!activeCase || !selectedHypId) return;
+        setDisambiguating(true);
+        setActionMsg(null);
+        setActionErr(null);
+        try {
+          const res = await fetch(`${API_BASE}/cases/${activeCase.case_id}/disambiguate-hypothesis`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              selected_hypothesis_id: selectedHypId,
+              candidate_value: candVal,
+              rationale: disambigRationale || "Human Operator selected verified account candidate.",
+              operator_id: currentPersona.user_id
+            })
+          });
+          if (!res.ok) throw new Error(await res.text());
+          const data = await res.json();
+          if (data.case) {
+            setActiveCase(data.case);
+            setCases(prev => prev.map(c => c.case_id === data.case.case_id ? data.case : c));
+          }
+          if (data.recommendation) {
+            setRecommendation(data.recommendation);
+          }
+          setActionMsg(`✓ Disambiguation applied: ${selectedHypId} (${candVal}) selected and active diff updated!`);
+          loadAuditEvents(activeCase.case_id);
+        } catch (e) {
+          setActionErr(e.message || "Failed to apply disambiguation");
+        } finally {
+          setDisambiguating(false);
         }
       };
 
@@ -554,6 +599,7 @@ html_content = r'''<!DOCTYPE html>
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
+              rule_id: editingRuleId || (synthesizedAst ? synthesizedAst.rule_id : null),
               name: synthesizedAst.name,
               natural_language_prompt: rulePrompt,
               category: synthesizedAst.category,
@@ -562,7 +608,7 @@ html_content = r'''<!DOCTYPE html>
               actions: synthesizedAst.actions,
               maker_id: currentPersona.user_id,
               maker_name: currentPersona.name,
-              maker_notes: ruleMakerNotes || (autoApprove ? `Directly authorized & implemented by ${currentPersona.name} (${currentPersona.role})` : `Submitted by ${currentPersona.name} via Policy Studio.`),
+              maker_notes: ruleMakerNotes || (editingRuleId ? `Rule modification submitted by ${currentPersona.name}` : (autoApprove ? `Directly authorized & implemented by ${currentPersona.name} (${currentPersona.role})` : `Submitted by ${currentPersona.name} via Policy Studio.`)),
               auto_approve: autoApprove,
               checker_id: autoApprove ? currentPersona.user_id : null,
               checker_name: autoApprove ? currentPersona.name : null,
@@ -574,11 +620,12 @@ html_content = r'''<!DOCTYPE html>
           if (autoApprove) {
             setActionMsg(`✓ Rule ${saved.rule_id} (${saved.name}) approved and implemented into production with zero downtime!`);
           } else {
-            setActionMsg(`📤 Rule ${saved.rule_id} submitted for Checker approval!`);
+            setActionMsg(`📤 Rule ${saved.rule_id} ${editingRuleId ? "modification" : "proposal"} submitted for Checker approval!`);
           }
           setRuleMakerNotes("");
+          setEditingRuleId(null);
           loadRulesAndIcd();
-        loadStpData();
+          loadStpData();
           setRulesSubTab("registry");
         } catch (e) {
           setActionErr(e.message || "Submission failed");
@@ -4396,7 +4443,12 @@ html_content = r'''<!DOCTYPE html>
                             )}
 
                             {/* TAB 4: ROOT-CAUSE HYPOTHESES (CONTROL SR-03) */}
-                            {approvalsSubTab === "hypotheses" && (
+                            {approvalsSubTab === "hypotheses" && (() => {
+                              const hasAmbiguity = recommendation?.ambiguity_detected || (recommendation?.hypothesis_ranking || []).filter(h => h.status === "ELIGIBLE_CANDIDATE").length > 1;
+                              const eligibleCandidates = (recommendation?.hypothesis_ranking || []).filter(h => h.status === "ELIGIBLE_CANDIDATE");
+                              const selectedCandidateObj = eligibleCandidates.find(c => c.hypothesis_id === selectedDisambigHypothesis) || eligibleCandidates[0];
+
+                              return (
                               <div className="bg-white p-6 rounded-2xl border border-purple-200 shadow-sm space-y-4">
                                 <div className="flex justify-between items-center border-b border-purple-100 pb-3">
                                   <div>
@@ -4414,15 +4466,112 @@ html_content = r'''<!DOCTYPE html>
                                     </p>
                                   </div>
                                   <span className="text-[10px] bg-purple-50 text-purple-800 px-2.5 py-0.5 rounded-full font-bold font-mono border border-purple-200">
-                                    1 SELECTED • {((recommendation?.hypothesis_ranking || []).filter(h => h.status === "ELIMINATED").length) || 1} DISQUALIFIED
+                                    {hasAmbiguity ? "⚠️ MULTI-CANDIDATE AMBIGUITY" : "1 SELECTED"} • {((recommendation?.hypothesis_ranking || []).filter(h => h.status === "ELIMINATED").length) || 1} DISQUALIFIED
                                   </span>
                                 </div>
+
+                                {hasAmbiguity && (
+                                  <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-400 rounded-2xl space-y-3 shadow-xs animate-in fade-in">
+                                    <div className="flex items-start justify-between">
+                                      <div className="flex items-center space-x-2">
+                                        <span className="text-xl">⚠️</span>
+                                        <div>
+                                          <h4 className="text-xs font-bold text-amber-950 uppercase font-mono tracking-wide">
+                                            MULTI-CANDIDATE DISAMBIGUATION REQUIRED ({eligibleCandidates.length} High-Confidence Candidates Detected)
+                                          </h4>
+                                          <p className="text-[11px] text-amber-900 mt-0.5 font-sans">
+                                            <strong>AI Decision Boundary Enforced:</strong> Multiple verified accounts exist for counterparty in static registers. AI governance prohibits automated tie-breaking without Human Operator selection.
+                                          </p>
+                                        </div>
+                                      </div>
+                                      <span className="px-2.5 py-1 rounded bg-amber-200 text-amber-950 font-mono text-[10px] font-bold shrink-0 border border-amber-400">
+                                        Operator Action Required
+                                      </span>
+                                    </div>
+
+                                    {/* Candidate Selection Cards */}
+                                    <div className="space-y-2 pt-1">
+                                      <span className="text-[10px] font-bold uppercase font-mono text-amber-900 tracking-wider">
+                                        SELECT VERIFIED REPAIR CANDIDATE:
+                                      </span>
+                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        {eligibleCandidates.map((cand) => {
+                                          const isSelected = (selectedDisambigHypothesis === cand.hypothesis_id) || (!selectedDisambigHypothesis && cand === eligibleCandidates[0]);
+                                          return (
+                                            <div
+                                              key={cand.hypothesis_id}
+                                              onClick={() => setSelectedDisambigHypothesis(cand.hypothesis_id)}
+                                              className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all ${
+                                                isSelected
+                                                  ? "bg-amber-100/90 border-amber-600 shadow-md ring-2 ring-amber-400"
+                                                  : "bg-white border-amber-200 hover:border-amber-400 hover:bg-amber-50/50"
+                                              }`}
+                                            >
+                                              <div className="flex items-center justify-between">
+                                                <div className="flex items-center space-x-2">
+                                                  <input
+                                                    type="radio"
+                                                    name="disambig_choice"
+                                                    checked={isSelected}
+                                                    onChange={() => setSelectedDisambigHypothesis(cand.hypothesis_id)}
+                                                    className="text-amber-600 focus:ring-amber-500 cursor-pointer"
+                                                  />
+                                                  <span className="font-mono text-xs font-bold text-slate-900">{cand.hypothesis_id}</span>
+                                                </div>
+                                                <span className="px-2 py-0.5 rounded font-mono text-[10px] font-bold bg-amber-200/80 text-amber-900 border border-amber-300">
+                                                  Confidence: {(cand.confidence * 100).toFixed(1)}%
+                                                </span>
+                                              </div>
+                                              <div className="mt-2 space-y-1">
+                                                <div className="text-xs font-bold text-slate-900 font-mono">
+                                                  {cand.candidate_value || cand.title}
+                                                </div>
+                                                <p className="text-[11px] text-slate-700 font-sans leading-tight">
+                                                  {cand.candidate_description || cand.title}
+                                                </p>
+                                              </div>
+                                            </div>
+                                          );
+                                        })}
+                                      </div>
+                                    </div>
+
+                                    {/* Rationale Input & Action Button */}
+                                    <div className="pt-2 border-t border-amber-200/80 space-y-2">
+                                      <label className="block text-[10px] font-bold uppercase font-mono text-amber-900">
+                                        OPERATOR RATIONALE & TRADE AUDIT VERIFICATION:
+                                      </label>
+                                      <input
+                                        type="text"
+                                        value={disambigRationale}
+                                        onChange={(e) => setDisambigRationale(e.target.value)}
+                                        placeholder="e.g. Verified against commercial trade invoice #INV-2026-88 and debtor AP purchase order."
+                                        className="w-full p-2.5 bg-white border border-amber-300 rounded-xl text-xs text-slate-900 font-mono focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                                      />
+                                      <div className="flex justify-end pt-1">
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            const targetCand = selectedCandidateObj || eligibleCandidates[0];
+                                            if (targetCand) {
+                                              handleApplyDisambiguation(targetCand.hypothesis_id, targetCand.candidate_value || targetCand.title);
+                                            }
+                                          }}
+                                          disabled={disambiguating || !selectedCandidateObj}
+                                          className="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center space-x-2 cursor-pointer"
+                                        >
+                                          <span>{disambiguating ? "⏳ Applying Disambiguation..." : "⚡ Apply Human Disambiguation & Set Field Diff →"}</span>
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
 
                                 <div className="space-y-3">
                                   {/* Selected Hypothesis (Green / Emerald) */}
                                   {((recommendation?.hypothesis_ranking || []).filter(h => h.status === "SELECTED").length > 0
                                     ? (recommendation.hypothesis_ranking.filter(h => h.status === "SELECTED"))
-                                    : [{ hypothesis_id: "HYP-1", title: `Deterministic root cause for ${activeCase.profile}`, confidence: recommendation?.confidence_score || 0.94, status: "SELECTED" }]
+                                    : (!hasAmbiguity ? [{ hypothesis_id: "HYP-1", title: `Deterministic root cause for ${activeCase.profile}`, confidence: recommendation?.confidence_score || 0.94, status: "SELECTED" }] : [])
                                   ).map((hyp) => (
                                     <div key={hyp.hypothesis_id} className="p-4 bg-emerald-50/90 border border-emerald-300 rounded-xl space-y-2">
                                       <div className="flex items-center justify-between">
@@ -4437,7 +4586,7 @@ html_content = r'''<!DOCTYPE html>
                                         </span>
                                       </div>
                                       <p className="text-[11px] text-emerald-800 leading-relaxed font-sans">
-                                        Corroborated across 5 deterministic investigation steps. Satisfies BIAN {activeCase.domain} canonical resolution policy with 0% ambiguity.
+                                        {hyp.candidate_value ? `Selected Account: ${hyp.candidate_value}. ` : ""}Corroborated across 5 deterministic investigation steps. Satisfies BIAN {activeCase.domain} canonical resolution policy with 0% ambiguity.
                                       </p>
                                     </div>
                                   ))}
@@ -4473,7 +4622,8 @@ html_content = r'''<!DOCTYPE html>
                                   </div>
                                 </div>
                               </div>
-                            )}
+                              );
+                            })()}
 
                             {/* TAB 5: AI DECISION & RATIONALE */}
                             {approvalsSubTab === "decision" && (
@@ -5761,6 +5911,28 @@ html_content = r'''<!DOCTYPE html>
                           <span className="text-xs font-mono text-slate-500">Maker: <strong>{currentPersona.name} ({currentPersona.role})</strong></span>
                         </div>
 
+                        {/* Editing Active Rule Banner */}
+                        {editingRuleId && (
+                          <div className="p-3.5 bg-amber-50 border-2 border-amber-400 rounded-xl flex items-center justify-between animate-in fade-in">
+                            <div className="flex items-center space-x-2">
+                              <span className="text-amber-800 font-bold text-xs">✏️ EDITING ACTIVE RULE:</span>
+                              <span className="font-mono text-xs font-bold text-amber-950 bg-amber-200/80 px-2 py-0.5 rounded border border-amber-300">{editingRuleId}</span>
+                              <span className="text-[11px] text-amber-800 font-sans">(Maker edits will be re-simulated & submitted for Checker authorization)</span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingRuleId(null);
+                                setRulePrompt("Anything more than $250,000 will go to 2-level approvals");
+                                setSynthesizedAst(null);
+                              }}
+                              className="text-xs text-amber-950 font-bold hover:underline"
+                            >
+                              ✕ Cancel Edit
+                            </button>
+                          </div>
+                        )}
+
                         {/* Quick-Fill Template Chips */}
                         <div className="space-y-1.5">
                           <span className="text-[11px] font-semibold text-slate-600 font-mono">Quick Template Presets:</span>
@@ -5775,11 +5947,13 @@ html_content = r'''<!DOCTYPE html>
                               <button
                                 key={idx}
                                 onClick={() => {
+                                  setEditingRuleId(null);
                                   setRulePrompt(chip.text);
                                   setRuleCategory(chip.cat);
                                   setRuleDomain(chip.dom);
+                                  handleSynthesizeRuleWithPrompt(chip.text, chip.cat, chip.dom);
                                 }}
-                                className="px-2.5 py-1 bg-slate-50 hover:bg-sky-50 hover:text-sky-700 hover:border-sky-300 border border-slate-200 text-slate-700 rounded-lg text-xs font-medium transition"
+                                className="px-2.5 py-1 bg-slate-50 hover:bg-sky-50 hover:text-sky-700 hover:border-sky-300 border border-slate-200 text-slate-700 rounded-lg text-xs font-medium transition cursor-pointer"
                               >
                                 {chip.label}
                               </button>
@@ -6127,12 +6301,36 @@ html_content = r'''<!DOCTYPE html>
 
                                 {/* Action Controls */}
                                 <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-                                  <button
-                                    onClick={() => setRuleInspectModalRule(rule)}
-                                    className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-mono font-semibold"
-                                  >
-                                    👁️ Inspect JSON AST
-                                  </button>
+                                  <div className="flex items-center space-x-2">
+                                    <button
+                                      onClick={() => setRuleInspectModalRule(rule)}
+                                      className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-mono font-semibold"
+                                    >
+                                      👁️ Inspect JSON AST
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        setEditingRuleId(rule.rule_id);
+                                        setRulePrompt(rule.natural_language_prompt);
+                                        setRuleCategory(rule.category);
+                                        setRuleDomain(rule.domain);
+                                        setSynthesizedAst({
+                                          rule_id: rule.rule_id,
+                                          name: rule.name,
+                                          natural_language_prompt: rule.natural_language_prompt,
+                                          category: rule.category,
+                                          domain: rule.domain,
+                                          conditions: rule.conditions,
+                                          actions: rule.actions,
+                                          explanation: `Rule ${rule.rule_id} loaded for modification. Adjust prompt or parameters and re-simulate.`
+                                        });
+                                        setRulesSubTab("builder");
+                                      }}
+                                      className="px-3 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-300 rounded-lg text-xs font-mono font-semibold"
+                                    >
+                                      ✏️ Edit Rule
+                                    </button>
+                                  </div>
 
                                   <div className="flex items-center space-x-2">
                                     {isPending && (
@@ -6290,7 +6488,32 @@ html_content = r'''<!DOCTYPE html>
                               </pre>
                             </div>
                           </div>
-                          <div className="flex justify-end pt-2">
+                          <div className="flex justify-between items-center pt-2">
+                            <button
+                              onClick={() => {
+                                const targetRule = ruleInspectModalRule;
+                                setRuleInspectModalRule(null);
+                                setEditingRuleId(targetRule.rule_id);
+                                setRulePrompt(targetRule.natural_language_prompt);
+                                setRuleCategory(targetRule.category);
+                                setRuleDomain(targetRule.domain);
+                                setSynthesizedAst({
+                                  rule_id: targetRule.rule_id,
+                                  name: targetRule.name,
+                                  natural_language_prompt: targetRule.natural_language_prompt,
+                                  category: targetRule.category,
+                                  domain: targetRule.domain,
+                                  conditions: targetRule.conditions,
+                                  actions: targetRule.actions,
+                                  explanation: `Rule ${targetRule.rule_id} loaded for modification from Inspector.`
+                                });
+                                setRulesSubTab("builder");
+                              }}
+                              className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl font-bold text-xs flex items-center space-x-1.5"
+                            >
+                              <span>✏️</span>
+                              <span>Edit This Rule in Studio</span>
+                            </button>
                             <button
                               onClick={() => setRuleInspectModalRule(null)}
                               className="px-5 py-2 bg-slate-900 text-white rounded-xl font-bold text-xs hover:bg-slate-800"
@@ -8438,11 +8661,21 @@ html_content = r'''<!DOCTYPE html>
                         </div>
                       </div>
                     ) : (
-                      <div className="border border-slate-200 rounded-xl overflow-x-auto shadow-2xs">
-                        <table className="w-full text-left text-xs border-collapse">
-                          <thead className="bg-slate-100/80 text-slate-700 font-mono text-[11px] uppercase border-b border-slate-200">
+                      <div className="border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+                        <table className="w-full text-left text-xs table-fixed border-collapse">
+                          <colgroup>
+                            <col style={{ width: "4%" }} />
+                            <col style={{ width: "4%" }} />
+                            <col style={{ width: "15%" }} />
+                            <col style={{ width: "19%" }} />
+                            <col style={{ width: "13%" }} />
+                            <col style={{ width: "12%" }} />
+                            <col style={{ width: "21%" }} />
+                            <col style={{ width: "12%" }} />
+                          </colgroup>
+                          <thead className="bg-slate-100/80 text-slate-700 font-mono text-[10px] uppercase border-b border-slate-200">
                             <tr>
-                              <th className="px-3 py-3 w-10 text-center">
+                              <th className="px-2 py-3 text-center">
                                 <input
                                   type="checkbox"
                                   checked={selectedStpCaseIds.length === stpEligibleCases.length && stpEligibleCases.length > 0}
@@ -8453,13 +8686,13 @@ html_content = r'''<!DOCTYPE html>
                                   className="rounded text-sky-600 focus:ring-sky-500 cursor-pointer"
                                 />
                               </th>
-                              <th className="px-2 py-3 w-8 text-center" title="Click row to expand 360° Approver Audit Dossier">Dossier</th>
-                              <th className="px-3 py-3 min-w-[130px]">Case ID & UETR</th>
-                              <th className="px-3 py-3 min-w-[200px]">Counterparties & Route</th>
-                              <th className="px-3 py-3 min-w-[120px]">Amount & Rail</th>
-                              <th className="px-3 py-3 min-w-[110px]">AI Conf / SLA</th>
-                              <th className="px-3 py-3 min-w-[300px]">Before & After Proposed Field Repair</th>
-                              <th className="px-3 py-3 min-w-[160px]">Policy & Sanctions Status</th>
+                              <th className="px-1 py-3 text-center" title="Click row to expand 360° Approver Audit Dossier">Dossier</th>
+                              <th className="px-2.5 py-3">Case ID & UETR</th>
+                              <th className="px-2.5 py-3">Counterparties & Route</th>
+                              <th className="px-2.5 py-3">Amount & Rail</th>
+                              <th className="px-2.5 py-3">AI Conf / SLA</th>
+                              <th className="px-2.5 py-3">Field Repair Diff</th>
+                              <th className="px-2.5 py-3">Policy / OFAC</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-slate-100 text-slate-700">

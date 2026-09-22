@@ -123,6 +123,8 @@ class RecommendationModel(Base):
     anomaly_guardrails = Column(JSON, default=list)
     consequence_simulation = Column(JSON, nullable=True)
     applied_policies = Column(JSON, default=list)
+    ambiguity_detected = Column(Boolean, default=False)
+    ambiguity_message = Column(Text, nullable=True)
     model_identifier = Column(String(64), default="mock-governed-reasoner-v1")
     prompt_tokens = Column(Integer, default=0)
     completion_tokens = Column(Integer, default=0)
