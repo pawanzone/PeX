@@ -500,6 +500,12 @@
         }
       };
 
+      useEffect(() => {
+        if (rulesSubTab === "builder" && !synthesizedAst && rulePrompt && rulePrompt.trim()) {
+          handleSynthesizeRuleWithPrompt(rulePrompt.trim(), ruleCategory, ruleDomain);
+        }
+      }, [rulesSubTab]);
+
       const handleSynthesizeRule = async () => {
         if (!rulePrompt.trim()) return;
         await handleSynthesizeRuleWithPrompt(rulePrompt.trim(), ruleCategory, ruleDomain);
@@ -5899,6 +5905,32 @@
                   {/* ========================================================================= */}
                   {rulesSubTab === "builder" && (
                     <div className="space-y-6">
+                      {/* 3-Step Visual Governance Pipeline Stepper */}
+                      <div className="bg-slate-900 p-4 rounded-2xl text-white border border-slate-800 shadow-md">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                          <div className="flex items-center space-x-2 text-xs font-mono">
+                            <span className="px-3 py-1.5 rounded-lg bg-sky-600 text-white font-bold flex items-center space-x-1.5 shadow-sm">
+                              <span>1️⃣</span>
+                              <span>Formulate Policy Prompt</span>
+                            </span>
+                            <span className="text-slate-500 font-bold">&rarr;</span>
+                            <span className={`px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1.5 transition-all ${synthesizedAst ? "bg-emerald-600 text-white shadow-sm" : "bg-slate-800 text-slate-400"}`}>
+                              <span>2️⃣</span>
+                              <span>Executable AST & Sandbox</span>
+                            </span>
+                            <span className="text-slate-500 font-bold">&rarr;</span>
+                            <span className={`px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1.5 transition-all ${synthesizedAst ? "bg-amber-400 text-slate-950 shadow-sm font-black" : "bg-slate-800 text-slate-400"}`}>
+                              <span>3️⃣</span>
+                              <span>Submit for Dual-Approval</span>
+                            </span>
+                          </div>
+                          <div className="text-[11px] font-mono text-slate-400 flex items-center space-x-2">
+                            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                            <span>{currentPersona.role_type === "MAKER" ? "Maker Workflow: Step 1 Prompt ➔ Step 2 AST ➔ Step 3 Submit" : "Approver Authority Active"}</span>
+                          </div>
+                        </div>
+                      </div>
+
                       {/* Step 1: Plain English Rule Formulation */}
                       <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
                         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -6012,14 +6044,35 @@
                               <button
                                 onClick={handleSynthesizeRule}
                                 disabled={synthesizing || !rulePrompt.trim()}
-                                className="w-full py-2.5 bg-sky-600 hover:bg-sky-700 disabled:opacity-50 text-white font-bold rounded-lg text-xs shadow-md transition flex items-center justify-center space-x-1.5"
+                                className="w-full py-2.5 bg-sky-600 hover:bg-sky-700 disabled:opacity-50 text-white font-bold rounded-lg text-xs shadow-md transition flex items-center justify-center space-x-1.5 cursor-pointer"
                               >
-                                <span>{synthesizing ? "⏳ Translating..." : "✨ Translate to JSON AST"}</span>
+                                <span>{synthesizing ? "⏳ Compiling Policy..." : "✨ Compile to AST & Proceed to Step 2 →"}</span>
                               </button>
                             </div>
                           </div>
                         </div>
                       </div>
+
+                      {/* Empty State Guided Placeholder when AST not yet compiled */}
+                      {!synthesizedAst && (
+                        <div className="bg-white p-8 rounded-2xl border-2 border-dashed border-sky-300 text-center space-y-3 animate-in fade-in">
+                          <div className="w-12 h-12 rounded-full bg-sky-50 text-sky-600 text-2xl flex items-center justify-center mx-auto border border-sky-200">
+                            ✨
+                          </div>
+                          <h4 className="text-sm font-bold text-slate-900">Compile Your Policy Statement to Proceed</h4>
+                          <p className="text-xs text-slate-500 max-w-md mx-auto">
+                            Click <strong>"Compile to AST & Proceed to Step 2"</strong> above to translate your plain-English prompt into an executable condition/action AST, run live impact simulation against 100+ cases, and submit to Checker for dual-approval.
+                          </p>
+                          <button
+                            type="button"
+                            onClick={handleSynthesizeRule}
+                            disabled={synthesizing || !rulePrompt.trim()}
+                            className="px-6 py-2.5 bg-sky-600 hover:bg-sky-700 disabled:opacity-50 text-white font-bold rounded-xl text-xs shadow-md inline-flex items-center space-x-2 cursor-pointer"
+                          >
+                            <span>{synthesizing ? "⏳ Compiling..." : "✨ Compile Policy Statement & Unlock Step 2/3 →"}</span>
+                          </button>
+                        </div>
+                      )}
 
                       {/* Step 2: Synthesized AST Viewer & Live Simulation */}
                       {synthesizedAst && (
@@ -6239,8 +6292,16 @@
                         </div>
 
                         <button
-                          onClick={() => setRulesSubTab("builder")}
-                          className="px-3.5 py-1.5 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-xs font-bold shadow-sm flex items-center space-x-1"
+                          onClick={() => {
+                            setEditingRuleId(null);
+                            const defaultPrompt = "Anything more than $250,000 will go to 2-level approvals";
+                            setRulePrompt(defaultPrompt);
+                            setRuleCategory("APPROVAL_GATING");
+                            setRuleDomain("ALL");
+                            setRulesSubTab("builder");
+                            handleSynthesizeRuleWithPrompt(defaultPrompt, "APPROVAL_GATING", "ALL");
+                          }}
+                          className="px-4 py-1.5 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-xs font-bold shadow-sm flex items-center space-x-1.5 cursor-pointer"
                         >
                           <span>+</span>
                           <span>Draft New Rule</span>
