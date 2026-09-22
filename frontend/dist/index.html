@@ -304,7 +304,7 @@
       const [rulesList, setRulesList] = useState([]);
       const [icdList, setIcdList] = useState([]);
       const [rulesSubTab, setRulesSubTab] = useState("builder"); // "builder", "registry", "icd"
-      const [rulePrompt, setRulePrompt] = useState("Anything more than $250,000 will go to 2-level approvals");
+      const [rulePrompt, setRulePrompt] = useState("");
       const [ruleCategory, setRuleCategory] = useState("APPROVAL_GATING");
       const [ruleDomain, setRuleDomain] = useState("ALL");
       const [synthesizedAst, setSynthesizedAst] = useState(null);
@@ -525,6 +525,8 @@
           if (!res.ok) throw new Error(await res.text());
           const data = await res.json();
           setSynthesizedAst(data);
+          if (data.category) setRuleCategory(data.category);
+          if (data.domain) setRuleDomain(data.domain);
           setActionMsg(`✨ Policy successfully translated to JSON AST: ${data.name}`);
         } catch (e) {
           setActionErr(e.message || "Synthesis failed");
@@ -5933,7 +5935,7 @@
 
                       {/* Step 1: Plain English Rule Formulation */}
                       <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3 gap-2">
                           <div>
                             <span className="text-[10px] font-bold uppercase font-mono text-sky-700 bg-sky-50 px-2 py-0.5 rounded border border-sky-200">
                               STEP 1: NATURAL LANGUAGE POLICY PROMPT
@@ -5945,7 +5947,25 @@
                               Type plain-English governance rules for authorization gating, micro-repair fast-lanes, desk routing, or SLA escalation.
                             </p>
                           </div>
-                          <span className="text-xs font-mono text-slate-500">Maker: <strong>{currentPersona.name} ({currentPersona.role})</strong></span>
+                          <div className="flex items-center space-x-2.5">
+                            <span className="text-xs font-mono text-slate-500">Maker: <strong>{currentPersona.name} ({currentPersona.role})</strong></span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingRuleId(null);
+                                setRulePrompt("");
+                                setSynthesizedAst(null);
+                                setRuleCategory("APPROVAL_GATING");
+                                setRuleDomain("ALL");
+                                setActionMsg("✨ Canvas reset to clean slate for a new policy draft.");
+                              }}
+                              className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold border border-slate-300 transition flex items-center space-x-1.5 cursor-pointer shadow-sm"
+                              title="Reset prompt and start fresh draft"
+                            >
+                              <span>+</span>
+                              <span>New Blank Draft</span>
+                            </button>
+                          </div>
                         </div>
 
                         {/* Editing Active Rule Banner */}
@@ -5960,7 +5980,7 @@
                               type="button"
                               onClick={() => {
                                 setEditingRuleId(null);
-                                setRulePrompt("Anything more than $250,000 will go to 2-level approvals");
+                                setRulePrompt("");
                                 setSynthesizedAst(null);
                               }}
                               className="text-xs text-amber-950 font-bold hover:underline"
@@ -6004,7 +6024,7 @@
                             value={rulePrompt}
                             onChange={(e) => setRulePrompt(e.target.value)}
                             rows="2"
-                            placeholder='e.g. "Anything more than $250,000 will go to 2-level approvals"'
+                            placeholder='e.g. "Anything more than $500,000 will go to Compliance approvals", or "Auto-qualify micro repairs under $25,000 with >95% confidence for 1-click fast-lane"'
                             className="w-full p-3.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-mono text-slate-900 focus:ring-2 focus:ring-sky-500 focus:outline-none"
                           />
 
@@ -6294,12 +6314,12 @@
                         <button
                           onClick={() => {
                             setEditingRuleId(null);
-                            const defaultPrompt = "Anything more than $250,000 will go to 2-level approvals";
-                            setRulePrompt(defaultPrompt);
+                            setRulePrompt("");
+                            setSynthesizedAst(null);
                             setRuleCategory("APPROVAL_GATING");
                             setRuleDomain("ALL");
                             setRulesSubTab("builder");
-                            handleSynthesizeRuleWithPrompt(defaultPrompt, "APPROVAL_GATING", "ALL");
+                            setActionMsg("✨ Ready to formulate a new policy rule. Type in your prompt or pick a preset template.");
                           }}
                           className="px-4 py-1.5 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-xs font-bold shadow-sm flex items-center space-x-1.5 cursor-pointer"
                         >

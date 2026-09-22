@@ -148,3 +148,26 @@ def test_rule_edit_and_maker_checker_approval_workflow():
     assert activated_rule["status"] == "ACTIVE"
     assert activated_rule["checker_id"] == "APR-3191"
     assert activated_rule["approved_at"] is not None
+
+
+def test_compliance_approver_and_smart_role_synthesis():
+    """Verify that NLP synthesis correctly identifies Compliance Approver role and threshold."""
+    synth_resp = client.post(
+        "/api/rules/synthesize",
+        json={
+            "prompt": "Anything more than $500,000 will go to Compliance approvals",
+            "category": "APPROVAL_GATING",
+            "domain": "ALL"
+        }
+    )
+    assert synth_resp.status_code == 200
+    ast = synth_resp.json()
+    assert ast["category"] == "APPROVAL_GATING"
+    assert ast["domain"] == "SANCTIONS_AML"
+    assert "Compliance" in ast["name"]
+    assert ast["actions"]["tier_1_role"] == "COMPLIANCE_APPROVER"
+    assert "Compliance Approver authorization" in ast["explanation"]
+    assert len(ast["conditions"]["clauses"]) == 1
+    assert ast["conditions"]["clauses"][0]["field"] == "amount"
+    assert ast["conditions"]["clauses"][0]["value"] == 500000.0
+

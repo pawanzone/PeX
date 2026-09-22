@@ -84,16 +84,16 @@ class DynamicRuleEngine:
         category = category_hint or RuleCategory.APPROVAL_GATING.value
         if any(w in p_lower for w in ["fast-lane", "fast lane", "stp", "auto qualify", "auto-qualify", "1-click", "one-click", "auto approve", "micro repair", "straight through"]):
             category = RuleCategory.STP_FAST_LANE.value
-        elif any(w in p_lower for w in ["route", "routing", "send to", "assign to", "queue", "desk", "sanction"]):
+        elif any(w in p_lower for w in ["route", "routing", "send to", "assign to", "desk", "transfer to"]) and not any(w in p_lower for w in ["approval", "approvals", "dual", "authorize", "authorisation", "sign off", "sign-off"]):
             category = RuleCategory.ROUTING.value
-        elif any(w in p_lower for w in ["sla", "urgency", "escalate", "priority", "critical", "hours"]):
+        elif any(w in p_lower for w in ["sla", "urgency", "escalate", "escalation", "priority", "critical", "hours", "turnaround"]):
             category = RuleCategory.SLA_URGENCY.value
-        elif any(w in p_lower for w in ["approval", "dual", "2-level", "two-level", "tier", "authorize", "authorisation"]):
+        elif any(w in p_lower for w in ["approval", "approvals", "dual", "2-level", "two-level", "2-tier", "two-tier", "tier", "authorize", "authorization", "authorisation", "sign off", "sign-off", "gating"]):
             category = RuleCategory.APPROVAL_GATING.value
 
         # 2. Determine Domain
         domain = domain_hint or "ALL"
-        if "sanction" in p_lower or "ofac" in p_lower or "aml" in p_lower or "pep" in p_lower:
+        if "sanction" in p_lower or "ofac" in p_lower or "aml" in p_lower or "pep" in p_lower or "compliance" in p_lower:
             domain = "SANCTIONS_AML"
         elif "iban" in p_lower or "syntax" in p_lower or "format" in p_lower or "bic" in p_lower or "character" in p_lower:
             domain = "FORMAT_SYNTAX"
@@ -158,11 +158,49 @@ class DynamicRuleEngine:
 
         # 8. Build Actions based on Category and Context
         if category == RuleCategory.APPROVAL_GATING.value:
-            actions["set_dual_auth_required"] = True
-            actions["required_tiers"] = 2
-            actions["tier_1_role"] = "OPERATIONS_APPROVER"
-            actions["tier_2_role"] = "RISK_APPROVER"
-            explanation_parts.append("Mandate 2-Level Maker-Checker Dual Authorization (Operations Approver + Risk Approver sign-offs)")
+            is_dual = any(w in p_lower for w in ["dual", "2-level", "two-level", "2-tier", "two-tier", "2 tier", "two tier", "both", "maker-checker", "maker checker"])
+            has_compliance = "compliance" in p_lower
+            has_risk = "risk" in p_lower or "credit" in p_lower
+            has_ops = "operation" in p_lower or "ops" in p_lower
+
+            if is_dual:
+                actions["set_dual_auth_required"] = True
+                actions["required_tiers"] = 2
+                if has_compliance:
+                    actions["tier_1_role"] = "OPERATIONS_APPROVER"
+                    actions["tier_2_role"] = "COMPLIANCE_APPROVER"
+                    explanation_parts.append("Mandate 2-Level Maker-Checker Dual Authorization (Operations Approver + Compliance Approver sign-offs)")
+                elif has_risk:
+                    actions["tier_1_role"] = "OPERATIONS_APPROVER"
+                    actions["tier_2_role"] = "RISK_APPROVER"
+                    explanation_parts.append("Mandate 2-Level Maker-Checker Dual Authorization (Operations Approver + Risk Approver sign-offs)")
+                else:
+                    actions["tier_1_role"] = "OPERATIONS_APPROVER"
+                    actions["tier_2_role"] = "RISK_APPROVER"
+                    explanation_parts.append("Mandate 2-Level Maker-Checker Dual Authorization (Operations Approver + Risk Approver sign-offs)")
+            else:
+                if has_compliance:
+                    actions["set_dual_auth_required"] = False
+                    actions["required_tiers"] = 1
+                    actions["tier_1_role"] = "COMPLIANCE_APPROVER"
+                    explanation_parts.append("Mandate Compliance Approver authorization for matching payments")
+                elif has_risk:
+                    actions["set_dual_auth_required"] = False
+                    actions["required_tiers"] = 1
+                    actions["tier_1_role"] = "RISK_APPROVER"
+                    explanation_parts.append("Mandate Risk Approver authorization for matching payments")
+                elif has_ops:
+                    actions["set_dual_auth_required"] = False
+                    actions["required_tiers"] = 1
+                    actions["tier_1_role"] = "OPERATIONS_APPROVER"
+                    explanation_parts.append("Mandate Operations Approver authorization for matching payments")
+                else:
+                    actions["set_dual_auth_required"] = True
+                    actions["required_tiers"] = 2
+                    actions["tier_1_role"] = "OPERATIONS_APPROVER"
+                    actions["tier_2_role"] = "RISK_APPROVER"
+                    explanation_parts.append("Mandate 2-Level Maker-Checker Dual Authorization (Operations Approver + Risk Approver sign-offs)")
+
         elif category == RuleCategory.STP_FAST_LANE.value:
             actions["auto_qualify_fast_lane"] = True
             actions["one_click_eligible"] = True
@@ -194,8 +232,17 @@ class DynamicRuleEngine:
         rule_id = f"RULE-{rule_slug.upper()}-{unique_suffix}"
         
         # Build Name
+        role_label = ""
+        if actions.get("tier_1_role") == "COMPLIANCE_APPROVER" or actions.get("tier_2_role") == "COMPLIANCE_APPROVER":
+            role_label = "Compliance "
+        elif actions.get("tier_1_role") == "RISK_APPROVER" or actions.get("tier_2_role") == "RISK_APPROVER":
+            role_label = "Risk "
+
         if amt:
-            name = f"{category.replace('_', ' ').title()} (${amt:,.0f}+)"
+            if category == RuleCategory.APPROVAL_GATING.value and role_label:
+                name = f"{role_label}Approval Gating (${amt:,.0f}+)"
+            else:
+                name = f"{category.replace('_', ' ').title()} (${amt:,.0f}+)"
         elif found_countries:
             name = f"{category.replace('_', ' ').title()} ({', '.join(found_countries)})"
         else:
