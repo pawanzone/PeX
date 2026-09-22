@@ -2199,7 +2199,14 @@ html_content = r'''<!DOCTYPE html>
 
               <div className="space-y-1">
                 <span className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider font-mono">MISC</span>
-                <button onClick={() => setTab("architecture")} className={`w-full flex items-center justify-between px-3 py-2 rounded-lg font-semibold transition-all ${tab === "architecture" ? "bg-sky-600 text-white shadow-sm" : "text-slate-400 hover:text-white hover:bg-slate-800"}`}>
+                <button onClick={() => { setTab("architecture"); setArchView("canonical_erd"); }} className={`w-full flex items-center justify-between px-3 py-2 rounded-lg font-semibold transition-all ${tab === "architecture" && archView === "canonical_erd" ? "bg-sky-600 text-white shadow-sm" : "text-slate-400 hover:text-white hover:bg-slate-800"}`}>
+                  <div className="flex items-center space-x-2">
+                    <span>🗄️</span>
+                    <span>Canonical DB & Semantic Layer</span>
+                  </div>
+                  <span className="text-[9px] bg-sky-500/20 text-sky-300 px-1.5 py-0.5 rounded font-mono border border-sky-500/30">ERD</span>
+                </button>
+                <button onClick={() => { setTab("architecture"); if (archView === "canonical_erd") setArchView("lifecycle_20steps"); }} className={`w-full flex items-center justify-between px-3 py-2 rounded-lg font-semibold transition-all ${tab === "architecture" && archView !== "canonical_erd" ? "bg-sky-600 text-white shadow-sm" : "text-slate-400 hover:text-white hover:bg-slate-800"}`}>
                   <div className="flex items-center space-x-2">
                     <span>⚡</span>
                     <span>Architecture & Workflows</span>
@@ -7708,9 +7715,10 @@ html_content = r'''<!DOCTYPE html>
                             <span>Download Slide JPG</span>
                           </a>
                         )}
-                        {["lifecycle_20steps", "epc_diagram", "exec_slide", "icon_studio", "playbook", "executive_1pager"].includes(archView) && (
+                        {["canonical_erd", "lifecycle_20steps", "epc_diagram", "exec_slide", "icon_studio", "playbook", "executive_1pager"].includes(archView) && (
                           <a
                             href={
+                              archView === "canonical_erd" ? "/PeX_Canonical_DB_and_Semantic_Layer_Spec.html" :
                               archView === "lifecycle_20steps" ? "/PeX_20_Step_Lifecycle_Specification.html" :
                               archView === "epc_diagram" ? "/PeX_EPC_Workflow_Diagram.html" :
                               archView === "exec_slide" ? "/PeX_Event_Driven_Architecture_Slide.html" :
@@ -7737,8 +7745,9 @@ html_content = r'''<!DOCTYPE html>
                     </div>
 
                     {/* View Switcher Pills */}
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-2 mt-6 pt-5 border-t border-slate-800">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2 mt-6 pt-5 border-t border-slate-800">
                       {[
+                        { id: "canonical_erd", title: "Canonical DB & ERD", sub: "Relational Schema & Semantic Layer", badge: "SPEC v1.0", badgeColor: "bg-sky-500/20 text-sky-300 border-sky-500/30", icon: "🗄️" },
                         { id: "lifecycle_20steps", title: "20-Step Lifecycle", sub: "BA & SME Workflow", badge: "SPEC v2.0", badgeColor: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30", icon: "📋" },
                         { id: "epc_diagram", title: "EPC Workflow", sub: "Bank -> PeX 9 Steps", badge: "APPROVED", badgeColor: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30", icon: "📊" },
                         { id: "exec_slide", title: "16:9 Slide", sub: "PPT Presentation", badge: "PPT READY", badgeColor: "bg-indigo-500/20 text-indigo-300 border-indigo-500/30", icon: "🖼️" },
@@ -7961,7 +7970,8 @@ html_content = r'''<!DOCTYPE html>
                       <div className="px-6 py-3.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between text-xs text-slate-600">
                         <div className="flex items-center space-x-2">
                           <span className="font-bold text-slate-900">
-                            {archView === "lifecycle_20steps" ? "20-Step Payment Exception Resolution Lifecycle Specification (BA & SME Blueprint v2.0)" :
+                            {archView === "canonical_erd" ? "PeX Canonical Data Model & Semantic AI Layer Architecture Specification (ERD & Knowledge Graph)" :
+                             archView === "lifecycle_20steps" ? "20-Step Payment Exception Resolution Lifecycle Specification (BA & SME Blueprint v2.0)" :
                              archView === "epc_diagram" ? "Interactive EPC Workflow Diagram (Bank on Left -> PeX on Right)" :
                              archView === "exec_slide" ? "16:9 Executive Presentation Slide (Event-Driven Architecture)" :
                              archView === "icon_studio" ? "Executive Vector Icon Studio (189 Icons Across 25 Categories)" :
@@ -7976,7 +7986,7 @@ html_content = r'''<!DOCTYPE html>
                           </span>
                           <button
                             onClick={() => setArchFullscreen(!archFullscreen)}
-                            className="text-sky-600 hover:text-sky-700 font-semibold flex items-center space-x-1"
+                            className="text-sky-600 hover:text-sky-700 font-semibold flex items-center space-x-1 cursor-pointer"
                           >
                             <span>{archFullscreen ? "Standard Height" : "Expand Height (900px)"}</span>
                           </button>
@@ -7987,6 +7997,7 @@ html_content = r'''<!DOCTYPE html>
                         <iframe
                           key={archIframeKey}
                           src={
+                            archView === "canonical_erd" ? "/PeX_Canonical_DB_and_Semantic_Layer_Spec.html" :
                             archView === "lifecycle_20steps" ? "/PeX_20_Step_Lifecycle_Specification.html" :
                             archView === "epc_diagram" ? "/PeX_EPC_Workflow_Diagram.html" :
                             archView === "exec_slide" ? "/PeX_Event_Driven_Architecture_Slide.html" :
