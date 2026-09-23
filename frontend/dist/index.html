@@ -1533,8 +1533,14 @@
         try {
           const res = await fetch(`${API_BASE}/actions/execute`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ case_id: activeCase.case_id })
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer pex-token-${currentPersona.user_id}`
+            },
+            body: JSON.stringify({
+              case_id: activeCase.case_id,
+              actor_id: currentPersona.user_id
+            })
           }).then(r => r.json());
 
           if (res.success) {

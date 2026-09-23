@@ -228,11 +228,47 @@ class PeXDBRepository:
         actor_role: str,
         action_name: str,
         details: str,
-        control_tags: Optional[List[str]] = None
+        control_tags: Optional[List[str]] = None,
+        amount: Optional[float] = None,
+        currency: Optional[str] = None,
+        debtor_account: Optional[str] = None,
+        creditor_account: Optional[str] = None
     ):
         """Appends a new cryptographically chained audit event directly to DB and updates latest hash."""
         from app.schemas.audit import AuditEvent
         from app.core.hashing import calculate_event_hash
+        
+        # Auto-lookup financial fields from case if not explicitly provided
+        if case_id and (amount is None or currency is None):
+            c = self.get_case(case_id)
+            if c:
+                if amount is None:
+                    amount = float(c.get("amount", 0.0)) if c.get("amount") is not None else None
+                if currency is None:
+                    currency = c.get("currency")
+                if debtor_account is None:
+                    debtor_account = c.get("debtor_account")
+                if creditor_account is None:
+                    creditor_account = c.get("creditor_account")
+
+        def _extract_account_str(acc: Any) -> Optional[str]:
+            if acc is None:
+                return None
+            if isinstance(acc, str):
+                return acc
+            if isinstance(acc, dict):
+                return acc.get("account_number") or acc.get("iban") or acc.get("account_id") or str(acc)
+            if hasattr(acc, "account_number") and getattr(acc, "account_number"):
+                return str(getattr(acc, "account_number"))
+            if hasattr(acc, "iban") and getattr(acc, "iban"):
+                return str(getattr(acc, "iban"))
+            if hasattr(acc, "account_id") and getattr(acc, "account_id"):
+                return str(getattr(acc, "account_id"))
+            return str(acc)
+
+        debtor_account = _extract_account_str(debtor_account)
+        creditor_account = _extract_account_str(creditor_account)
+                    
         db: Session = SessionLocal()
         try:
             idx = db.query(AuditEventModel).count() + 1
@@ -249,7 +285,11 @@ class PeXDBRepository:
                 actor_id=actor_id,
                 action_name=action_name,
                 details=details,
-                prev_hash=prev_hash
+                prev_hash=prev_hash,
+                amount=amount,
+                currency=currency,
+                debtor_account=debtor_account,
+                creditor_account=creditor_account
             )
 
             db_ev = AuditEventModel(
@@ -263,6 +303,10 @@ class PeXDBRepository:
                 timestamp=timestamp_iso,
                 details=details,
                 control_tags=control_tags or [],
+                amount=amount,
+                currency=currency,
+                debtor_account=debtor_account,
+                creditor_account=creditor_account,
                 prev_hash=prev_hash,
                 current_hash=curr_hash
             )
@@ -281,6 +325,10 @@ class PeXDBRepository:
                 action_name=action_name,
                 details=details,
                 control_tags=control_tags or [],
+                amount=amount,
+                currency=currency,
+                debtor_account=debtor_account,
+                creditor_account=creditor_account,
                 prev_hash=prev_hash,
                 current_hash=curr_hash
             )
@@ -553,6 +601,10 @@ class PeXDBRepository:
             generated_at=r.generated_at
         )
 
+    def get_recommendation(self, case_id: str) -> Optional[Any]:
+        """Returns the recommendation for a given case_id from cache or DB."""
+        return self._recommendations_cache.get(case_id)
+
     def save_recommendation(self, rec: Any):
         """Persists or updates a DecisionRecommendation in database and cache."""
         case_id = rec.case_id if hasattr(rec, "case_id") else rec.get("case_id")
@@ -737,6 +789,10 @@ class PeXDBRepository:
                     maker_id=rule_data.get("maker_id"),
                     maker_name=rule_data.get("maker_name"),
                     maker_notes=rule_data.get("maker_notes"),
+                    checker_id=rule_data.get("checker_id"),
+                    checker_name=rule_data.get("checker_name"),
+                    checker_comments=rule_data.get("checker_comments"),
+                    approved_at=rule_data.get("approved_at"),
                     created_at=datetime.utcnow()
                 )
                 db.add(new_rule)
@@ -841,6 +897,10 @@ class PeXDBRepository:
                     maker_id=config_data.get("maker_id"),
                     maker_name=config_data.get("maker_name"),
                     maker_notes=config_data.get("maker_notes"),
+                    checker_id=config_data.get("checker_id"),
+                    checker_name=config_data.get("checker_name"),
+                    checker_comments=config_data.get("checker_comments"),
+                    approved_at=config_data.get("approved_at"),
                     created_at=datetime.utcnow()
                 )
                 db.add(new_icd)

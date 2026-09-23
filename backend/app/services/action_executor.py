@@ -18,8 +18,11 @@ class ActionExecutor:
         if not case:
             return False, f"Case {case_id} not found", None, None
 
-        if case.get("status") != LifecycleStage.APPROVED:
-            return False, f"Cannot execute action: Case status is {case.get('status')}, expected APPROVED.", None, None
+        # Check if already executed under provided idempotency key
+        if idempotency_key and idempotency_key in repo.actions:
+            existing = repo.actions[idempotency_key]
+            existing_receipt = repo.receipts.get(existing.action_id)
+            return True, "Idempotent response: action already settled.", existing, existing_receipt
 
         approvals = repo.approvals.get(case_id, [])
         if not approvals:
@@ -30,6 +33,9 @@ class ActionExecutor:
             existing = repo.actions[actual_idempotency_key]
             existing_receipt = repo.receipts.get(existing.action_id)
             return True, "Idempotent response: action already settled.", existing, existing_receipt
+
+        if case.get("status") != LifecycleStage.APPROVED:
+            return False, f"Cannot execute action: Case status is {case.get('status')}, expected APPROVED.", None, None
 
         last_approval = approvals[-1]
         rec = repo.recommendations.get(case_id)

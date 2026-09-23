@@ -20,9 +20,26 @@ from app.db.models import (
 from app.core.security import DEMO_PERSONAS
 from app.core.tokenization import token_vault
 
+from sqlalchemy import text
+
 def create_tables():
-    """Idempotently creates all relational tables across the active engine."""
+    """Idempotently creates all relational tables across the active engine and migrates new columns."""
     Base.metadata.create_all(bind=engine)
+    with engine.connect() as conn:
+        try:
+            res = conn.execute(text("PRAGMA table_info(audit_events)"))
+            cols = [row[1] for row in res.fetchall()]
+            if "amount" not in cols:
+                conn.execute(text("ALTER TABLE audit_events ADD COLUMN amount FLOAT"))
+            if "currency" not in cols:
+                conn.execute(text("ALTER TABLE audit_events ADD COLUMN currency VARCHAR(8)"))
+            if "debtor_account" not in cols:
+                conn.execute(text("ALTER TABLE audit_events ADD COLUMN debtor_account VARCHAR(64)"))
+            if "creditor_account" not in cols:
+                conn.execute(text("ALTER TABLE audit_events ADD COLUMN creditor_account VARCHAR(64)"))
+            conn.commit()
+        except Exception as e:
+            pass
 
 def seed_users(db: Session):
     """Populates initial user personas and RBAC roles."""

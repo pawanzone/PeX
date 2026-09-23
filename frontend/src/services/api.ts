@@ -86,11 +86,15 @@ export async function submitApproval(
   return res.json();
 }
 
-export async function executeAction(case_id: string): Promise<any> {
+export async function executeAction(case_id: string, token?: string, actor_id?: string): Promise<any> {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
   const res = await fetch(`${API_BASE}/actions/execute`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ case_id }),
+    headers,
+    body: JSON.stringify({ case_id, actor_id }),
   });
   return res.json();
 }

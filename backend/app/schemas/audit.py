@@ -14,6 +14,10 @@ class AuditEvent(BaseModel):
     action_name: str
     details: str
     control_tags: List[str] = []
+    amount: Optional[float] = None
+    currency: Optional[str] = None
+    debtor_account: Optional[str] = None
+    creditor_account: Optional[str] = None
     prev_hash: str
     current_hash: str
 

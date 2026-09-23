@@ -16,7 +16,11 @@ class AuditService:
         actor_role: str,
         action_name: str,
         details: str,
-        control_tags: Optional[List[str]] = None
+        control_tags: Optional[List[str]] = None,
+        amount: Optional[float] = None,
+        currency: Optional[str] = None,
+        debtor_account: Optional[str] = None,
+        creditor_account: Optional[str] = None
     ) -> AuditEvent:
         return repo.log_audit_event(
             case_id=case_id,
@@ -26,7 +30,11 @@ class AuditService:
             actor_role=actor_role,
             action_name=action_name,
             details=details,
-            control_tags=control_tags or []
+            control_tags=control_tags or [],
+            amount=amount,
+            currency=currency,
+            debtor_account=debtor_account,
+            creditor_account=creditor_account
         )
 
     def get_case_provenance(self, case_id: str) -> ProvenanceChain:
@@ -57,6 +65,10 @@ class AuditService:
                 "actor_id": ev.actor_id,
                 "action_name": ev.action_name,
                 "details": ev.details,
+                "amount": ev.amount,
+                "currency": ev.currency,
+                "debtor_account": ev.debtor_account,
+                "creditor_account": ev.creditor_account,
                 "prev_hash": ev.prev_hash,
                 "current_hash": ev.current_hash
             } for ev in db_events]

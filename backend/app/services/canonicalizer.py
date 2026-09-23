@@ -1,12 +1,13 @@
 """Canonicalization Service: Ingests heterogeneous bank payloads and converts them to ISO 20022/SWIFT Canonical Entities."""
-from typing import Dict, Any, Tuple
+from typing import Dict, Any, Tuple, Optional
 from datetime import datetime, timedelta
 import uuid
 
 from app.schemas.bank_events import RawBankEvent
 from app.schemas.canonical import (
     CanonicalPayment, CanonicalException, CanonicalParty, CanonicalAccount,
-    LifecycleStage, ExceptionProfile, ExceptionSeverity, ExceptionPriority
+    LifecycleStage, ExceptionProfile, ExceptionSeverity, ExceptionPriority,
+    ExceptionDomain, get_domain_for_profile
 )
 from app.core.tokenization import token_vault
 
@@ -30,7 +31,11 @@ def validate_iban_mod97(iban: str) -> bool:
         return False
 
 class CanonicalizerService:
-    def canonicalize_bank_event(self, raw_event: RawBankEvent) -> Tuple[CanonicalPayment, CanonicalException]:
+    def canonicalize_bank_event(
+        self,
+        raw_event: RawBankEvent,
+        override_profile: Optional[ExceptionProfile] = None
+    ) -> Tuple[CanonicalPayment, CanonicalException]:
         p = raw_event.raw_payload
         bank_id = raw_event.source_bank_id
         
@@ -91,19 +96,22 @@ class CanonicalizerService:
             reason = p.get("reason", "Payment processing exception.")
             rail = p.get("payment_rail", "SWIFT")
 
-        profile = ExceptionProfile.INVALID_IBAN
-        reason_upper = reason.upper()
-        err_upper = error_code.upper()
-        if "SANCTION" in reason_upper or "SANCTION" in err_upper:
-            profile = ExceptionProfile.SANCTIONS_SUSPECTED
-        elif "KYC" in reason_upper or "KYC" in err_upper:
-            profile = ExceptionProfile.KYC_EXPIRED
-        elif "DUPLICATE" in reason_upper or "DUPLICATE" in err_upper:
-            profile = ExceptionProfile.DUPLICATE_PAYMENT
-        elif "BIC" in reason_upper or "BIC" in err_upper or "ROUTING" in reason_upper:
-            profile = ExceptionProfile.INVALID_BIC
-        elif "RETURN" in reason_upper or "RECALL" in reason_upper:
-            profile = ExceptionProfile.RETURNED_PAYMENT
+        if override_profile:
+            profile = override_profile
+        else:
+            profile = ExceptionProfile.INVALID_IBAN
+            reason_upper = reason.upper()
+            err_upper = error_code.upper()
+            if "SANCTION" in reason_upper or "SANCTION" in err_upper:
+                profile = ExceptionProfile.SANCTIONS_SUSPECTED
+            elif "KYC" in reason_upper or "KYC" in err_upper:
+                profile = ExceptionProfile.KYC_EXPIRED
+            elif "DUPLICATE" in reason_upper or "DUPLICATE" in err_upper:
+                profile = ExceptionProfile.DUPLICATE_PAYMENT
+            elif "BIC" in reason_upper or "BIC" in err_upper or "ROUTING" in reason_upper:
+                profile = ExceptionProfile.INVALID_BIC
+            elif "RETURN" in reason_upper or "RECALL" in reason_upper:
+                profile = ExceptionProfile.RETURNED_PAYMENT
 
         debtor_tok = token_vault.tokenize(debtor_name, "PARTY")
         creditor_tok = token_vault.tokenize(creditor_name, "PARTY")
@@ -174,10 +182,12 @@ class CanonicalizerService:
             priority = ExceptionPriority.CRITICAL
 
         case_id = f"PEX-{uuid.uuid4().hex[:6].upper()}"
+        domain = get_domain_for_profile(profile)
         canonical_exception = CanonicalException(
             exception_id=f"EXC-{uuid.uuid4().hex[:6].upper()}",
             case_id=case_id,
             profile=profile,
+            domain=domain,
             error_code=error_code,
             reason=reason,
             severity=severity,

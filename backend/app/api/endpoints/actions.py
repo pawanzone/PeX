@@ -18,19 +18,33 @@ class ExecuteActionRequest(BaseModel):
 
 @router.post("/execute")
 def execute_action(req: ExecuteActionRequest, authorization: Optional[str] = Header(None)):
-    user_id = req.actor_id or "APR-3191"
+    user_id = None
     if authorization and authorization.startswith("Bearer pex-token-"):
         user_id = authorization.replace("Bearer pex-token-", "").strip()
+    elif req.actor_id:
+        user_id = req.actor_id
         
+    if not user_id:
+        raise HTTPException(
+            status_code=401,
+            detail="Authentication required: valid Authorization Bearer token or actor_id must be provided"
+        )
+
     actor = get_persona(user_id)
-    if actor and actor.role == UserRole.OPERATOR:
+    if not actor:
+        raise HTTPException(
+            status_code=401,
+            detail=f"Unauthorized actor: persona '{user_id}' not found"
+        )
+
+    if actor.role == UserRole.OPERATOR:
         raise HTTPException(
             status_code=403,
             detail="Segregation of Duties (SoD) violation: Operators (Makers) cannot execute settlement dispatch. Must be authorized by an Operations Approver, Compliance Approver, Risk Officer, or System Kernel."
         )
 
-    actor_name = actor.name if actor else "Authorized Officer"
-    actor_role_str = actor.role.value if actor else "APPROVER"
+    actor_name = actor.name
+    actor_role_str = actor.role.value
 
     success, message, action_contract, receipt = action_executor.execute_governed_action(
         case_id=req.case_id,

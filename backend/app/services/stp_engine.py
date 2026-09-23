@@ -12,6 +12,7 @@ from app.schemas.stp import (
     STPTelemetryResponse,
 )
 from app.schemas.canonical import LifecycleStage
+from sqlalchemy.orm import Session
 from app.db.session import SessionLocal
 from app.db.models import (
     CaseModel,
@@ -235,7 +236,16 @@ class STPEngine:
             now = datetime.utcnow()
             now_iso = now.isoformat()
 
-            # 1. Record System Approval Signature
+            # 1. Extract Approved Changes from AI Recommendation
+            rec = repo.recommendations.get(case_id) or repo.get_recommendation(case_id)
+            approved_changes = []
+            if rec and rec.proposed_changes:
+                approved_changes = [
+                    c.dict() if hasattr(c, "dict") else (c.model_dump() if hasattr(c, "model_dump") else c)
+                    for c in rec.proposed_changes
+                ]
+
+            # 2. Record System Approval Signature
             approval_id = f"APR-AUTOSTP-{uuid.uuid4().hex[:6].upper()}"
             appr = ApprovalRecordModel(
                 approval_id=approval_id,
@@ -246,13 +256,13 @@ class STPEngine:
                 approver_role="ADMIN",
                 action="APPROVE",
                 comments=f"Autonomous zero-touch STP execution authorized via policy {eval_item.matching_rule_id or 'STP-BASELINE'}.",
-                approved_changes=[],
+                approved_changes=approved_changes,
                 step_number=1,
                 created_at=now
             )
             db.add(appr)
 
-            # 2. Create Idempotent Action
+            # 3. Create Idempotent Action
             action_id = f"ACT-STP-{uuid.uuid4().hex[:6].upper()}"
             idempotency_key = f"IDEMP-STP-{case_id}-{uuid.uuid4().hex[:4]}"
             act = GovernedActionModel(
@@ -262,7 +272,12 @@ class STPEngine:
                 action_type="REPAIR_AND_RELEASE",
                 target_system="SWIFT_CBPR_AUTO_SETTLEMENT_HUB",
                 idempotency_key=idempotency_key,
-                dispatch_payload={"case_id": case_id, "amount": case.get("amount"), "currency": case.get("currency")},
+                dispatch_payload={
+                    "case_id": case_id,
+                    "amount": case.get("amount"),
+                    "currency": case.get("currency"),
+                    "repaired_fields": approved_changes
+                },
                 status="SETTLED",
                 dispatched_at=now,
                 settled_at=now
@@ -313,7 +328,7 @@ class STPEngine:
                     "approver_role": "ADMIN",
                     "action": "APPROVE",
                     "comments": f"Zero-touch STP execution via {eval_item.matching_rule_name or 'STP Heuristic'}",
-                    "approved_changes": [],
+                    "approved_changes": approved_changes,
                     "step_number": 1,
                     "created_at": now_iso
                 })
@@ -378,7 +393,16 @@ class STPEngine:
                 ccy = case.get("currency", "USD")
                 total_vol += amt
 
-                # 1. Approval Record
+                # 1. Extract Approved Changes from AI Recommendation
+                batch_rec = repo.recommendations.get(cid) or repo.get_recommendation(cid)
+                approved_changes = []
+                if batch_rec and batch_rec.proposed_changes:
+                    approved_changes = [
+                        c.dict() if hasattr(c, "dict") else (c.model_dump() if hasattr(c, "model_dump") else c)
+                        for c in batch_rec.proposed_changes
+                    ]
+
+                # 2. Approval Record
                 approval_id = f"APR-BATCH-{uuid.uuid4().hex[:6].upper()}"
                 appr = ApprovalRecordModel(
                     approval_id=approval_id,
@@ -389,13 +413,13 @@ class STPEngine:
                     approver_role=payload.approver_role,
                     action="APPROVE",
                     comments=payload.comments or f"1-Click Supervised Fast-Lane batch release ({batch_id}).",
-                    approved_changes=[],
+                    approved_changes=approved_changes,
                     step_number=1,
                     created_at=now
                 )
                 db.add(appr)
 
-                # 2. Governed Action
+                # 3. Governed Action
                 action_id = f"ACT-BATCH-{uuid.uuid4().hex[:6].upper()}"
                 idempotency_key = f"IDEMP-BATCH-{cid}-{uuid.uuid4().hex[:4]}"
                 act = GovernedActionModel(
@@ -405,7 +429,13 @@ class STPEngine:
                     action_type="REPAIR_AND_RELEASE",
                     target_system="SWIFT_CBPR_FASTLANE_GATEWAY",
                     idempotency_key=idempotency_key,
-                    dispatch_payload={"case_id": cid, "amount": amt, "currency": ccy, "batch_id": batch_id},
+                    dispatch_payload={
+                        "case_id": cid,
+                        "amount": amt,
+                        "currency": ccy,
+                        "batch_id": batch_id,
+                        "repaired_fields": approved_changes
+                    },
                     status="SETTLED",
                     dispatched_at=now,
                     settled_at=now
@@ -454,7 +484,7 @@ class STPEngine:
                         "approver_role": payload.approver_role,
                         "action": "APPROVE",
                         "comments": f"1-Click Fast-Lane Batch Release ({batch_id})",
-                        "approved_changes": [],
+                        "approved_changes": approved_changes,
                         "step_number": 1,
                         "created_at": now_iso
                     })

@@ -92,6 +92,10 @@ class AuditEventModel(Base):
     timestamp = Column(String(64), nullable=False)
     details = Column(Text, nullable=False)
     control_tags = Column(JSON, default=list)
+    amount = Column(Float, nullable=True)
+    currency = Column(String(8), nullable=True)
+    debtor_account = Column(String(64), nullable=True)
+    creditor_account = Column(String(64), nullable=True)
     prev_hash = Column(String(64), nullable=False)
     current_hash = Column(String(64), nullable=False, index=True)
 

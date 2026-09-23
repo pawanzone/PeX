@@ -17,6 +17,8 @@ from app.schemas.rules import (
 )
 from app.services.rule_engine import rule_engine
 from app.services.data_loader import repo
+from app.core.security import get_persona
+from app.schemas.approval import UserRole
 
 router = APIRouter(prefix="/rules", tags=["Governed Rules & Policies"])
 
@@ -78,6 +80,24 @@ def submit_rule_for_approval(payload: SubmitRuleRequest):
         f"Affects {impact.matched_cases_count} of {impact.total_cases_evaluated} live cases "
         f"({impact.match_percentage}%) with ${impact.total_dollar_volume_affected:,.2f} aggregate exposure."
     )
+
+    if payload.auto_approve:
+        if not payload.checker_id:
+            raise HTTPException(
+                status_code=403,
+                detail="Checker role required for rule activation: checker_id must be provided when auto_approve is True"
+            )
+        if payload.maker_id and payload.checker_id == payload.maker_id:
+            raise HTTPException(
+                status_code=403,
+                detail=f"Segregation of Duties Violation: Maker ({payload.maker_id}) cannot approve their own rule."
+            )
+        checker = get_persona(payload.checker_id)
+        if not checker or checker.role == UserRole.OPERATOR:
+            raise HTTPException(
+                status_code=403,
+                detail="Checker role required for rule activation: operators cannot activate rules without approver sign-off"
+            )
 
     status_val = "ACTIVE" if payload.auto_approve else "PENDING_APPROVAL"
     approved_at_val = datetime.utcnow() if payload.auto_approve else None
@@ -185,6 +205,24 @@ def submit_icd_config(payload: SubmitICDConfigRequest):
     if not icd_id:
         bic_prefix = (payload.bic[:4] if len(payload.bic) >= 4 else "NODE").upper()
         icd_id = f"ICD-{bic_prefix}-{uuid.uuid4().hex[:4].upper()}"
+
+    if payload.auto_approve:
+        if not payload.checker_id:
+            raise HTTPException(
+                status_code=403,
+                detail="Checker role required for ICD configuration activation: checker_id must be provided when auto_approve is True"
+            )
+        if payload.maker_id and payload.checker_id == payload.maker_id:
+            raise HTTPException(
+                status_code=403,
+                detail=f"Segregation of Duties Violation: Maker ({payload.maker_id}) cannot approve their own ICD node."
+            )
+        checker = get_persona(payload.checker_id)
+        if not checker or checker.role == UserRole.OPERATOR:
+            raise HTTPException(
+                status_code=403,
+                detail="Checker role required for ICD configuration activation: operators cannot activate clearing adapters without approver sign-off"
+            )
 
     status_val = "ACTIVE" if payload.auto_approve else "PENDING_APPROVAL"
     approved_at_val = datetime.utcnow() if payload.auto_approve else None
