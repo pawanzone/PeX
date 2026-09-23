@@ -182,10 +182,7 @@
         "NL",
         "BE",
         "SE",
-        "NO",
-        "SG",
-        "JP",
-        "US"
+        "NO"
       ]
     }
   },
@@ -200,7 +197,7 @@
         "verified_tax_id": "GB-88912891",
         "kyc_status": "CURRENT_VALID",
         "kyc_expiry": "2027-12-31",
-        "purpose_code": "GDDS",
+        "purpose_code": "GDSV",
         "structured_address": {
           "street": "42 Wharfside Way",
           "building_num": "Building B",
@@ -230,9 +227,9 @@
       "Apex Global Treasury": {
         "registered_country": "US",
         "currency": "USD",
-        "standing_iban": "US64CHAS02100002100012345678",
         "clearing_bic": "CHASUS33XXX",
         "routing_aba": "021000021",
+        "account_number": "0002100012345678",
         "verified_tax_id": "US-13-8829104",
         "kyc_status": "CURRENT_VALID",
         "kyc_expiry": "2028-01-30",
@@ -248,13 +245,14 @@
       "Kyoto Precision Robotics": {
         "registered_country": "JP",
         "currency": "JPY",
-        "standing_iban": "JP44BOTK0001000987654321",
         "clearing_bic": "BOTKJPJTXXX",
-        "routing_aba": "021001033",
+        "zengin_bank_code": "0005",
+        "branch_code": "001",
+        "account_number": "000987654321",
         "verified_tax_id": "JP-88192019",
         "kyc_status": "CURRENT_VALID",
         "kyc_expiry": "2027-06-30",
-        "purpose_code": "COMM",
+        "purpose_code": "COMC",
         "structured_address": {
           "street": "7-1 Chiyoda-ku",
           "building_num": "Marunouchi Bldg",
@@ -266,13 +264,13 @@
       "Vanguard BioPharma GmbH": {
         "registered_country": "DE",
         "currency": "EUR",
-        "standing_iban": "DE89DEUT370400440532013000",
+        "standing_iban": "DE89370400440532013000",
         "clearing_bic": "DEUTDEDDXXX",
         "routing_aba": "021000021",
         "verified_tax_id": "DE-128891042",
         "kyc_status": "CURRENT_VALID",
         "kyc_expiry": "2027-11-20",
-        "purpose_code": "PHAR",
+        "purpose_code": "MDCS",
         "structured_address": {
           "street": "Taunusanlage 12",
           "building_num": "Main Tower",

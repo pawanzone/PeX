@@ -2,8 +2,8 @@
 
 **Authoritative Governance Ledger for PeX (Payment Exception Resolution Platform)**  
 **Repository:** `pex_platform`  
-**Current Production-Grade Prototype Version:** `v1.9.2`  
-**Status:** **P1 Remediation Batch 3 Complete (89 / 89 Passing Tests)**  
+**Current Production-Grade Prototype Version:** `v1.9.3`  
+**Status:** **P1 Remediation Batch 4 Complete (103 / 103 Passing Tests)**  
 **Last Updated:** September 23, 2026
 
 ---
@@ -12,7 +12,8 @@
 
 | Version Tag | Release Date | Scope & Milestone Description | Test Suite Status | Checkpoint Artifact |
 |---|---|---|---|---|
-| **`v1.9.2`** | **2026-09-23** | **P1 Batch 3 Remediation:** Contracts, reliability & code hygiene. STP batch transaction rollback (`MST-018`), explicit datetime parsing logging (`MST-019`), TypeScript vs Pydantic schema alignment (`MST-020`), authoritative single-page bundle declaration (`MST-030`), root directory generator reorganization into `tools/` (`MST-031`), Pydantic `.dict()` -> `.model_dump()` migration (`MST-032`), ingestion case schema completeness (`MST-044`), dynamic ontology context calculations (`MST-045`), SLA velocity terminal math (`MST-046`), SPA catch-all API route protection (`MST-047`). | **89 / 89 PASSED (100%)** | `backups/rollback_checkpoint_p1_batch3_v1_9_2_20260923.zip` |
+| **`v1.9.3`** | **2026-09-23** | **P1 Batch 4 Remediation:** Payment-domain & reference-data corrections. Removal of fabricated US/JP IBANs and alignment to domestic routing (`MST-021`), correction of 26-char German IBAN to 22-digit numeric standard (`MST-024`), semantic disambiguation of ISO return codes `AC01` vs `AC04` (`MST-025`), disentanglement of `pacs.004` value returns from `camt.056` recall requests (`MST-026`), validation of ISO 20022 external purpose codes (`MST-027`), enforcement of strict 18-char Fedwire FAIM IMAD syntax (`MST-028`), and reclassification of UK Bacs as 3-day bulk ACH (`MST-029`). | **103 / 103 PASSED (100%)** | `backups/rollback_checkpoint_p1_batch4_v1_9_3_20260923.zip` |
+| **`v1.9.2`** | 2026-09-23 | **P1 Batch 3 Remediation:** Contracts, reliability & code hygiene. STP batch transaction rollback (`MST-018`), explicit datetime parsing logging (`MST-019`), TypeScript vs Pydantic schema alignment (`MST-020`), authoritative single-page bundle declaration (`MST-030`), root directory generator reorganization into `tools/` (`MST-031`), Pydantic `.dict()` -> `.model_dump()` migration (`MST-032`), ingestion case schema completeness (`MST-044`), dynamic ontology context calculations (`MST-045`), SLA velocity terminal math (`MST-046`), SPA catch-all API route protection (`MST-047`). | 89 / 89 PASSED (100%) | `backups/rollback_checkpoint_p1_batch3_v1_9_2_20260923.zip` |
 | **`v1.9.1`** | 2026-09-23 | **P1 Batch 2 Remediation:** State machine & HITL approval governance. Disallow `INVESTIGATING` in approvals (`MST-040`), enforce dual-auth on `MODIFY` (`MST-041`), set initial state to `INGESTED` with domain on bank event intake (`MST-042`), enforce persona & role monetary limits in `check_can_approve` (`MST-043`), eliminate duplicate audit logging on approval submit (`MST-011`). | 76 / 76 PASSED (100%) | `backups/rollback_checkpoint_p1_batch2_v1_9_1_20260923.zip` |
 | **`v1.9.0`** | 2026-09-23 | **P0 Batch 1 Remediation:** Cryptographic audit hash invariant (`MST-009`), 7 adversarial tampering tests (`MST-034`), STP engine Session import (`MST-037`), STP fast-lane repair preservation (`MST-036`), Frontend dispatch auth & SoD (`MST-035`), Rule/ICD auto-approve Maker-Checker governance (`MST-038`), Canonicalizer domain propagation (`MST-039`), Pytest discovery & root hygiene (`MST-033`). | 63 / 63 PASSED (100%) | `backups/rollback_checkpoint_p0_batch1_v1_9_0_20260923.zip` |
 | **`v1.8.4`** | 2026-09-21 | **Canonical DB & Semantic Layer:** SQLite persistent engine, 233 initial cases seed, 19 policy rules, 5 ICD clearing nodes, MISC menu architecture navigation. | 46 / 46 PASSED | `backups/rollback_checkpoint_pre_db_20260920.zip` |

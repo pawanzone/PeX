@@ -7408,7 +7408,7 @@ html_content = r'''<!DOCTYPE html>
                                 </tr>
                                 <tr>
                                   <td className="py-1 font-bold text-white">UK Sterling High-Value</td>
-                                  <td className="py-1 text-slate-400">CHAPS / Bacs Direct</td>
+                                  <td className="py-1 text-slate-400">CHAPS RTGS / FPS</td>
                                   <td className="py-1 text-emerald-400 font-bold">99.7%</td>
                                   <td className="py-1 text-slate-400">0.00%</td>
                                   <td className="py-1 text-right text-emerald-400 font-bold">✓ UNIFORM PARITY</td>

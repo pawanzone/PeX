@@ -11,6 +11,46 @@ from app.schemas.canonical import (
 )
 from app.core.tokenization import token_vault
 
+import re
+
+# Official ISO 13616 IBAN Registry Lengths (SWIFT Release 96+)
+OFFICIAL_IBAN_COUNTRY_LENGTHS: Dict[str, int] = {
+    "AL": 28, "AD": 24, "AT": 20, "AZ": 28, "BH": 22, "BY": 28, "BE": 16, "BA": 20,
+    "BR": 29, "BG": 22, "CR": 22, "HR": 21, "CY": 28, "CZ": 24, "DK": 18, "DO": 28,
+    "EE": 20, "FO": 18, "FI": 18, "FR": 27, "GE": 22, "DE": 22, "GI": 23, "GR": 27,
+    "GL": 18, "GT": 28, "HU": 28, "IS": 26, "IE": 22, "IL": 23, "IT": 27, "JO": 30,
+    "KZ": 20, "XK": 20, "KW": 30, "LV": 21, "LB": 28, "LI": 21, "LT": 20, "LU": 20,
+    "MT": 31, "MR": 27, "MU": 30, "MD": 24, "MC": 27, "ME": 22, "NL": 18, "MK": 19,
+    "NO": 15, "PK": 24, "PS": 29, "PL": 28, "PT": 25, "QA": 29, "RO": 24, "LC": 32,
+    "SM": 27, "ST": 25, "SA": 24, "RS": 22, "SC": 31, "SK": 24, "SI": 19, "ES": 24,
+    "SE": 24, "CH": 21, "TL": 23, "TN": 24, "TR": 26, "UA": 29, "AE": 23, "GB": 22,
+    "VA": 22, "VG": 24
+}
+
+# Countries that do NOT issue IBANs (use domestic routing e.g. ABA, Zengin, BSB, etc.)
+NON_IBAN_COUNTRIES = {"US", "JP", "SG", "AU", "CA", "NZ", "HK", "CN", "IN"}
+
+# Official ISO 20022 External Purpose Codes (ExternalPurpose1Code)
+VALID_ISO20022_PURPOSE_CODES = {
+    "GDSV", "COMC", "MDCS", "TREA", "CORT", "SALA", "SUPP", "INTC",
+    "DIVI", "PENS", "TAXS", "LOAN", "CHAR", "BONU", "COLL", "GOVT",
+    "HEDG", "INSU", "INTE", "SECU", "SSBE", "TRAD", "UTIL", "VATX"
+}
+
+# Official ISO 20022 External Return Reason Codes (ExternalReturnReason1Code)
+ISO20022_RETURN_REASON_CODES = {
+    "AC01": "IncorrectAccountNumber",
+    "AC04": "ClosedAccountNumber",
+    "AC06": "BlockedAccount",
+    "AG01": "TransactionForbidden",
+    "AG02": "InvalidBankOperationCode",
+    "RC01": "BankIdentifierIncorrect",
+    "MS03": "NotSpecifiedReasonAgentGenerated",
+    "MD07": "EndCustomerDeceased",
+    "AM04": "InsufficientFunds",
+    "DUPL": "DuplicatePayment"
+}
+
 def validate_iban_mod97(iban: str) -> bool:
     """Standard ISO 7064 MOD-97-10 check."""
     clean = iban.replace(" ", "").upper()
@@ -30,6 +70,50 @@ def validate_iban_mod97(iban: str) -> bool:
     except ValueError:
         return False
 
+def validate_iban_structure(iban: str) -> Tuple[bool, str]:
+    """Comprehensive ISO 13616 & ISO 7064 structural and checksum validator."""
+    clean = iban.replace(" ", "").upper()
+    if len(clean) < 4:
+        return False, "IBAN length too short (< 4 chars)"
+    country_code = clean[:2]
+    if country_code in NON_IBAN_COUNTRIES:
+        return False, f"Country {country_code} does not issue IBANs (uses domestic account format)"
+    if country_code not in OFFICIAL_IBAN_COUNTRY_LENGTHS:
+        return False, f"Country {country_code} not recognized in ISO 13616 IBAN Registry"
+    expected_length = OFFICIAL_IBAN_COUNTRY_LENGTHS[country_code]
+    if len(clean) != expected_length:
+        return False, f"Invalid IBAN length for {country_code}: expected {expected_length}, got {len(clean)}"
+    
+    # Specific country BBAN structural checks
+    if country_code == "DE":
+        # Germany: DE + 2 check digits + 8 BLZ (numeric) + 10 Account (numeric) = 22 numeric chars
+        if not clean[2:].isdigit():
+            return False, "German BBAN must contain only numeric digits (no letters allowed)"
+    elif country_code == "GB":
+        # UK: GB + 2 check digits + 4 bank alpha + 6 sort numeric + 8 account numeric = 22 chars
+        if not clean[4:8].isalpha() or not clean[8:].isdigit():
+            return False, "UK IBAN must follow GB2!n4!a6!n8!n format"
+    
+    if not validate_iban_mod97(clean):
+        return False, "ISO 7064 MOD 97-10 checksum validation failed"
+    return True, "Valid ISO 13616 IBAN"
+
+def validate_fedwire_imad(imad: str) -> Tuple[bool, str]:
+    """Validates Federal Reserve Fedwire IMAD (Input Message Accountability Data) strictly against FAIM 18-char standard."""
+    clean = imad.strip().upper()
+    if len(clean) != 18:
+        return False, f"Fedwire IMAD must be strictly 18 characters, got {len(clean)}"
+    # Pattern: 8 digits YYYYMMDD + 4 alphanumeric source ID + 6 digits sequence
+    if not re.match(r"^[0-9]{8}[A-Z0-9]{4}[0-9]{6}$", clean):
+        return False, "Fedwire IMAD must follow FAIM standard: YYYYMMDD (8 digits) + Source (4 alnum) + Sequence (6 digits)"
+    return True, "Valid Fedwire FAIM IMAD"
+
+def is_valid_iso20022_purpose_code(code: str) -> bool:
+    """Validates 4-character payment purpose code against ISO 20022 ExternalPurpose1Code set."""
+    if not code or len(code) != 4:
+        return False
+    return code.upper() in VALID_ISO20022_PURPOSE_CODES
+
 class CanonicalizerService:
     def canonicalize_bank_event(
         self,
@@ -45,7 +129,7 @@ class CanonicalizerService:
             amount = float(p.get("amount", 42000.0))
             currency = p.get("currency", "USD")
             debtor_name = p.get("debtor_name", "Acme Global Holdings")
-            debtor_acc = p.get("debtor_account", "US89CHAS12345678901234")
+            debtor_acc = p.get("debtor_account", "021000021-12345678901234")
             creditor_name = p.get("creditor_name", "HarborView Supplier Ltd")
             creditor_iban = p.get("creditor_iban", "GB82WEST12345698765432")
             creditor_bic = p.get("creditor_bic", "WESTGB2L")
@@ -60,7 +144,7 @@ class CanonicalizerService:
             amount = float(body.get("amount") if body.get("amount") is not None else p.get("amount", 250000.0))
             currency = body.get("ccy") or p.get("currency", "USD")
             debtor_name = body.get("ordering_customer") or p.get("debtor_name", "Apex Global Treasury")
-            debtor_acc = body.get("ordering_account") or p.get("debtor_account", "US11APEX99887766554433")
+            debtor_acc = body.get("ordering_account") or p.get("debtor_account", "021000021-99887766554433")
             creditor_name = body.get("beneficiary_customer") or p.get("creditor_name", "Nordhavn Components A/S")
             creditor_iban = body.get("beneficiary_iban") or p.get("creditor_iban", "DK50DABA30012345678901")
             creditor_bic = p.get("creditor_bic", "DABADKKK")

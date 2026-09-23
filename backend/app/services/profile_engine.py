@@ -286,8 +286,8 @@ PROFILE_SPECS: Dict[ExceptionProfile, Dict[str, Any]] = {
     # === DOMAIN 5: SETTLEMENT / RETURNS (7 Profiles) ===
     ExceptionProfile.RETURNED_PAYMENT: {
         "domain": ExceptionDomain.SETTLEMENT_RETURNS,
-        "title": "Returned Payment (pacs.004 / camt.056)",
-        "description": "Processes incoming payment return messages and maps ISO external return reason codes.",
+        "title": "Returned Payment (pacs.004 Value Return)",
+        "description": "Processes incoming pacs.004 payment return messages and maps ISO external return reason codes (reconciled against originating payment).",
         "default_queue": "Investigation",
         "mandatory_evidence": ["RETURN_REASON_CODE", "ORIGINAL_PAYMENT"],
         "min_confidence": 0.90
