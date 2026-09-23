@@ -56,8 +56,8 @@ def get_case(case_id: str):
     
     return {
         "case": case,
-        "recommendation": rec.dict() if rec else None,
-        "approvals": [a.dict() for a in approvals]
+        "recommendation": rec.model_dump() if rec else None,
+        "approvals": [a.model_dump() if hasattr(a, "model_dump") else a.dict() for a in approvals]
     }
 
 @router.post("/{case_id}/run-ai-repair")
@@ -140,7 +140,7 @@ def run_ai_repair(case_id: str, analyst_id: Optional[str] = Query("OP-9012")):
         "success": True,
         "message": "AI Repair analysis completed. Evidence validated against Federal Reserve, SWIFT and Core Banking adapters.",
         "case": case,
-        "recommendation": rec.dict()
+        "recommendation": rec.model_dump() if hasattr(rec, "model_dump") else rec.dict()
     }
 
 class DisambiguationRequest(BaseModel):
@@ -193,7 +193,7 @@ def disambiguate_hypothesis(case_id: str, payload: DisambiguationRequest):
         "success": True,
         "message": f"Disambiguation applied: {payload.selected_hypothesis_id} selected",
         "case": case,
-        "recommendation": rec.dict() if rec else None
+        "recommendation": rec.model_dump() if rec else None
     }
 
 @router.post("/{case_id}/submit-to-checker")
@@ -360,8 +360,8 @@ def run_investigation(case_id: str, scenario_override: Optional[str] = None):
 
     return {
         "case_id": case_id,
-        "tokenized_context": context.dict(),
-        "recommendation": recommendation.dict(),
+        "tokenized_context": context.model_dump() if hasattr(context, "model_dump") else context.dict(),
+        "recommendation": recommendation.model_dump() if hasattr(recommendation, "model_dump") else recommendation.dict(),
         "governance_gate": {"passed": gate_ok, "message": gate_msg}
     }
 

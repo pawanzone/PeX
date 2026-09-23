@@ -31,6 +31,6 @@ def submit_approval(submission: ApprovalSubmission, authorization: Optional[str]
     return {
         "success": True,
         "message": message,
-        "approval_record": record.dict() if record else None,
+        "approval_record": record.model_dump() if record else None,
         "next_stage": next_stage.value
     }

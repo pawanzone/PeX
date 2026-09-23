@@ -70,8 +70,8 @@ def execute_action(req: ExecuteActionRequest, authorization: Optional[str] = Hea
         "success": True,
         "message": message,
         "case": repo.get_case(req.case_id),
-        "action_contract": action_contract.dict() if action_contract else None,
-        "delivery_receipt": receipt.dict() if receipt else None
+        "action_contract": action_contract.model_dump() if action_contract else None,
+        "delivery_receipt": receipt.model_dump() if receipt else None
     }
 
 class PingApproverRequest(BaseModel):

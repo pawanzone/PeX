@@ -37,8 +37,10 @@ def test_scenario_iban_repair_001():
         "case_id": exc.case_id, "payment_id": pmt.payment_id, "uetr": pmt.uetr,
         "payment_ref": pmt.instruction_id, "profile": exc.profile, "error_code": exc.error_code,
         "reason": exc.reason, "amount": pmt.amount, "currency": pmt.currency, "payment_rail": pmt.payment_rail,
-        "debtor_party": pmt.debtor_party.dict(), "debtor_account": pmt.debtor_account.dict(),
-        "creditor_party": pmt.creditor_party.dict(), "creditor_account": pmt.creditor_account.dict(),
+        "debtor_party": pmt.debtor_party.model_dump() if hasattr(pmt.debtor_party, "model_dump") else pmt.debtor_party.dict(),
+        "debtor_account": pmt.debtor_account.model_dump() if hasattr(pmt.debtor_account, "model_dump") else pmt.debtor_account.dict(),
+        "creditor_party": pmt.creditor_party.model_dump() if hasattr(pmt.creditor_party, "model_dump") else pmt.creditor_party.dict(),
+        "creditor_account": pmt.creditor_account.model_dump() if hasattr(pmt.creditor_account, "model_dump") else pmt.creditor_account.dict(),
         "queue": exc.assigned_queue, "status": LifecycleStage.PENDING_APPROVAL, "severity": exc.severity,
         "priority": exc.priority, "sla_due_at": exc.sla_due_at, "dual_auth_required": False,
         "ai_confidence": 0.96, "created_at": exc.detected_at, "approval_history": []

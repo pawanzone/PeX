@@ -83,8 +83,12 @@ def get_sla_resolution_velocity() -> List[Dict[str, Any]]:
     now = datetime.utcnow()
     day_names = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
     all_cases = list(repo.cases.values())
-    settled_cases = [c for c in all_cases if c.get("status") == LifecycleStage.SETTLED]
-    open_cases = [c for c in all_cases if c.get("status") != LifecycleStage.SETTLED]
+    terminal_stages = [
+        LifecycleStage.SETTLED, LifecycleStage.SETTLED.value,
+        LifecycleStage.REJECTED, LifecycleStage.REJECTED.value
+    ]
+    settled_cases = [c for c in all_cases if c.get("status") in terminal_stages]
+    open_cases = [c for c in all_cases if c.get("status") not in terminal_stages]
 
     from datetime import timedelta
     velocity_data = []

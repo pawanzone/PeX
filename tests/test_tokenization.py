@@ -35,7 +35,7 @@ def test_zero_pii_in_ai_context():
         payment=pmt, exception=exc, evidence_items=[], policies=[], historical_cases=[]
     )
     
-    ctx_dict = ctx.dict()
+    ctx_dict = ctx.model_dump() if hasattr(ctx, "model_dump") else ctx.dict()
     ctx_str = str(ctx_dict)
     
     # Assert raw PII names are NOT present in AI context

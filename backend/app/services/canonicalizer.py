@@ -55,33 +55,44 @@ class CanonicalizerService:
         elif bank_id == "BANK_B":
             header = p.get("header", {})
             body = p.get("body", {})
-            payment_ref = header.get("trn") or f"TRN-B-{uuid.uuid4().hex[:6].upper()}"
-            uetr = f"UETR-B-{uuid.uuid4().hex[:8]}"
-            amount = float(body.get("amount", 250000.0))
-            currency = body.get("ccy", "USD")
-            debtor_name = body.get("ordering_customer", "Apex Global Treasury")
-            debtor_acc = body.get("ordering_account", "US11APEX99887766554433")
-            creditor_name = body.get("beneficiary_customer", "Nordhavn Components A/S")
-            creditor_iban = body.get("beneficiary_iban", "DK50DABA30012345678901")
-            creditor_bic = "DABADKKK"
-            error_code = body.get("exception_code", "ERR_BENEFICIARY_DATA")
-            reason = body.get("failure_reason", "Beneficiary account identifier failed validation against receiving bank profile.")
-            rail = "SWIFT_CBPR+"
+            payment_ref = header.get("trn") or p.get("payment_reference") or p.get("payment_ref") or f"TRN-B-{uuid.uuid4().hex[:6].upper()}"
+            uetr = p.get("uetr") or f"UETR-B-{uuid.uuid4().hex[:8]}"
+            amount = float(body.get("amount") if body.get("amount") is not None else p.get("amount", 250000.0))
+            currency = body.get("ccy") or p.get("currency", "USD")
+            debtor_name = body.get("ordering_customer") or p.get("debtor_name", "Apex Global Treasury")
+            debtor_acc = body.get("ordering_account") or p.get("debtor_account", "US11APEX99887766554433")
+            creditor_name = body.get("beneficiary_customer") or p.get("creditor_name", "Nordhavn Components A/S")
+            creditor_iban = body.get("beneficiary_iban") or p.get("creditor_iban", "DK50DABA30012345678901")
+            creditor_bic = p.get("creditor_bic", "DABADKKK")
+            error_code = body.get("exception_code") or p.get("error_code", "ERR_BENEFICIARY_DATA")
+            reason = body.get("failure_reason") or p.get("error_message", "Beneficiary account identifier failed validation against receiving bank profile.")
+            rail = p.get("settlement_rail", "SWIFT_CBPR+")
         elif bank_id == "BANK_C":
             camt = p.get("camt_code", "camt.056.001.08")
             uetr = p.get("uetr") or f"UETR-C-{uuid.uuid4().hex[:8]}"
-            payment_ref = p.get("message_id") or f"MSG-C-{uuid.uuid4().hex[:6].upper()}"
+            payment_ref = p.get("message_id") or p.get("payment_reference") or p.get("payment_ref") or f"MSG-C-{uuid.uuid4().hex[:6].upper()}"
             amt_info = p.get("amount", {})
-            amount = float(amt_info.get("value", 380000.0))
-            currency = amt_info.get("currency", "EUR")
-            debtor_name = p.get("debtor", {}).get("name", "Euro Corp BV")
-            debtor_acc = p.get("debtor", {}).get("account", "NL91ABNA0417164300")
-            creditor_name = p.get("creditor", {}).get("name", "Al-Rashid Trading Gmbh")
-            creditor_iban = p.get("creditor", {}).get("iban", "DE89370400440532013000")
-            creditor_bic = "COBADEFF"
-            error_code = p.get("return_reason", {}).get("code", "NARR_SANCTION_MATCH")
-            reason = p.get("return_reason", {}).get("narrative", "Sanctions entity name similarity requires secondary screening.")
-            rail = "ISO20022_pacs008"
+            if isinstance(amt_info, dict):
+                amount = float(amt_info.get("value", 380000.0))
+                currency = amt_info.get("currency", p.get("currency", "EUR"))
+            else:
+                amount = float(amt_info)
+                currency = p.get("currency", "EUR")
+            debtor_dict = p.get("debtor", {})
+            debtor_name = debtor_dict.get("name") if isinstance(debtor_dict, dict) else p.get("debtor_name", "Euro Corp BV")
+            debtor_acc = debtor_dict.get("account") if isinstance(debtor_dict, dict) else p.get("debtor_account", "NL91ABNA0417164300")
+            creditor_dict = p.get("creditor", {})
+            creditor_name = creditor_dict.get("name") if isinstance(creditor_dict, dict) else p.get("creditor_name", "Al-Rashid Trading Gmbh")
+            creditor_iban = creditor_dict.get("iban") if isinstance(creditor_dict, dict) else p.get("creditor_iban", "DE89370400440532013000")
+            creditor_bic = p.get("creditor_bic", "COBADEFF")
+            return_reason = p.get("return_reason", {})
+            if isinstance(return_reason, dict):
+                error_code = return_reason.get("code", "NARR_SANCTION_MATCH")
+                reason = return_reason.get("narrative", "Sanctions entity name similarity requires secondary screening.")
+            else:
+                error_code = p.get("error_code", "NARR_SANCTION_MATCH")
+                reason = p.get("error_message", "Sanctions entity name similarity requires secondary screening.")
+            rail = p.get("settlement_rail", "ISO20022_pacs008")
         else:
             payment_ref = p.get("client_reference") or p.get("payment_ref") or f"REF-GEN-{uuid.uuid4().hex[:6].upper()}"
             uetr = p.get("uetr") or f"UETR-{uuid.uuid4().hex[:8]}"

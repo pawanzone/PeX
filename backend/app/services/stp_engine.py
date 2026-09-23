@@ -241,7 +241,7 @@ class STPEngine:
             approved_changes = []
             if rec and rec.proposed_changes:
                 approved_changes = [
-                    c.dict() if hasattr(c, "dict") else (c.model_dump() if hasattr(c, "model_dump") else c)
+                    c.model_dump() if hasattr(c, "model_dump") else (c.dict() if hasattr(c, "dict") else c)
                     for c in rec.proposed_changes
                 ]
 
@@ -359,6 +359,9 @@ class STPEngine:
                 "settled_at": now_iso,
                 "message": f"Case {case_id} autonomously settled in 14ms via Governed STP."
             }
+        except Exception as e:
+            db.rollback()
+            raise e
         finally:
             db.close()
 
@@ -398,7 +401,7 @@ class STPEngine:
                 approved_changes = []
                 if batch_rec and batch_rec.proposed_changes:
                     approved_changes = [
-                        c.dict() if hasattr(c, "dict") else (c.model_dump() if hasattr(c, "model_dump") else c)
+                        c.model_dump() if hasattr(c, "model_dump") else (c.dict() if hasattr(c, "dict") else c)
                         for c in batch_rec.proposed_changes
                     ]
 
@@ -529,6 +532,9 @@ class STPEngine:
                 timestamp=now_iso,
                 message=f"Successfully executed 1-Click Fast-Lane settlement for {processed_count} cases (${total_vol:,.2f} total volume)."
             )
+        except Exception as e:
+            db.rollback()
+            raise e
         finally:
             db.close()
 

@@ -1,8 +1,11 @@
 """Persistent Relational Database Repository for PeX Enterprise Platform."""
+import logging
 from typing import Dict, List, Any, Optional
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 from sqlalchemy import desc, or_
+
+logger = logging.getLogger(__name__)
 
 from app.db.session import SessionLocal
 from app.db.models import (
@@ -199,7 +202,11 @@ class PeXDBRepository:
             for ev in db_events:
                 try:
                     ts = datetime.fromisoformat(ev.timestamp.replace("Z", "+00:00").split("+")[0])
-                except Exception:
+                except (ValueError, TypeError, AttributeError) as exc:
+                    logger.warning(
+                        "Failed to parse datetime timestamp '%s' for audit event index %s: %s. Using datetime.utcnow() fallback.",
+                        ev.timestamp, ev.event_index, exc
+                    )
                     ts = datetime.utcnow()
                 result.append(AuditEvent(
                     event_index=ev.event_index,
@@ -357,7 +364,7 @@ class PeXDBRepository:
                 approver_role=approval_record.approver_role.value if hasattr(approval_record.approver_role, "value") else str(approval_record.approver_role),
                 action=approval_record.action.value if hasattr(approval_record.action, "value") else str(approval_record.action),
                 comments=approval_record.comments,
-                approved_changes=_sanitize_for_json([c.dict() if hasattr(c, "dict") else c for c in (approval_record.approved_changes or [])]),
+                approved_changes=_sanitize_for_json([c.model_dump() if hasattr(c, "model_dump") else (c.dict() if hasattr(c, "dict") else c) for c in (approval_record.approved_changes or [])]),
                 step_number=approval_record.step_number,
                 created_at=approval_record.created_at if isinstance(approval_record.created_at, datetime) else datetime.utcnow()
             )
@@ -615,7 +622,7 @@ class PeXDBRepository:
             rec_id = rec.recommendation_id if hasattr(rec, "recommendation_id") else rec.get("recommendation_id")
             existing = db.query(RecommendationModel).filter(RecommendationModel.case_id == case_id).first()
             
-            raw_dict = rec.dict() if hasattr(rec, "dict") else (rec.model_dump() if hasattr(rec, "model_dump") else dict(rec))
+            raw_dict = rec.model_dump() if hasattr(rec, "model_dump") else (rec.dict() if hasattr(rec, "dict") else dict(rec))
             act_str = raw_dict.get("action_type", "REPAIR_DATA")
             if hasattr(act_str, "value"):
                 act_str = act_str.value

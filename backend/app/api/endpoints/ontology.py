@@ -81,6 +81,7 @@ def get_investigation_domains_matrix() -> List[Dict[str, Any]]:
     ]
 
 @router.get("/inspect/{case_id}")
+@router.get("/cases/{case_id}/context")
 def inspect_case_ontology(case_id: str) -> Dict[str, Any]:
     case = repo.get_case(case_id)
     if not case:
@@ -103,7 +104,18 @@ def inspect_case_ontology(case_id: str) -> Dict[str, Any]:
                 maker_name = step.get("actor_name", maker_name)
                 break
 
-    # 4-Column Canonical context structure matching screenshot
+    is_sanctions = (profile_str == "SANCTIONS_SUSPECTED")
+    is_kyc_expired = (profile_str == "KYC_EXPIRED")
+    is_stp_eligible = (amount <= 10000.0 and not is_sanctions and not is_kyc_expired)
+    client_risk = "HIGH" if (is_sanctions or amount >= 1000000.0) else ("MEDIUM" if amount >= 250000.0 else "LOW")
+    kyc_status = "EXPIRED" if is_kyc_expired else "ACTIVE"
+    kyc_risk = "HIGH" if (is_kyc_expired or is_sanctions) else "LOW"
+    expired_docs = "['Certificate of Incumbency', 'Ultimate Beneficial Ownership (UBO) Registry']" if is_kyc_expired else "[]"
+    missing_docs = "['Beneficiary Entity Declaration (FATF R16)']" if (is_kyc_expired or profile_str == "MISSING_BENEFICIARY_DATA") else "[]"
+    payment_restriction = "true" if (is_kyc_expired or is_sanctions) else "false"
+    exception_approval_required = "true" if (amount >= 250000.0 or is_sanctions or is_kyc_expired or bool(case.get("dual_auth_required"))) else "false"
+
+    # 4-Column Canonical context structure matching ontology contracts
     return {
         "case_id": case_id,
         "payment_ref": case.get("payment_ref", f"PR-{case_id}"),
@@ -123,7 +135,7 @@ def inspect_case_ontology(case_id: str) -> Dict[str, Any]:
             "severity": {"value": str(case.get("severity", "MEDIUM")).lower(), "status": "VALIDATED"},
             "status": {"value": str(case.get("status", "PENDING_APPROVAL")).lower(), "status": "VALIDATED"},
             "slaBreachRisk": {"value": "within SLA" if amount < 1000000 else "breached risk", "status": "VALIDATED"},
-            "screeningLocked": {"value": "true" if profile_str == "SANCTIONS_SUSPECTED" else "false", "status": "VALIDATED"}
+            "screeningLocked": {"value": "true" if is_sanctions else "false", "status": "VALIDATED"}
         },
         "client": {
             "clientId": {"value": f"CLIENT-{debtor.get('party_id', '01')[-3:]}", "status": "VALIDATED"},
@@ -131,17 +143,17 @@ def inspect_case_ontology(case_id: str) -> Dict[str, Any]:
             "clientType": {"value": "CORPORATE", "status": "VALIDATED"},
             "segment": {"value": "LARGE_CORPORATE", "status": "VALIDATED"},
             "country": {"value": debtor.get("country", "US"), "status": "VALIDATED"},
-            "riskRating": {"value": "LOW", "status": "VALIDATED"},
+            "riskRating": {"value": client_risk, "status": "VALIDATED"},
             "serviceTier": {"value": "PLATINUM", "status": "VALIDATED"},
             "historicalExceptionRate": {"value": "0.014", "status": "VALIDATED"},
-            "straightThroughRepairEligible": {"value": "true", "status": "VALIDATED"}
+            "straightThroughRepairEligible": {"value": "true" if is_stp_eligible else "false", "status": "VALIDATED"}
         },
         "kyc": {
-            "kycStatus": {"value": "ACTIVE", "status": "VALIDATED"},
-            "riskClassification": {"value": "LOW", "status": "VALIDATED"},
-            "expiredDocuments": {"value": "[]", "status": "VALIDATED"},
-            "missingDocuments": {"value": "[]", "status": "VALIDATED"},
-            "paymentRestriction": {"value": "false", "status": "VALIDATED"},
-            "exceptionApprovalRequired": {"value": "true" if amount >= 250000 else "false", "status": "VALIDATED"}
+            "kycStatus": {"value": kyc_status, "status": "VALIDATED"},
+            "riskClassification": {"value": kyc_risk, "status": "VALIDATED"},
+            "expiredDocuments": {"value": expired_docs, "status": "VALIDATED"},
+            "missingDocuments": {"value": missing_docs, "status": "VALIDATED"},
+            "paymentRestriction": {"value": payment_restriction, "status": "VALIDATED"},
+            "exceptionApprovalRequired": {"value": exception_approval_required, "status": "VALIDATED"}
         }
     }

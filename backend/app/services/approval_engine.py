@@ -116,7 +116,7 @@ class ApprovalEngine:
             case["approval_history"] = []
         
         # Serialize record with ISO timestamp string for JSON
-        rec_dict = record.dict() if hasattr(record, "dict") else record.model_dump()
+        rec_dict = record.model_dump() if hasattr(record, "model_dump") else record.dict()
         rec_dict["created_at"] = record.created_at.isoformat() if isinstance(record.created_at, datetime) else str(record.created_at)
         case["approval_history"].append(rec_dict)
 

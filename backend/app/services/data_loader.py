@@ -761,7 +761,7 @@ class PeXRepository:
                         created_at=t_l1
                     )
                     approvals_list.append(rec1)
-                    approval_hist.append(rec1.dict())
+                    approval_hist.append(rec1.model_dump() if hasattr(rec1, "model_dump") else rec1.dict())
                     audit_timeline.append({
                         "step_index": len(audit_timeline) + 1,
                         "timestamp": t_l1.isoformat(),
@@ -799,7 +799,7 @@ class PeXRepository:
                         created_at=t_l2
                     )
                     approvals_list.append(rec2)
-                    approval_hist.append(rec2.dict())
+                    approval_hist.append(rec2.model_dump() if hasattr(rec2, "model_dump") else rec2.dict())
                     audit_timeline.append({
                         "step_index": len(audit_timeline) + 1,
                         "timestamp": t_l2.isoformat(),
@@ -877,7 +877,7 @@ class PeXRepository:
 
                 case_dict = {
                     "case_id": case_id,
-                    "guided_questions": [q.dict() for q in gq_items],
+                    "guided_questions": [q.model_dump() if hasattr(q, "model_dump") else q.dict() for q in gq_items],
                     "payment_id": f"PMT-{i:06d}",
                     "uetr": uetr,
                     "payment_ref": payment_ref,

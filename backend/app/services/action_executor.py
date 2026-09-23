@@ -51,7 +51,7 @@ class ActionExecutor:
             dispatch_payload={
                 "uetr": case.get("uetr"),
                 "payment_ref": case.get("payment_ref"),
-                "repaired_fields": [c.dict() for c in last_approval.approved_changes],
+                "repaired_fields": [c.model_dump() if hasattr(c, "model_dump") else c.dict() for c in last_approval.approved_changes],
                 "approver": last_approval.approver_name,
                 "approver_role": last_approval.approver_role.value,
                 "action_type": action_type.value
