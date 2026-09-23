@@ -1,4 +1,4 @@
-"""SQLAlchemy Engine & Thread-Safe Session Management for Local SQLite & AWS PostgreSQL."""
+"""SQLAlchemy Engine & Thread-Safe Session Management for Cloud-Agnostic Relational Storage (SQLite / PostgreSQL)."""
 from typing import Generator
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
@@ -14,7 +14,7 @@ if database_url.startswith("sqlite"):
         echo=settings.DB_ECHO,
     )
 else:
-    # PostgreSQL / AWS Aurora / RDS Configuration
+    # Enterprise Cloud PostgreSQL Configuration (AWS Aurora, Google Cloud SQL, Azure PostgreSQL)
     engine = create_engine(
         database_url,
         pool_size=settings.DB_POOL_SIZE,
@@ -51,7 +51,8 @@ def get_db_info() -> dict:
         "status": "ONLINE",
         "dialect": dialect_name,
         "is_sqlite": is_sqlite,
-        "is_aws_postgres": not is_sqlite,
+        "is_relational_postgres": not is_sqlite,
+        "is_aws_postgres": not is_sqlite,  # Backwards compatibility alias
         "url_masked": masked_url,
         "pool_size": getattr(engine.pool, "size", lambda: None)() if hasattr(engine.pool, "size") else "N/A",
     }

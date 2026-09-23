@@ -148,6 +148,14 @@ class PeXDBRepository:
         return self._receipts_cache
 
     @property
+    def rules(self) -> Dict[str, Dict[str, Any]]:
+        return self._rules_cache
+
+    @property
+    def icd_nodes(self) -> Dict[str, Dict[str, Any]]:
+        return self._icd_cache
+
+    @property
     def policies(self) -> List[Any]:
         from app.schemas.canonical import ExceptionProfile
         from app.schemas.context import PolicyRule

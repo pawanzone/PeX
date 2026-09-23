@@ -1,25 +1,27 @@
 # PeX — Payment Exception Resolution Platform
 
-Institutional-grade, bank-agnostic, human-governed AI system for automated and assisted payment exception repair, compliance escalation, and delivery settlement across SWIFT CBPR+, ISO 20022 (`pacs.008`, `pacs.004`, `camt.056`), Fedwire, and SEPA rails.
+Institutional-grade, cloud-agnostic, model-neutral AI platform for automated and assisted payment exception repair, compliance escalation, and delivery settlement across SWIFT CBPR+, ISO 20022 (`pacs.008`, `pacs.004`, `camt.056`), Fedwire, and SEPA clearing rails.
 
 ---
 
 ## Key Architectural Principles
 
 1. **Zero-Trust Privacy & Sensitive Data Boundary**:
-   - Debtor and Creditor identities are tokenized into isolated pseudonyms (`TOK-PARTY-...`, `TOK-IBAN-...`).
+   - Debtor and Creditor identities are tokenized into format-preserving pseudonyms (`TOK-PARTY-...`, `TOK-IBAN-...`).
    - Downstream AI Model Gateway contexts never receive raw PII or unmasked account numbers.
-2. **Deterministic Evidence Planning**:
-   - Collects corroborating records from Beneficiary Master Directory, SWIFT BIC Directory, Institutional Policies, and Historical Precedents.
-3. **Pluggable Governed AI Reasoning**:
-   - Model Gateway evaluates tokenized investigation dossiers and produces structured `DecisionRecommendation` contracts with ISO 7064 MOD-97 check digit validation.
+2. **Cloud-Provider & Model-Provider Independence**:
+   - Core domain is strictly decoupled from cloud infrastructure and LLM vendors via Hexagonal Architecture (Ports & Adapters).
+   - Seamlessly executes across Replit Sandbox, Local Workstation, AWS, Google Cloud Platform (GCP), and Microsoft Azure without code changes.
+   - Pluggable AI Model Gateway supports deterministic synthetic reasoning, Google Gemini, OpenAI, and AWS Bedrock.
+3. **Deterministic Evidence Planning**:
+   - Collects corroborating records from Beneficiary Master Directory, SWIFT BIC Directory, Bundesbank/Fedwire routing registries, and Historical Precedents.
 4. **Enforced Segregation of Duties & Dual Authorization**:
-   - Maker-Checker rules strictly forbid Operators from approving their own initiated repairs.
-   - High-Value exceptions ($\ge \$250,000$) mandate Dual Authorization by two distinct officers (e.g. Operations Approver + Risk/Executive Approver).
+   - Maker-Checker rules strictly forbid Operators from approving their own initiated repairs (`MST-040`, `MST-043`).
+   - High-Value exceptions ($\ge \$250,000$) mandate Dual Authorization by two distinct officers (`MST-041`).
 5. **Continuous Cryptographic Provenance (SHA-256)**:
-   - Every state change across all 20 lifecycle stages is hashed and chained into a tamper-evident audit trail with real-time integrity verification.
+   - Every state change across all 20 lifecycle stages is hashed and chained into a tamper-evident audit trail with real-time Merkle integrity verification (`MST-009`, `MST-034`).
 6. **Simulated Bank Dispatch with Idempotency**:
-   - Safe execution of repaired payments against simulated clearing ledger with guaranteed idempotency keys and delivery receipts.
+   - Safe execution of repaired payments against simulated clearing ledger with guaranteed idempotency keys and bank delivery receipts.
 
 ---
 
@@ -47,7 +49,7 @@ flowchart TD
     end
 
     subgraph Reasoning["4. Governed Model Gateway"]
-        Context --> AI["Deterministic Model Reasoner"]
+        Context --> AI["Pluggable Model Reasoner (Mock / Gemini / OpenAI / Bedrock)"]
         AI --> Contract["Decision Recommendation Contract"]
         Contract --> Gate["Decision Engine Governance Gate"]
     end
@@ -69,58 +71,70 @@ flowchart TD
 
 ---
 
+## Quick Start in Replit
+
+PeX is pre-configured for instant zero-dependency execution in Replit:
+
+1. **Import Repository** into Replit.
+2. **Install Dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. **Run Unified Server** (Backend API + Frontend SPA):
+   ```bash
+   python -m uvicorn app.main:app --app-dir backend --host 0.0.0.0 --port 8000
+   ```
+4. **Open Webview** at `http://localhost:8000/`.
+5. **Run Automated Test Suites**:
+   ```bash
+   python -m pytest tests/ backend/tests/ -v
+   ```
+
+*For detailed setup and walkthrough scripts, see [REPLIT_SETUP.md](file:///C:/Users/pawan/.gemini/antigravity/scratch/pex_platform/docs/REPLIT_SETUP.md) and [REPLIT_DEMO.md](file:///C:/Users/pawan/.gemini/antigravity/scratch/pex_platform/docs/REPLIT_DEMO.md).*
+
+---
+
+## Local Development & Verification
+
+### 1. Automated Test Suites (111 / 111 Passing Tests)
+Run all unit, contract, state-machine, payment domain, and Replit readiness tests:
+```powershell
+.\.venv\Scripts\pytest tests/ backend/tests/ -v
+```
+
+### 2. Start Unified Backend Server
+```powershell
+.\.venv\Scripts\python -m uvicorn app.main:app --app-dir backend --host 0.0.0.0 --port 8000
+```
+*Backend API documentation available at: `http://localhost:8000/docs`*
+
+### 3. Start Standalone Frontend (Vite Dev Server)
+```powershell
+cd frontend
+npm run dev
+```
+*Open `http://localhost:5173` for Vite HMR development.*
+
+---
+
 ## Institutional RBAC Persona Matrix
 
 | User ID | Persona Name | Role | Max Approval Limit | Key Responsibilities |
 |---|---|---|---|---|
-| `OP-8472` | **Amina Okafor** | `OPERATOR` | Maker Only ($0) | Payment Intake, Exception Triage, Investigation Initiation |
-| `OP-9104` | **Priya Nair** | `OPERATOR` | Maker Only ($0) | Payment Intake, Secondary Verification |
-| `APR-3191` | **Daniel Osei** | `OPERATIONS_APPROVER` | $500,000 | Repair Approval, Value Modification, Resubmission |
-| `CMP-4419` | **Marisol Vega** | `COMPLIANCE_APPROVER` | Unlimited (Compliance) | Sanctions Hit Review, KYC Waivers, Regulatory Hold |
+| `OP-9012` | **Amina Okafor** | `OPERATOR` | Maker Only ($0) | Payment Intake, Exception Triage, Investigation Initiation |
+| `APR-3191` | **Daniel Osei** | `OPERATIONS_APPROVER` | $250,000 | Repair Approval, Value Modification, Resubmission |
+| `CMP-4401` | **Marisol Vega** | `COMPLIANCE_APPROVER` | $5,000,000 | Sanctions Hit Review, KYC Waivers, Dual Authorization |
 | `RSK-7714` | **Kenji Watanabe** | `RISK_APPROVER` | $2,000,000 | Dual Authorization Tier-2 Approver for High-Value Repairs |
 | `ADM-0001` | **Alex Whitfield** | `ADMIN` | Unlimited | Governance Policy Management, Audit Integrity Recompute |
 
 ---
 
-## Quick Start & Verification
+## Architectural & Audit Reference Documentation
 
-### 1. Automated Test Suite (Pytest)
-Run the 14 core unit, contract, tokenization, RBAC, and scenario tests:
-```powershell
-.\.venv\Scripts\pytest -v
-```
-
-### 2. Deterministic 10-Step Demo Runner
-Run the automated end-to-end execution of Scenario `IBAN-REPAIR-001` (executes in under 2 seconds):
-```powershell
-.\.venv\Scripts\python scripts/run_demo.py
-```
-
-### 3. Start Backend API Server
-```powershell
-.\.venv\Scripts\python scripts/run_server.py
-```
-*Backend API documentation available at: `http://localhost:8000/docs`*
-
-### 4. Start Enterprise Frontend (React + Vite)
-```powershell
-cd frontend
-npm run dev
-```
-*Open `http://localhost:5173` to interact with the full institutional UI.*
-
----
-
-## Frontend Views & Capabilities
-
-1. **Command Center**: Global operational KPIs, At-Risk Value counter, SLA Resolution Velocity chart, and priority breach queue.
-2. **Payment Intake**: 3-step origination simulator (`Validate` -> `Classify` -> `Govern`) with profile evidence gates.
-3. **Exception Worklist**: Server-filtered exception operations desk supporting filtering across Queues, Profiles, Severity, and Lifecycle status.
-4. **Role Approvals Workspace**: Split-pane master-detail workbench with structured AI reasoning, visual Before/After field diffs, corroborating evidence citations, and maker-checker approval triggers.
-5. **Investigations Hub**: Real-time operational audit log with control trace tags.
-6. **Operations Analytics**: SLA throughput distributions, profile break percentages, and straight-through repair metrics.
-7. **SWIFT & ISO Center**: Connectivity and latency monitoring for payment hubs and clearing adapters.
-8. **Controls & Governance**: Active guardrails matrix and on-demand SHA-256 cryptographic hash-by-hash chain verification.
-9. **Payment Ontology**: 6-stage architecture pipeline and 7 canonical ISO 20022 / BIAN domain entities.
-10. **AI Repair Copilot**: Conversational assistant grounded in SOP-114, SOP-207, SOP-301, and SOP-402 with token usage counters.
-11. **Persona Switcher**: Instant switching between authenticated demo roles (`Amina`, `Daniel`, `Marisol`, `Kenji`).
+- [Cloud-Provider Agnostic Architecture Specification](file:///C:/Users/pawan/.gemini/antigravity/scratch/pex_platform/docs/PEX_CLOUD_PROVIDER_AGNOSTIC_ARCHITECTURE.md)
+- [Enterprise Cloud Provider Capability Matrix (AWS / GCP / Azure)](file:///C:/Users/pawan/.gemini/antigravity/scratch/pex_platform/validation_audit/PEX_CLOUD_PROVIDER_CAPABILITY_MATRIX.md)
+- [Provider Dependency & Environment Inventory](file:///C:/Users/pawan/.gemini/antigravity/scratch/pex_platform/validation_audit/PEX_PROVIDER_DEPENDENCY_INVENTORY.md)
+- [Deployment Boundary: Prototype/Replit vs Enterprise Production](file:///C:/Users/pawan/.gemini/antigravity/scratch/pex_platform/validation_audit/PEX_DEPLOYMENT_BOUNDARY.md)
+- [Replit Setup & Operational Execution Guide](file:///C:/Users/pawan/.gemini/antigravity/scratch/pex_platform/docs/REPLIT_SETUP.md)
+- [20-Step Deterministic Replit Demo Script](file:///C:/Users/pawan/.gemini/antigravity/scratch/pex_platform/docs/REPLIT_DEMO.md)
+- [Master Remediation Register](file:///C:/Users/pawan/.gemini/antigravity/scratch/pex_platform/validation_audit/PEX_MASTER_REMEDIATION_REGISTER_FINAL.md)
