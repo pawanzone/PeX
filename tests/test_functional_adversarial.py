@@ -57,7 +57,7 @@ def test_normal_full_lifecycle_e2e(client):
         raw_payload={
             "payment_reference": f"REF-NORM-{uuid.uuid4().hex[:6]}",
             "uetr": f"UETR-NORM-{uuid.uuid4().hex[:8]}",
-            "amount": 350000.0, # High value, requires dual-auth
+            "amount": 250000.0, # High value, requires dual-auth within Daniel Osei's limit
             "currency": "USD",
             "debtor_name": "Acme Global Treasury LLC",
             "debtor_account": "US89CHAS12345678901234",
@@ -442,7 +442,7 @@ def test_redteam_sod_checker_dual_auth_self_cosigning():
     case_id = f"PEX-DUAL-ATTACK-{uuid.uuid4().hex[:6]}"
     case_dict = {
         "case_id": case_id,
-        "amount": 500000.0, # Requires Dual Auth
+        "amount": 250000.0, # Requires Dual Auth within Daniel Osei limit
         "status": LifecycleStage.PENDING_APPROVAL.value,
         "queue": "Repair",
         "approval_history": []

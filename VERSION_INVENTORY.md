@@ -2,8 +2,8 @@
 
 **Authoritative Governance Ledger for PeX (Payment Exception Resolution Platform)**  
 **Repository:** `pex_platform`  
-**Current Production-Grade Prototype Version:** `v1.9.0`  
-**Status:** **P0 Remediation Batch 1 Complete (63 / 63 Passing Tests)**  
+**Current Production-Grade Prototype Version:** `v1.9.1`  
+**Status:** **P1 Remediation Batch 2 Complete (76 / 76 Passing Tests)**  
 **Last Updated:** September 23, 2026
 
 ---
@@ -12,7 +12,8 @@
 
 | Version Tag | Release Date | Scope & Milestone Description | Test Suite Status | Checkpoint Artifact |
 |---|---|---|---|---|
-| **`v1.9.0`** | **2026-09-23** | **P0 Batch 1 Remediation:** Cryptographic audit hash invariant (`MST-009`), 7 adversarial tampering tests (`MST-034`), STP engine Session import (`MST-037`), STP fast-lane repair preservation (`MST-036`), Frontend dispatch auth & SoD (`MST-035`), Rule/ICD auto-approve Maker-Checker governance (`MST-038`), Canonicalizer domain propagation (`MST-039`), Pytest discovery & root hygiene (`MST-033`). | **63 / 63 PASSED (100%)** | `backups/rollback_checkpoint_p0_batch1_v1_9_0_20260923.zip` |
+| **`v1.9.1`** | **2026-09-23** | **P1 Batch 2 Remediation:** State machine & HITL approval governance. Disallow `INVESTIGATING` in approvals (`MST-040`), enforce dual-auth on `MODIFY` (`MST-041`), set initial state to `INGESTED` with domain on bank event intake (`MST-042`), enforce persona & role monetary limits in `check_can_approve` (`MST-043`), eliminate duplicate audit logging on approval submit (`MST-011`). | **76 / 76 PASSED (100%)** | `backups/rollback_checkpoint_p1_batch2_v1_9_1_20260923.zip` |
+| **`v1.9.0`** | 2026-09-23 | **P0 Batch 1 Remediation:** Cryptographic audit hash invariant (`MST-009`), 7 adversarial tampering tests (`MST-034`), STP engine Session import (`MST-037`), STP fast-lane repair preservation (`MST-036`), Frontend dispatch auth & SoD (`MST-035`), Rule/ICD auto-approve Maker-Checker governance (`MST-038`), Canonicalizer domain propagation (`MST-039`), Pytest discovery & root hygiene (`MST-033`). | 63 / 63 PASSED (100%) | `backups/rollback_checkpoint_p0_batch1_v1_9_0_20260923.zip` |
 | **`v1.8.4`** | 2026-09-21 | **Canonical DB & Semantic Layer:** SQLite persistent engine, 233 initial cases seed, 19 policy rules, 5 ICD clearing nodes, MISC menu architecture navigation. | 46 / 46 PASSED | `backups/rollback_checkpoint_pre_db_20260920.zip` |
 | **`v1.8.3`** | 2026-09-21 | **Smart Role Synthesis & Rule Studio:** Approver role synthesis, category two-way sync, clean-slate Draft New Rule workflow. | 43 / 43 PASSED | `backups/rollback_checkpoint_pre_rule_studio_v1_4_20260921.zip` |
 | **`v1.8.2`** | 2026-09-21 | **3-Step Rule Pipeline:** Streamlined Draft New Rule with live syntax AST auto-compilation. | 43 / 43 PASSED | - |
@@ -38,35 +39,29 @@
 
 ---
 
-## 2. Current Version (`v1.9.0`) Technical Details
+## 2. Current Version (`v1.9.1`) Technical Details
 
 ### Master Remediation Register Mapping
 - **Authoritative Baseline:** `validation_audit/PEX_MASTER_REMEDIATION_REGISTER_FINAL.md`
 - **P0 Remediation Report:** `validation_audit/PEX_P0_REMEDIATION_BATCH_1_REPORT.md`
+- **P1 Remediation Report:** `validation_audit/PEX_P1_REMEDIATION_BATCH_2_REPORT.md`
 
-### Components Modified & Hardened in `v1.9.0`
-1. **Cryptographic Provenance Engine (`backend/app/core/hashing.py`)**:
-   - Deterministically incorporates `amount` (formatted as `.2f`), `currency`, `debtor_account`, and `creditor_account` into the SHA-256 hash payload.
-   - Preserves genesis hash stability and canonical key ordering (`sort_keys=True, separators=(',', ':')`).
-2. **Adversarial Cryptographic Tampering Suite (`tests/test_audit_trail.py`)**:
-   - 7 automated adversarial attack vectors executing on every build.
-3. **STP Fast-Lane Autonomous Engine (`backend/app/services/stp_engine.py`)**:
-   - Resolved missing `Session` import.
-   - Preserves AI repair recommendations into `approved_changes` on approval history and embeds `repaired_fields` into outbound wire contracts.
-4. **Governed Action Dispatch Endpoint (`backend/app/api/endpoints/actions.py`)**:
-   - Replaced default user fallback with strict token/actor verification.
-   - Enforces `HTTP 401 Unauthorized` for missing/invalid credentials and `HTTP 403 Forbidden` for Operator persona (SoD).
-5. **Governed Rules & ICD Endpoints (`backend/app/api/endpoints/rules.py` & `backend/app/db/repository.py`)**:
-   - Eliminated unchecked `auto_approve=True` bypass.
-   - Enforces Checker role and Maker != Checker Segregation of Duties.
-6. **Canonicalization Engine (`backend/app/services/canonicalizer.py`)**:
-   - Automatically derives and attaches `ExceptionDomain` across all 5 payment domains.
-7. **Workspace & Test Discovery Isolation (`pytest.ini` & `tools/diagnostics/`)**:
-   - Relocated 13 root diagnostic scripts into `tools/diagnostics/` and established explicit testpaths.
+### Components Hardened in `v1.9.1`
+1. **Approval Engine State Gating (`backend/app/services/approval_engine.py`)**:
+   - `MST-040`: Restricted approval eligibility strictly to `PENDING_APPROVAL` (Level 1) and `AWAITING_SECOND_APPROVAL` (Level 2). Cases in `INVESTIGATING` or `INGESTED` state are rejected.
+   - `MST-041`: Integrated `ApprovalAction.MODIFY` into dual-authorization governance. High-value cases requiring dual-auth transition to `AWAITING_SECOND_APPROVAL` on `MODIFY` step 1 and mandate a distinct second officer for final approval.
+2. **Bank Event Ingestion Initialization (`backend/app/api/endpoints/events.py`)**:
+   - `MST-042`: Configured raw intake events to initialize with `status: "INGESTED"` (not `PENDING_APPROVAL`) and propagated the canonical `domain` field from `exception.domain`.
+3. **Monetary Approval Limits & Entitlements (`backend/app/core/security.py`)**:
+   - `MST-043`: Established `ROLE_MAX_APPROVAL_LIMITS` and enforced `amount <= persona.max_approval_amount` checks across all approval workflows.
+4. **Audit Logging De-duplication (`backend/app/api/endpoints/approvals.py`)**:
+   - `MST-011`: Eliminated duplicate `audit_service.log_event` call from the submit approval endpoint, ensuring single-source audit append via `ApprovalEngine`.
+5. **Dedicated P1 Batch 2 Test Suite (`tests/test_p1_batch_2_remediation.py`)**:
+   - 13 comprehensive unit and integration tests verifying all 5 remediated Master IDs.
 
 ---
 
-## 3. Test Suite Verification Summary (v1.9.0)
+## 3. Test Suite Verification Summary (v1.9.1)
 
 ```
 ============================= test session starts =============================
@@ -75,17 +70,18 @@ rootdir: C:\Users\pawan\.gemini\antigravity\scratch\pex_platform
 configfile: pytest.ini
 
 tests/test_audit_trace.py .                                              [  1%]
-tests/test_audit_trail.py .......                                        [ 12%]
-tests/test_canonicalization.py .                                         [ 14%]
-tests/test_contracts.py ...                                              [ 19%]
-tests/test_functional_adversarial.py ..................                  [ 47%]
-tests/test_hitl_approval.py ...                                          [ 52%]
-tests/test_p0_batch_1_remediation.py ..........                          [ 68%]
-tests/test_scenarios.py ...                                              [ 73%]
-tests/test_tokenization.py .                                             [ 74%]
-backend/tests/test_disambiguation_and_rule_edit.py ...                    [ 79%]
-backend/tests/test_rules_e2e.py ........                                 [ 92%]
+tests/test_audit_trail.py .......                                        [ 10%]
+tests/test_canonicalization.py .                                         [ 11%]
+tests/test_contracts.py ...                                              [ 15%]
+tests/test_functional_adversarial.py ..................                  [ 39%]
+tests/test_hitl_approval.py ...                                          [ 43%]
+tests/test_p0_batch_1_remediation.py ..........                          [ 56%]
+tests/test_p1_batch_2_remediation.py .............                       [ 73%]
+tests/test_scenarios.py ...                                              [ 77%]
+tests/test_tokenization.py .                                             [ 78%]
+backend/tests/test_disambiguation_and_rule_edit.py ...                    [ 82%]
+backend/tests/test_rules_e2e.py ........                                 [ 93%]
 backend/tests/test_stp_e2e.py .....                                      [100%]
 
-======================= 63 passed, 40 warnings in 4.82s =======================
+======================= 76 passed, 53 warnings in 6.71s =======================
 ```

@@ -106,15 +106,37 @@ DEMO_PERSONAS: Dict[str, UserPersona] = {
     )
 }
 
+ROLE_MAX_APPROVAL_LIMITS: Dict[UserRole, float] = {
+    UserRole.OPERATOR: 0.0,
+    UserRole.OPERATIONS_APPROVER: 250000.0,
+    UserRole.COMPLIANCE_APPROVER: 5000000.0,
+    UserRole.RISK_APPROVER: 10000000.0,
+    UserRole.ADMIN: 10000000.0,
+}
+
 def get_persona(user_id: str) -> Optional[UserPersona]:
     return DEMO_PERSONAS.get(user_id)
 
-def check_can_approve(role: UserRole, amount: float, queue: str) -> Tuple[bool, str]:
+def check_can_approve(
+    role: UserRole,
+    amount: float,
+    queue: str,
+    user_id: Optional[str] = None,
+    persona: Optional[UserPersona] = None
+) -> Tuple[bool, str]:
     if role == UserRole.OPERATOR:
         return False, "Operators cannot approve repairs (Maker-Checker policy violation)."
     
     if queue == "Compliance" and role not in [UserRole.COMPLIANCE_APPROVER, UserRole.ADMIN, UserRole.RISK_APPROVER]:
         return False, "Only Compliance & Risk Approvers can clear Compliance queue exceptions."
+
+    # Enforce monetary approval limits
+    if not persona and user_id:
+        persona = get_persona(user_id)
+
+    max_limit = persona.max_approval_amount if persona else ROLE_MAX_APPROVAL_LIMITS.get(role, 0.0)
+    if amount > max_limit:
+        return False, f"Approval limit exceeded: Transaction amount (${amount:,.2f}) exceeds {role.value}'s maximum authorized approval limit (${max_limit:,.2f}). Escalation required."
         
-    # All designated approver roles (OPERATIONS_APPROVER, COMPLIANCE_APPROVER, RISK_APPROVER, ADMIN) are authorized for level 1 and dual-auth level 2 approvals
     return True, "Authorized"
+

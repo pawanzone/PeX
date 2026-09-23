@@ -28,18 +28,6 @@ def submit_approval(submission: ApprovalSubmission, authorization: Optional[str]
     if not success:
         raise HTTPException(status_code=400, detail=message)
 
-    # Log audit event
-    audit_service.log_event(
-        case_id=submission.case_id,
-        correlation_id=submission.case_id,
-        stage_name="HITL_APPROVAL",
-        actor_id=approver.user_id,
-        actor_role=approver.role.value,
-        action_name=f"APPROVAL_{submission.action.value}",
-        details=f"Approver {approver.name} submitted {submission.action.value}. Decision message: {submission.comments}. Next stage: {next_stage.value}",
-        control_tags=["Maker-checker enforced", "Role entitlements verified", f"Step {record.step_number}"]
-    )
-
     return {
         "success": True,
         "message": message,

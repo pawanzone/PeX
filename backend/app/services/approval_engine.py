@@ -27,13 +27,21 @@ class ApprovalEngine:
         can_approve, reason = check_can_approve(
             role=approver.role,
             amount=case.get("amount", 0.0),
-            queue=case.get("queue", "Repair")
+            queue=case.get("queue", "Repair"),
+            user_id=approver.user_id,
+            persona=approver
         )
         if not can_approve:
             return False, reason, None, case.get("status")
 
         current_status = case.get("status")
-        if current_status not in [LifecycleStage.PENDING_APPROVAL, LifecycleStage.AWAITING_SECOND_APPROVAL, LifecycleStage.INVESTIGATING]:
+        allowed_stages = [
+            LifecycleStage.PENDING_APPROVAL,
+            LifecycleStage.PENDING_APPROVAL.value,
+            LifecycleStage.AWAITING_SECOND_APPROVAL,
+            LifecycleStage.AWAITING_SECOND_APPROVAL.value
+        ]
+        if current_status not in allowed_stages:
             return False, f"Case is in {current_status} state, not awaiting approval", None, current_status
 
         rec = repo.recommendations.get(submission.case_id)
@@ -47,8 +55,8 @@ class ApprovalEngine:
         
         existing_approvals = repo.approvals.get(submission.case_id, [])
 
-        if submission.action in [ApprovalAction.APPROVE, ApprovalAction.CLEAR_FALSE_POSITIVE, ApprovalAction.GRANT_KYC_WAIVER]:
-            if current_status == LifecycleStage.PENDING_APPROVAL:
+        if submission.action in [ApprovalAction.APPROVE, ApprovalAction.CLEAR_FALSE_POSITIVE, ApprovalAction.GRANT_KYC_WAIVER, ApprovalAction.MODIFY]:
+            if current_status in [LifecycleStage.PENDING_APPROVAL, LifecycleStage.PENDING_APPROVAL.value]:
                 # Level 1 Approval
                 if dual_auth:
                     next_stage = LifecycleStage.AWAITING_SECOND_APPROVAL
@@ -56,12 +64,12 @@ class ApprovalEngine:
                 else:
                     next_stage = LifecycleStage.APPROVED
                     step_no = 1
-            elif current_status == LifecycleStage.AWAITING_SECOND_APPROVAL:
+            elif current_status in [LifecycleStage.AWAITING_SECOND_APPROVAL, LifecycleStage.AWAITING_SECOND_APPROVAL.value]:
                 # Level 2 Dual Authorization
                 # Find the most recent Level 1 approver who signed step 1 in the current cycle
                 valid_l1_approvals = [
                     a for a in existing_approvals
-                    if a.action in [ApprovalAction.APPROVE, ApprovalAction.CLEAR_FALSE_POSITIVE, ApprovalAction.GRANT_KYC_WAIVER]
+                    if a.action in [ApprovalAction.APPROVE, ApprovalAction.CLEAR_FALSE_POSITIVE, ApprovalAction.GRANT_KYC_WAIVER, ApprovalAction.MODIFY]
                     and a.step_number == 1
                 ]
                 if valid_l1_approvals:
@@ -81,9 +89,6 @@ class ApprovalEngine:
             step_no = 1
         elif submission.action == ApprovalAction.ESCALATE:
             next_stage = LifecycleStage.ESCALATED
-            step_no = 1
-        elif submission.action == ApprovalAction.MODIFY:
-            next_stage = LifecycleStage.APPROVED
             step_no = 1
         else:
             next_stage = current_status
@@ -138,6 +143,10 @@ class ApprovalEngine:
             badge_color = "red"
             action_title = "Payment Exception Rejected / Blocked"
             icon = "✕"
+        elif submission.action == ApprovalAction.MODIFY:
+            badge_color = "purple" if step_no == 2 else "emerald"
+            action_title = "Level 2 Dual Authorization (Modified)" if step_no == 2 else "Approval Sign-off (Modified)"
+            icon = "🔒" if step_no == 2 else "✏️"
         elif step_no == 2:
             badge_color = "purple"
             action_title = "Level 2 Dual Authorization Approved"

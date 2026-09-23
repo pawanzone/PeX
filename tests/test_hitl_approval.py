@@ -38,9 +38,9 @@ def test_ops_approver_can_approve_operational_repair():
     assert rec.approver_id == "APR-3191"
 
 def test_dual_authorization_for_high_value_transaction():
-    # Create high value case (>= $250k)
+    # Create high value case (>= $250k) within Ops Approver $250k limit
     case = list(repo.cases.values())[1]
-    case["amount"] = 350000.0
+    case["amount"] = 250000.0
     case["status"] = LifecycleStage.PENDING_APPROVAL
     case_id = case["case_id"]
     repo.approvals[case_id] = [] # Reset approvals
