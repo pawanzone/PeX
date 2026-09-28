@@ -11,13 +11,13 @@ Master IDs Covered:
 """
 import pytest
 from fastapi.testclient import TestClient
-from backend.app.main import app
-from backend.app.services.data_loader import repo
-from backend.app.services.canonicalizer import canonicalizer
-from backend.app.schemas.bank_events import RawBankEvent
-from backend.app.schemas.canonical import ExceptionDomain, ExceptionProfile
-from backend.app.services.stp_engine import stp_engine
-from backend.app.schemas.recommendation import DecisionRecommendation, ActionType, ProposedFieldChange
+from app.main import app
+from app.services.data_loader import repo
+from app.services.canonicalizer import canonicalizer
+from app.schemas.bank_events import RawBankEvent
+from app.schemas.canonical import ExceptionDomain, ExceptionProfile, ExceptionSeverity
+from app.services.stp_engine import stp_engine
+from app.schemas.recommendation import DecisionRecommendation, ActionType, ProposedFieldChange, RiskEvaluation
 
 client = TestClient(app)
 
@@ -81,56 +81,68 @@ def test_mst_035_dispatch_operator_rejected_sod():
 
 def test_mst_037_stp_session_import_integrity():
     """Verifies that Session is properly imported and callable in stp_engine."""
-    from backend.app.services.stp_engine import Session
+    from app.services.stp_engine import Session
     from sqlalchemy.orm import Session as SQLAlchemySession
     assert Session is SQLAlchemySession
 
 
 def test_mst_036_stp_fast_lane_preserves_repaired_fields():
     """Verifies that execute_autonomous_stp attaches approved_changes when AI repair exists."""
-    # Find an eligible DATA_QUALITY case under $10k
-    eligible_cases = [
-        c for c in repo._case_cache.values()
-        if c.get("status") in ["INGESTED", "RECOMMENDED"]
-        and c.get("domain") in ["DATA_QUALITY", "FORMAT_SYNTAX"]
-        and c.get("amount", 0) <= 10000
-    ]
-    if eligible_cases:
-        target_case = eligible_cases[0]
-        cid = target_case["case_id"]
-        
-        # Inject AI recommendation with proposed changes if not already present
-        rec = DecisionRecommendation(
-            recommendation_id=f"REC-{cid}",
-            case_id=cid,
-            action_type=ActionType.REPAIR_AND_RETRY,
-            confidence_score=0.99,
-            rationale="Automated syntax standard correction.",
-            primary_rule_id="RULE-AUTO-REPAIR",
-            rule_explanation="Automated syntax standard correction.",
-            proposed_changes=[
-                ProposedFieldChange(
-                    field_name="creditor_account.iban",
-                    current_value="INVALIDIBAN",
-                    proposed_value="GB82WEST12345698765432",
-                    confidence=0.99,
-                    rationale="MOD-97-10 check digit calculated and applied."
-                )
-            ]
+    cid = "PEX-TEST-STP-FASTLANE-001"
+    target_case = {
+        "case_id": cid,
+        "payment_id": f"PMT-{cid}",
+        "uetr": f"UETR-{cid}",
+        "profile": "INVALID_IBAN",
+        "domain": "DATA_QUALITY",
+        "amount": 5000.0,
+        "currency": "USD",
+        "status": "RECOMMENDED",
+        "ai_confidence": 0.99,
+        "approval_history": [],
+        "audit_timeline": []
+    }
+    repo.save_case(target_case)
+    
+    # Inject AI recommendation with proposed changes
+    rec = DecisionRecommendation(
+        recommendation_id=f"REC-{cid}",
+        case_id=cid,
+        action_type=ActionType.REPAIR_AND_RELEASE,
+        confidence_score=0.99,
+        rationale="Automated syntax standard correction.",
+        primary_rule_id="RULE-AUTO-REPAIR",
+        rule_explanation="Automated syntax standard correction.",
+        proposed_changes=[
+            ProposedFieldChange(
+                field_path="creditor_account.iban",
+                original_value_masked="INVALIDIBAN",
+                proposed_value_masked="GB82WEST12345698765432",
+                justification="MOD-97-10 check digit calculated and applied."
+            )
+        ],
+        risk_evaluation=RiskEvaluation(
+            risk_level=ExceptionSeverity.LOW,
+            risk_score=0.05,
+            risk_factors=[],
+            dual_auth_required=False
         )
-        repo.save_recommendation(rec)
+    )
+    repo.save_recommendation(rec)
 
-        # Run autonomous STP
-        result = stp_engine.execute_autonomous_stp(cid)
-        assert result.get("success") is True or result.get("status") == "SETTLED"
+    # Run autonomous STP
+    result = stp_engine.execute_autonomous_stp(cid)
+    assert result.get("success") is True or result.get("status") == "SETTLED"
 
-        # Verify case in cache / db has approved_changes recorded
-        updated_case = repo.get_case(cid)
-        assert updated_case["status"] == "SETTLED"
-        assert len(updated_case["approval_history"]) > 0
-        latest_approval = updated_case["approval_history"][-1]
-        assert len(latest_approval["approved_changes"]) > 0
-        assert latest_approval["approved_changes"][0]["proposed_value"] == "GB82WEST12345698765432"
+    # Verify case in cache / db has approved_changes recorded
+    updated_case = repo.get_case(cid)
+    assert updated_case["status"] == "SETTLED"
+    assert len(updated_case["approval_history"]) > 0
+    latest_approval = updated_case["approval_history"][-1]
+    assert len(latest_approval["approved_changes"]) > 0
+    change = latest_approval["approved_changes"][0]
+    prop_val = change.get("proposed_value_masked") or change.get("proposed_value")
+    assert prop_val == "GB82WEST12345698765432"
 
 
 # =========================================================================
