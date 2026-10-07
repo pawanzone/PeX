@@ -273,6 +273,118 @@ class EvidenceContractRegistry:
         )
         self.register(dq05_contract)
 
+        # PR-01: DUPLICATE_PAYMENT (Phase 2A Slice 3)
+        pr01_contract = EvidenceContract(
+            profile_id="PR-01",
+            profile_name="DUPLICATE_PAYMENT",
+            mandatory_evidence=[
+                EvidenceItemRequirement(
+                    item_name="RAW_PAYLOAD",
+                    description="Inbound raw payment exception payload candidate for duplicate analysis",
+                    role="IDENTIFICATION",
+                    required_trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                    is_mandatory_for_stp=True,
+                    policy_freshness_seconds=None
+                ),
+                EvidenceItemRequirement(
+                    item_name="PAYMENT_IDENTITY_RECORD",
+                    description="Deterministic payment fingerprint and identity components (UETR, canonical hash, E2E ID, accounts, amount)",
+                    role="IDENTIFICATION",
+                    required_trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                    is_mandatory_for_stp=True,
+                    policy_freshness_seconds=None
+                ),
+                EvidenceItemRequirement(
+                    item_name="CURRENT_SETTLEMENT_STATE",
+                    description="Authoritative current bank ledger and settlement state record (SETTLED, UNSETTLED, ALREADY_RELEASED, CANCELLED)",
+                    role="AUTHORIZATION",
+                    required_trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                    is_mandatory_for_stp=True,
+                    policy_freshness_seconds=3600 # 1 hour max ledger cache
+                ),
+                EvidenceItemRequirement(
+                    item_name="BANK_DUPLICATE_POLICY",
+                    description="Bank operational duplicate detection, suppression, and threshold policy",
+                    role="AUTHORIZATION",
+                    required_trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                    is_mandatory_for_stp=True,
+                    policy_freshness_seconds=None
+                ),
+            ],
+            conditional_evidence=[],
+            optional_evidence=[
+                EvidenceItemRequirement(
+                    item_name="HISTORICAL_PAYMENT_INDEX",
+                    description="Historical payment index for similarity search, pattern clustering, and operator context",
+                    role="CONTEXT",
+                    required_trust_tier=EvidenceTrustTier.TIER_4_HISTORICAL_PRECEDENT,
+                    is_mandatory_for_stp=False,
+                    policy_freshness_seconds=None
+                )
+            ]
+        )
+        self.register(pr01_contract)
+
+        # DQ-08: INVALID_BIC_SWIFT (Phase 2A Slice 3)
+        dq08_contract = EvidenceContract(
+            profile_id="DQ-08",
+            profile_name="INVALID_BIC_SWIFT",
+            mandatory_evidence=[
+                EvidenceItemRequirement(
+                    item_name="RAW_PAYLOAD",
+                    description="Raw payment exception payload containing original BIC element",
+                    role="IDENTIFICATION",
+                    required_trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                    is_mandatory_for_stp=True,
+                    policy_freshness_seconds=None
+                ),
+                EvidenceItemRequirement(
+                    item_name="ORIGINAL_BIC_RECORD",
+                    description="Extracted original BIC string, field location, and target institution details",
+                    role="IDENTIFICATION",
+                    required_trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                    is_mandatory_for_stp=True,
+                    policy_freshness_seconds=None
+                ),
+                EvidenceItemRequirement(
+                    item_name="BIC_REFERENCE_DIRECTORY",
+                    description="Authoritative external reference data directory for ISO 9362 BIC status, successors, and reachability",
+                    role="VALIDATION",
+                    required_trust_tier=EvidenceTrustTier.TIER_2_EXTERNAL_AUTHORITATIVE,
+                    is_mandatory_for_stp=True,
+                    policy_freshness_seconds=86400 # 24 hours freshness window
+                ),
+                EvidenceItemRequirement(
+                    item_name="BANK_COUNTERPARTY_SSI",
+                    description="Authoritative bank counterparty Standard Settlement Instructions (SSI) and master routing rules",
+                    role="AUTHORIZATION",
+                    required_trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                    is_mandatory_for_stp=True,
+                    policy_freshness_seconds=86400
+                ),
+                EvidenceItemRequirement(
+                    item_name="TARGET_RAIL_ROUTING_SPEC",
+                    description="Target clearing rail routing rules, reachability parameters, and corridor constraints",
+                    role="VALIDATION",
+                    required_trust_tier=EvidenceTrustTier.TIER_2_EXTERNAL_AUTHORITATIVE,
+                    is_mandatory_for_stp=True,
+                    policy_freshness_seconds=None
+                ),
+            ],
+            conditional_evidence=[],
+            optional_evidence=[
+                EvidenceItemRequirement(
+                    item_name="HISTORICAL_BIC_DIRECTORY",
+                    description="Historical log of past BIC resolutions, migrations, and institution precedents",
+                    role="CONTEXT",
+                    required_trust_tier=EvidenceTrustTier.TIER_4_HISTORICAL_PRECEDENT,
+                    is_mandatory_for_stp=False,
+                    policy_freshness_seconds=None
+                )
+            ]
+        )
+        self.register(dq08_contract)
+
 
 # Global singleton registry instance
 evidence_registry = EvidenceContractRegistry()

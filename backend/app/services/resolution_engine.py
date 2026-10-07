@@ -340,6 +340,100 @@ class DQ05Resolver:
         )
 
 
+class PR01Resolver:
+    """Deterministic duplicate payment detector and identity resolver for PR-01."""
+
+    def __init__(self):
+        from app.services.pr01_duplicate_detector import pr01_detector
+        self.detector = pr01_detector
+
+    def resolve(
+        self,
+        raw_payload: str,
+        identity: Optional[Any] = None,
+        settlement_state: Optional[Any] = None,
+        bank_policy: Optional[Dict[str, Any]] = None,
+        historical_index: Optional[List[Dict[str, Any]]] = None
+    ) -> Tuple[ResolutionStatus, ResolutionUniqueness, List[ResolutionCandidate], Optional[ResolutionCandidate], List[str], Optional[str], bool]:
+        """Resolves duplicate payment candidates under ledger state and bank policy."""
+        res = self.detector.detect_and_resolve(
+            raw_payload=raw_payload,
+            identity=identity,
+            settlement_state=settlement_state,
+            bank_policy=bank_policy,
+            historical_index=historical_index
+        )
+        trail = res.audit_trail
+        if not res.success:
+            return (
+                ResolutionStatus.RESOLUTION_NOT_DETERMINED,
+                res.uniqueness,
+                [],
+                None,
+                trail,
+                res.error_message or "PR-01 duplicate detection failed.",
+                res.is_lossless
+            )
+
+        primary_cand = res.candidates[0] if res.candidates else None
+        return (
+            ResolutionStatus.RESOLUTION_DETERMINED,
+            res.uniqueness,
+            res.candidates,
+            primary_cand,
+            trail,
+            None,
+            res.is_lossless
+        )
+
+
+class DQ08Resolver:
+    """Deterministic, lossless BIC / SWIFT reference data resolver for DQ-08."""
+
+    def __init__(self):
+        from app.services.dq08_bic_resolver import dq08_resolver
+        self.resolver = dq08_resolver
+
+    def resolve(
+        self,
+        raw_payload: str,
+        original_bic: Optional[str] = None,
+        reference_entry: Optional[Any] = None,
+        bank_ssi: Optional[Any] = None,
+        target_rail_spec: Optional[Any] = None
+    ) -> Tuple[ResolutionStatus, ResolutionUniqueness, List[ResolutionCandidate], Optional[ResolutionCandidate], List[str], Optional[str], bool]:
+        """Resolves BIC reference directory status, successor mapping, and reachability."""
+        res = self.resolver.resolve_bic(
+            raw_payload=raw_payload,
+            original_bic=original_bic,
+            reference_entry=reference_entry,
+            bank_ssi=bank_ssi,
+            target_rail_spec=target_rail_spec
+        )
+        trail = res.audit_trail
+        if not res.success:
+            return (
+                ResolutionStatus.RESOLUTION_NOT_DETERMINED,
+                res.uniqueness,
+                [],
+                None,
+                trail,
+                res.error_message or "DQ-08 BIC resolution failed.",
+                res.is_lossless
+            )
+
+        primary_cand = res.candidates[0] if res.candidates else None
+        return (
+            ResolutionStatus.RESOLUTION_DETERMINED,
+            res.uniqueness,
+            res.candidates,
+            primary_cand,
+            trail,
+            None,
+            res.is_lossless
+        )
+
+
 class ResolutionEngine:
     """Master Resolution Engine dispatching to profile-specific deterministic resolvers."""
 
@@ -348,6 +442,8 @@ class ResolutionEngine:
         self._pr05_resolver = PR05Resolver()
         self._pr08_resolver = PR08Resolver()
         self._dq05_resolver = DQ05Resolver()
+        self._pr01_resolver = PR01Resolver()
+        self._dq08_resolver = DQ08Resolver()
 
     def derive_resolution(self, dossier: EvidenceDossier) -> ResolutionResult:
         """Derives a deterministic candidate resolution from an Evidence Dossier."""
@@ -500,6 +596,130 @@ class ResolutionEngine:
                 bank_policy_authorized=bank_policy_auth,
                 beneficiary_master=master_data,
                 force_ambiguity=force_ambig
+            )
+            trail.extend(diff_log)
+
+            return ResolutionResult(
+                profile_id=profile_id,
+                status=status,
+                uniqueness=uniqueness,
+                candidates=candidates,
+                primary_candidate=primary_cand,
+                is_lossless=is_lossless,
+                audit_trail=trail,
+                error_message=err
+            )
+
+        elif profile_id == "PR-01":
+            raw_item = dossier.get_item("RAW_PAYLOAD") or dossier.get_item("RAW_PAYLOAD_BYTES")
+            if not raw_item:
+                trail.append("Missing RAW_PAYLOAD item in evidence dossier for PR-01.")
+                return ResolutionResult(
+                    profile_id=profile_id,
+                    status=ResolutionStatus.RESOLUTION_NOT_DETERMINED,
+                    uniqueness=ResolutionUniqueness.RESOLUTION_UNIQUE,
+                    is_lossless=True,
+                    audit_trail=trail,
+                    error_message="Missing RAW_PAYLOAD in evidence dossier."
+                )
+
+            raw_text = str(raw_item.payload.get("raw_text") or "")
+
+            ident_item = dossier.get_item("PAYMENT_IDENTITY_RECORD")
+            ident_data = None
+            if ident_item and isinstance(ident_item.payload, dict):
+                from app.services.pr01_duplicate_detector import PaymentIdentityRecord
+                try:
+                    ident_data = PaymentIdentityRecord(**ident_item.payload)
+                except Exception:
+                    pass
+
+            settle_item = dossier.get_item("CURRENT_SETTLEMENT_STATE")
+            settle_data = None
+            if settle_item and isinstance(settle_item.payload, dict):
+                from app.services.pr01_duplicate_detector import CurrentSettlementState
+                try:
+                    settle_data = CurrentSettlementState(**settle_item.payload)
+                except Exception:
+                    pass
+
+            policy_item = dossier.get_item("BANK_DUPLICATE_POLICY")
+            policy_data = policy_item.payload if (policy_item and policy_item.is_valid) else None
+
+            hist_item = dossier.get_item("HISTORICAL_PAYMENT_INDEX")
+            hist_index = hist_item.payload.get("historical_payments") if (hist_item and isinstance(hist_item.payload, dict)) else None
+
+            status, uniqueness, candidates, primary_cand, diff_log, err, is_lossless = self._pr01_resolver.resolve(
+                raw_payload=raw_text,
+                identity=ident_data,
+                settlement_state=settle_data,
+                bank_policy=policy_data,
+                historical_index=hist_index
+            )
+            trail.extend(diff_log)
+
+            return ResolutionResult(
+                profile_id=profile_id,
+                status=status,
+                uniqueness=uniqueness,
+                candidates=candidates,
+                primary_candidate=primary_cand,
+                is_lossless=is_lossless,
+                audit_trail=trail,
+                error_message=err
+            )
+
+        elif profile_id == "DQ-08":
+            raw_item = dossier.get_item("RAW_PAYLOAD") or dossier.get_item("RAW_PAYLOAD_BYTES")
+            if not raw_item:
+                trail.append("Missing RAW_PAYLOAD item in evidence dossier for DQ-08.")
+                return ResolutionResult(
+                    profile_id=profile_id,
+                    status=ResolutionStatus.RESOLUTION_NOT_DETERMINED,
+                    uniqueness=ResolutionUniqueness.RESOLUTION_UNIQUE,
+                    is_lossless=True,
+                    audit_trail=trail,
+                    error_message="Missing RAW_PAYLOAD in evidence dossier."
+                )
+
+            raw_text = str(raw_item.payload.get("raw_text") or "")
+
+            orig_item = dossier.get_item("ORIGINAL_BIC_RECORD")
+            orig_bic = orig_item.payload.get("bic_code") if (orig_item and isinstance(orig_item.payload, dict)) else None
+
+            ref_item = dossier.get_item("BIC_REFERENCE_DIRECTORY")
+            ref_entry = None
+            if ref_item and isinstance(ref_item.payload, dict):
+                from app.services.dq08_bic_resolver import BICReferenceEntry
+                try:
+                    ref_entry = BICReferenceEntry(**ref_item.payload)
+                except Exception:
+                    pass
+
+            ssi_item = dossier.get_item("BANK_COUNTERPARTY_SSI")
+            ssi_data = None
+            if ssi_item and isinstance(ssi_item.payload, dict):
+                from app.services.dq08_bic_resolver import BankCounterpartySSI
+                try:
+                    ssi_data = BankCounterpartySSI(**ssi_item.payload)
+                except Exception:
+                    pass
+
+            rail_item = dossier.get_item("TARGET_RAIL_ROUTING_SPEC")
+            rail_spec = None
+            if rail_item and isinstance(rail_item.payload, dict):
+                from app.services.dq08_bic_resolver import TargetRailRoutingSpec
+                try:
+                    rail_spec = TargetRailRoutingSpec(**rail_item.payload)
+                except Exception:
+                    pass
+
+            status, uniqueness, candidates, primary_cand, diff_log, err, is_lossless = self._dq08_resolver.resolve(
+                raw_payload=raw_text,
+                original_bic=orig_bic,
+                reference_entry=ref_entry,
+                bank_ssi=ssi_data,
+                target_rail_spec=rail_spec
             )
             trail.extend(diff_log)
 
