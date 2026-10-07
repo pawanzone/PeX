@@ -615,9 +615,103 @@ class EvidenceContractRegistry:
         )
         self.register(dq06_contract)
 
+        # ST-01: RETURNED_PAYMENT (Phase 2D Slice 7)
+        st01_contract = EvidenceContract(
+            profile_id="ST-01",
+            profile_name="RETURNED_PAYMENT",
+            mandatory_evidence=[
+                EvidenceItemRequirement(
+                    item_name="RETURN_PAYLOAD",
+                    description="Inbound pacs.004 payment return payload (XML or JSON string)",
+                    role="IDENTIFICATION",
+                    required_trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                    is_mandatory_for_stp=True,
+                    policy_freshness_seconds=None
+                ),
+                EvidenceItemRequirement(
+                    item_name="ORIGINAL_PAYMENT_RECORD",
+                    description="Outbound original payment record (pacs.008) with UETR, EndToEndId, and amount",
+                    role="IDENTIFICATION",
+                    required_trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                    is_mandatory_for_stp=True,
+                    policy_freshness_seconds=None
+                ),
+                EvidenceItemRequirement(
+                    item_name="SETTLEMENT_LEDGER_STATE",
+                    description="Bank Settlement & Clearing Ledger record proving settled status",
+                    role="VALIDATION",
+                    required_trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                    is_mandatory_for_stp=True,
+                    policy_freshness_seconds=86400 # 24h freshness TTL
+                ),
+                EvidenceItemRequirement(
+                    item_name="CORE_DDA_ACCOUNT_STATUS",
+                    description="Originator customer DDA account status in Core Banking (OPEN/ACTIVE)",
+                    role="VALIDATION",
+                    required_trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                    is_mandatory_for_stp=True,
+                    policy_freshness_seconds=86400 # 24h freshness TTL
+                ),
+                EvidenceItemRequirement(
+                    item_name="ISO_RETURN_CODE_SET",
+                    description="Authoritative ISO 20022 External Return Code specification catalog",
+                    role="VALIDATION",
+                    required_trust_tier=EvidenceTrustTier.TIER_2_EXTERNAL_AUTHORITATIVE,
+                    is_mandatory_for_stp=True,
+                    policy_freshness_seconds=None # Static standard specification
+                ),
+            ],
+            conditional_evidence=[
+                EvidenceItemRequirement(
+                    item_name="BANK_RETURN_DISPOSITION_POLICY",
+                    description="Bank operational policy governing auto re-credit authorization by return code",
+                    role="AUTHORIZATION",
+                    required_trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                    is_mandatory_for_stp=False,
+                    policy_freshness_seconds=86400
+                ),
+                EvidenceItemRequirement(
+                    item_name="FEE_SCHEDULE_RECORD",
+                    description="Bank authorized fee schedule governing permitted return deduction charges",
+                    role="AUTHORIZATION",
+                    required_trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                    is_mandatory_for_stp=False,
+                    policy_freshness_seconds=86400
+                ),
+                EvidenceItemRequirement(
+                    item_name="ORIGINAL_SANCTIONS_CLEARANCE",
+                    description="Originator and transaction sanctions screening record",
+                    role="VALIDATION",
+                    required_trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                    is_mandatory_for_stp=False,
+                    policy_freshness_seconds=86400
+                ),
+                EvidenceItemRequirement(
+                    item_name="CORRIDOR_RETURN_POLICY",
+                    description="Clearing rail and corridor return rules and time window mandates",
+                    role="AUTHORIZATION",
+                    required_trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                    is_mandatory_for_stp=False,
+                    policy_freshness_seconds=86400
+                ),
+            ],
+            optional_evidence=[
+                EvidenceItemRequirement(
+                    item_name="HISTORICAL_RETURN_PRECEDENT",
+                    description="Historical log of past return reconciliation and resolution records (non-authoritative)",
+                    role="CONTEXT",
+                    required_trust_tier=EvidenceTrustTier.TIER_4_HISTORICAL_PRECEDENT,
+                    is_mandatory_for_stp=False,
+                    policy_freshness_seconds=None
+                )
+            ]
+        )
+        self.register(st01_contract)
+
 
 # Global singleton registry instance
 evidence_registry = EvidenceContractRegistry()
+
 
 
 

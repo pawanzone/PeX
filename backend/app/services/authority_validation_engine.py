@@ -62,6 +62,9 @@ class AuthorityValidationEngine:
         elif profile_id == "DQ-06":
             return self._validate_dq06_authority(candidate, trail, dossier=dossier, bank_policy_authorized=bank_policy_authorized)
 
+        elif profile_id == "ST-01":
+            return self._validate_st01_authority(candidate, trail, dossier=dossier, bank_policy_authorized=bank_policy_authorized)
+
         # Fallback for unregistered profiles
         trail.append(f"No authority validator registered for profile {profile_id}.")
         return AuthorityValidationResult(
@@ -1089,9 +1092,277 @@ class AuthorityValidationEngine:
             is_business_authority_confirmed=True
         )
 
+    def _validate_st01_authority(
+        self,
+        candidate: ResolutionCandidate,
+        trail: List[str],
+        dossier: Optional[Any] = None,
+        bank_policy_authorized: Optional[bool] = None
+    ) -> AuthorityValidationResult:
+        """Deterministically validates ST-01 candidate ISO code-set / syntax (V_det) and Bank SoR authority (V_auth)."""
+        from app.services.st01_return_reconciler import (
+            ISO_20022_EXTERNAL_RETURN_CODES,
+            SettlementLedgerState,
+            CoreDDAStatus,
+        )
+
+        diff = candidate.repaired_structured or {}
+        return_code = diff.get("return_reason_code", "")
+        uetr = diff.get("uetr", "")
+        recredit_amount = diff.get("recredit_amount")
+        recredit_currency = diff.get("recredit_currency")
+        deducted_charges = diff.get("deducted_charges", 0.0)
+
+        # 1. Structural / Code-Set Validation (V_det)
+        if not return_code:
+            trail.append("V_det FAILED: Return reason code is missing.")
+            return AuthorityValidationResult(
+                profile_id="ST-01",
+                status=AuthorityValidationStatus.FAILED,
+                is_valid=False,
+                authoritative_source="ISO_20022_EXTERNAL_RETURN_CODES",
+                audit_trail=trail,
+                error_message="Missing return reason code.",
+                is_structural_syntax_valid=False,
+                is_business_authority_confirmed=False
+            )
+
+        if return_code not in ISO_20022_EXTERNAL_RETURN_CODES:
+            trail.append(f"V_det FAILED: Return reason code '{return_code}' is not in ISO 20022 catalog.")
+            return AuthorityValidationResult(
+                profile_id="ST-01",
+                status=AuthorityValidationStatus.FAILED,
+                is_valid=False,
+                authoritative_source="ISO_20022_EXTERNAL_RETURN_CODES",
+                audit_trail=trail,
+                error_message=f"Invalid ISO 20022 return reason code: {return_code}",
+                is_structural_syntax_valid=False,
+                is_business_authority_confirmed=False
+            )
+
+        # Pacs.004 payload syntax check if XML
+        payload_text = candidate.repaired_payload or ""
+        if payload_text.strip().startswith("<"):
+            try:
+                ET.fromstring(payload_text)
+                trail.append("V_det: Inbound pacs.004 XML syntax well-formed.")
+            except ET.ParseError as pe:
+                trail.append(f"V_det FAILED: Inbound pacs.004 XML malformed: {str(pe)}")
+                return AuthorityValidationResult(
+                    profile_id="ST-01",
+                    status=AuthorityValidationStatus.FAILED,
+                    is_valid=False,
+                    authoritative_source="ISO_20022_W3C_SCHEMA_VALIDATOR",
+                    audit_trail=trail,
+                    error_message=f"Malformed XML payload: {str(pe)}",
+                    is_structural_syntax_valid=False,
+                    is_business_authority_confirmed=False
+                )
+
+        trail.append(f"V_det PASSED: Return reason code '{return_code}' and payload syntax validated.")
+
+        # 2. Business Authority & SoR Validation (V_auth)
+        if bank_policy_authorized is False:
+            trail.append("V_auth FAILED: Explicit bank policy authorization rejection.")
+            return AuthorityValidationResult(
+                profile_id="ST-01",
+                status=AuthorityValidationStatus.FAILED,
+                is_valid=False,
+                authoritative_source="BANK_RETURN_DISPOSITION_POLICY",
+                audit_trail=trail,
+                error_message="Bank return policy explicitly rejected auto re-credit.",
+                is_structural_syntax_valid=True,
+                is_business_authority_confirmed=False
+            )
+
+        if dossier:
+            # 2a. Original Payment Record Matching
+            orig_item = dossier.get_item("ORIGINAL_PAYMENT_RECORD")
+            if not orig_item:
+                trail.append("V_auth FAILED: Missing ORIGINAL_PAYMENT_RECORD in evidence dossier.")
+                return AuthorityValidationResult(
+                    profile_id="ST-01",
+                    status=AuthorityValidationStatus.FAILED,
+                    is_valid=False,
+                    authoritative_source="BANK_PAYMENT_ARCHIVE",
+                    audit_trail=trail,
+                    error_message="Original payment record not found.",
+                    is_structural_syntax_valid=True,
+                    is_business_authority_confirmed=False
+                )
+            
+            orig_uetr = orig_item.payload.get("uetr", "")
+            if orig_uetr and orig_uetr.lower() != uetr.lower():
+                trail.append(f"V_auth FAILED: UETR mismatch ({uetr} != {orig_uetr}).")
+                return AuthorityValidationResult(
+                    profile_id="ST-01",
+                    status=AuthorityValidationStatus.FAILED,
+                    is_valid=False,
+                    authoritative_source="BANK_PAYMENT_ARCHIVE",
+                    audit_trail=trail,
+                    error_message="UETR mismatch with original payment archive.",
+                    is_structural_syntax_valid=True,
+                    is_business_authority_confirmed=False
+                )
+
+            orig_curr = orig_item.payload.get("original_currency", "")
+            if orig_curr and recredit_currency and orig_curr.upper() != str(recredit_currency).upper():
+                trail.append(f"V_auth FAILED: Currency mismatch ({recredit_currency} != {orig_curr}).")
+                return AuthorityValidationResult(
+                    profile_id="ST-01",
+                    status=AuthorityValidationStatus.FAILED,
+                    is_valid=False,
+                    authoritative_source="BANK_PAYMENT_ARCHIVE",
+                    audit_trail=trail,
+                    error_message=f"Currency mismatch: {recredit_currency} != {orig_curr}",
+                    is_structural_syntax_valid=True,
+                    is_business_authority_confirmed=False
+                )
+
+            # 2b. Settlement Ledger Status
+            settle_item = dossier.get_item("SETTLEMENT_LEDGER_STATE")
+            if not settle_item:
+                trail.append("V_auth FAILED: Missing SETTLEMENT_LEDGER_STATE in evidence dossier.")
+                return AuthorityValidationResult(
+                    profile_id="ST-01",
+                    status=AuthorityValidationStatus.FAILED,
+                    is_valid=False,
+                    authoritative_source="BANK_SETTLEMENT_LEDGER",
+                    audit_trail=trail,
+                    error_message="Settlement ledger state not found.",
+                    is_structural_syntax_valid=True,
+                    is_business_authority_confirmed=False
+                )
+
+            settle_status = settle_item.payload.get("settlement_status", "")
+            if isinstance(settle_status, SettlementLedgerState):
+                settle_status = settle_status.value
+
+            if settle_status == SettlementLedgerState.ALREADY_RECREDITED.value:
+                trail.append("V_auth FAILED: Duplicate return detected (payment is ALREADY_RECREDITED).")
+                return AuthorityValidationResult(
+                    profile_id="ST-01",
+                    status=AuthorityValidationStatus.FAILED,
+                    is_valid=False,
+                    authoritative_source="BANK_SETTLEMENT_LEDGER",
+                    audit_trail=trail,
+                    error_message="Duplicate return: payment already re-credited.",
+                    is_structural_syntax_valid=True,
+                    is_business_authority_confirmed=False
+                )
+
+            if settle_status != SettlementLedgerState.SETTLED.value:
+                trail.append(f"V_auth FAILED: Settlement ledger state is '{settle_status}', expected 'SETTLED'.")
+                return AuthorityValidationResult(
+                    profile_id="ST-01",
+                    status=AuthorityValidationStatus.FAILED,
+                    is_valid=False,
+                    authoritative_source="BANK_SETTLEMENT_LEDGER",
+                    audit_trail=trail,
+                    error_message=f"Settlement status is not SETTLED ({settle_status}).",
+                    is_structural_syntax_valid=True,
+                    is_business_authority_confirmed=False
+                )
+
+            # 2c. Core DDA Account Status
+            dda_item = dossier.get_item("CORE_DDA_ACCOUNT_STATUS")
+            if not dda_item:
+                trail.append("V_auth FAILED: Missing CORE_DDA_ACCOUNT_STATUS in evidence dossier.")
+                return AuthorityValidationResult(
+                    profile_id="ST-01",
+                    status=AuthorityValidationStatus.FAILED,
+                    is_valid=False,
+                    authoritative_source="BANK_CORE_DDA",
+                    audit_trail=trail,
+                    error_message="Core DDA account status not found.",
+                    is_structural_syntax_valid=True,
+                    is_business_authority_confirmed=False
+                )
+
+            dda_status = dda_item.payload.get("account_status", "")
+            if isinstance(dda_status, CoreDDAStatus):
+                dda_status = dda_status.value
+
+            if dda_status not in [CoreDDAStatus.OPEN.value, CoreDDAStatus.ACTIVE.value]:
+                trail.append(f"V_auth FAILED: Originator DDA account status is '{dda_status}' (prohibits auto re-credit).")
+                return AuthorityValidationResult(
+                    profile_id="ST-01",
+                    status=AuthorityValidationStatus.FAILED,
+                    is_valid=False,
+                    authoritative_source="BANK_CORE_DDA",
+                    audit_trail=trail,
+                    error_message=f"Originator DDA account status is {dda_status} (not OPEN/ACTIVE).",
+                    is_structural_syntax_valid=True,
+                    is_business_authority_confirmed=False
+                )
+
+            # 2d. Bank Return Policy Check
+            pol_item = dossier.get_item("BANK_RETURN_DISPOSITION_POLICY")
+            if pol_item:
+                auto_permitted = pol_item.payload.get("auto_recredit_permitted", True)
+                if not auto_permitted:
+                    trail.append(f"V_auth FAILED: Bank Return Policy prohibits auto re-credit for code '{return_code}'.")
+                    return AuthorityValidationResult(
+                        profile_id="ST-01",
+                        status=AuthorityValidationStatus.FAILED,
+                        is_valid=False,
+                        authoritative_source="BANK_RETURN_DISPOSITION_POLICY",
+                        audit_trail=trail,
+                        error_message=f"Auto re-credit not permitted by policy for return code: {return_code}",
+                        is_structural_syntax_valid=True,
+                        is_business_authority_confirmed=False
+                    )
+
+            # 2e. Deducted Charges / Fee Schedule Check
+            if deducted_charges and float(deducted_charges) > 0:
+                fee_item = dossier.get_item("FEE_SCHEDULE_RECORD")
+                if fee_item:
+                    max_fee = float(fee_item.payload.get("max_authorized_fee", 0.0))
+                    if float(deducted_charges) > max_fee:
+                        trail.append(f"V_auth FAILED: Deducted charges ({deducted_charges}) exceed fee schedule limit ({max_fee}).")
+                        return AuthorityValidationResult(
+                            profile_id="ST-01",
+                            status=AuthorityValidationStatus.FAILED,
+                            is_valid=False,
+                            authoritative_source="BANK_FEE_SCHEDULE",
+                            audit_trail=trail,
+                            error_message=f"Deducted charges {deducted_charges} exceed authorized limit {max_fee}",
+                            is_structural_syntax_valid=True,
+                            is_business_authority_confirmed=False
+                        )
+
+            # 2f. Corridor Return Policy Check
+            corr_item = dossier.get_item("CORRIDOR_RETURN_POLICY")
+            if corr_item:
+                returns_supported = corr_item.payload.get("returns_supported", True)
+                if not returns_supported:
+                    trail.append("V_auth FAILED: Target corridor does not support automated returns.")
+                    return AuthorityValidationResult(
+                        profile_id="ST-01",
+                        status=AuthorityValidationStatus.FAILED,
+                        is_valid=False,
+                        authoritative_source="BANK_CORRIDOR_POLICY",
+                        audit_trail=trail,
+                        error_message="Corridor does not support automated returns.",
+                        is_structural_syntax_valid=True,
+                        is_business_authority_confirmed=False
+                    )
+
+        trail.append("V_auth PASSED: Settlement ledger, DDA account, Bank Return Policy, and corridor rules verified.")
+        return AuthorityValidationResult(
+            profile_id="ST-01",
+            status=AuthorityValidationStatus.PASSED,
+            is_valid=True,
+            authoritative_source="BANK_SETTLEMENT_LEDGER_AND_DDA",
+            audit_trail=trail,
+            is_structural_syntax_valid=True,
+            is_business_authority_confirmed=True
+        )
+
 
 # Global singleton authority validation engine
 authority_validation_engine = AuthorityValidationEngine()
+
 
 
 

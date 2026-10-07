@@ -572,6 +572,54 @@ class DQ06Resolver:
         )
 
 
+class ST01Resolver:
+    """Deterministic, lossless Return Reconciler & Bank Instruction Generator for ST-01."""
+
+    def __init__(self):
+        from app.services.st01_return_reconciler import st01_reconciler
+        self.reconciler = st01_reconciler
+
+    def resolve(
+        self,
+        raw_pacs004_payload: str,
+        inbound_uetr: str,
+        inbound_end_to_end_id: str,
+        inbound_return_amount: float,
+        inbound_currency: str,
+        inbound_return_reason: str,
+        inbound_deducted_charges: float = 0.0,
+        return_narrative: Optional[str] = None,
+        original_payment: Optional[Any] = None,
+        settlement_ledger: Optional[Any] = None,
+        core_dda: Optional[Any] = None,
+        bank_return_policy: Optional[Any] = None,
+        fee_schedule: Optional[Any] = None,
+        corridor_policy: Optional[Any] = None,
+        sanctions_cleared: bool = True,
+        allow_stale_evidence: bool = False,
+        policy_freshness_seconds: int = 86400,
+    ) -> Tuple[ResolutionStatus, ResolutionUniqueness, List[ResolutionCandidate], Optional[ResolutionCandidate], List[str], Optional[str], bool]:
+        return self.reconciler.reconcile_and_resolve(
+            raw_pacs004_payload=raw_pacs004_payload,
+            inbound_uetr=inbound_uetr,
+            inbound_end_to_end_id=inbound_end_to_end_id,
+            inbound_return_amount=inbound_return_amount,
+            inbound_currency=inbound_currency,
+            inbound_return_reason=inbound_return_reason,
+            inbound_deducted_charges=inbound_deducted_charges,
+            return_narrative=return_narrative,
+            original_payment=original_payment,
+            settlement_ledger=settlement_ledger,
+            core_dda=core_dda,
+            bank_return_policy=bank_return_policy,
+            fee_schedule=fee_schedule,
+            corridor_policy=corridor_policy,
+            sanctions_cleared=sanctions_cleared,
+            allow_stale_evidence=allow_stale_evidence,
+            policy_freshness_seconds=policy_freshness_seconds,
+        )
+
+
 class ResolutionEngine:
     """Master Resolution Engine dispatching to profile-specific deterministic resolvers."""
 
@@ -585,6 +633,7 @@ class ResolutionEngine:
         self._dq02_resolver = DQ02Resolver()
         self._dq01_resolver = DQ01Resolver()
         self._dq06_resolver = DQ06Resolver()
+        self._st01_resolver = ST01Resolver()
 
     def derive_resolution(self, dossier: EvidenceDossier) -> ResolutionResult:
         """Derives a deterministic candidate resolution from an Evidence Dossier."""
@@ -1087,6 +1136,127 @@ class ResolutionEngine:
                 error_message=err
             )
 
+        elif profile_id == "ST-01":
+            raw_item = dossier.get_item("RETURN_PAYLOAD") or dossier.get_item("RAW_PAYLOAD")
+            if not raw_item:
+                trail.append("Missing RETURN_PAYLOAD item in evidence dossier for ST-01.")
+                return ResolutionResult(
+                    profile_id=profile_id,
+                    status=ResolutionStatus.RESOLUTION_NOT_DETERMINED,
+                    uniqueness=ResolutionUniqueness.RESOLUTION_UNIQUE,
+                    is_lossless=True,
+                    audit_trail=trail,
+                    error_message="Missing RETURN_PAYLOAD in evidence dossier."
+                )
+
+            raw_text = str(raw_item.payload.get("raw_text") or raw_item.payload.get("raw_xml") or "")
+            inbound_uetr = dossier.metadata.get("uetr") or raw_item.payload.get("uetr", "")
+            inbound_e2e = dossier.metadata.get("end_to_end_id") or raw_item.payload.get("end_to_end_id", "")
+            inbound_amount = float(dossier.metadata.get("return_amount") or raw_item.payload.get("return_amount", 0.0))
+            inbound_curr = str(dossier.metadata.get("currency") or raw_item.payload.get("currency", "EUR"))
+            inbound_reason = str(dossier.metadata.get("return_reason_code") or raw_item.payload.get("return_reason_code", ""))
+            inbound_charges = float(dossier.metadata.get("deducted_charges") or raw_item.payload.get("deducted_charges", 0.0))
+            rmt_narrative = dossier.metadata.get("return_narrative") or raw_item.payload.get("return_narrative")
+
+            # Extract Original Payment Record
+            orig_item = dossier.get_item("ORIGINAL_PAYMENT_RECORD")
+            orig_payment = None
+            if orig_item and isinstance(orig_item.payload, dict):
+                from app.services.st01_return_reconciler import OriginalPaymentRecord
+                try:
+                    orig_payment = OriginalPaymentRecord(**orig_item.payload)
+                except Exception:
+                    pass
+
+            # Extract Settlement Ledger Record
+            settle_item = dossier.get_item("SETTLEMENT_LEDGER_STATE")
+            settle_record = None
+            if settle_item and isinstance(settle_item.payload, dict):
+                from app.services.st01_return_reconciler import SettlementLedgerRecord
+                try:
+                    settle_record = SettlementLedgerRecord(**settle_item.payload)
+                except Exception:
+                    pass
+
+            # Extract Core DDA Record
+            dda_item = dossier.get_item("CORE_DDA_ACCOUNT_STATUS")
+            dda_record = None
+            if dda_item and isinstance(dda_item.payload, dict):
+                from app.services.st01_return_reconciler import CoreDDAAccountRecord
+                try:
+                    dda_record = CoreDDAAccountRecord(**dda_item.payload)
+                except Exception:
+                    pass
+
+            # Extract Bank Return Disposition Policy
+            policy_item = dossier.get_item("BANK_RETURN_DISPOSITION_POLICY")
+            bank_policy = None
+            if policy_item and isinstance(policy_item.payload, dict):
+                from app.services.st01_return_reconciler import BankReturnDispositionPolicy
+                try:
+                    bank_policy = BankReturnDispositionPolicy(**policy_item.payload)
+                except Exception:
+                    pass
+
+            # Extract Fee Schedule
+            fee_item = dossier.get_item("FEE_SCHEDULE_RECORD")
+            fee_record = None
+            if fee_item and isinstance(fee_item.payload, dict):
+                from app.services.st01_return_reconciler import FeeScheduleRecord
+                try:
+                    fee_record = FeeScheduleRecord(**fee_item.payload)
+                except Exception:
+                    pass
+
+            # Extract Corridor Policy
+            corr_item = dossier.get_item("CORRIDOR_RETURN_POLICY")
+            corr_policy = None
+            if corr_item and isinstance(corr_item.payload, dict):
+                from app.services.st01_return_reconciler import CorridorReturnPolicy
+                try:
+                    corr_policy = CorridorReturnPolicy(**corr_item.payload)
+                except Exception:
+                    pass
+
+            # Sanctions status
+            sanctions_cleared = dossier.metadata.get("sanctions_cleared", True)
+            sanc_item = dossier.get_item("ORIGINAL_SANCTIONS_CLEARANCE")
+            if sanc_item and isinstance(sanc_item.payload, dict):
+                sanctions_cleared = sanc_item.payload.get("is_cleared", sanctions_cleared)
+
+            allow_stale = dossier.metadata.get("allow_stale_evidence", False)
+
+            status, uniqueness, candidates, primary_cand, diff_log, err, is_lossless = self._st01_resolver.resolve(
+                raw_pacs004_payload=raw_text,
+                inbound_uetr=inbound_uetr,
+                inbound_end_to_end_id=inbound_e2e,
+                inbound_return_amount=inbound_amount,
+                inbound_currency=inbound_curr,
+                inbound_return_reason=inbound_reason,
+                inbound_deducted_charges=inbound_charges,
+                return_narrative=rmt_narrative,
+                original_payment=orig_payment,
+                settlement_ledger=settle_record,
+                core_dda=dda_record,
+                bank_return_policy=bank_policy,
+                fee_schedule=fee_record,
+                corridor_policy=corr_policy,
+                sanctions_cleared=sanctions_cleared,
+                allow_stale_evidence=allow_stale
+            )
+            trail.extend(diff_log)
+
+            return ResolutionResult(
+                profile_id=profile_id,
+                status=status,
+                uniqueness=uniqueness,
+                candidates=candidates,
+                primary_candidate=primary_cand,
+                is_lossless=is_lossless,
+                audit_trail=trail,
+                error_message=err
+            )
+
         # Fallback for unregistered profiles
         trail.append(f"No deterministic resolver registered for profile {profile_id}.")
         return ResolutionResult(
@@ -1101,5 +1271,6 @@ class ResolutionEngine:
 
 # Global singleton resolution engine
 resolution_engine = ResolutionEngine()
+
 
 

@@ -723,6 +723,205 @@ class FolderInputAdapter(InputPort):
                         is_valid=True
                     ))
 
+        elif profile_id == "ST-01":
+            # 1. Primary Inbound pacs.004 Return Payload (Tier 1 Bank Authoritative)
+            inbound_uetr = package.evidence_fields.get("uetr") or package.metadata.get("uetr", "")
+            inbound_e2e = package.evidence_fields.get("end_to_end_id") or package.metadata.get("end_to_end_id", "")
+            return_amt = float(package.evidence_fields.get("return_amount") or package.metadata.get("return_amount", 0.0))
+            currency = package.evidence_fields.get("currency") or package.metadata.get("currency", "EUR")
+            return_reason = package.evidence_fields.get("return_reason_code") or package.metadata.get("return_reason_code", "")
+            deducted_charges = float(package.evidence_fields.get("deducted_charges") or package.metadata.get("deducted_charges", 0.0))
+            narrative = package.evidence_fields.get("return_narrative") or package.metadata.get("return_narrative", "")
+
+            # XML Parsing if XML payload provided
+            if raw_text and raw_text.strip().startswith("<"):
+                try:
+                    root = ET.fromstring(raw_text)
+                    for el in root.iter():
+                        tag = el.tag.split("}")[-1] if "}" in el.tag else el.tag
+                        if tag in ["OrgnlUETR", "UETR"] and el.text and not inbound_uetr:
+                            inbound_uetr = el.text.strip()
+                        elif tag in ["OrgnlEndToEndId", "EndToEndId"] and el.text and not inbound_e2e:
+                            inbound_e2e = el.text.strip()
+                        elif tag in ["RtrdIntrBkSttlmAmt", "RtrdInstdAmt"] and el.text:
+                            try:
+                                return_amt = float(el.text.strip())
+                                if "Ccy" in el.attrib:
+                                    currency = el.attrib["Ccy"]
+                            except Exception:
+                                pass
+                        elif tag == "Cd" and el.text and not return_reason:
+                            # Return Reason code
+                            parent_or_context = el.text.strip()
+                            if len(parent_or_context) <= 4:
+                                return_reason = parent_or_context
+                        elif tag == "AddtlInf" and el.text and not narrative:
+                            narrative = el.text.strip()
+                except Exception:
+                    pass
+
+            dossier.metadata.update({
+                "uetr": inbound_uetr,
+                "end_to_end_id": inbound_e2e,
+                "return_amount": return_amt,
+                "currency": currency,
+                "return_reason_code": return_reason,
+                "deducted_charges": deducted_charges,
+                "return_narrative": narrative,
+            })
+
+            dossier.add_item(EvidenceItem(
+                item_name="RETURN_PAYLOAD",
+                source_name=package.source_channel,
+                trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                payload={
+                    "raw_text": raw_text,
+                    "uetr": inbound_uetr,
+                    "end_to_end_id": inbound_e2e,
+                    "return_amount": return_amt,
+                    "currency": currency,
+                    "return_reason_code": return_reason,
+                    "deducted_charges": deducted_charges,
+                    "return_narrative": narrative,
+                },
+                is_valid=True
+            ))
+
+            # 2. Original Payment Record (Tier 1 Bank Authoritative)
+            orig_data = package.evidence_fields.get("original_payment_record") or package.evidence_fields.get("original_payment")
+            if orig_data:
+                orig_payload = orig_data if isinstance(orig_data, dict) else orig_data.model_dump()
+                dossier.add_item(EvidenceItem(
+                    item_name="ORIGINAL_PAYMENT_RECORD",
+                    source_name="BANK_PAYMENT_ARCHIVE",
+                    trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                    payload=orig_payload,
+                    is_valid=True
+                ))
+
+            # 3. Settlement Ledger State (Tier 1 Bank Authoritative)
+            settle_data = package.evidence_fields.get("settlement_ledger_state") or package.evidence_fields.get("settlement_ledger")
+            if settle_data:
+                settle_payload = settle_data if isinstance(settle_data, dict) else settle_data.model_dump()
+                settle_ts = datetime.now(timezone.utc)
+                if isinstance(settle_payload, dict) and "retrieved_at" in settle_payload:
+                    raw_ts = settle_payload["retrieved_at"]
+                    if isinstance(raw_ts, datetime):
+                        settle_ts = raw_ts
+                    elif isinstance(raw_ts, str):
+                        try:
+                            settle_ts = datetime.fromisoformat(raw_ts)
+                        except Exception:
+                            pass
+                dossier.add_item(EvidenceItem(
+                    item_name="SETTLEMENT_LEDGER_STATE",
+                    source_name="BANK_SETTLEMENT_LEDGER",
+                    trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                    timestamp=settle_ts,
+                    payload=settle_payload,
+                    is_valid=True
+                ))
+
+            # 4. Core DDA Account Status (Tier 1 Bank Authoritative)
+            dda_data = package.evidence_fields.get("core_dda_account_status") or package.evidence_fields.get("core_dda")
+            if dda_data:
+                dda_payload = dda_data if isinstance(dda_data, dict) else dda_data.model_dump()
+                dda_ts = datetime.now(timezone.utc)
+                if isinstance(dda_payload, dict) and "retrieved_at" in dda_payload:
+                    raw_ts = dda_payload["retrieved_at"]
+                    if isinstance(raw_ts, datetime):
+                        dda_ts = raw_ts
+                    elif isinstance(raw_ts, str):
+                        try:
+                            dda_ts = datetime.fromisoformat(raw_ts)
+                        except Exception:
+                            pass
+                dossier.add_item(EvidenceItem(
+                    item_name="CORE_DDA_ACCOUNT_STATUS",
+                    source_name="BANK_CORE_DDA",
+                    trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                    timestamp=dda_ts,
+                    payload=dda_payload,
+                    is_valid=True
+                ))
+
+            # 5. ISO Return Code Set (Tier 2 External Authoritative)
+            from app.services.st01_return_reconciler import ISO_20022_EXTERNAL_RETURN_CODES
+            dossier.add_item(EvidenceItem(
+                item_name="ISO_RETURN_CODE_SET",
+                source_name="ISO20022_REGISTRY",
+                trust_tier=EvidenceTrustTier.TIER_2_EXTERNAL_AUTHORITATIVE,
+                payload={"code_set_version": "ExternalReturnReason1Code_2023", "code_count": len(ISO_20022_EXTERNAL_RETURN_CODES)},
+                is_valid=True
+            ))
+
+            # 6. Optional & Conditional Items
+            if "bank_return_disposition_policy" in package.evidence_fields or "bank_return_policy" in package.evidence_fields:
+                pol_data = package.evidence_fields.get("bank_return_disposition_policy") or package.evidence_fields.get("bank_return_policy")
+                pol_payload = pol_data if isinstance(pol_data, dict) else pol_data.model_dump()
+                pol_ts = datetime.now(timezone.utc)
+                if isinstance(pol_payload, dict) and "retrieved_at" in pol_payload:
+                    raw_ts = pol_payload["retrieved_at"]
+                    if isinstance(raw_ts, datetime):
+                        pol_ts = raw_ts
+                    elif isinstance(raw_ts, str):
+                        try:
+                            pol_ts = datetime.fromisoformat(raw_ts)
+                        except Exception:
+                            pass
+                dossier.add_item(EvidenceItem(
+                    item_name="BANK_RETURN_DISPOSITION_POLICY",
+                    source_name="BANK_POLICY_STORE",
+                    trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                    timestamp=pol_ts,
+                    payload=pol_payload,
+                    is_valid=True
+                ))
+
+            if "fee_schedule_record" in package.evidence_fields or "fee_schedule" in package.evidence_fields:
+                fee_data = package.evidence_fields.get("fee_schedule_record") or package.evidence_fields.get("fee_schedule")
+                fee_payload = fee_data if isinstance(fee_data, dict) else fee_data.model_dump()
+                fee_ts = datetime.now(timezone.utc)
+                if isinstance(fee_payload, dict) and "retrieved_at" in fee_payload:
+                    raw_ts = fee_payload["retrieved_at"]
+                    if isinstance(raw_ts, datetime):
+                        fee_ts = raw_ts
+                    elif isinstance(raw_ts, str):
+                        try:
+                            fee_ts = datetime.fromisoformat(raw_ts)
+                        except Exception:
+                            pass
+                dossier.add_item(EvidenceItem(
+                    item_name="FEE_SCHEDULE_RECORD",
+                    source_name="BANK_FEE_SCHEDULE_STORE",
+                    trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                    timestamp=fee_ts,
+                    payload=fee_payload,
+                    is_valid=True
+                ))
+
+            if "original_sanctions_clearance" in package.evidence_fields:
+                sanc_data = package.evidence_fields["original_sanctions_clearance"]
+                sanc_payload = sanc_data if isinstance(sanc_data, dict) else sanc_data.model_dump()
+                dossier.add_item(EvidenceItem(
+                    item_name="ORIGINAL_SANCTIONS_CLEARANCE",
+                    source_name="BANK_SANCTIONS_ENGINE",
+                    trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                    payload=sanc_payload,
+                    is_valid=True
+                ))
+
+            if "corridor_return_policy" in package.evidence_fields or "corridor_policy" in package.evidence_fields:
+                corr_data = package.evidence_fields.get("corridor_return_policy") or package.evidence_fields.get("corridor_policy")
+                corr_payload = corr_data if isinstance(corr_data, dict) else corr_data.model_dump()
+                dossier.add_item(EvidenceItem(
+                    item_name="CORRIDOR_RETURN_POLICY",
+                    source_name="BANK_CORRIDOR_POLICY_STORE",
+                    trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                    payload=corr_payload,
+                    is_valid=True
+                ))
+
 
         # 3. Add any caller-supplied additional evidence items
         for key, val in package.evidence_fields.items():
@@ -730,7 +929,11 @@ class FolderInputAdapter(InputPort):
                 "has_contradictory_evidence", "contradiction_detail", "target_scheme",
                 "bank_transliteration_policy", "target_rail", "bank_character_substitution_policy",
                 "processing_state", "bank_address_policy", "beneficiary_master", "postal_directory",
-                "bank_purpose_policy", "corridor_rules"
+                "bank_purpose_policy", "corridor_rules",
+                "original_payment_record", "original_payment", "settlement_ledger_state", "settlement_ledger",
+                "core_dda_account_status", "core_dda", "bank_return_disposition_policy", "bank_return_policy",
+                "fee_schedule_record", "fee_schedule", "original_sanctions_clearance", "corridor_return_policy",
+                "corridor_policy", "return_payload"
             ]:
                 if isinstance(val, dict) and "payload" in val and "trust_tier" in val:
                     item_ts = datetime.now(timezone.utc)
