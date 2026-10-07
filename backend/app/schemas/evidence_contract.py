@@ -385,7 +385,68 @@ class EvidenceContractRegistry:
         )
         self.register(dq08_contract)
 
+        # DQ-02: INVALID_BIC_SWIFT (Phase 2B Slice 4)
+        dq02_contract = EvidenceContract(
+            profile_id="DQ-02",
+            profile_name="INVALID_BIC_SWIFT",
+            mandatory_evidence=[
+                EvidenceItemRequirement(
+                    item_name="RAW_PAYLOAD",
+                    description="Raw payment exception payload containing original BIC element (<BICFI> or <BIC>)",
+                    role="IDENTIFICATION",
+                    required_trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                    is_mandatory_for_stp=True,
+                    policy_freshness_seconds=None
+                ),
+                EvidenceItemRequirement(
+                    item_name="ORIGINAL_BIC_RECORD",
+                    description="Extracted original BIC string, payload field tag, and transaction metadata",
+                    role="IDENTIFICATION",
+                    required_trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                    is_mandatory_for_stp=True,
+                    policy_freshness_seconds=None
+                ),
+                EvidenceItemRequirement(
+                    item_name="BIC_REFERENCE_DIRECTORY",
+                    description="Authoritative external reference data directory for ISO 9362 BIC status, successors, and reachability",
+                    role="VALIDATION",
+                    required_trust_tier=EvidenceTrustTier.TIER_2_EXTERNAL_AUTHORITATIVE,
+                    is_mandatory_for_stp=True,
+                    policy_freshness_seconds=86400 # DEMO_ONLY_DEFAULT: Production requires BANK_CONFIG_REQUIRED
+                ),
+                EvidenceItemRequirement(
+                    item_name="BANK_COUNTERPARTY_SSI",
+                    description="Authoritative bank counterparty Standard Settlement Instructions (SSI) and master routing rules",
+                    role="AUTHORIZATION",
+                    required_trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                    is_mandatory_for_stp=True,
+                    policy_freshness_seconds=86400
+                ),
+                EvidenceItemRequirement(
+                    item_name="TARGET_RAIL_ROUTING_SPEC",
+                    description="Target clearing rail routing rules, reachability parameters, and corridor constraints",
+                    role="VALIDATION",
+                    required_trust_tier=EvidenceTrustTier.TIER_2_EXTERNAL_AUTHORITATIVE,
+                    is_mandatory_for_stp=True,
+                    policy_freshness_seconds=None
+                ),
+            ],
+            conditional_evidence=[],
+            optional_evidence=[
+                EvidenceItemRequirement(
+                    item_name="HISTORICAL_BIC_DIRECTORY",
+                    description="Historical log of past BIC resolutions, migrations, and institution precedents",
+                    role="CONTEXT",
+                    required_trust_tier=EvidenceTrustTier.TIER_4_HISTORICAL_PRECEDENT,
+                    is_mandatory_for_stp=False,
+                    policy_freshness_seconds=None
+                )
+            ]
+        )
+        self.register(dq02_contract)
+
 
 # Global singleton registry instance
 evidence_registry = EvidenceContractRegistry()
+
 

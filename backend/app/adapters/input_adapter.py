@@ -4,6 +4,7 @@ Implements the InputPort interface to ingest payment exception payloads and asso
 evidence packages from folder watchers, REST endpoints, or message queues into canonical dossiers.
 """
 import os
+import re
 import json
 import hashlib
 from typing import Dict, List, Any, Optional, Tuple
@@ -295,7 +296,7 @@ class FolderInputAdapter(InputPort):
                     is_valid=True
                 ))
 
-        elif profile_id == "DQ-08":
+        elif profile_id in ("DQ-08", "DQ-02"):
             # 1. Raw Payload Evidence Item (Tier 1 Bank Authoritative)
             dossier.add_item(EvidenceItem(
                 item_name="RAW_PAYLOAD",
@@ -306,7 +307,11 @@ class FolderInputAdapter(InputPort):
             ))
 
             # 2. Original BIC Record (Tier 1 Bank Authoritative)
-            from app.services.dq08_bic_resolver import dq08_resolver
+            if profile_id == "DQ-02":
+                from app.services.dq02_bic_resolver import dq02_resolver as active_bic_resolver
+            else:
+                from app.services.dq08_bic_resolver import dq08_resolver as active_bic_resolver
+
             orig_bic = package.evidence_fields.get("original_bic")
             if not orig_bic:
                 bic_match = re.search(r'<BICFI>([A-Z0-9]+)</BICFI>', raw_text)
@@ -325,16 +330,28 @@ class FolderInputAdapter(InputPort):
             # 3. BIC Reference Directory (Tier 2 External Authoritative)
             ref_data = package.evidence_fields.get("bic_reference_directory")
             if not ref_data and orig_bic != "UNKNOWN":
-                lookup_res = dq08_resolver.reference_adapter.lookup(orig_bic)
+                lookup_res = active_bic_resolver.reference_adapter.lookup(orig_bic)
                 if lookup_res:
                     ref_data = lookup_res.model_dump()
 
             if ref_data:
+                ref_payload = ref_data if isinstance(ref_data, dict) else ref_data.model_dump()
+                ref_ts = datetime.now(timezone.utc)
+                if isinstance(ref_payload, dict) and "retrieved_at" in ref_payload:
+                    raw_ts = ref_payload["retrieved_at"]
+                    if isinstance(raw_ts, datetime):
+                        ref_ts = raw_ts
+                    elif isinstance(raw_ts, str):
+                        try:
+                            ref_ts = datetime.fromisoformat(raw_ts)
+                        except Exception:
+                            pass
                 dossier.add_item(EvidenceItem(
                     item_name="BIC_REFERENCE_DIRECTORY",
                     source_name="SWIFTREF_GLOBAL_DIRECTORY_API",
                     trust_tier=EvidenceTrustTier.TIER_2_EXTERNAL_AUTHORITATIVE,
-                    payload=ref_data if isinstance(ref_data, dict) else ref_data.model_dump(),
+                    timestamp=ref_ts,
+                    payload=ref_payload,
                     is_valid=True
                 ))
 
@@ -342,7 +359,7 @@ class FolderInputAdapter(InputPort):
             ssi_data = package.evidence_fields.get("bank_counterparty_ssi", {
                 "counterparty_id": "CP-GLOBAL-001",
                 "mandated_bic": None,
-                "allowed_bics": ["DEUTDEDDFXX", "COBADEDDXXX", "SBININBBNDL", "BNPAFRPPXXX", "CHASUS33XXX", "BARCGB22XXX", "DRESDEFFXXX", "SBININBBXXX", "AMROFRPPXXX", "LOCADE22XXX"],
+                "allowed_bics": ["DEUTDEDDFXX", "COBADEDDXXX", "SBININBBNDL", "BNPAFRPPXXX", "CHASUS33XXX", "BARCGB22XXX", "DRESDEFFXXX", "SBININBBXXX", "AMROFRPPXXX", "LOCADE22XXX", "FORTBNL2XXX", "HSBCGB2LXXX"],
                 "is_authorized": True
             })
             dossier.add_item(EvidenceItem(

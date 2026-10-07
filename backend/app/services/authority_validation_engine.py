@@ -53,6 +53,9 @@ class AuthorityValidationEngine:
         elif profile_id == "DQ-08":
             return self._validate_dq08_authority(candidate, trail, dossier=dossier, bank_policy_authorized=bank_policy_authorized)
 
+        elif profile_id == "DQ-02":
+            return self._validate_dq02_authority(candidate, trail, dossier=dossier, bank_policy_authorized=bank_policy_authorized)
+
         # Fallback for unregistered profiles
         trail.append(f"No authority validator registered for profile {profile_id}.")
         return AuthorityValidationResult(
@@ -670,7 +673,111 @@ class AuthorityValidationEngine:
             is_business_authority_confirmed=True
         )
 
+    def _validate_dq02_authority(
+        self,
+        candidate: ResolutionCandidate,
+        trail: List[str],
+        dossier: Optional[Any] = None,
+        bank_policy_authorized: Optional[bool] = None
+    ) -> AuthorityValidationResult:
+        """Deterministically validates DQ-02 ISO 9362 structural syntax & reachability (V_det) and Bank SSI authority (V_auth)."""
+        payload_text = candidate.repaired_payload
+
+        # 1. Structural BIC Syntax & XML Validation (V_det)
+        from app.services.dq02_bic_resolver import dq02_resolver
+        is_xml = payload_text.strip().startswith("<") or "<Document" in payload_text
+        extracted_bic = None
+
+        if is_xml:
+            try:
+                root = ET.fromstring(payload_text)
+                trail.append("V_det: Target XML schema syntax validated successfully.")
+                bic_match = re.search(r'<BICFI>([A-Z0-9]+)</BICFI>', payload_text)
+                if not bic_match:
+                    bic_match = re.search(r'<BIC>([A-Z0-9]+)</BIC>', payload_text)
+                if bic_match:
+                    extracted_bic = bic_match.group(1).strip()
+            except ET.ParseError as pe:
+                trail.append(f"V_det FAILED: Repaired payload XML invalid: {str(pe)}")
+                return AuthorityValidationResult(
+                    profile_id="DQ-02",
+                    status=AuthorityValidationStatus.FAILED,
+                    is_valid=False,
+                    authoritative_source="ISO20022_SCHEMA_VALIDATOR",
+                    audit_trail=trail,
+                    error_message=f"XML syntax invalid: {str(pe)}",
+                    is_structural_syntax_valid=False,
+                    is_business_authority_confirmed=False
+                )
+        else:
+            bic_match = re.search(r'\b[A-Z]{4}[A-Z]{2}[A-Z0-9]{2}([A-Z0-9]{3})?\b', payload_text)
+            if bic_match:
+                extracted_bic = bic_match.group(0)
+
+        if extracted_bic:
+            is_valid_iso, norm_bic, struct_err = dq02_resolver.validate_bic_structure(extracted_bic)
+            if not is_valid_iso:
+                trail.append(f"V_det FAILED: Repaired BIC '{extracted_bic}' does not conform to ISO 9362 structure: {struct_err}")
+                return AuthorityValidationResult(
+                    profile_id="DQ-02",
+                    status=AuthorityValidationStatus.FAILED,
+                    is_valid=False,
+                    authoritative_source="ISO_9362_BIC_SPEC",
+                    audit_trail=trail,
+                    error_message=f"Invalid ISO 9362 BIC structure: {struct_err}",
+                    is_structural_syntax_valid=False,
+                    is_business_authority_confirmed=False
+                )
+            trail.append(f"V_det: Repaired BIC '{norm_bic}' complies with ISO 9362 structural syntax.")
+
+        # 2. Bank Counterparty SSI Authority Validation (V_auth)
+        is_auth = False
+        if bank_policy_authorized is not None:
+            is_auth = bank_policy_authorized
+        elif dossier is not None:
+            ssi_item = dossier.get_item("BANK_COUNTERPARTY_SSI")
+            if ssi_item and ssi_item.is_valid:
+                is_auth = ssi_item.payload.get("is_authorized", False)
+                mandated = ssi_item.payload.get("mandated_bic")
+                allowed = ssi_item.payload.get("allowed_bics", [])
+                if is_auth and extracted_bic:
+                    norm = extracted_bic if len(extracted_bic) == 11 else extracted_bic + "XXX"
+                    if mandated and mandated.strip().upper() != norm and norm not in allowed:
+                        is_auth = False
+                        trail.append(f"V_auth FAILED: Resolved BIC '{norm}' contradicts Bank SSI mandate '{mandated}'.")
+                    else:
+                        trail.append(f"V_auth: Resolved BIC '{norm}' corroborated by authoritative Bank SSI.")
+            else:
+                is_auth = False
+                trail.append("V_auth FAILED: Missing or invalid BANK_COUNTERPARTY_SSI evidence item.")
+
+        if not is_auth:
+            err_msg = "Bank counterparty SSI unauthorized, unconfigured, or contradictory."
+            trail.append(f"V_auth FAILED: {err_msg}")
+            return AuthorityValidationResult(
+                profile_id="DQ-02",
+                status=AuthorityValidationStatus.FAILED,
+                is_valid=False,
+                authoritative_source="BANK_COUNTERPARTY_SSI",
+                audit_trail=trail,
+                error_message=err_msg,
+                is_structural_syntax_valid=True,
+                is_business_authority_confirmed=False
+            )
+
+        trail.append("V_auth PASSED: Bank Counterparty SSI authority verified.")
+        return AuthorityValidationResult(
+            profile_id="DQ-02",
+            status=AuthorityValidationStatus.PASSED,
+            is_valid=True,
+            authoritative_source="BANK_COUNTERPARTY_SSI",
+            audit_trail=trail,
+            is_structural_syntax_valid=True,
+            is_business_authority_confirmed=True
+        )
+
 
 # Global singleton authority validation engine
 authority_validation_engine = AuthorityValidationEngine()
+
 
