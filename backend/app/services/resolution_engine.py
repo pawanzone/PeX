@@ -537,6 +537,41 @@ class DQ01Resolver:
         )
 
 
+class DQ06Resolver:
+    """Deterministic, lossless Purpose Code semantic interpreter & Bank Policy resolver for DQ-06."""
+
+    def __init__(self):
+        from app.services.dq06_purpose_resolver import dq06_resolver
+        self.resolver = dq06_resolver
+
+    def resolve(
+        self,
+        raw_payload: str,
+        existing_purpose_code: Optional[str] = None,
+        remittance_text: Optional[str] = None,
+        debtor_name: Optional[str] = None,
+        creditor_name: Optional[str] = None,
+        corridor_id: Optional[str] = None,
+        currency: Optional[str] = None,
+        bank_purpose_policy: Optional[Any] = None,
+        corridor_policy: Optional[Any] = None,
+        allow_stale_evidence: bool = False
+    ) -> Tuple[ResolutionStatus, ResolutionUniqueness, List[ResolutionCandidate], Optional[ResolutionCandidate], List[str], Optional[str], bool]:
+        """Resolves Purpose Code extraction, hypothesis ranking, code-set validation, and bank policy."""
+        return self.resolver.resolve(
+            raw_payload=raw_payload,
+            existing_purpose_code=existing_purpose_code,
+            remittance_text=remittance_text,
+            debtor_name=debtor_name,
+            creditor_name=creditor_name,
+            corridor_id=corridor_id,
+            currency=currency,
+            bank_purpose_policy=bank_purpose_policy,
+            corridor_policy=corridor_policy,
+            allow_stale_evidence=allow_stale_evidence
+        )
+
+
 class ResolutionEngine:
     """Master Resolution Engine dispatching to profile-specific deterministic resolvers."""
 
@@ -549,6 +584,7 @@ class ResolutionEngine:
         self._dq08_resolver = DQ08Resolver()
         self._dq02_resolver = DQ02Resolver()
         self._dq01_resolver = DQ01Resolver()
+        self._dq06_resolver = DQ06Resolver()
 
     def derive_resolution(self, dossier: EvidenceDossier) -> ResolutionResult:
         """Derives a deterministic candidate resolution from an Evidence Dossier."""
@@ -968,6 +1004,75 @@ class ResolutionEngine:
                 cop_response=cop_data,
                 allow_stale_evidence=allow_stale,
                 require_cop=require_cop
+            )
+            trail.extend(diff_log)
+
+            return ResolutionResult(
+                profile_id=profile_id,
+                status=status,
+                uniqueness=uniqueness,
+                candidates=candidates,
+                primary_candidate=primary_cand,
+                is_lossless=is_lossless,
+                audit_trail=trail,
+                error_message=err
+            )
+
+        elif profile_id == "DQ-06":
+            raw_item = dossier.get_item("RAW_PAYLOAD") or dossier.get_item("RAW_PAYLOAD_BYTES")
+            if not raw_item:
+                trail.append("Missing RAW_PAYLOAD item in evidence dossier for DQ-06.")
+                return ResolutionResult(
+                    profile_id=profile_id,
+                    status=ResolutionStatus.RESOLUTION_NOT_DETERMINED,
+                    uniqueness=ResolutionUniqueness.RESOLUTION_UNIQUE,
+                    is_lossless=True,
+                    audit_trail=trail,
+                    error_message="Missing RAW_PAYLOAD in evidence dossier."
+                )
+
+            raw_text = str(raw_item.payload.get("raw_text") or raw_item.payload.get("raw_xml") or "")
+            existing_purp = dossier.metadata.get("existing_purpose_code") or dossier.metadata.get("purpose_code")
+            rmt_item = dossier.get_item("REMITTANCE_INFORMATION")
+            rmt_text = rmt_item.payload.get("remittance_text") if (rmt_item and isinstance(rmt_item.payload, dict)) else dossier.metadata.get("remittance_text")
+            debtor_nm = dossier.metadata.get("debtor_name")
+            creditor_nm = dossier.metadata.get("creditor_name")
+            corridor_id = dossier.metadata.get("corridor_id") or dossier.metadata.get("corridor")
+            currency = dossier.metadata.get("currency")
+
+            # Extract Bank Purpose Policy
+            policy_item = dossier.get_item("BANK_PURPOSE_DICTIONARY")
+            bank_policy_data = None
+            if policy_item and isinstance(policy_item.payload, dict):
+                from app.services.dq06_purpose_resolver import BankPurposePolicyEntry
+                try:
+                    bank_policy_data = BankPurposePolicyEntry(**policy_item.payload)
+                except Exception:
+                    pass
+
+            # Extract Corridor Policy
+            corr_item = dossier.get_item("CORRIDOR_RULES")
+            corr_policy_data = None
+            if corr_item and isinstance(corr_item.payload, dict):
+                from app.services.dq06_purpose_resolver import BankCorridorPurposePolicy
+                try:
+                    corr_policy_data = BankCorridorPurposePolicy(**corr_item.payload)
+                except Exception:
+                    pass
+
+            allow_stale = dossier.metadata.get("allow_stale_evidence", False)
+
+            status, uniqueness, candidates, primary_cand, diff_log, err, is_lossless = self._dq06_resolver.resolve(
+                raw_payload=raw_text,
+                existing_purpose_code=existing_purp,
+                remittance_text=rmt_text,
+                debtor_name=debtor_nm,
+                creditor_name=creditor_nm,
+                corridor_id=corridor_id,
+                currency=currency,
+                bank_purpose_policy=bank_policy_data,
+                corridor_policy=corr_policy_data,
+                allow_stale_evidence=allow_stale
             )
             trail.extend(diff_log)
 

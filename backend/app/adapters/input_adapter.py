@@ -27,6 +27,7 @@ class InboundPackage(BaseModel):
     source_channel: str                       # e.g., "BANK_INPUT_FOLDER", "REST_INGEST", "MQ_FEED"
     raw_payload_str: str                      # Raw XML or JSON payload string
     evidence_fields: Dict[str, Any] = Field(default_factory=dict)
+    metadata: Dict[str, Any] = Field(default_factory=dict)
     ingested_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     idempotency_key: Optional[str] = None
 
@@ -542,22 +543,223 @@ class FolderInputAdapter(InputPort):
                     is_valid=True
                 ))
 
+        elif profile_id == "DQ-06":
+            import xml.etree.ElementTree as ET
+            orig_purp = package.metadata.get("existing_purpose_code") if package.metadata else None
+            remittance_txt = package.metadata.get("remittance_text") if package.metadata else None
+            debtor_nm = package.metadata.get("debtor_name") if package.metadata else None
+            creditor_nm = package.metadata.get("creditor_name") if package.metadata else None
+            corridor_id = package.metadata.get("corridor_id", "EUR-SEPA") if package.metadata else "EUR-SEPA"
+            currency = package.metadata.get("currency", "EUR") if package.metadata else "EUR"
+            uetr_val = package.metadata.get("uetr", "66b9f234-55cc-4f3c-9b66-223344556677") if package.metadata else "66b9f234-55cc-4f3c-9b66-223344556677"
+
+            if raw_text.strip().startswith("<") or "<Document" in raw_text:
+                try:
+                    root = ET.fromstring(raw_text)
+                    purp_el = root.find(".//{urn:iso:std:iso:20022:tech:xsd:pacs.008.001.08}Purp/{urn:iso:std:iso:20022:tech:xsd:pacs.008.001.08}Cd")
+                    if purp_el is None:
+                        purp_el = root.find(".//Purp/Cd")
+                    if purp_el is not None and purp_el.text:
+                        orig_purp = purp_el.text.strip().upper()
+
+                    ustrd_el = root.find(".//{urn:iso:std:iso:20022:tech:xsd:pacs.008.001.08}Ustrd")
+                    if ustrd_el is None:
+                        ustrd_el = root.find(".//Ustrd")
+                    if ustrd_el is not None and ustrd_el.text:
+                        remittance_txt = ustrd_el.text.strip()
+
+                    dbtr_el = root.find(".//{urn:iso:std:iso:20022:tech:xsd:pacs.008.001.08}Dbtr/{urn:iso:std:iso:20022:tech:xsd:pacs.008.001.08}Nm")
+                    if dbtr_el is None:
+                        dbtr_el = root.find(".//Dbtr/Nm")
+                    if dbtr_el is not None and dbtr_el.text:
+                        debtor_nm = dbtr_el.text.strip()
+
+                    cdtr_el = root.find(".//{urn:iso:std:iso:20022:tech:xsd:pacs.008.001.08}Cdtr/{urn:iso:std:iso:20022:tech:xsd:pacs.008.001.08}Nm")
+                    if cdtr_el is None:
+                        cdtr_el = root.find(".//Cdtr/Nm")
+                    if cdtr_el is not None and cdtr_el.text:
+                        creditor_nm = cdtr_el.text.strip()
+
+                    amt_el = root.find(".//{urn:iso:std:iso:20022:tech:xsd:pacs.008.001.08}IntrBkSttlmAmt")
+                    if amt_el is None:
+                        amt_el = root.find(".//IntrBkSttlmAmt")
+                    if amt_el is not None:
+                        ccy = amt_el.attrib.get("Ccy")
+                        if ccy:
+                            currency = ccy
+
+                    uetr_el = root.find(".//{urn:iso:std:iso:20022:tech:xsd:pacs.008.001.08}UETR")
+                    if uetr_el is None:
+                        uetr_el = root.find(".//UETR")
+                    if uetr_el is not None and uetr_el.text:
+                        uetr_val = uetr_el.text.strip()
+                except Exception:
+                    pass
+
+            # Update dossier metadata
+            dossier.metadata.update({
+                "existing_purpose_code": orig_purp,
+                "remittance_text": remittance_txt,
+                "debtor_name": debtor_nm,
+                "creditor_name": creditor_nm,
+                "corridor_id": corridor_id,
+                "currency": currency,
+                "uetr": uetr_val,
+                "allow_stale_evidence": package.evidence_fields.get("allow_stale_evidence", False)
+            })
+
+            # Build default evidence items when no explicit evidence bundle was provided (e.g. raw folder ingestion)
+            if not package.evidence_fields:
+                dossier.add_item(EvidenceItem(
+                    item_name="RAW_PAYLOAD",
+                    source_name=package.source_channel,
+                    trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                    payload={"raw_text": raw_text},
+                    is_valid=True
+                ))
+
+                dossier.add_item(EvidenceItem(
+                    item_name="REMITTANCE_INFORMATION",
+                    source_name="BANK_PAYMENT_HUB",
+                    trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                    payload={"remittance_text": remittance_txt},
+                    is_valid=True
+                ))
+
+                dossier.add_item(EvidenceItem(
+                    item_name="PURPOSE_CODE_FIELD",
+                    source_name="BANK_PAYMENT_HUB",
+                    trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                    payload={"purpose_code": orig_purp},
+                    is_valid=True
+                ))
+
+                dossier.add_item(EvidenceItem(
+                    item_name="PAYMENT_CONTEXT",
+                    source_name="BANK_PAYMENT_HUB",
+                    trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                    payload={
+                        "corridor_id": corridor_id,
+                        "currency": currency,
+                        "debtor_name": debtor_nm,
+                        "creditor_name": creditor_nm
+                    },
+                    is_valid=True
+                ))
+
+                from app.services.dq06_purpose_resolver import ISO_20022_EXTERNAL_PURPOSE_CODES, BankPurposePolicyAdapter, BankCorridorPolicyAdapter
+                dossier.add_item(EvidenceItem(
+                    item_name="APPLICABLE_PURPOSE_CODE_SET",
+                    source_name="ISO20022_REGISTRY",
+                    trust_tier=EvidenceTrustTier.TIER_2_EXTERNAL_AUTHORITATIVE,
+                    payload={"code_set_version": "ExternalCodeSets_2023", "code_count": len(ISO_20022_EXTERNAL_PURPOSE_CODES)},
+                    is_valid=True
+                ))
+
+                if creditor_nm:
+                    pol_entry = BankPurposePolicyAdapter().lookup(creditor_nm)
+                    if pol_entry:
+                        dossier.add_item(EvidenceItem(
+                            item_name="BANK_PURPOSE_DICTIONARY",
+                            source_name="BANK_PURPOSE_POLICY_STORE",
+                            trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                            payload=pol_entry.model_dump(),
+                            is_valid=True
+                        ))
+
+                if corridor_id:
+                    c_entry = BankCorridorPolicyAdapter().lookup(corridor_id, currency)
+                    if c_entry:
+                        dossier.add_item(EvidenceItem(
+                            item_name="CORRIDOR_RULES",
+                            source_name="BANK_CORRIDOR_POLICY_STORE",
+                            trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                            payload=c_entry.model_dump(),
+                            is_valid=True
+                        ))
+            else:
+                # Process specific policy/corridor keys if passed
+                if "bank_purpose_policy" in package.evidence_fields:
+                    pol_data = package.evidence_fields["bank_purpose_policy"]
+                    pol_payload = pol_data if isinstance(pol_data, dict) else pol_data.model_dump()
+                    pol_ts = datetime.now(timezone.utc)
+                    if isinstance(pol_payload, dict) and "retrieved_at" in pol_payload:
+                        raw_ts = pol_payload["retrieved_at"]
+                        if isinstance(raw_ts, datetime):
+                            pol_ts = raw_ts
+                        elif isinstance(raw_ts, str):
+                            try:
+                                pol_ts = datetime.fromisoformat(raw_ts)
+                            except Exception:
+                                pass
+                    dossier.add_item(EvidenceItem(
+                        item_name="BANK_PURPOSE_DICTIONARY",
+                        source_name="BANK_PURPOSE_POLICY_STORE",
+                        trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                        timestamp=pol_ts,
+                        payload=pol_payload,
+                        is_valid=True
+                    ))
+
+                if "corridor_rules" in package.evidence_fields:
+                    corr_data = package.evidence_fields["corridor_rules"]
+                    corr_payload = corr_data if isinstance(corr_data, dict) else corr_data.model_dump()
+                    corr_ts = datetime.now(timezone.utc)
+                    if isinstance(corr_payload, dict) and "retrieved_at" in corr_payload:
+                        raw_ts = corr_payload["retrieved_at"]
+                        if isinstance(raw_ts, datetime):
+                            corr_ts = raw_ts
+                        elif isinstance(raw_ts, str):
+                            try:
+                                corr_ts = datetime.fromisoformat(raw_ts)
+                            except Exception:
+                                pass
+                    dossier.add_item(EvidenceItem(
+                        item_name="CORRIDOR_RULES",
+                        source_name="BANK_CORRIDOR_POLICY_STORE",
+                        trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                        timestamp=corr_ts,
+                        payload=corr_payload,
+                        is_valid=True
+                    ))
+
 
         # 3. Add any caller-supplied additional evidence items
         for key, val in package.evidence_fields.items():
             if key not in [
                 "has_contradictory_evidence", "contradiction_detail", "target_scheme",
                 "bank_transliteration_policy", "target_rail", "bank_character_substitution_policy",
-                "processing_state", "bank_address_policy", "beneficiary_master", "postal_directory"
+                "processing_state", "bank_address_policy", "beneficiary_master", "postal_directory",
+                "bank_purpose_policy", "corridor_rules"
             ]:
-                tier = EvidenceTrustTier.TIER_4_HISTORICAL_PRECEDENT if "HISTORICAL" in key else EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE
-                dossier.add_item(EvidenceItem(
-                    item_name=key,
-                    source_name="BANK_EVIDENCE_PACKAGE",
-                    trust_tier=tier,
-                    payload={"value": val} if not isinstance(val, dict) else val,
-                    is_valid=True
-                ))
+                if isinstance(val, dict) and "payload" in val and "trust_tier" in val:
+                    item_ts = datetime.now(timezone.utc)
+                    if "timestamp" in val:
+                        raw_ts = val["timestamp"]
+                        if isinstance(raw_ts, datetime):
+                            item_ts = raw_ts
+                        elif isinstance(raw_ts, str):
+                            try:
+                                item_ts = datetime.fromisoformat(raw_ts)
+                            except Exception:
+                                pass
+                    dossier.add_item(EvidenceItem(
+                        item_name=key,
+                        source_name=val.get("source_system", val.get("source_name", "BANK_EVIDENCE_PACKAGE")),
+                        trust_tier=val["trust_tier"],
+                        timestamp=item_ts,
+                        payload=val.get("payload", {}),
+                        is_valid=val.get("is_valid", True)
+                    ))
+                else:
+                    tier = EvidenceTrustTier.TIER_4_HISTORICAL_PRECEDENT if "HISTORICAL" in key else EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE
+                    dossier.add_item(EvidenceItem(
+                        item_name=key,
+                        source_name="BANK_EVIDENCE_PACKAGE",
+                        trust_tier=tier,
+                        payload={"value": val} if not isinstance(val, dict) else val,
+                        is_valid=True
+                    ))
 
         return case_id, dossier, idempotency_hash
 

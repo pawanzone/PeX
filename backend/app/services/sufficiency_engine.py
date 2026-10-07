@@ -115,7 +115,21 @@ class EvidenceSufficiencyEngine:
                     )
                     trail.append(f"Stale evidence item: {req.item_name} exceeded TTL ({int(item_age_seconds)}s > {req.policy_freshness_seconds}s)")
 
-        # 2. Check for Contradictory Evidence in Dossier Metadata
+        # 2. Check Conditional Evidence Requirements (if present in dossier)
+        for req in target_contract.conditional_evidence:
+            item = dossier.get_item(req.item_name)
+            if item:
+                evaluated_items.append(req.item_name)
+                # Check Policy Freshness TTL
+                if req.policy_freshness_seconds is not None:
+                    item_age_seconds = (current_time - item.timestamp).total_seconds()
+                    if item_age_seconds > req.policy_freshness_seconds:
+                        stale_items.append(
+                            f"{req.item_name} (age: {int(item_age_seconds)}s > TTL: {req.policy_freshness_seconds}s)"
+                        )
+                        trail.append(f"Stale evidence item: {req.item_name} exceeded TTL ({int(item_age_seconds)}s > {req.policy_freshness_seconds}s)")
+
+        # 3. Check for Contradictory Evidence in Dossier Metadata
         if dossier.metadata.get("has_contradictory_evidence", False):
             conflict_detail = dossier.metadata.get("contradiction_detail", "Contradictory evidence sources detected.")
             contradictory_items.append(conflict_detail)

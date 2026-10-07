@@ -522,6 +522,99 @@ class EvidenceContractRegistry:
         )
         self.register(dq01_contract)
 
+        # DQ-06: INVALID_MISSING_PURPOSE_CODE (Phase 2C Slice 6)
+        dq06_contract = EvidenceContract(
+            profile_id="DQ-06",
+            profile_name="INVALID_MISSING_PURPOSE_CODE",
+            mandatory_evidence=[
+                EvidenceItemRequirement(
+                    item_name="RAW_PAYLOAD",
+                    description="Raw payment exception payload containing original message (<Purp> and <RmtInf> elements)",
+                    role="IDENTIFICATION",
+                    required_trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                    is_mandatory_for_stp=True,
+                    policy_freshness_seconds=None
+                ),
+                EvidenceItemRequirement(
+                    item_name="REMITTANCE_INFORMATION",
+                    description="Extracted or structured remittance narrative text (<RmtInf>/<Ustrd> or <Strd>)",
+                    role="IDENTIFICATION",
+                    required_trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                    is_mandatory_for_stp=True,
+                    policy_freshness_seconds=None
+                ),
+                EvidenceItemRequirement(
+                    item_name="PURPOSE_CODE_FIELD",
+                    description="Current purpose code element status (missing, empty, proprietary, or invalid code)",
+                    role="IDENTIFICATION",
+                    required_trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                    is_mandatory_for_stp=True,
+                    policy_freshness_seconds=None
+                ),
+                EvidenceItemRequirement(
+                    item_name="PAYMENT_CONTEXT",
+                    description="Payment context attributes including clearing rail, corridor, currency, debtor, creditor",
+                    role="CONTEXT",
+                    required_trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                    is_mandatory_for_stp=True,
+                    policy_freshness_seconds=None
+                ),
+                EvidenceItemRequirement(
+                    item_name="APPLICABLE_PURPOSE_CODE_SET",
+                    description="Authoritative ISO 20022 External Purpose Code standard catalog (ExternalCodeSets)",
+                    role="VALIDATION",
+                    required_trust_tier=EvidenceTrustTier.TIER_2_EXTERNAL_AUTHORITATIVE,
+                    is_mandatory_for_stp=True,
+                    policy_freshness_seconds=None # Static standard specification
+                ),
+            ],
+            conditional_evidence=[
+                EvidenceItemRequirement(
+                    item_name="BANK_PURPOSE_DICTIONARY",
+                    description="Authoritative bank counterparty / customer purpose code policy and permitted mappings",
+                    role="AUTHORIZATION",
+                    required_trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                    is_mandatory_for_stp=False,
+                    policy_freshness_seconds=86400 # DEMO_ONLY_DEFAULT: 24h freshness
+                ),
+                EvidenceItemRequirement(
+                    item_name="CORRIDOR_RULES",
+                    description="Authoritative bank clearing rail and corridor-specific purpose code restrictions and mandates",
+                    role="AUTHORIZATION",
+                    required_trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                    is_mandatory_for_stp=False,
+                    policy_freshness_seconds=86400 # DEMO_ONLY_DEFAULT: 24h freshness
+                ),
+                EvidenceItemRequirement(
+                    item_name="REGULATORY_PURPOSE_REQUIREMENTS",
+                    description="Jurisdiction-specific regulatory purpose code requirements (e.g. UAE FTS, SEPA)",
+                    role="AUTHORIZATION",
+                    required_trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                    is_mandatory_for_stp=False,
+                    policy_freshness_seconds=86400
+                ),
+                EvidenceItemRequirement(
+                    item_name="CUSTOMER_BENEFICIARY_CONTEXT",
+                    description="Bank customer / counterparty profile and business nature classification",
+                    role="CORROBORATION",
+                    required_trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                    is_mandatory_for_stp=False,
+                    policy_freshness_seconds=86400
+                ),
+            ],
+            optional_evidence=[
+                EvidenceItemRequirement(
+                    item_name="HISTORICAL_PURPOSE_PRECEDENT",
+                    description="Historical log of past purpose code assignments and recurring payment patterns (non-authoritative)",
+                    role="CONTEXT",
+                    required_trust_tier=EvidenceTrustTier.TIER_4_HISTORICAL_PRECEDENT,
+                    is_mandatory_for_stp=False,
+                    policy_freshness_seconds=None
+                )
+            ]
+        )
+        self.register(dq06_contract)
+
 
 # Global singleton registry instance
 evidence_registry = EvidenceContractRegistry()

@@ -59,6 +59,9 @@ class AuthorityValidationEngine:
         elif profile_id == "DQ-01":
             return self._validate_dq01_authority(candidate, trail, dossier=dossier, bank_policy_authorized=bank_policy_authorized)
 
+        elif profile_id == "DQ-06":
+            return self._validate_dq06_authority(candidate, trail, dossier=dossier, bank_policy_authorized=bank_policy_authorized)
+
         # Fallback for unregistered profiles
         trail.append(f"No authority validator registered for profile {profile_id}.")
         return AuthorityValidationResult(
@@ -922,6 +925,165 @@ class AuthorityValidationEngine:
             status=AuthorityValidationStatus.PASSED,
             is_valid=True,
             authoritative_source="BANK_SSI_MASTER_RECORD",
+            audit_trail=trail,
+            is_structural_syntax_valid=True,
+            is_business_authority_confirmed=True
+        )
+
+    def _validate_dq06_authority(
+        self,
+        candidate: ResolutionCandidate,
+        trail: List[str],
+        dossier: Optional[Any] = None,
+        bank_policy_authorized: Optional[bool] = None
+    ) -> AuthorityValidationResult:
+        """Deterministically validates DQ-06 Purpose Code syntax (V_det) and Bank Purpose/Corridor authority (V_auth)."""
+        payload_text = candidate.repaired_payload
+        from app.services.dq06_purpose_resolver import dq06_resolver, ISO_20022_EXTERNAL_PURPOSE_CODES
+
+        extracted_code: Optional[str] = None
+
+        # 1. Structural Syntax & ISO 20022 Code-Set Validation (V_det)
+        is_xml = payload_text.strip().startswith("<") or "<Document" in payload_text or "<FIToFICstmrCdtTrf" in payload_text
+        if is_xml:
+            try:
+                root = ET.fromstring(payload_text)
+                trail.append("V_det: Target XML schema and envelope syntax validated successfully.")
+                purp_cd = root.find(".//{urn:iso:std:iso:20022:tech:xsd:pacs.008.001.08}Purp/{urn:iso:std:iso:20022:tech:xsd:pacs.008.001.08}Cd")
+                if purp_cd is None:
+                    purp_cd = root.find(".//Purp/Cd")
+                if purp_cd is not None and purp_cd.text:
+                    extracted_code = purp_cd.text.strip().upper()
+            except ET.ParseError as pe:
+                trail.append(f"V_det FAILED: Repaired payload XML invalid: {str(pe)}")
+                return AuthorityValidationResult(
+                    profile_id="DQ-06",
+                    status=AuthorityValidationStatus.FAILED,
+                    is_valid=False,
+                    authoritative_source="ISO20022_W3C_SCHEMA_VALIDATOR",
+                    audit_trail=trail,
+                    error_message=f"XML syntax invalid: {str(pe)}",
+                    is_structural_syntax_valid=False,
+                    is_business_authority_confirmed=False
+                )
+        else:
+            # Fallback for non-XML structured candidates
+            if candidate.candidate_id and "CAND-" in candidate.candidate_id:
+                parts = candidate.candidate_id.split("-")
+                if len(parts) >= 3:
+                    extracted_code = parts[2].strip().upper()
+
+        if not extracted_code and candidate.candidate_id and "NOOP-" in candidate.candidate_id:
+            extracted_code = candidate.candidate_id.split("-")[-1].strip().upper()
+
+        if extracted_code:
+            is_valid_iso, struct_err = dq06_resolver.validate_code_set_membership(extracted_code)
+            if not is_valid_iso:
+                trail.append(f"V_det FAILED: Repaired purpose code '{extracted_code}' does not conform to ISO 20022 code-set: {struct_err}")
+                return AuthorityValidationResult(
+                    profile_id="DQ-06",
+                    status=AuthorityValidationStatus.FAILED,
+                    is_valid=False,
+                    authoritative_source="ISO20022_EXTERNAL_PURPOSE_CODE_SPEC",
+                    audit_trail=trail,
+                    error_message=f"Invalid ISO 20022 Purpose Code: {struct_err}",
+                    is_structural_syntax_valid=False,
+                    is_business_authority_confirmed=False
+                )
+            trail.append(f"V_det: Purpose code '{extracted_code}' is registered in ISO 20022 External Purpose Code set.")
+        else:
+            trail.append("V_det FAILED: Could not extract purpose code from repaired payload.")
+            return AuthorityValidationResult(
+                profile_id="DQ-06",
+                status=AuthorityValidationStatus.FAILED,
+                is_valid=False,
+                authoritative_source="ISO20022_SCHEMA_VALIDATOR",
+                audit_trail=trail,
+                error_message="Missing purpose code in repaired payload.",
+                is_structural_syntax_valid=False,
+                is_business_authority_confirmed=False
+            )
+
+        # 2. Bank Purpose Policy & Corridor Authority Validation (V_auth)
+        is_auth = False
+        auth_err: Optional[str] = None
+
+        if bank_policy_authorized is not None:
+            is_auth = bank_policy_authorized
+            if is_auth:
+                trail.append("V_auth: Explicit bank operational policy authorization confirmed.")
+            else:
+                auth_err = "Bank operational policy explicitly disallowed purpose code."
+                trail.append("V_auth FAILED: Explicit bank operational policy disallows purpose code.")
+        elif dossier is not None:
+            policy_item = dossier.get_item("BANK_PURPOSE_DICTIONARY")
+            corridor_item = dossier.get_item("CORRIDOR_RULES")
+
+            if policy_item and policy_item.is_valid:
+                is_auth_policy = policy_item.payload.get("is_authorized", False)
+                auth_codes = policy_item.payload.get("authorized_purpose_codes", [])
+                prohib_codes = policy_item.payload.get("prohibited_purpose_codes", [])
+
+                if not is_auth_policy:
+                    is_auth = False
+                    auth_err = "Bank purpose policy is marked inactive or unauthorized."
+                    trail.append("V_auth FAILED: Bank purpose policy is unauthorized.")
+                elif extracted_code in prohib_codes:
+                    is_auth = False
+                    auth_err = f"Purpose code '{extracted_code}' is PROHIBITED by Bank Purpose Policy."
+                    trail.append(f"V_auth FAILED: Purpose code '{extracted_code}' is in Bank prohibited purpose codes list.")
+                elif auth_codes and extracted_code not in auth_codes:
+                    is_auth = False
+                    auth_err = f"Purpose code '{extracted_code}' is not in Bank authorized purpose codes list: {auth_codes}"
+                    trail.append(f"V_auth FAILED: Purpose code '{extracted_code}' not in Bank authorized codes list.")
+                else:
+                    is_auth = True
+                    trail.append(f"V_auth: Purpose code '{extracted_code}' corroborated by Bank Purpose Policy.")
+            else:
+                is_auth = False
+                auth_err = "Missing or invalid BANK_PURPOSE_DICTIONARY evidence item."
+                trail.append("V_auth FAILED: Missing or invalid BANK_PURPOSE_DICTIONARY.")
+
+            # Check Corridor Rules
+            if corridor_item and corridor_item.is_valid:
+                corr_allowed = corridor_item.payload.get("allowed_purpose_codes", [])
+                corr_prohib = corridor_item.payload.get("prohibited_purpose_codes", [])
+                is_active = corridor_item.payload.get("is_corridor_active", True)
+                if not is_active:
+                    is_auth = False
+                    auth_err = "Target corridor is inactive or suspended."
+                    trail.append("V_auth FAILED: Target clearing corridor is inactive.")
+                elif extracted_code in corr_prohib:
+                    is_auth = False
+                    auth_err = f"Purpose code '{extracted_code}' is PROHIBITED in target corridor."
+                    trail.append(f"V_auth FAILED: Purpose code '{extracted_code}' prohibited in target corridor.")
+                elif corr_allowed and extracted_code not in corr_allowed:
+                    is_auth = False
+                    auth_err = f"Purpose code '{extracted_code}' is not permitted in target corridor allowed list: {corr_allowed}"
+                    trail.append(f"V_auth FAILED: Purpose code '{extracted_code}' not permitted in corridor allowed list.")
+                else:
+                    trail.append(f"V_auth: Target corridor rules corroborate purpose code '{extracted_code}'.")
+
+        if not is_auth:
+            err_msg = auth_err or "Bank Purpose Policy unauthorized, unconfigured, or contradictory."
+            trail.append(f"V_auth FAILED: {err_msg}")
+            return AuthorityValidationResult(
+                profile_id="DQ-06",
+                status=AuthorityValidationStatus.FAILED,
+                is_valid=False,
+                authoritative_source="BANK_PURPOSE_DICTIONARY",
+                audit_trail=trail,
+                error_message=err_msg,
+                is_structural_syntax_valid=True,
+                is_business_authority_confirmed=False
+            )
+
+        trail.append("V_auth PASSED: Bank Purpose Policy and corridor rules verified.")
+        return AuthorityValidationResult(
+            profile_id="DQ-06",
+            status=AuthorityValidationStatus.PASSED,
+            is_valid=True,
+            authoritative_source="BANK_PURPOSE_DICTIONARY",
             audit_trail=trail,
             is_structural_syntax_valid=True,
             is_business_authority_confirmed=True
