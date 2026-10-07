@@ -138,9 +138,110 @@ class FolderInputAdapter(InputPort):
                 is_valid=True
             ))
 
+        elif profile_id == "PR-08":
+            # 1. Raw Payload Evidence Item (Tier 1 Bank Authoritative)
+            dossier.add_item(EvidenceItem(
+                item_name="RAW_PAYLOAD",
+                source_name=package.source_channel,
+                trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                payload={"raw_text": raw_text},
+                is_valid=True
+            ))
+
+            # 2. Target Rail Charset Spec Evidence Item (Tier 2 External Authoritative)
+            rail_spec = package.evidence_fields.get("target_rail", "SWIFT_CBPR_XSET")
+            dossier.add_item(EvidenceItem(
+                item_name="TARGET_RAIL_CHARSET_SPEC",
+                source_name="CLEARING_RAIL_CHARSET_REGISTRY",
+                trust_tier=EvidenceTrustTier.TIER_2_EXTERNAL_AUTHORITATIVE,
+                payload={"target_rail": rail_spec, "spec_version": "2026_STANDARDS"},
+                is_valid=True
+            ))
+
+            # 3. Bank Character Substitution Policy (Tier 1 Bank Authoritative)
+            sub_policy = package.evidence_fields.get("bank_character_substitution_policy", {"is_authorized": True, "corridor": "ALL"})
+            dossier.add_item(EvidenceItem(
+                item_name="BANK_CHARACTER_SUBSTITUTION_POLICY",
+                source_name="BANK_OPERATIONAL_POLICY_STORE",
+                trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                payload=sub_policy,
+                is_valid=True
+            ))
+
+            # 4. Processing State Record (Tier 1 Bank Authoritative)
+            state_data = package.evidence_fields.get("processing_state", {
+                "state_id": f"STATE-{idempotency_hash[:8]}",
+                "queue_name": "INBOUND_EXCEPTION_QUEUE",
+                "current_state": "INGESTED",
+                "retry_count": 0,
+                "max_retries": 3,
+                "is_poison_message": False,
+                "idempotency_key": idempotency_hash
+            })
+            dossier.add_item(EvidenceItem(
+                item_name="PROCESSING_STATE_RECORD",
+                source_name="BANK_QUEUE_MANAGER",
+                trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                payload=state_data,
+                is_valid=True
+            ))
+
+        elif profile_id == "DQ-05":
+            # 1. Raw Payload Evidence Item (Tier 1 Bank Authoritative)
+            dossier.add_item(EvidenceItem(
+                item_name="RAW_PAYLOAD",
+                source_name=package.source_channel,
+                trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                payload={"raw_text": raw_text},
+                is_valid=True
+            ))
+
+            # 2. Postal Standard Spec Evidence Item (Tier 2 External Authoritative)
+            dossier.add_item(EvidenceItem(
+                item_name="POSTAL_STANDARD_SPEC",
+                source_name="UPU_S42_ISO20022_REGISTRY",
+                trust_tier=EvidenceTrustTier.TIER_2_EXTERNAL_AUTHORITATIVE,
+                payload={"standard": "UPU_S42_ISO20022_PSTLADR", "spec_version": "2026"},
+                is_valid=True
+            ))
+
+            # 3. Bank Address Policy (Tier 1 Bank Authoritative)
+            adr_policy = package.evidence_fields.get("bank_address_policy", {"is_authorized": True, "allow_auto_structuring": True})
+            dossier.add_item(EvidenceItem(
+                item_name="BANK_ADDRESS_POLICY",
+                source_name="BANK_OPERATIONAL_POLICY_STORE",
+                trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                payload=adr_policy,
+                is_valid=True
+            ))
+
+            # 4. Conditional: Beneficiary Master Record
+            if "beneficiary_master" in package.evidence_fields:
+                dossier.add_item(EvidenceItem(
+                    item_name="BENEFICIARY_MASTER_RECORD",
+                    source_name="BANK_CUSTOMER_MASTER_SOR",
+                    trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                    payload=package.evidence_fields["beneficiary_master"],
+                    is_valid=True
+                ))
+
+            # 5. Conditional: External Postal Directory
+            if "postal_directory" in package.evidence_fields:
+                dossier.add_item(EvidenceItem(
+                    item_name="EXTERNAL_POSTAL_DIRECTORY",
+                    source_name="ROYAL_MAIL_DEUTSCHEPOST_USPS_API",
+                    trust_tier=EvidenceTrustTier.TIER_2_EXTERNAL_AUTHORITATIVE,
+                    payload=package.evidence_fields["postal_directory"],
+                    is_valid=True
+                ))
+
         # 3. Add any caller-supplied additional evidence items
         for key, val in package.evidence_fields.items():
-            if key not in ["has_contradictory_evidence", "contradiction_detail", "target_scheme", "bank_transliteration_policy"]:
+            if key not in [
+                "has_contradictory_evidence", "contradiction_detail", "target_scheme",
+                "bank_transliteration_policy", "target_rail", "bank_character_substitution_policy",
+                "processing_state", "bank_address_policy", "beneficiary_master", "postal_directory"
+            ]:
                 tier = EvidenceTrustTier.TIER_4_HISTORICAL_PRECEDENT if "HISTORICAL" in key else EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE
                 dossier.add_item(EvidenceItem(
                     item_name=key,

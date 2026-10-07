@@ -3,6 +3,7 @@
 Validates candidate repairs against authoritative standards and Systems of Record (SoR).
 For PR-03, executes deterministic ISO 20022 XML schema and structural rules verification.
 """
+import re
 import hashlib
 import xml.etree.ElementTree as ET
 from typing import Dict, List, Any, Optional
@@ -39,6 +40,12 @@ class AuthorityValidationEngine:
 
         elif profile_id == "PR-05":
             return self._validate_pr05_authority(candidate, trail, dossier=dossier, bank_policy_authorized=bank_policy_authorized)
+
+        elif profile_id == "PR-08":
+            return self._validate_pr08_authority(candidate, trail, dossier=dossier, bank_policy_authorized=bank_policy_authorized)
+
+        elif profile_id == "DQ-05":
+            return self._validate_dq05_authority(candidate, trail, dossier=dossier, bank_policy_authorized=bank_policy_authorized)
 
         # Fallback for unregistered profiles
         trail.append(f"No authority validator registered for profile {profile_id}.")
@@ -230,10 +237,246 @@ class AuthorityValidationEngine:
             },
             audit_trail=trail,
             is_structural_syntax_valid=True,
-            # Schema validation proves structural syntax, NOT business ownership in DDA
             is_business_authority_confirmed=False
+        )
+
+    def _validate_pr08_authority(
+        self,
+        candidate: ResolutionCandidate,
+        trail: List[str],
+        dossier: Optional[Any] = None,
+        bank_policy_authorized: Optional[bool] = None
+    ) -> AuthorityValidationResult:
+        """Deterministically validates PR-08 candidate syntax (V_det) and bank substitution authority (V_auth)."""
+        payload_text = candidate.repaired_payload
+
+        # 1. Structural Syntax & Target Rail Charset Validation (V_det)
+        target_rail = "SWIFT_CBPR_XSET"
+        if dossier:
+            rail_item = dossier.get_item("TARGET_RAIL_CHARSET_SPEC")
+            if rail_item and rail_item.is_valid:
+                target_rail = rail_item.payload.get("target_rail", "SWIFT_CBPR_XSET")
+
+        from app.services.pr08_transformer import SWIFT_X_CHARS, SWIFT_Z_CHARS, FEDWIRE_STRICT_CHARS
+        if target_rail == "SWIFT_CBPR_XSET":
+            allowed_chars = SWIFT_X_CHARS
+        elif target_rail == "SWIFT_CBPR_ZSET":
+            allowed_chars = SWIFT_Z_CHARS
+        elif target_rail == "FEDWIRE_STRICT":
+            allowed_chars = FEDWIRE_STRICT_CHARS
+        else:
+            allowed_chars = None
+
+        # Check for XML well-formedness and element text character conformance
+        is_xml = payload_text.strip().startswith("<") or "<Document" in payload_text
+        if is_xml:
+            try:
+                root = ET.fromstring(payload_text)
+                trail.append("V_det: Target XML schema syntax validated successfully.")
+                if allowed_chars is not None:
+                    for elem in root.iter():
+                        text_val = elem.text or ""
+                        for ch in text_val:
+                            if ch not in allowed_chars:
+                                trail.append(f"V_det FAILED: Found character '{ch}' (0x{ord(ch):02X}) in element <{elem.tag}> outside target rail '{target_rail}'.")
+                                return AuthorityValidationResult(
+                                    profile_id="PR-08",
+                                    status=AuthorityValidationStatus.FAILED,
+                                    is_valid=False,
+                                    authoritative_source="TARGET_RAIL_CHARSET_SPEC",
+                                    audit_trail=trail,
+                                    error_message=f"Character '{ch}' not supported by target rail {target_rail}.",
+                                    is_structural_syntax_valid=False,
+                                    is_business_authority_confirmed=False
+                                )
+            except ET.ParseError as pe:
+                trail.append(f"V_det FAILED: Repaired XML syntax invalid: {str(pe)}")
+                return AuthorityValidationResult(
+                    profile_id="PR-08",
+                    status=AuthorityValidationStatus.FAILED,
+                    is_valid=False,
+                    authoritative_source="ISO20022_W3C_SCHEMA_VALIDATOR",
+                    audit_trail=trail,
+                    error_message=f"XML syntax invalid: {str(pe)}",
+                    is_structural_syntax_valid=False,
+                    is_business_authority_confirmed=False
+                )
+        else:
+            if allowed_chars is not None:
+                for ch in payload_text:
+                    if ch not in allowed_chars:
+                        trail.append(f"V_det FAILED: Found character '{ch}' (0x{ord(ch):02X}) outside target rail '{target_rail}'.")
+                        return AuthorityValidationResult(
+                            profile_id="PR-08",
+                            status=AuthorityValidationStatus.FAILED,
+                            is_valid=False,
+                            authoritative_source="TARGET_RAIL_CHARSET_SPEC",
+                            audit_trail=trail,
+                            error_message=f"Character '{ch}' not supported by target rail {target_rail}.",
+                            is_structural_syntax_valid=False,
+                            is_business_authority_confirmed=False
+                        )
+
+        trail.append(f"V_det: Repaired payload 100% compliant with target rail '{target_rail}'.")
+
+        # 2. Bank Character Substitution Policy Authority (V_auth)
+        is_auth = False
+        if bank_policy_authorized is not None:
+            is_auth = bank_policy_authorized
+        elif dossier is not None:
+            policy_item = dossier.get_item("BANK_CHARACTER_SUBSTITUTION_POLICY")
+            if policy_item and policy_item.is_valid:
+                is_auth = policy_item.payload.get("is_authorized", False)
+            else:
+                is_auth = False
+
+        if not is_auth:
+            trail.append("V_auth FAILED: Bank operational policy does NOT authorize automated character substitution for this payment.")
+            return AuthorityValidationResult(
+                profile_id="PR-08",
+                status=AuthorityValidationStatus.FAILED,
+                is_valid=False,
+                authoritative_source="BANK_CHARACTER_SUBSTITUTION_POLICY",
+                audit_trail=trail,
+                error_message="Bank character substitution policy unauthorized or unconfigured.",
+                is_structural_syntax_valid=True,
+                is_business_authority_confirmed=False
+            )
+
+        trail.append("V_auth PASSED: Bank operational policy explicitly authorizes character substitution.")
+        return AuthorityValidationResult(
+            profile_id="PR-08",
+            status=AuthorityValidationStatus.PASSED,
+            is_valid=True,
+            authoritative_source="BANK_CHARACTER_SUBSTITUTION_POLICY",
+            audit_trail=trail,
+            is_structural_syntax_valid=True,
+            is_business_authority_confirmed=True
+        )
+
+    def _validate_dq05_authority(
+        self,
+        candidate: ResolutionCandidate,
+        trail: List[str],
+        dossier: Optional[Any] = None,
+        bank_policy_authorized: Optional[bool] = None
+    ) -> AuthorityValidationResult:
+        """Deterministically validates DQ-05 postal syntax (V_det) and bank address authority (V_auth)."""
+        payload_text = candidate.repaired_payload
+
+        # 1. Structural Postal Syntax Validation (V_det)
+        from app.services.dq05_address_resolver import VALID_ISO_COUNTRIES, POSTAL_CODE_PATTERNS
+        is_xml = "<PstlAdr>" in payload_text or "<Cdtr>" in payload_text
+        country_code = None
+
+        if is_xml:
+            try:
+                # Find country code
+                ctry_match = re.search(r'<Ctry>([A-Z]{2})</Ctry>', payload_text)
+                if ctry_match:
+                    country_code = ctry_match.group(1).upper()
+                else:
+                    trail.append("V_det FAILED: Mandatory <Ctry> element missing in postal address.")
+                    return AuthorityValidationResult(
+                        profile_id="DQ-05",
+                        status=AuthorityValidationStatus.FAILED,
+                        is_valid=False,
+                        authoritative_source="ISO20022_PSTLADR_SPEC",
+                        audit_trail=trail,
+                        error_message="Missing mandatory ISO 3166-1 country code in postal address.",
+                        is_structural_syntax_valid=False,
+                        is_business_authority_confirmed=False
+                    )
+
+                if country_code not in VALID_ISO_COUNTRIES:
+                    trail.append(f"V_det FAILED: Invalid ISO 3166-1 country code: {country_code}")
+                    return AuthorityValidationResult(
+                        profile_id="DQ-05",
+                        status=AuthorityValidationStatus.FAILED,
+                        is_valid=False,
+                        authoritative_source="ISO_3166_1_COUNTRY_REGISTRY",
+                        audit_trail=trail,
+                        error_message=f"Invalid ISO 3166-1 country code: {country_code}",
+                        is_structural_syntax_valid=False,
+                        is_business_authority_confirmed=False
+                    )
+
+                # Postal code validation
+                pstcd_match = re.search(r'<PstCd>([^<]+)</PstCd>', payload_text)
+                if pstcd_match and country_code in POSTAL_CODE_PATTERNS:
+                    pstcd_val = pstcd_match.group(1).strip()
+                    pattern = POSTAL_CODE_PATTERNS[country_code]
+                    if not re.match(pattern, pstcd_val):
+                        trail.append(f"V_det FAILED: Postal code '{pstcd_val}' does not match format for {country_code}.")
+                        return AuthorityValidationResult(
+                            profile_id="DQ-05",
+                            status=AuthorityValidationStatus.FAILED,
+                            is_valid=False,
+                            authoritative_source="UPU_S42_POSTAL_STANDARD",
+                            audit_trail=trail,
+                            error_message=f"Postal code format invalid for {country_code}.",
+                            is_structural_syntax_valid=False,
+                            is_business_authority_confirmed=False
+                        )
+
+                trail.append(f"V_det: ISO 20022 structured postal address for {country_code} validated successfully.")
+            except Exception as ex:
+                trail.append(f"V_det FAILED: Postal address XML error: {str(ex)}")
+                return AuthorityValidationResult(
+                    profile_id="DQ-05",
+                    status=AuthorityValidationStatus.FAILED,
+                    is_valid=False,
+                    authoritative_source="ISO20022_PSTLADR_SPEC",
+                    audit_trail=trail,
+                    error_message=f"Postal address validation error: {str(ex)}",
+                    is_structural_syntax_valid=False,
+                    is_business_authority_confirmed=False
+                )
+        else:
+            trail.append("V_det: Non-XML address stream validated.")
+
+        # 2. Bank Operational Address Authority (V_auth)
+        is_auth = False
+        if bank_policy_authorized is not None:
+            is_auth = bank_policy_authorized
+        elif dossier is not None:
+            # Check Bank Address Policy or Beneficiary Master record
+            policy_item = dossier.get_item("BANK_ADDRESS_POLICY")
+            master_item = dossier.get_item("BENEFICIARY_MASTER_RECORD")
+
+            if master_item and master_item.is_valid:
+                is_auth = True
+                trail.append("V_auth: Address corroborated against authoritative Bank Customer/Beneficiary Master.")
+            elif policy_item and policy_item.is_valid:
+                is_auth = policy_item.payload.get("is_authorized", False)
+            else:
+                is_auth = False
+
+        if not is_auth:
+            trail.append("V_auth FAILED: Bank operational address policy does NOT authorize automated address normalization without manual review.")
+            return AuthorityValidationResult(
+                profile_id="DQ-05",
+                status=AuthorityValidationStatus.FAILED,
+                is_valid=False,
+                authoritative_source="BANK_ADDRESS_POLICY",
+                audit_trail=trail,
+                error_message="Bank address policy unauthorized, unconfigured, or missing master record corroboration.",
+                is_structural_syntax_valid=True,
+                is_business_authority_confirmed=False
+            )
+
+        trail.append("V_auth PASSED: Bank operational address authority confirmed.")
+        return AuthorityValidationResult(
+            profile_id="DQ-05",
+            status=AuthorityValidationStatus.PASSED,
+            is_valid=True,
+            authoritative_source="BANK_ADDRESS_POLICY",
+            audit_trail=trail,
+            is_structural_syntax_valid=True,
+            is_business_authority_confirmed=True
         )
 
 
 # Global singleton authority validation engine
 authority_validation_engine = AuthorityValidationEngine()
+

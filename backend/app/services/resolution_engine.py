@@ -240,12 +240,114 @@ class PR05Resolver:
         )
 
 
+class PR08Resolver:
+    """Deterministic, lossless special character transformer and state validator for PR-08."""
+
+    def __init__(self):
+        from app.services.pr08_transformer import pr08_transformer, ProcessingStateRecord
+        self.transformer = pr08_transformer
+
+    def resolve(
+        self,
+        raw_payload: str,
+        target_rail: str = "SWIFT_CBPR_XSET",
+        bank_policy_authorized: bool = True,
+        bank_substitution_map: Optional[Dict[str, str]] = None,
+        processing_state: Optional[Any] = None
+    ) -> Tuple[ResolutionStatus, ResolutionUniqueness, Optional[ResolutionCandidate], List[str], Optional[str], bool, bool]:
+        """Resolves unsupported special characters under target rail and bank policy."""
+        res = self.transformer.transform(
+            raw_payload=raw_payload,
+            target_rail=target_rail,
+            bank_policy_authorized=bank_policy_authorized,
+            bank_substitution_map=bank_substitution_map,
+            processing_state=processing_state,
+            enforce_semantic_invariance=True
+        )
+        trail = res.audit_trail
+        if not res.success:
+            return (
+                ResolutionStatus.RESOLUTION_NOT_DETERMINED,
+                ResolutionUniqueness.RESOLUTION_UNIQUE,
+                None,
+                trail,
+                res.error_message or "PR-08 character substitution failed or blocked by state.",
+                res.is_lossless,
+                res.is_re_enqueue_eligible
+            )
+
+        candidate = ResolutionCandidate(
+            candidate_id=f"CAND-PR08-{uuid.uuid4().hex[:8]}",
+            repaired_payload=res.transformed_payload,
+            diff_summary=res.diff_summary,
+            derivation_method="GOVERNED_PR08_CHARACTER_SUBSTITUTION_ENGINE",
+            is_lossless=res.is_lossless
+        )
+
+        return (
+            ResolutionStatus.RESOLUTION_DETERMINED,
+            ResolutionUniqueness.RESOLUTION_UNIQUE,
+            candidate,
+            trail,
+            None,
+            res.is_lossless,
+            res.is_re_enqueue_eligible
+        )
+
+
+class DQ05Resolver:
+    """Deterministic, lossless beneficiary postal address structurer and validator for DQ-05."""
+
+    def __init__(self):
+        from app.services.dq05_address_resolver import dq05_transformer
+        self.transformer = dq05_transformer
+
+    def resolve(
+        self,
+        raw_payload: str,
+        bank_policy_authorized: bool = True,
+        beneficiary_master: Optional[Dict[str, Any]] = None,
+        force_ambiguity: bool = False
+    ) -> Tuple[ResolutionStatus, ResolutionUniqueness, List[ResolutionCandidate], Optional[ResolutionCandidate], List[str], Optional[str], bool]:
+        """Resolves invalid beneficiary postal address into ISO 20022 structured address."""
+        res = self.transformer.parse_and_resolve(
+            raw_payload=raw_payload,
+            bank_policy_authorized=bank_policy_authorized,
+            beneficiary_master_data=beneficiary_master,
+            force_ambiguity=force_ambiguity
+        )
+        trail = res.audit_trail
+        if not res.success:
+            return (
+                ResolutionStatus.RESOLUTION_NOT_DETERMINED,
+                res.uniqueness,
+                [],
+                None,
+                trail,
+                res.error_message or "DQ-05 address parsing failed.",
+                res.is_lossless
+            )
+
+        primary_cand = res.candidates[0] if res.candidates else None
+        return (
+            ResolutionStatus.RESOLUTION_DETERMINED,
+            res.uniqueness,
+            res.candidates,
+            primary_cand,
+            trail,
+            None,
+            res.is_lossless
+        )
+
+
 class ResolutionEngine:
     """Master Resolution Engine dispatching to profile-specific deterministic resolvers."""
 
     def __init__(self):
         self._pr03_resolver = PR03Resolver()
         self._pr05_resolver = PR05Resolver()
+        self._pr08_resolver = PR08Resolver()
+        self._dq05_resolver = DQ05Resolver()
 
     def derive_resolution(self, dossier: EvidenceDossier) -> ResolutionResult:
         """Derives a deterministic candidate resolution from an Evidence Dossier."""
@@ -315,6 +417,98 @@ class ResolutionEngine:
                 uniqueness=uniqueness,
                 candidates=candidates,
                 primary_candidate=candidate,
+                is_lossless=is_lossless,
+                audit_trail=trail,
+                error_message=err
+            )
+
+        elif profile_id == "PR-08":
+            raw_item = dossier.get_item("RAW_PAYLOAD") or dossier.get_item("RAW_PAYLOAD_BYTES")
+            if not raw_item:
+                trail.append("Missing RAW_PAYLOAD item in evidence dossier for PR-08.")
+                return ResolutionResult(
+                    profile_id=profile_id,
+                    status=ResolutionStatus.RESOLUTION_NOT_DETERMINED,
+                    uniqueness=ResolutionUniqueness.RESOLUTION_UNIQUE,
+                    is_lossless=True,
+                    audit_trail=trail,
+                    error_message="Missing RAW_PAYLOAD in evidence dossier."
+                )
+
+            raw_text = str(raw_item.payload.get("raw_text") or "")
+            rail_item = dossier.get_item("TARGET_RAIL_CHARSET_SPEC")
+            target_rail = rail_item.payload.get("target_rail", "SWIFT_CBPR_XSET") if rail_item else "SWIFT_CBPR_XSET"
+
+            policy_item = dossier.get_item("BANK_CHARACTER_SUBSTITUTION_POLICY")
+            bank_policy_auth = policy_item.payload.get("is_authorized", True) if policy_item else False
+            bank_subs_map = policy_item.payload.get("custom_substitutions") if policy_item else None
+
+            state_item = dossier.get_item("PROCESSING_STATE_RECORD")
+            proc_state = None
+            if state_item and isinstance(state_item.payload, dict):
+                from app.services.pr08_transformer import ProcessingStateRecord
+                try:
+                    proc_state = ProcessingStateRecord(**state_item.payload)
+                except Exception:
+                    pass
+
+            status, uniqueness, candidate, diff_log, err, is_lossless, is_re_enq = self._pr08_resolver.resolve(
+                raw_payload=raw_text,
+                target_rail=target_rail,
+                bank_policy_authorized=bank_policy_auth,
+                bank_substitution_map=bank_subs_map,
+                processing_state=proc_state
+            )
+            trail.extend(diff_log)
+
+            candidates = [candidate] if candidate else []
+            return ResolutionResult(
+                profile_id=profile_id,
+                status=status,
+                uniqueness=uniqueness,
+                candidates=candidates,
+                primary_candidate=candidate,
+                is_lossless=is_lossless,
+                audit_trail=trail,
+                error_message=err
+            )
+
+        elif profile_id == "DQ-05":
+            raw_item = dossier.get_item("RAW_PAYLOAD") or dossier.get_item("RAW_PAYLOAD_BYTES")
+            if not raw_item:
+                trail.append("Missing RAW_PAYLOAD item in evidence dossier for DQ-05.")
+                return ResolutionResult(
+                    profile_id=profile_id,
+                    status=ResolutionStatus.RESOLUTION_NOT_DETERMINED,
+                    uniqueness=ResolutionUniqueness.RESOLUTION_UNIQUE,
+                    is_lossless=True,
+                    audit_trail=trail,
+                    error_message="Missing RAW_PAYLOAD in evidence dossier."
+                )
+
+            raw_text = str(raw_item.payload.get("raw_text") or "")
+            policy_item = dossier.get_item("BANK_ADDRESS_POLICY")
+            bank_policy_auth = policy_item.payload.get("is_authorized", True) if policy_item else False
+
+            master_item = dossier.get_item("BENEFICIARY_MASTER_RECORD")
+            master_data = master_item.payload if (master_item and master_item.is_valid) else None
+
+            force_ambig = dossier.metadata.get("force_ambiguity", False)
+
+            status, uniqueness, candidates, primary_cand, diff_log, err, is_lossless = self._dq05_resolver.resolve(
+                raw_payload=raw_text,
+                bank_policy_authorized=bank_policy_auth,
+                beneficiary_master=master_data,
+                force_ambiguity=force_ambig
+            )
+            trail.extend(diff_log)
+
+            return ResolutionResult(
+                profile_id=profile_id,
+                status=status,
+                uniqueness=uniqueness,
+                candidates=candidates,
+                primary_candidate=primary_cand,
                 is_lossless=is_lossless,
                 audit_trail=trail,
                 error_message=err
