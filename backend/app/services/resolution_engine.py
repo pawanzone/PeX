@@ -483,6 +483,60 @@ class DQ02Resolver:
         )
 
 
+class DQ01Resolver:
+    """Deterministic, lossless IBAN & Bank System-of-Record resolver for DQ-01."""
+
+    def __init__(self):
+        from app.services.dq01_iban_resolver import dq01_resolver
+        self.resolver = dq01_resolver
+
+    def resolve(
+        self,
+        raw_payload: str,
+        original_iban: Optional[str] = None,
+        beneficiary_name: Optional[str] = None,
+        ssi_record: Optional[Any] = None,
+        dda_record: Optional[Any] = None,
+        cop_response: Optional[Any] = None,
+        allow_stale_evidence: bool = False,
+        require_cop: bool = False
+    ) -> Tuple[ResolutionStatus, ResolutionUniqueness, List[ResolutionCandidate], Optional[ResolutionCandidate], List[str], Optional[str], bool]:
+        """Resolves IBAN ISO 13616 structure, MOD-97-10 checksum, permutations, and Bank SoR corroboration."""
+        res = self.resolver.resolve_iban(
+            raw_payload=raw_payload,
+            original_iban=original_iban,
+            beneficiary_name=beneficiary_name,
+            ssi_record=ssi_record,
+            dda_record=dda_record,
+            cop_response=cop_response,
+            allow_stale_evidence=allow_stale_evidence,
+            require_cop=require_cop
+        )
+        trail = res.audit_trail
+        if not res.success and not res.candidates:
+            return (
+                ResolutionStatus.RESOLUTION_NOT_DETERMINED,
+                res.uniqueness,
+                res.candidates,
+                None,
+                trail,
+                res.error_message or "DQ-01 IBAN resolution failed.",
+                res.is_lossless
+            )
+
+        primary_cand = res.candidates[0] if res.candidates else None
+        status = ResolutionStatus.RESOLUTION_DETERMINED if primary_cand is not None else ResolutionStatus.RESOLUTION_NOT_DETERMINED
+        return (
+            status,
+            res.uniqueness,
+            res.candidates,
+            primary_cand,
+            trail,
+            res.error_message,
+            res.is_lossless
+        )
+
+
 class ResolutionEngine:
     """Master Resolution Engine dispatching to profile-specific deterministic resolvers."""
 
@@ -494,11 +548,13 @@ class ResolutionEngine:
         self._pr01_resolver = PR01Resolver()
         self._dq08_resolver = DQ08Resolver()
         self._dq02_resolver = DQ02Resolver()
+        self._dq01_resolver = DQ01Resolver()
 
     def derive_resolution(self, dossier: EvidenceDossier) -> ResolutionResult:
         """Derives a deterministic candidate resolution from an Evidence Dossier."""
         profile_id = dossier.profile_id
         trail: List[str] = [f"Initiating deterministic resolution for profile: {profile_id}"]
+
 
         if profile_id == "PR-03":
             raw_item = dossier.get_item("RAW_PAYLOAD")
@@ -852,6 +908,80 @@ class ResolutionEngine:
                 error_message=err
             )
 
+        elif profile_id == "DQ-01":
+            raw_item = dossier.get_item("RAW_PAYLOAD") or dossier.get_item("RAW_PAYLOAD_BYTES")
+            if not raw_item:
+                trail.append("Missing RAW_PAYLOAD item in evidence dossier for DQ-01.")
+                return ResolutionResult(
+                    profile_id=profile_id,
+                    status=ResolutionStatus.RESOLUTION_NOT_DETERMINED,
+                    uniqueness=ResolutionUniqueness.RESOLUTION_UNIQUE,
+                    is_lossless=True,
+                    audit_trail=trail,
+                    error_message="Missing RAW_PAYLOAD in evidence dossier."
+                )
+
+            raw_text = str(raw_item.payload.get("raw_text") or "")
+
+            orig_iban = dossier.metadata.get("original_iban")
+            bene_name = dossier.metadata.get("beneficiary_name")
+
+            # Extract SSI Record
+            ssi_item = dossier.get_item("BANK_SSI_MASTER_RECORD")
+            ssi_data = None
+            if ssi_item and isinstance(ssi_item.payload, dict):
+                from app.services.dq01_iban_resolver import BankSSIMasterEntry
+                try:
+                    ssi_data = BankSSIMasterEntry(**ssi_item.payload)
+                except Exception:
+                    pass
+
+            # Extract DDA Record
+            dda_item = dossier.get_item("CORE_DDA_ACCOUNT_STATUS")
+            dda_data = None
+            if dda_item and isinstance(dda_item.payload, dict):
+                from app.services.dq01_iban_resolver import CoreDDAAccountRecord
+                try:
+                    dda_data = CoreDDAAccountRecord(**dda_item.payload)
+                except Exception:
+                    pass
+
+            # Extract CoP Response
+            cop_item = dossier.get_item("COP_VOP_RESPONSE")
+            cop_data = None
+            if cop_item and isinstance(cop_item.payload, dict):
+                from app.services.dq01_iban_resolver import CoPResponse
+                try:
+                    cop_data = CoPResponse(**cop_item.payload)
+                except Exception:
+                    pass
+
+            allow_stale = dossier.metadata.get("allow_stale_evidence", False)
+            require_cop = dossier.metadata.get("require_cop", False)
+
+            status, uniqueness, candidates, primary_cand, diff_log, err, is_lossless = self._dq01_resolver.resolve(
+                raw_payload=raw_text,
+                original_iban=orig_iban,
+                beneficiary_name=bene_name,
+                ssi_record=ssi_data,
+                dda_record=dda_data,
+                cop_response=cop_data,
+                allow_stale_evidence=allow_stale,
+                require_cop=require_cop
+            )
+            trail.extend(diff_log)
+
+            return ResolutionResult(
+                profile_id=profile_id,
+                status=status,
+                uniqueness=uniqueness,
+                candidates=candidates,
+                primary_candidate=primary_cand,
+                is_lossless=is_lossless,
+                audit_trail=trail,
+                error_message=err
+            )
+
         # Fallback for unregistered profiles
         trail.append(f"No deterministic resolver registered for profile {profile_id}.")
         return ResolutionResult(
@@ -866,4 +996,5 @@ class ResolutionEngine:
 
 # Global singleton resolution engine
 resolution_engine = ResolutionEngine()
+
 

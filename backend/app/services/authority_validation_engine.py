@@ -56,6 +56,9 @@ class AuthorityValidationEngine:
         elif profile_id == "DQ-02":
             return self._validate_dq02_authority(candidate, trail, dossier=dossier, bank_policy_authorized=bank_policy_authorized)
 
+        elif profile_id == "DQ-01":
+            return self._validate_dq01_authority(candidate, trail, dossier=dossier, bank_policy_authorized=bank_policy_authorized)
+
         # Fallback for unregistered profiles
         trail.append(f"No authority validator registered for profile {profile_id}.")
         return AuthorityValidationResult(
@@ -776,8 +779,157 @@ class AuthorityValidationEngine:
             is_business_authority_confirmed=True
         )
 
+    def _validate_dq01_authority(
+        self,
+        candidate: ResolutionCandidate,
+        trail: List[str],
+        dossier: Optional[Any] = None,
+        bank_policy_authorized: Optional[bool] = None
+    ) -> AuthorityValidationResult:
+        """Deterministically validates DQ-01 ISO 13616 structure & MOD-97-10 (V_det) and Bank SSI / Core DDA SoR authority (V_auth)."""
+        payload_text = candidate.repaired_payload
+
+        # 1. Structural IBAN Syntax & MOD-97 Validation (V_det)
+        from app.services.dq01_iban_resolver import dq01_resolver, AccountLedgerStatus
+        is_xml = payload_text.strip().startswith("<") or "<Document" in payload_text
+        extracted_iban = None
+
+        if is_xml:
+            try:
+                root = ET.fromstring(payload_text)
+                trail.append("V_det: Target XML schema syntax validated successfully.")
+                iban_match = re.search(r'<CdtrAcct>\s*<Id>\s*<IBAN>([A-Z0-9]+)</IBAN>', payload_text)
+                if not iban_match:
+                    iban_match = re.search(r'<IBAN>([A-Z0-9]+)</IBAN>', payload_text)
+                if iban_match:
+                    extracted_iban = iban_match.group(1).strip().upper()
+            except ET.ParseError as pe:
+                trail.append(f"V_det FAILED: Repaired payload XML invalid: {str(pe)}")
+                return AuthorityValidationResult(
+                    profile_id="DQ-01",
+                    status=AuthorityValidationStatus.FAILED,
+                    is_valid=False,
+                    authoritative_source="ISO20022_SCHEMA_VALIDATOR",
+                    audit_trail=trail,
+                    error_message=f"XML syntax invalid: {str(pe)}",
+                    is_structural_syntax_valid=False,
+                    is_business_authority_confirmed=False
+                )
+        else:
+            iban_match = re.search(r'\b[A-Z]{2}[0-9]{2}[A-Z0-9]{10,30}\b', payload_text)
+            if iban_match:
+                extracted_iban = iban_match.group(0).strip().upper()
+
+        if extracted_iban:
+            is_valid_iso, country, struct_err = dq01_resolver.validate_iban_structure(extracted_iban)
+            if not is_valid_iso:
+                trail.append(f"V_det FAILED: Repaired IBAN '{extracted_iban}' does not conform to ISO 13616 structure: {struct_err}")
+                return AuthorityValidationResult(
+                    profile_id="DQ-01",
+                    status=AuthorityValidationStatus.FAILED,
+                    is_valid=False,
+                    authoritative_source="ISO_13616_IBAN_SPEC",
+                    audit_trail=trail,
+                    error_message=f"Invalid ISO 13616 IBAN structure: {struct_err}",
+                    is_structural_syntax_valid=False,
+                    is_business_authority_confirmed=False
+                )
+            mod97_ok = dq01_resolver.is_mod97_valid(extracted_iban)
+            if not mod97_ok:
+                trail.append(f"V_det FAILED: Repaired IBAN '{extracted_iban}' fails ISO 7064 MOD-97-10 checksum.")
+                return AuthorityValidationResult(
+                    profile_id="DQ-01",
+                    status=AuthorityValidationStatus.FAILED,
+                    is_valid=False,
+                    authoritative_source="ISO_7064_MOD97_10",
+                    audit_trail=trail,
+                    error_message=f"Invalid MOD-97 checksum for {extracted_iban}",
+                    is_structural_syntax_valid=False,
+                    is_business_authority_confirmed=False
+                )
+            trail.append(f"V_det: Repaired IBAN '{extracted_iban}' complies with ISO 13616 structure and MOD-97-10 checksum.")
+
+        # 2. Bank SSI Master & Core DDA System-of-Record Authority Validation (V_auth)
+        is_auth = False
+        dda_open = True
+        dda_err = None
+
+        if bank_policy_authorized is not None:
+            is_auth = bank_policy_authorized
+        elif dossier is not None:
+            ssi_item = dossier.get_item("BANK_SSI_MASTER_RECORD")
+            dda_item = dossier.get_item("CORE_DDA_ACCOUNT_STATUS")
+
+            if ssi_item and ssi_item.is_valid:
+                is_auth = ssi_item.payload.get("is_authorized", False)
+                mandated = ssi_item.payload.get("mandated_iban")
+                allowed = ssi_item.payload.get("allowed_ibans", [])
+                if is_auth and extracted_iban:
+                    norm_iban = extracted_iban.strip().upper()
+                    if mandated and mandated.strip().upper() != norm_iban and norm_iban not in [x.strip().upper() for x in allowed]:
+                        is_auth = False
+                        trail.append(f"V_auth FAILED: Resolved IBAN '{norm_iban}' contradicts Bank SSI mandate '{mandated}'.")
+                    else:
+                        trail.append(f"V_auth: Resolved IBAN '{norm_iban}' corroborated by authoritative Bank SSI Master.")
+            else:
+                is_auth = False
+                trail.append("V_auth FAILED: Missing or invalid BANK_SSI_MASTER_RECORD evidence item.")
+
+            if dda_item and dda_item.is_valid:
+                dda_status = dda_item.payload.get("status")
+                if dda_status in ("CLOSED", AccountLedgerStatus.CLOSED.value):
+                    dda_open = False
+                    dda_err = "Account is CLOSED in Core DDA Ledger."
+                    trail.append("V_auth FAILED: Core DDA account status is CLOSED.")
+                elif dda_status in ("FROZEN", AccountLedgerStatus.FROZEN.value):
+                    dda_open = False
+                    dda_err = "Account is FROZEN in Core DDA Ledger."
+                    trail.append("V_auth FAILED: Core DDA account status is FROZEN.")
+                elif dda_status in ("RESTRICTED", AccountLedgerStatus.RESTRICTED.value):
+                    dda_open = False
+                    dda_err = "Account is RESTRICTED in Core DDA Ledger."
+                    trail.append("V_auth FAILED: Core DDA account status is RESTRICTED.")
+                elif dda_status in ("OPEN", AccountLedgerStatus.OPEN.value):
+                    trail.append("V_auth: Core DDA Ledger confirms account status is OPEN.")
+
+            cop_item = dossier.get_item("COP_VOP_RESPONSE")
+            if cop_item and cop_item.is_valid:
+                cop_match = cop_item.payload.get("match_result")
+                if cop_match in ("NO_MATCH", "no_match"):
+                    is_auth = False
+                    dda_err = "Confirmation of Payee (CoP) returned NO_MATCH."
+                    trail.append("V_auth FAILED: Confirmation of Payee (CoP) returned NO_MATCH.")
+                elif cop_match in ("MATCH", "match"):
+                    trail.append("V_auth: Confirmation of Payee (CoP) verified beneficiary match.")
+
+        if not is_auth or not dda_open:
+            err_msg = dda_err or "Bank SSI Master unauthorized, unconfigured, or contradictory."
+            trail.append(f"V_auth FAILED: {err_msg}")
+            return AuthorityValidationResult(
+                profile_id="DQ-01",
+                status=AuthorityValidationStatus.FAILED,
+                is_valid=False,
+                authoritative_source="BANK_SSI_MASTER_RECORD",
+                audit_trail=trail,
+                error_message=err_msg,
+                is_structural_syntax_valid=True,
+                is_business_authority_confirmed=False
+            )
+
+        trail.append("V_auth PASSED: Bank SSI Master and Core DDA account authority verified.")
+        return AuthorityValidationResult(
+            profile_id="DQ-01",
+            status=AuthorityValidationStatus.PASSED,
+            is_valid=True,
+            authoritative_source="BANK_SSI_MASTER_RECORD",
+            audit_trail=trail,
+            is_structural_syntax_valid=True,
+            is_business_authority_confirmed=True
+        )
+
 
 # Global singleton authority validation engine
 authority_validation_engine = AuthorityValidationEngine()
+
 
 

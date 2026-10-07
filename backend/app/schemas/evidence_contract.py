@@ -445,8 +445,86 @@ class EvidenceContractRegistry:
         )
         self.register(dq02_contract)
 
+        # DQ-01: INVALID_IBAN (Phase 2C Slice 5)
+        dq01_contract = EvidenceContract(
+            profile_id="DQ-01",
+            profile_name="INVALID_IBAN",
+            mandatory_evidence=[
+                EvidenceItemRequirement(
+                    item_name="RAW_PAYLOAD",
+                    description="Raw payment exception payload containing original IBAN element (<IBAN> in CdtrAcct or DbtrAcct)",
+                    role="IDENTIFICATION",
+                    required_trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                    is_mandatory_for_stp=True,
+                    policy_freshness_seconds=None
+                ),
+                EvidenceItemRequirement(
+                    item_name="ISO_13616_IBAN_STRUCTURE_SPEC",
+                    description="ISO 13616 country length and national BBAN alphanumeric format specifications",
+                    role="VALIDATION",
+                    required_trust_tier=EvidenceTrustTier.TIER_2_EXTERNAL_AUTHORITATIVE,
+                    is_mandatory_for_stp=True,
+                    policy_freshness_seconds=None # Static standard
+                ),
+                EvidenceItemRequirement(
+                    item_name="BANK_SSI_MASTER_RECORD",
+                    description="Authoritative bank counterparty Standard Settlement Instructions (SSI) and mandated IBAN directory",
+                    role="AUTHORIZATION",
+                    required_trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                    is_mandatory_for_stp=True,
+                    policy_freshness_seconds=86400 # DEMO_ONLY_DEFAULT: 24h freshness
+                ),
+                EvidenceItemRequirement(
+                    item_name="CORE_DDA_ACCOUNT_STATUS",
+                    description="Authoritative Bank Core DDA Ledger real-time account status (OPEN, CLOSED, FROZEN, RESTRICTED)",
+                    role="AUTHORIZATION",
+                    required_trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                    is_mandatory_for_stp=True,
+                    policy_freshness_seconds=3600 # DEMO_ONLY_DEFAULT: 1h ledger cache
+                ),
+            ],
+            conditional_evidence=[
+                EvidenceItemRequirement(
+                    item_name="CUSTOMER_BENEFICIARY_MASTER",
+                    description="Authoritative Bank Customer / Beneficiary Master record for name and account corroboration",
+                    role="CORROBORATION",
+                    required_trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                    is_mandatory_for_stp=False,
+                    policy_freshness_seconds=86400
+                ),
+                EvidenceItemRequirement(
+                    item_name="COP_VOP_RESPONSE",
+                    description="External Confirmation of Payee (CoP) / Verification of Payee (VoP) gateway response",
+                    role="VALIDATION",
+                    required_trust_tier=EvidenceTrustTier.TIER_2_EXTERNAL_AUTHORITATIVE,
+                    is_mandatory_for_stp=False,
+                    policy_freshness_seconds=3600
+                ),
+                EvidenceItemRequirement(
+                    item_name="TARGET_RAIL_ROUTING_SPEC",
+                    description="Target clearing rail IBAN routing constraints and corridor rules",
+                    role="VALIDATION",
+                    required_trust_tier=EvidenceTrustTier.TIER_2_EXTERNAL_AUTHORITATIVE,
+                    is_mandatory_for_stp=False,
+                    policy_freshness_seconds=None
+                )
+            ],
+            optional_evidence=[
+                EvidenceItemRequirement(
+                    item_name="HISTORICAL_REPAIR_PATTERN",
+                    description="Historical record of past IBAN check-digit corrections and transposition repairs",
+                    role="CONTEXT",
+                    required_trust_tier=EvidenceTrustTier.TIER_4_HISTORICAL_PRECEDENT,
+                    is_mandatory_for_stp=False,
+                    policy_freshness_seconds=None
+                )
+            ]
+        )
+        self.register(dq01_contract)
+
 
 # Global singleton registry instance
 evidence_registry = EvidenceContractRegistry()
+
 
 
