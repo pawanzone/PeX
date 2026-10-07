@@ -708,6 +708,99 @@ class EvidenceContractRegistry:
         )
         self.register(st01_contract)
 
+        # CO-04: RESTRICTED_CORRIDOR (Phase 2D Slice 8)
+        co04_contract = EvidenceContract(
+            profile_id="CO-04",
+            profile_name="RESTRICTED_CORRIDOR",
+            mandatory_evidence=[
+                EvidenceItemRequirement(
+                    item_name="RAW_PAYLOAD",
+                    description="Inbound payment payload (pacs.008 or pacs.009 XML/JSON string)",
+                    role="IDENTIFICATION",
+                    required_trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                    is_mandatory_for_stp=True,
+                    policy_freshness_seconds=None
+                ),
+                EvidenceItemRequirement(
+                    item_name="ORIGIN_COUNTRY_EVIDENCE",
+                    description="Originating / Debtor country evidence extracted from payload or Debtor Agent BIC",
+                    role="IDENTIFICATION",
+                    required_trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                    is_mandatory_for_stp=True,
+                    policy_freshness_seconds=None
+                ),
+                EvidenceItemRequirement(
+                    item_name="DESTINATION_COUNTRY_EVIDENCE",
+                    description="Destination / Creditor country evidence extracted from payload or Creditor Agent BIC",
+                    role="IDENTIFICATION",
+                    required_trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                    is_mandatory_for_stp=True,
+                    policy_freshness_seconds=None
+                ),
+                EvidenceItemRequirement(
+                    item_name="PAYMENT_CORRIDOR_SPEC",
+                    description="Payment corridor parameters including currency, rail, and transaction classification",
+                    role="CONTEXT",
+                    required_trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                    is_mandatory_for_stp=True,
+                    policy_freshness_seconds=None
+                ),
+                EvidenceItemRequirement(
+                    item_name="ISO_3166_COUNTRY_REGISTRY",
+                    description="Authoritative ISO 3166-1 alpha-2 country code standard registry",
+                    role="VALIDATION",
+                    required_trust_tier=EvidenceTrustTier.TIER_2_EXTERNAL_AUTHORITATIVE,
+                    is_mandatory_for_stp=True,
+                    policy_freshness_seconds=None # Static standard specification
+                ),
+                EvidenceItemRequirement(
+                    item_name="STATUTORY_RESTRICTION_MATRIX",
+                    description="Authoritative Statutory Sanctions / Comprehensive Embargo Matrix (OFAC, EU, UN)",
+                    role="VALIDATION",
+                    required_trust_tier=EvidenceTrustTier.TIER_2_EXTERNAL_AUTHORITATIVE,
+                    is_mandatory_for_stp=True,
+                    policy_freshness_seconds=86400 # 24h freshness TTL (DEMO_ONLY_DEFAULT: Configurable)
+                ),
+                EvidenceItemRequirement(
+                    item_name="BANK_CORRIDOR_POLICY",
+                    description="Bank operational policy defining permitted, restricted, and prohibited payment corridors",
+                    role="AUTHORIZATION",
+                    required_trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                    is_mandatory_for_stp=True,
+                    policy_freshness_seconds=86400 # 24h freshness TTL (DEMO_ONLY_DEFAULT: Configurable)
+                ),
+            ],
+            conditional_evidence=[
+                EvidenceItemRequirement(
+                    item_name="INTERMEDIARY_ROUTING_CHAIN",
+                    description="Intermediary correspondent agents and transit clearing jurisdictions",
+                    role="IDENTIFICATION",
+                    required_trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                    is_mandatory_for_stp=False,
+                    policy_freshness_seconds=None
+                ),
+                EvidenceItemRequirement(
+                    item_name="CORRIDOR_REGULATORY_EXEMPTION",
+                    description="Authoritative regulatory license or exemption documentation (e.g. OFAC General License)",
+                    role="AUTHORIZATION",
+                    required_trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                    is_mandatory_for_stp=False,
+                    policy_freshness_seconds=86400
+                ),
+            ],
+            optional_evidence=[
+                EvidenceItemRequirement(
+                    item_name="HISTORICAL_CORRIDOR_PRECEDENT",
+                    description="Historical log of past corridor transaction clearances (non-authoritative context only)",
+                    role="CONTEXT",
+                    required_trust_tier=EvidenceTrustTier.TIER_4_HISTORICAL_PRECEDENT,
+                    is_mandatory_for_stp=False,
+                    policy_freshness_seconds=None
+                )
+            ]
+        )
+        self.register(co04_contract)
+
 
 # Global singleton registry instance
 evidence_registry = EvidenceContractRegistry()

@@ -65,6 +65,9 @@ class AuthorityValidationEngine:
         elif profile_id == "ST-01":
             return self._validate_st01_authority(candidate, trail, dossier=dossier, bank_policy_authorized=bank_policy_authorized)
 
+        elif profile_id == "CO-04":
+            return self._validate_co04_authority(candidate, trail, dossier=dossier, bank_policy_authorized=bank_policy_authorized)
+
         # Fallback for unregistered profiles
         trail.append(f"No authority validator registered for profile {profile_id}.")
         return AuthorityValidationResult(
@@ -1354,6 +1357,146 @@ class AuthorityValidationEngine:
             status=AuthorityValidationStatus.PASSED,
             is_valid=True,
             authoritative_source="BANK_SETTLEMENT_LEDGER_AND_DDA",
+            audit_trail=trail,
+            is_structural_syntax_valid=True,
+            is_business_authority_confirmed=True
+        )
+
+    def _validate_co04_authority(
+        self,
+        candidate: ResolutionCandidate,
+        trail: List[str],
+        dossier: Optional[Any] = None,
+        bank_policy_authorized: Optional[bool] = None
+    ) -> AuthorityValidationResult:
+        """Deterministically validates CO-04 ISO 3166-1 country syntax (V_det) and statutory/bank policy authority (V_auth)."""
+        from app.services.co04_corridor_resolver import VALID_ISO_3166_COUNTRIES
+
+        struct_diff = candidate.repaired_structured or {}
+        origin_ctry = struct_diff.get("origin_country")
+        dest_ctry = struct_diff.get("destination_country")
+        transits = struct_diff.get("transit_countries", [])
+        corr_status = struct_diff.get("corridor_status")
+        comp_disp = struct_diff.get("compliance_disposition")
+        matched_restrictions = struct_diff.get("matched_restrictions", [])
+        exemption_id = struct_diff.get("exemption_license_id")
+
+        if not origin_ctry and dossier:
+            orig_item = dossier.get_item("ORIGIN_COUNTRY_EVIDENCE")
+            if orig_item and isinstance(orig_item.payload, dict):
+                origin_ctry = orig_item.payload.get("origin_country")
+
+        if not dest_ctry and dossier:
+            dest_item = dossier.get_item("DESTINATION_COUNTRY_EVIDENCE")
+            if dest_item and isinstance(dest_item.payload, dict):
+                dest_ctry = dest_item.payload.get("destination_country")
+
+        # 1. Structural / ISO 3166-1 Syntax Validation (V_det)
+        if not origin_ctry or origin_ctry not in VALID_ISO_3166_COUNTRIES:
+            trail.append(f"V_det FAILED: Origin country '{origin_ctry}' is not a valid ISO 3166-1 alpha-2 code.")
+            return AuthorityValidationResult(
+                profile_id="CO-04",
+                status=AuthorityValidationStatus.FAILED,
+                is_valid=False,
+                authoritative_source="ISO_3166_COUNTRY_REGISTRY",
+                audit_trail=trail,
+                error_message=f"Invalid ISO 3166-1 origin country code: {origin_ctry}",
+                is_structural_syntax_valid=False,
+                is_business_authority_confirmed=False
+            )
+
+        if not dest_ctry or dest_ctry not in VALID_ISO_3166_COUNTRIES:
+            trail.append(f"V_det FAILED: Destination country '{dest_ctry}' is not a valid ISO 3166-1 alpha-2 code.")
+            return AuthorityValidationResult(
+                profile_id="CO-04",
+                status=AuthorityValidationStatus.FAILED,
+                is_valid=False,
+                authoritative_source="ISO_3166_COUNTRY_REGISTRY",
+                audit_trail=trail,
+                error_message=f"Invalid ISO 3166-1 destination country code: {dest_ctry}",
+                is_structural_syntax_valid=False,
+                is_business_authority_confirmed=False
+            )
+
+        for tc in transits:
+            if tc and tc not in VALID_ISO_3166_COUNTRIES:
+                trail.append(f"V_det FAILED: Transit jurisdiction code '{tc}' is not a valid ISO 3166-1 alpha-2 code.")
+                return AuthorityValidationResult(
+                    profile_id="CO-04",
+                    status=AuthorityValidationStatus.FAILED,
+                    is_valid=False,
+                    authoritative_source="ISO_3166_COUNTRY_REGISTRY",
+                    audit_trail=trail,
+                    error_message=f"Invalid ISO 3166-1 transit country code: {tc}",
+                    is_structural_syntax_valid=False,
+                    is_business_authority_confirmed=False
+                )
+
+        trail.append(f"V_det PASSED: Origin ({origin_ctry}), Destination ({dest_ctry}), and Transit ({transits}) ISO 3166-1 country codes validated.")
+
+        # 2. Statutory Sanctions Matrix & Multi-Tier Authority Verification (V_auth)
+        # 2a. Check if Bank Policy exists
+        if dossier:
+            pol_item = dossier.get_item("BANK_CORRIDOR_POLICY")
+            if not pol_item or not pol_item.is_valid:
+                trail.append("V_auth FAILED: Missing or unconfigured Bank Corridor Policy in evidence dossier (BANK_CONFIG_REQUIRED).")
+                return AuthorityValidationResult(
+                    profile_id="CO-04",
+                    status=AuthorityValidationStatus.FAILED,
+                    is_valid=False,
+                    authoritative_source="BANK_CORRIDOR_POLICY",
+                    audit_trail=trail,
+                    error_message="Bank corridor policy missing or unconfigured (BANK_CONFIG_REQUIRED).",
+                    is_structural_syntax_valid=True,
+                    is_business_authority_confirmed=False
+                )
+
+        # 2b. Check Statutory Embargoes
+        if matched_restrictions and not exemption_id:
+            trail.append(f"V_auth FAILED: Statutory embargo violation detected on corridor: {', '.join(matched_restrictions)}.")
+            return AuthorityValidationResult(
+                profile_id="CO-04",
+                status=AuthorityValidationStatus.FAILED,
+                is_valid=False,
+                authoritative_source="STATUTORY_RESTRICTION_MATRIX",
+                audit_trail=trail,
+                error_message=f"Statutory embargo violation: {', '.join(matched_restrictions)}",
+                is_structural_syntax_valid=True,
+                is_business_authority_confirmed=False
+            )
+
+        # 2c. Check Bank Policy permissions
+        if corr_status == "PROHIBITED" or comp_disp == "COMPLIANCE_BLOCK":
+            trail.append(f"V_auth FAILED: Corridor is PROHIBITED (Compliance Disposition: {comp_disp}).")
+            return AuthorityValidationResult(
+                profile_id="CO-04",
+                status=AuthorityValidationStatus.FAILED,
+                is_valid=False,
+                authoritative_source="BANK_CORRIDOR_POLICY_AND_STATUTORY_MATRIX",
+                audit_trail=trail,
+                error_message=f"Corridor is prohibited under bank policy / statutory matrix ({comp_disp}).",
+                is_structural_syntax_valid=True,
+                is_business_authority_confirmed=False
+            )
+
+        if comp_disp == "COMPLIANCE_REVIEW":
+            trail.append(f"V_auth CONDITIONAL: Corridor is RESTRICTED (Exemption: {exemption_id}). Permitted for downstream Maker-Checker Review.")
+            return AuthorityValidationResult(
+                profile_id="CO-04",
+                status=AuthorityValidationStatus.PASSED,
+                is_valid=True,
+                authoritative_source="STATUTORY_RESTRICTION_MATRIX_AND_EXEMPTION",
+                audit_trail=trail,
+                is_structural_syntax_valid=True,
+                is_business_authority_confirmed=True
+            )
+
+        trail.append(f"V_auth PASSED: Corridor {origin_ctry}->{dest_ctry} cleared against statutory matrix and bank corridor policy.")
+        return AuthorityValidationResult(
+            profile_id="CO-04",
+            status=AuthorityValidationStatus.PASSED,
+            is_valid=True,
+            authoritative_source="STATUTORY_RESTRICTION_MATRIX_AND_BANK_POLICY",
             audit_trail=trail,
             is_structural_syntax_valid=True,
             is_business_authority_confirmed=True

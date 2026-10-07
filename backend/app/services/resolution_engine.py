@@ -620,6 +620,54 @@ class ST01Resolver:
         )
 
 
+class CO04Resolver:
+    """Deterministic, lossless Geographic Normalizer and Restriction Engine for CO-04 (RESTRICTED_CORRIDOR)."""
+
+    def __init__(self):
+        from app.services.co04_corridor_resolver import co04_resolver
+        self.resolver = co04_resolver
+
+    def resolve(
+        self,
+        raw_payload: str,
+        uetr: str,
+        end_to_end_id: str,
+        origin_country: Optional[str] = None,
+        destination_country: Optional[str] = None,
+        debtor_agent_bic: Optional[str] = None,
+        creditor_agent_bic: Optional[str] = None,
+        intermediary_countries: Optional[List[str]] = None,
+        currency: str = "EUR",
+        rail: str = "SEPA",
+        amount: float = 1000.0,
+        remittance_narrative: Optional[str] = None,
+        statutory_matrix: Optional[List[Any]] = None,
+        bank_corridor_policy: Optional[Any] = None,
+        exemption_record: Optional[Any] = None,
+        allow_stale_evidence: bool = False,
+        policy_freshness_seconds: int = 86400,
+    ) -> Tuple[ResolutionStatus, ResolutionUniqueness, List[ResolutionCandidate], Optional[ResolutionCandidate], List[str], Optional[str], bool]:
+        return self.resolver.resolve_corridor(
+            raw_payload=raw_payload,
+            uetr=uetr,
+            end_to_end_id=end_to_end_id,
+            origin_country=origin_country,
+            destination_country=destination_country,
+            debtor_agent_bic=debtor_agent_bic,
+            creditor_agent_bic=creditor_agent_bic,
+            intermediary_countries=intermediary_countries,
+            currency=currency,
+            rail=rail,
+            amount=amount,
+            remittance_narrative=remittance_narrative,
+            statutory_matrix=statutory_matrix,
+            bank_corridor_policy=bank_corridor_policy,
+            exemption_record=exemption_record,
+            allow_stale_evidence=allow_stale_evidence,
+            policy_freshness_seconds=policy_freshness_seconds,
+        )
+
+
 class ResolutionEngine:
     """Master Resolution Engine dispatching to profile-specific deterministic resolvers."""
 
@@ -634,6 +682,7 @@ class ResolutionEngine:
         self._dq01_resolver = DQ01Resolver()
         self._dq06_resolver = DQ06Resolver()
         self._st01_resolver = ST01Resolver()
+        self._co04_resolver = CO04Resolver()
 
     def derive_resolution(self, dossier: EvidenceDossier) -> ResolutionResult:
         """Derives a deterministic candidate resolution from an Evidence Dossier."""
@@ -1242,6 +1291,128 @@ class ResolutionEngine:
                 fee_schedule=fee_record,
                 corridor_policy=corr_policy,
                 sanctions_cleared=sanctions_cleared,
+                allow_stale_evidence=allow_stale
+            )
+            trail.extend(diff_log)
+
+            return ResolutionResult(
+                profile_id=profile_id,
+                status=status,
+                uniqueness=uniqueness,
+                candidates=candidates,
+                primary_candidate=primary_cand,
+                is_lossless=is_lossless,
+                audit_trail=trail,
+                error_message=err
+            )
+
+        elif profile_id == "CO-04":
+            raw_item = dossier.get_item("RAW_PAYLOAD") or dossier.get_item("RAW_PAYLOAD_BYTES")
+            if not raw_item:
+                trail.append("Missing RAW_PAYLOAD item in evidence dossier for CO-04.")
+                return ResolutionResult(
+                    profile_id=profile_id,
+                    status=ResolutionStatus.RESOLUTION_NOT_DETERMINED,
+                    uniqueness=ResolutionUniqueness.RESOLUTION_UNIQUE,
+                    is_lossless=True,
+                    audit_trail=trail,
+                    error_message="Missing RAW_PAYLOAD in evidence dossier."
+                )
+
+            raw_text = str(raw_item.payload.get("raw_text") or raw_item.payload.get("raw_xml") or "")
+            uetr = dossier.metadata.get("uetr") or raw_item.payload.get("uetr", "")
+            e2e_id = dossier.metadata.get("end_to_end_id") or raw_item.payload.get("end_to_end_id", "")
+
+            # Origin Country & BIC
+            origin_item = dossier.get_item("ORIGIN_COUNTRY_EVIDENCE")
+            origin_country = dossier.metadata.get("origin_country")
+            debtor_bic = dossier.metadata.get("debtor_agent_bic")
+            if origin_item and isinstance(origin_item.payload, dict):
+                origin_country = origin_item.payload.get("origin_country") or origin_country
+                debtor_bic = origin_item.payload.get("debtor_agent_bic") or debtor_bic
+
+            # Destination Country & BIC
+            dest_item = dossier.get_item("DESTINATION_COUNTRY_EVIDENCE")
+            destination_country = dossier.metadata.get("destination_country")
+            creditor_bic = dossier.metadata.get("creditor_agent_bic")
+            if dest_item and isinstance(dest_item.payload, dict):
+                destination_country = dest_item.payload.get("destination_country") or destination_country
+                creditor_bic = dest_item.payload.get("creditor_agent_bic") or creditor_bic
+
+            # Payment Corridor Spec
+            spec_item = dossier.get_item("PAYMENT_CORRIDOR_SPEC")
+            currency = dossier.metadata.get("currency", "EUR")
+            rail = dossier.metadata.get("rail", "SEPA")
+            amount = float(dossier.metadata.get("amount", 1000.0))
+            transit_countries = list(dossier.metadata.get("intermediary_countries") or [])
+            if spec_item and isinstance(spec_item.payload, dict):
+                currency = spec_item.payload.get("currency", currency)
+                rail = spec_item.payload.get("rail", rail)
+                amount = float(spec_item.payload.get("amount", amount))
+                for tc in (spec_item.payload.get("intermediary_countries") or []):
+                    if tc not in transit_countries:
+                        transit_countries.append(tc)
+
+            # Intermediary routing chain
+            routing_item = dossier.get_item("INTERMEDIARY_ROUTING_CHAIN")
+            if routing_item and isinstance(routing_item.payload, dict):
+                more_transits = routing_item.payload.get("intermediary_countries") or routing_item.payload.get("transit_jurisdictions") or []
+                for tc in more_transits:
+                    if tc not in transit_countries:
+                        transit_countries.append(tc)
+
+            # Statutory Restriction Matrix
+            stat_item = dossier.get_item("STATUTORY_RESTRICTION_MATRIX")
+            stat_matrix = None
+            if stat_item and isinstance(stat_item.payload, dict):
+                rules_list = stat_item.payload.get("rules") or stat_item.payload.get("restrictions") or []
+                from app.services.co04_corridor_resolver import StatutoryRestrictionMatrixRecord
+                stat_matrix = []
+                for r in rules_list:
+                    try:
+                        stat_matrix.append(StatutoryRestrictionMatrixRecord(**r) if isinstance(r, dict) else r)
+                    except Exception:
+                        pass
+
+            # Bank Corridor Policy
+            policy_item = dossier.get_item("BANK_CORRIDOR_POLICY")
+            bank_policy = None
+            if policy_item and isinstance(policy_item.payload, dict):
+                from app.services.co04_corridor_resolver import BankCorridorPolicyRecord
+                try:
+                    bank_policy = BankCorridorPolicyRecord(**policy_item.payload)
+                except Exception:
+                    pass
+
+            # Exemption Record
+            ex_item = dossier.get_item("CORRIDOR_REGULATORY_EXEMPTION")
+            exemption_rec = None
+            if ex_item and isinstance(ex_item.payload, dict):
+                from app.services.co04_corridor_resolver import CorridorRegulatoryExemptionRecord
+                try:
+                    exemption_rec = CorridorRegulatoryExemptionRecord(**ex_item.payload)
+                except Exception:
+                    pass
+
+            rmt_narrative = dossier.metadata.get("remittance_narrative") or dossier.metadata.get("remittance_text")
+            allow_stale = dossier.metadata.get("allow_stale_evidence", False)
+
+            status, uniqueness, candidates, primary_cand, diff_log, err, is_lossless = self._co04_resolver.resolve(
+                raw_payload=raw_text,
+                uetr=uetr,
+                end_to_end_id=e2e_id,
+                origin_country=origin_country,
+                destination_country=destination_country,
+                debtor_agent_bic=debtor_bic,
+                creditor_agent_bic=creditor_bic,
+                intermediary_countries=transit_countries,
+                currency=currency,
+                rail=rail,
+                amount=amount,
+                remittance_narrative=rmt_narrative,
+                statutory_matrix=stat_matrix,
+                bank_corridor_policy=bank_policy,
+                exemption_record=exemption_rec,
                 allow_stale_evidence=allow_stale
             )
             trail.extend(diff_log)

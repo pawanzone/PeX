@@ -922,6 +922,169 @@ class FolderInputAdapter(InputPort):
                     is_valid=True
                 ))
 
+        elif profile_id == "CO-04":
+            # Extract geographic attributes from payload or metadata
+            origin_country = package.metadata.get("origin_country") or package.evidence_fields.get("origin_country")
+            dest_country = package.metadata.get("destination_country") or package.evidence_fields.get("destination_country")
+            debtor_bic = package.metadata.get("debtor_agent_bic") or package.evidence_fields.get("debtor_agent_bic")
+            creditor_bic = package.metadata.get("creditor_agent_bic") or package.evidence_fields.get("creditor_agent_bic")
+            currency = package.metadata.get("currency") or package.evidence_fields.get("currency", "EUR")
+            rail = package.metadata.get("rail") or package.evidence_fields.get("rail", "SEPA")
+            amount = float(package.metadata.get("amount") or package.evidence_fields.get("amount", 1000.0))
+            transits = list(package.metadata.get("intermediary_countries") or package.evidence_fields.get("intermediary_countries") or [])
+
+            # Extract from XML if present
+            if "<Dbtr>" in raw_text and "<Ctry>" in raw_text:
+                m_orig = re.search(r"<Dbtr>.*?<PstlAdr>.*?<Ctry>([A-Z]{2})</Ctry>", raw_text, re.DOTALL)
+                if m_orig and not origin_country:
+                    origin_country = m_orig.group(1)
+
+            if "<Cdtr>" in raw_text and "<Ctry>" in raw_text:
+                m_dest = re.search(r"<Cdtr>.*?<PstlAdr>.*?<Ctry>([A-Z]{2})</Ctry>", raw_text, re.DOTALL)
+                if m_dest and not dest_country:
+                    dest_country = m_dest.group(1)
+
+            if "<DbtrAgt>" in raw_text and "<BICFI>" in raw_text:
+                m_dbic = re.search(r"<DbtrAgt>.*?<BICFI>([A-Z0-9]{8,11})</BICFI>", raw_text, re.DOTALL)
+                if m_dbic and not debtor_bic:
+                    debtor_bic = m_dbic.group(1)
+
+            if "<CdtrAgt>" in raw_text and "<BICFI>" in raw_text:
+                m_cbic = re.search(r"<CdtrAgt>.*?<BICFI>([A-Z0-9]{8,11})</BICFI>", raw_text, re.DOTALL)
+                if m_cbic and not creditor_bic:
+                    creditor_bic = m_cbic.group(1)
+
+            # 1. RAW_PAYLOAD (Tier 1 Bank Authoritative)
+            dossier.add_item(EvidenceItem(
+                item_name="RAW_PAYLOAD",
+                source_name=package.source_channel,
+                trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                payload={"raw_text": raw_text},
+                is_valid=True
+            ))
+
+            # 2. ORIGIN_COUNTRY_EVIDENCE (Tier 1 Bank Authoritative)
+            dossier.add_item(EvidenceItem(
+                item_name="ORIGIN_COUNTRY_EVIDENCE",
+                source_name="PAYMENT_ORIGINATION_SERVICE",
+                trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                payload={"origin_country": origin_country, "debtor_agent_bic": debtor_bic},
+                is_valid=bool(origin_country or debtor_bic)
+            ))
+
+            # 3. DESTINATION_COUNTRY_EVIDENCE (Tier 1 Bank Authoritative)
+            dossier.add_item(EvidenceItem(
+                item_name="DESTINATION_COUNTRY_EVIDENCE",
+                source_name="PAYMENT_BENEFICIARY_ROUTING_SERVICE",
+                trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                payload={"destination_country": dest_country, "creditor_agent_bic": creditor_bic},
+                is_valid=bool(dest_country or creditor_bic)
+            ))
+
+            # 4. PAYMENT_CORRIDOR_SPEC (Tier 1 Bank Authoritative)
+            dossier.add_item(EvidenceItem(
+                item_name="PAYMENT_CORRIDOR_SPEC",
+                source_name="PAYMENT_EXECUTION_ROUTER",
+                trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                payload={
+                    "currency": currency,
+                    "rail": rail,
+                    "amount": amount,
+                    "intermediary_countries": transits
+                },
+                is_valid=True
+            ))
+
+            # 5. ISO_3166_COUNTRY_REGISTRY (Tier 2 External Authoritative)
+            from app.services.co04_corridor_resolver import VALID_ISO_3166_COUNTRIES
+            dossier.add_item(EvidenceItem(
+                item_name="ISO_3166_COUNTRY_REGISTRY",
+                source_name="ISO_3166_MAINTENANCE_AGENCY",
+                trust_tier=EvidenceTrustTier.TIER_2_EXTERNAL_AUTHORITATIVE,
+                payload={"registry_version": "ISO 3166-1:2020", "country_count": len(VALID_ISO_3166_COUNTRIES)},
+                is_valid=True
+            ))
+
+            # 6. STATUTORY_RESTRICTION_MATRIX (Tier 2 External Authoritative)
+            stat_data = package.evidence_fields.get("statutory_restriction_matrix") or package.evidence_fields.get("statutory_matrix") or []
+            stat_rules = stat_data if isinstance(stat_data, list) else (stat_data.get("rules", []) if isinstance(stat_data, dict) else [])
+            stat_ts = datetime.now(timezone.utc)
+            if isinstance(stat_data, dict) and "retrieved_at" in stat_data:
+                raw_ts = stat_data["retrieved_at"]
+                if isinstance(raw_ts, datetime):
+                    stat_ts = raw_ts
+                elif isinstance(raw_ts, str):
+                    try:
+                        stat_ts = datetime.fromisoformat(raw_ts)
+                    except Exception:
+                        pass
+            dossier.add_item(EvidenceItem(
+                item_name="STATUTORY_RESTRICTION_MATRIX",
+                source_name="SANCTIONS_EMBARGO_SYSTEM_OF_RECORD",
+                trust_tier=EvidenceTrustTier.TIER_2_EXTERNAL_AUTHORITATIVE,
+                timestamp=stat_ts,
+                payload={"rules": [r if isinstance(r, dict) else r.model_dump() for r in stat_rules]},
+                is_valid=True
+            ))
+
+            # 7. BANK_CORRIDOR_POLICY (Tier 1 Bank Authoritative)
+            pol_data = package.evidence_fields.get("bank_corridor_policy") or package.evidence_fields.get("corridor_policy")
+            if pol_data is not None:
+                pol_payload = pol_data if isinstance(pol_data, dict) else pol_data.model_dump()
+                pol_ts = datetime.now(timezone.utc)
+                if isinstance(pol_payload, dict) and "retrieved_at" in pol_payload:
+                    raw_ts = pol_payload["retrieved_at"]
+                    if isinstance(raw_ts, datetime):
+                        pol_ts = raw_ts
+                    elif isinstance(raw_ts, str):
+                        try:
+                            pol_ts = datetime.fromisoformat(raw_ts)
+                        except Exception:
+                            pass
+                dossier.add_item(EvidenceItem(
+                    item_name="BANK_CORRIDOR_POLICY",
+                    source_name="BANK_CORRIDOR_POLICY_STORE",
+                    trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                    timestamp=pol_ts,
+                    payload=pol_payload,
+                    is_valid=True
+                ))
+
+            # 8. Conditional: INTERMEDIARY_ROUTING_CHAIN
+            if "intermediary_routing_chain" in package.evidence_fields or transits:
+                chain_data = package.evidence_fields.get("intermediary_routing_chain") or {"intermediary_countries": transits}
+                chain_payload = chain_data if isinstance(chain_data, dict) else chain_data.model_dump()
+                dossier.add_item(EvidenceItem(
+                    item_name="INTERMEDIARY_ROUTING_CHAIN",
+                    source_name="BANK_ROUTING_ENGINE",
+                    trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                    payload=chain_payload,
+                    is_valid=True
+                ))
+
+            # 9. Conditional: CORRIDOR_REGULATORY_EXEMPTION
+            if "corridor_regulatory_exemption" in package.evidence_fields or "exemption_record" in package.evidence_fields:
+                ex_data = package.evidence_fields.get("corridor_regulatory_exemption") or package.evidence_fields.get("exemption_record")
+                ex_payload = ex_data if isinstance(ex_data, dict) else ex_data.model_dump()
+                ex_ts = datetime.now(timezone.utc)
+                if isinstance(ex_payload, dict) and "retrieved_at" in ex_payload:
+                    raw_ts = ex_payload["retrieved_at"]
+                    if isinstance(raw_ts, datetime):
+                        ex_ts = raw_ts
+                    elif isinstance(raw_ts, str):
+                        try:
+                            ex_ts = datetime.fromisoformat(raw_ts)
+                        except Exception:
+                            pass
+                dossier.add_item(EvidenceItem(
+                    item_name="CORRIDOR_REGULATORY_EXEMPTION",
+                    source_name="BANK_LEGAL_COMPLIANCE_VAULT",
+                    trust_tier=EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE,
+                    timestamp=ex_ts,
+                    payload=ex_payload,
+                    is_valid=True
+                ))
+
 
         # 3. Add any caller-supplied additional evidence items
         for key, val in package.evidence_fields.items():
@@ -933,7 +1096,12 @@ class FolderInputAdapter(InputPort):
                 "original_payment_record", "original_payment", "settlement_ledger_state", "settlement_ledger",
                 "core_dda_account_status", "core_dda", "bank_return_disposition_policy", "bank_return_policy",
                 "fee_schedule_record", "fee_schedule", "original_sanctions_clearance", "corridor_return_policy",
-                "corridor_policy", "return_payload"
+                "corridor_policy", "return_payload",
+                "statutory_restriction_matrix", "statutory_matrix", "bank_corridor_policy",
+                "corridor_regulatory_exemption", "exemption_record", "intermediary_routing_chain",
+                "origin_country_evidence", "destination_country_evidence", "payment_corridor_spec",
+                "iso_3166_country_registry", "origin_country", "destination_country", "debtor_agent_bic",
+                "creditor_agent_bic", "intermediary_countries"
             ]:
                 if isinstance(val, dict) and "payload" in val and "trust_tier" in val:
                     item_ts = datetime.now(timezone.utc)
