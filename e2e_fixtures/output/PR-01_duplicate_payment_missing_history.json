@@ -37,10 +37,10 @@
   "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
   "bank_handoff_status": "MAKER_CHECKER_PENDING",
   "execution_owner": "BANK",
-  "audit_event_id": "AUD-859732",
-  "audit_chain_block_hash": "ed06f88879e3164c0170c8cfeae24f6b533ae5093b28a4bb95c90a7b9fb85c67",
+  "audit_event_id": "AUD-FA5BC0",
+  "audit_chain_block_hash": "0600016d317b4a6704a9e03ad08951d7da5ed183f23c76f27935df0a7e0a43b1",
   "processing_latency_ms": 0.52,
-  "processed_at": "2026-10-08T13:20:57.671520Z",
+  "processed_at": "2026-10-08T14:21:27.005036Z",
   "warnings": [],
   "errors": [
     "Evidence insufficient: missing mandatory ['SETTLEMENT_LEDGER'] / stale [] / contradictory []",
