@@ -1,0 +1,52 @@
+{
+  "exception_id": "PEX-E2E-CO04-BLOCK",
+  "detected_profile_id": "CO-04",
+  "domain": "COMPLIANCE",
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+    "INBOUND_PAYMENT_TELEMETRY",
+    "CORRIDOR_POLICY_MATRIX",
+    "OFAC_LICENSE_EXEMPTION_VERIFIED",
+    "SANCTIONS_WATCHLIST",
+    "CREDITOR_COUNTRY"
+  ],
+  "evidence_missing": [],
+  "evidence_contradictions": [],
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "resolution_recommendation": null,
+  "resolution_basis": "Mandatory statutory corridor restriction without verified licensing exemption.",
+  "repaired_fields": [],
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "SANCTIONS_HOLD",
+  "stp_eligible": false,
+  "stp_decision_reason": "Deterministic resolution could not be derived.; Resolution is ambiguous with multiple candidate matches.; Deterministic validation / checksum failed.; Compliance screening gate flagged entity on ['OFAC_SDN_LIST_2026', 'EU_CONSOLIDATED_FINANCIAL_SANCTIONS']",
+  "predicate_breakdown": {
+    "e_suff": true,
+    "r_det": false,
+    "r_uniq": false,
+    "v_det": false,
+    "v_auth": true,
+    "p_bank": true,
+    "c_comp": false,
+    "x_pre": true,
+    "stp_formula_result": false
+  },
+  "ai_confidence_score": 0.5,
+  "hitl_required": true,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "execution_owner": "BANK",
+  "audit_event_id": "AUD-2189D1",
+  "audit_chain_block_hash": "48484254c90b666b573d660855a751aa3d9bd01db28b8abcbe81556bcfc40c64",
+  "processing_latency_ms": 0.55,
+  "processed_at": "2026-10-08T13:20:59.090256Z",
+  "warnings": [],
+  "errors": [
+    "Deterministic resolution could not be derived.",
+    "Resolution is ambiguous with multiple candidate matches.",
+    "Deterministic validation / checksum failed.",
+    "Compliance screening gate flagged entity on ['OFAC_SDN_LIST_2026', 'EU_CONSOLIDATED_FINANCIAL_SANCTIONS']"
+  ]
+}

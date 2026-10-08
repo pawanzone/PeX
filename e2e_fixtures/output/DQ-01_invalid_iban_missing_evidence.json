@@ -1,0 +1,51 @@
+{
+  "exception_id": "PEX-E2E-DQ01-MISS",
+  "detected_profile_id": "DQ-01",
+  "domain": "DATA_QUALITY",
+  "evidence_status": "INSUFFICIENT",
+  "evidence_used": [
+    "INBOUND_PAYMENT_TELEMETRY",
+    "ROUTING_DIRECTORY"
+  ],
+  "evidence_missing": [
+    "CORE_DDA_ACCOUNT"
+  ],
+  "evidence_contradictions": [],
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "resolution_recommendation": null,
+  "resolution_basis": "Unable to derive valid MOD-97 IBAN checksum.",
+  "repaired_fields": [],
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "stp_eligible": false,
+  "stp_decision_reason": "Evidence insufficient: missing mandatory ['CORE_DDA_ACCOUNT'] / stale [] / contradictory []; Deterministic resolution could not be derived.; Resolution is ambiguous with multiple candidate matches.; Deterministic validation / checksum failed.",
+  "predicate_breakdown": {
+    "e_suff": false,
+    "r_det": false,
+    "r_uniq": false,
+    "v_det": false,
+    "v_auth": true,
+    "p_bank": true,
+    "c_comp": true,
+    "x_pre": true,
+    "stp_formula_result": false
+  },
+  "ai_confidence_score": 0.5,
+  "hitl_required": true,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "execution_owner": "BANK",
+  "audit_event_id": "AUD-E8B589",
+  "audit_chain_block_hash": "e4f57768aea03c22908185f16ad5835cc7d9cd51322081dd2b93bd970058b184",
+  "processing_latency_ms": 0.5,
+  "processed_at": "2026-10-08T13:20:56.740398Z",
+  "warnings": [],
+  "errors": [
+    "Evidence insufficient: missing mandatory ['CORE_DDA_ACCOUNT'] / stale [] / contradictory []",
+    "Deterministic resolution could not be derived.",
+    "Resolution is ambiguous with multiple candidate matches.",
+    "Deterministic validation / checksum failed."
+  ]
+}

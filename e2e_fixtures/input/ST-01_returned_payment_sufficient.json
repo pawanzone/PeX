@@ -1,0 +1,39 @@
+{
+  "exception_id": "PEX-E2E-ST01-SUFF",
+  "profile_id": "ST-01",
+  "domain": "SETTLEMENT_RETURNS",
+  "error_code": "ERR_INWARD_RETURN_RECEIVED",
+  "error_message": "Inward pacs.004 return received (Return Reason AC04 Closed Account). Original debit posted.",
+  "payment_info": {
+    "payment_id": "PMT-2026-ST01-001",
+    "uetr": "UETR-ST01-SUFF-0001-E1",
+    "amount": 2800.00,
+    "currency": "EUR",
+    "clearing_rail": "TARGET2",
+    "value_date": "2026-10-08",
+    "debtor_name": "Bavaria Engine Works AG",
+    "debtor_account": "DE89370400440532013000",
+    "creditor_name": "Vanguard BioPharma GmbH"
+  },
+  "bank_supplied_evidence": {
+    "original_debit_record": {
+      "original_debit_posted": true,
+      "original_uetr": "UETR-ORIG-DEBIT-7788",
+      "ledger_account": "DE89370400440532013000"
+    },
+    "original_debit_posted": true
+  },
+  "external_authoritative_evidence": {
+    "inward_pacs004_return": {
+      "return_reason_code": "AC04",
+      "return_amount": 2800.00,
+      "originating_bic": "DEUTDEDDXXX"
+    }
+  },
+  "derived_evidence": {
+    "amount_currency_match": true
+  },
+  "historical_evidence": {},
+  "evidence_provenance": "SYNTHETIC_TEST_FIXTURE",
+  "test_status": "TEST_ONLY"
+}

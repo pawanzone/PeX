@@ -24,8 +24,87 @@ from app.db.models import (
 from app.services.rule_engine import rule_engine
 from app.services.data_loader import repo
 
+# Wave 0A Provider-Neutral Ports & Schemas
+from app.ports import (
+    EvidencePackagePort,
+    ContextualAuthorityPort,
+    BankPolicyEnvelopePort,
+    DistributedIdempotencyPort,
+    StreamingMessageBrokerPort,
+    CoreBankingDDAPort,
+    RegulatoryScreeningPort,
+    SecretTokenizationVaultPort,
+    AuditLedgerPort,
+    ObservabilityTracePort,
+    BankHandoffEnvelopePort,
+    ConfigurationSchemaPort,
+    HealthReadinessPort,
+)
+from app.schemas.policy_contract import STPEligibilityDecision
+from app.schemas.contracts.e2e_schemas import PredicateBreakdown
+
 class STPEngine:
     """Evaluates STP eligibility, executes autonomous zero-touch repairs, and handles 1-click batch releases."""
+
+    def __init__(
+        self,
+        evidence_port: Optional[EvidencePackagePort] = None,
+        authority_port: Optional[ContextualAuthorityPort] = None,
+        policy_port: Optional[BankPolicyEnvelopePort] = None,
+        idempotency_port: Optional[DistributedIdempotencyPort] = None,
+        regulatory_port: Optional[RegulatoryScreeningPort] = None,
+        audit_port: Optional[AuditLedgerPort] = None,
+        bank_handoff_port: Optional[BankHandoffEnvelopePort] = None,
+    ):
+        from app.adapters.reference import (
+            InMemoryEvidenceAdapter,
+            InMemoryContextualAuthorityAdapter,
+            InMemoryBankPolicyAdapter,
+            InMemoryIdempotencyAdapter,
+            InMemoryRegulatoryScreeningAdapter,
+            InMemoryAuditLedgerAdapter,
+            InMemoryBankHandoffAdapter,
+        )
+        self.evidence_port = evidence_port or InMemoryEvidenceAdapter()
+        self.authority_port = authority_port or InMemoryContextualAuthorityAdapter()
+        self.policy_port = policy_port or InMemoryBankPolicyAdapter()
+        self.idempotency_port = idempotency_port or InMemoryIdempotencyAdapter()
+        self.regulatory_port = regulatory_port or InMemoryRegulatoryScreeningAdapter()
+        self.audit_port = audit_port or InMemoryAuditLedgerAdapter()
+        self.bank_handoff_port = bank_handoff_port or InMemoryBankHandoffAdapter()
+
+    def evaluate_canonical_8_predicates(
+        self,
+        case_id: str,
+        profile_id: str,
+        e_suff: bool,
+        r_det: bool,
+        r_uniq: bool,
+        v_det: bool,
+        v_auth: bool,
+        p_bank: bool,
+        c_comp: bool,
+        x_pre: bool,
+        ai_confidence: Optional[float] = None
+    ) -> STPEligibilityDecision:
+        """Authoritative evaluation of the canonical 8-predicate formula via STPEligibilityDecision.
+        
+        Formula: STP_ELIGIBLE = E_suff ∧ R_det ∧ R_uniq ∧ V_det ∧ V_auth ∧ P_bank ∧ C_comp ∧ X_pre
+        Note: ai_confidence has 0% authority and does NOT affect the boolean result.
+        """
+        return STPEligibilityDecision.evaluate(
+            case_id=case_id,
+            profile_id=profile_id,
+            e_suff=e_suff,
+            r_det=r_det,
+            r_uniq=r_uniq,
+            v_det=v_det,
+            v_auth=v_auth,
+            p_bank=p_bank,
+            c_comp=c_comp,
+            x_pre=x_pre,
+            ai_confidence=ai_confidence
+        )
 
     def evaluate_case_eligibility(
         self,

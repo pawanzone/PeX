@@ -1,0 +1,36 @@
+{
+  "exception_id": "PEX-E2E-PR08-SUFF",
+  "profile_id": "PR-08",
+  "domain": "PROCESSING",
+  "error_code": "ERR_QUEUE_PROCESSING_FAILURE",
+  "error_message": "Message partition lock conflict in outbound clearing broker queue.",
+  "payment_info": {
+    "payment_id": "PMT-2026-PR08-001",
+    "uetr": "UETR-PR08-SUFF-0001-D1",
+    "amount": 1200.00,
+    "currency": "USD",
+    "clearing_rail": "FEDWIRE",
+    "debtor_name": "Atlas Mediterranean Marine",
+    "creditor_name": "Apex Global Treasury"
+  },
+  "bank_supplied_evidence": {
+    "dlq_record": {
+      "reason": "PARTITION_LEASE_EXPIRED",
+      "attempt_count": 3
+    }
+  },
+  "external_authoritative_evidence": {
+    "streaming_broker_journal": {
+      "queue_name": "FEDWIRE_OUTBOUND_QUEUE",
+      "partition_id": 2,
+      "head_offset": 84120,
+      "partition_health": "RECOVERABLE"
+    }
+  },
+  "derived_evidence": {
+    "broker_deadlocked": false
+  },
+  "historical_evidence": {},
+  "evidence_provenance": "SYNTHETIC_TEST_FIXTURE",
+  "test_status": "TEST_ONLY"
+}

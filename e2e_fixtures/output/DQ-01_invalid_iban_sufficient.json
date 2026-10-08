@@ -1,0 +1,58 @@
+{
+  "exception_id": "PEX-E2E-DQ01-SUFF",
+  "detected_profile_id": "DQ-01",
+  "domain": "DATA_QUALITY",
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+    "INBOUND_PAYMENT_TELEMETRY",
+    "CORE_DDA_ACCOUNT",
+    "VERIFIED_IBAN",
+    "ROUTING_DIRECTORY",
+    "MOD97_CALCULATED_CHECKSUM",
+    "INBOUND_TRANSPOSITION_DETECTED"
+  ],
+  "evidence_missing": [],
+  "evidence_contradictions": [],
+  "resolution_status": "RESOLVED",
+  "resolution_recommendation": {
+    "action": "SUBSTITUTE_FIELD",
+    "target": "creditor_account.iban",
+    "value": "GB29MIDL40051512345679"
+  },
+  "resolution_basis": "IBAN MOD-97 check digit validated against UK CHAPS directory.",
+  "repaired_fields": [
+    {
+      "field_path": "creditor_account.iban",
+      "original_value": "GB29MIDL40051512345678",
+      "repaired_value": "GB29MIDL40051512345679"
+    }
+  ],
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "stp_eligible": true,
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff ∧ R_det ∧ R_uniq ∧ V_det ∧ V_auth ∧ P_bank ∧ C_comp ∧ X_pre).",
+  "predicate_breakdown": {
+    "e_suff": true,
+    "r_det": true,
+    "r_uniq": true,
+    "v_det": true,
+    "v_auth": true,
+    "p_bank": true,
+    "c_comp": true,
+    "x_pre": true,
+    "stp_formula_result": true
+  },
+  "ai_confidence_score": 0.98,
+  "hitl_required": false,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "execution_owner": "BANK",
+  "audit_event_id": "AUD-10DD2F",
+  "audit_chain_block_hash": "3b23b731fa5ff7bd89c4cc80d072b44e2691ea02d820ff141aed1627f7c8b616",
+  "processing_latency_ms": 0.67,
+  "processed_at": "2026-10-08T13:20:56.522501Z",
+  "warnings": [],
+  "errors": []
+}

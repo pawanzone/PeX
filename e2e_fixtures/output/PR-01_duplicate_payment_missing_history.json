@@ -1,0 +1,51 @@
+{
+  "exception_id": "PEX-E2E-PR01-MISS",
+  "detected_profile_id": "PR-01",
+  "domain": "PROCESSING",
+  "evidence_status": "INSUFFICIENT",
+  "evidence_used": [
+    "INBOUND_PAYMENT_TELEMETRY",
+    "HISTORICAL_PAYMENT_JOURNAL"
+  ],
+  "evidence_missing": [
+    "SETTLEMENT_LEDGER"
+  ],
+  "evidence_contradictions": [],
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "resolution_recommendation": null,
+  "resolution_basis": "No matching original transaction record found in settlement journal.",
+  "repaired_fields": [],
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "stp_eligible": false,
+  "stp_decision_reason": "Evidence insufficient: missing mandatory ['SETTLEMENT_LEDGER'] / stale [] / contradictory []; Deterministic resolution could not be derived.; Resolution is ambiguous with multiple candidate matches.; Deterministic validation / checksum failed.",
+  "predicate_breakdown": {
+    "e_suff": false,
+    "r_det": false,
+    "r_uniq": false,
+    "v_det": false,
+    "v_auth": true,
+    "p_bank": true,
+    "c_comp": true,
+    "x_pre": true,
+    "stp_formula_result": false
+  },
+  "ai_confidence_score": 0.5,
+  "hitl_required": true,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "execution_owner": "BANK",
+  "audit_event_id": "AUD-859732",
+  "audit_chain_block_hash": "ed06f88879e3164c0170c8cfeae24f6b533ae5093b28a4bb95c90a7b9fb85c67",
+  "processing_latency_ms": 0.52,
+  "processed_at": "2026-10-08T13:20:57.671520Z",
+  "warnings": [],
+  "errors": [
+    "Evidence insufficient: missing mandatory ['SETTLEMENT_LEDGER'] / stale [] / contradictory []",
+    "Deterministic resolution could not be derived.",
+    "Resolution is ambiguous with multiple candidate matches.",
+    "Deterministic validation / checksum failed."
+  ]
+}

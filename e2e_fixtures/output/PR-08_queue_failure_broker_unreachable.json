@@ -1,0 +1,54 @@
+{
+  "exception_id": "PEX-E2E-PR08-FAIL",
+  "detected_profile_id": "PR-08",
+  "domain": "PROCESSING",
+  "evidence_status": "INSUFFICIENT",
+  "evidence_used": [
+    "INBOUND_PAYMENT_TELEMETRY",
+    "DLQ_RECORD",
+    "SIMULATE_AUTHORITY_UNAVAILABLE",
+    "BROKER_DEADLOCKED"
+  ],
+  "evidence_missing": [
+    "STREAMING_BROKER_JOURNAL"
+  ],
+  "evidence_contradictions": [],
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "resolution_recommendation": null,
+  "resolution_basis": "Message broker offline or partition corrupt.",
+  "repaired_fields": [],
+  "authority_status": "UNAVAILABLE",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "stp_eligible": false,
+  "stp_decision_reason": "Evidence insufficient: missing mandatory ['STREAMING_BROKER_JOURNAL'] / stale [] / contradictory []; Deterministic resolution could not be derived.; Resolution is ambiguous with multiple candidate matches.; Deterministic validation / checksum failed.; Authoritative source validation failed: Simulated authority timeout / 503 unavailable.",
+  "predicate_breakdown": {
+    "e_suff": false,
+    "r_det": false,
+    "r_uniq": false,
+    "v_det": false,
+    "v_auth": false,
+    "p_bank": true,
+    "c_comp": true,
+    "x_pre": true,
+    "stp_formula_result": false
+  },
+  "ai_confidence_score": 0.5,
+  "hitl_required": true,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "execution_owner": "BANK",
+  "audit_event_id": "AUD-3E1705",
+  "audit_chain_block_hash": "815b8fb4b530c17f6bd35d0a2b95638cdf0d2fb8818920428b7e3304365cd903",
+  "processing_latency_ms": 0.72,
+  "processed_at": "2026-10-08T13:20:58.162808Z",
+  "warnings": [],
+  "errors": [
+    "Evidence insufficient: missing mandatory ['STREAMING_BROKER_JOURNAL'] / stale [] / contradictory []",
+    "Deterministic resolution could not be derived.",
+    "Resolution is ambiguous with multiple candidate matches.",
+    "Deterministic validation / checksum failed.",
+    "Authoritative source validation failed: Simulated authority timeout / 503 unavailable."
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "exception_id": "PEX-E2E-DQ08-AMBIG",
+  "detected_profile_id": "DQ-08",
+  "domain": "DATA_QUALITY",
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+    "INBOUND_PAYMENT_TELEMETRY",
+    "ROUTING_SYNTAX_MASTER",
+    "FEDLINE_ROUTING_DIRECTORY",
+    "VALID_ROUTING_CODE",
+    "AMBIGUOUS_ROUTING_MATCHES"
+  ],
+  "evidence_missing": [],
+  "evidence_contradictions": [],
+  "resolution_status": "RESOLVED",
+  "resolution_recommendation": {
+    "action": "SUBSTITUTE_FIELD",
+    "target": "creditor_agent.aba_routing",
+    "value": "021000021"
+  },
+  "resolution_basis": "ABA routing transit check digit validated via FedLine directory.",
+  "repaired_fields": [
+    {
+      "field_path": "creditor_agent.aba_routing",
+      "original_value": "021000020",
+      "repaired_value": "021000021"
+    }
+  ],
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "stp_eligible": false,
+  "stp_decision_reason": "Resolution is ambiguous with multiple candidate matches.",
+  "predicate_breakdown": {
+    "e_suff": true,
+    "r_det": true,
+    "r_uniq": false,
+    "v_det": true,
+    "v_auth": true,
+    "p_bank": true,
+    "c_comp": true,
+    "x_pre": true,
+    "stp_formula_result": false
+  },
+  "ai_confidence_score": 0.5,
+  "hitl_required": true,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "execution_owner": "BANK",
+  "audit_event_id": "AUD-EB9A3B",
+  "audit_chain_block_hash": "0ef4a747bdbb040b411efbe0796565d28553ca73fd71a4d67ee9d1c74adafbe5",
+  "processing_latency_ms": 0.51,
+  "processed_at": "2026-10-08T13:20:57.228610Z",
+  "warnings": [],
+  "errors": [
+    "Resolution is ambiguous with multiple candidate matches."
+  ]
+}

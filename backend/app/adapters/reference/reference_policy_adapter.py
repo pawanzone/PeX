@@ -1,0 +1,110 @@
+"""In-Memory Reference Bank Policy Adapter.
+
+TEST / DEMO / REFERENCE ONLY.
+Implements BankPolicyEnvelopePort with deterministic fail-closed policy evaluation.
+"""
+from typing import Dict, Any, Optional
+from datetime import datetime, timezone
+
+from app.ports.policy_port import BankPolicyEnvelopePort
+from app.schemas.contracts.policy_schemas import (
+    BankPolicyEnvelope,
+    BankRiskThresholds,
+    PolicyEvaluationResult,
+)
+
+
+class InMemoryBankPolicyAdapter(BankPolicyEnvelopePort):
+    """Hermetic reference implementation of BankPolicyEnvelopePort."""
+
+    def __init__(self, default_policy: Optional[BankPolicyEnvelope] = None):
+        self._policy: Optional[BankPolicyEnvelope] = default_policy or BankPolicyEnvelope(
+            policy_id="POL-DEFAULT-TEST-01",
+            policy_version="v1.0.0",
+            environment="TEST_ONLY",
+            risk_thresholds=BankRiskThresholds(
+                max_autonomous_stp_amount=10000.0,
+                max_batch_fast_lane_amount=25000.0,
+                dual_auth_mandatory_threshold=250000.0
+            ),
+            auto_stp_enabled_profiles=[
+                "INVALID_IBAN", "INVALID_ROUTING_CODE", "DUPLICATE_PAYMENT",
+                "QUEUE_PROCESSING_FAILURE", "RETURNED_PAYMENT", "RESTRICTED_CORRIDOR"
+            ],
+            dual_auth_required_profiles=["SANCTIONS_HOLD", "HIGH_VALUE_WIRE", "AML_SUSPENDED"]
+        )
+
+    def set_policy(self, policy: Optional[BankPolicyEnvelope]):
+        """Sets or clears the active bank policy envelope."""
+        self._policy = policy
+
+    def get_active_policy(self, bank_id: Optional[str] = None) -> Optional[BankPolicyEnvelope]:
+        return self._policy
+
+    def evaluate_transaction(
+        self,
+        policy: Optional[BankPolicyEnvelope],
+        profile_id: str,
+        amount: float,
+        currency: str,
+        action_type: str,
+        transaction_context: Optional[Dict[str, Any]] = None
+    ) -> PolicyEvaluationResult:
+        now = datetime.now(timezone.utc)
+        ctx = transaction_context or {}
+
+        # 1. Fail closed on missing policy
+        if policy is None:
+            return PolicyEvaluationResult(
+                policy_id="MISSING_POLICY",
+                policy_allows_action=False,
+                is_autonomous_stp_permitted=False,
+                is_batch_fast_lane_permitted=False,
+                requires_maker_checker=True,
+                evaluated_at=now,
+                denial_reasons=["Mandatory BankPolicyEnvelope is missing or unavailable (P_bank == False)."]
+            )
+
+        denial_reasons = []
+        is_auto = False
+        is_batch = False
+        requires_mc = False
+        approver_roles = []
+
+        # 2. Dual Authorization Ceiling Check
+        if amount >= policy.risk_thresholds.dual_auth_mandatory_threshold:
+            requires_mc = True
+            approver_roles = ["OPERATIONS_MAKER", "SENIOR_RISK_CHECKER"]
+            denial_reasons.append(f"High-value amount (${amount:,.2f}) exceeds dual-auth threshold (${policy.risk_thresholds.dual_auth_mandatory_threshold:,.2f}).")
+
+        # 3. Autonomous STP Threshold Check
+        elif amount <= policy.risk_thresholds.max_autonomous_stp_amount and profile_id in policy.auto_stp_enabled_profiles:
+            is_auto = True
+
+        # 4. Batch Fast Lane Threshold Check
+        elif amount <= policy.risk_thresholds.max_batch_fast_lane_amount:
+            is_batch = True
+            requires_mc = True
+            approver_roles = ["OPERATIONS_MAKER"]
+
+        else:
+            requires_mc = True
+            approver_roles = ["OPERATIONS_MAKER", "OPERATIONS_CHECKER"]
+            denial_reasons.append(f"Amount (${amount:,.2f}) exceeds fast-lane batch threshold (${policy.risk_thresholds.max_batch_fast_lane_amount:,.2f}).")
+
+        # 5. Currency Check
+        if currency not in policy.risk_thresholds.allowed_currencies:
+            denial_reasons.append(f"Currency {currency} is not supported by bank policy.")
+
+        policy_allows = (len(denial_reasons) == 0 or is_batch or requires_mc) and (currency in policy.risk_thresholds.allowed_currencies)
+
+        return PolicyEvaluationResult(
+            policy_id=policy.policy_id,
+            policy_allows_action=policy_allows,
+            is_autonomous_stp_permitted=is_auto,
+            is_batch_fast_lane_permitted=is_batch,
+            requires_maker_checker=requires_mc,
+            required_approver_roles=approver_roles,
+            evaluated_at=now,
+            denial_reasons=denial_reasons
+        )

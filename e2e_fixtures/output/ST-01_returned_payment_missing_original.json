@@ -1,0 +1,52 @@
+{
+  "exception_id": "PEX-E2E-ST01-MISS",
+  "detected_profile_id": "ST-01",
+  "domain": "SETTLEMENT_RETURNS",
+  "evidence_status": "INSUFFICIENT",
+  "evidence_used": [
+    "INBOUND_PAYMENT_TELEMETRY",
+    "INWARD_PACS004_RETURN",
+    "ORIGINAL_DEBIT_POSTED"
+  ],
+  "evidence_missing": [
+    "ORIGINAL_DEBIT_RECORD"
+  ],
+  "evidence_contradictions": [],
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "resolution_recommendation": null,
+  "resolution_basis": "Original payment debit not found or unposted in ledger.",
+  "repaired_fields": [],
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "stp_eligible": false,
+  "stp_decision_reason": "Evidence insufficient: missing mandatory ['ORIGINAL_DEBIT_RECORD'] / stale [] / contradictory []; Deterministic resolution could not be derived.; Resolution is ambiguous with multiple candidate matches.; Deterministic validation / checksum failed.",
+  "predicate_breakdown": {
+    "e_suff": false,
+    "r_det": false,
+    "r_uniq": false,
+    "v_det": false,
+    "v_auth": true,
+    "p_bank": true,
+    "c_comp": true,
+    "x_pre": true,
+    "stp_formula_result": false
+  },
+  "ai_confidence_score": 0.5,
+  "hitl_required": true,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "execution_owner": "BANK",
+  "audit_event_id": "AUD-9EFEF7",
+  "audit_chain_block_hash": "e817335e14c3d58bc3589ec9fede169da5fa3e0f5e23df6ef9933570a8f78f4b",
+  "processing_latency_ms": 0.61,
+  "processed_at": "2026-10-08T13:20:58.603790Z",
+  "warnings": [],
+  "errors": [
+    "Evidence insufficient: missing mandatory ['ORIGINAL_DEBIT_RECORD'] / stale [] / contradictory []",
+    "Deterministic resolution could not be derived.",
+    "Resolution is ambiguous with multiple candidate matches.",
+    "Deterministic validation / checksum failed."
+  ]
+}

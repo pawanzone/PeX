@@ -1,0 +1,35 @@
+{
+  "exception_id": "PEX-E2E-CO04-BLOCK",
+  "profile_id": "CO-04",
+  "domain": "COMPLIANCE",
+  "error_code": "ERR_RESTRICTED_CORRIDOR",
+  "error_message": "Payment corridor prohibited under statutory sanctions regime; no valid license exemption.",
+  "payment_info": {
+    "payment_id": "PMT-2026-CO04-002",
+    "uetr": "UETR-CO04-BLOCK-0002-F2",
+    "amount": 15000.00,
+    "currency": "USD",
+    "clearing_rail": "FEDWIRE",
+    "debtor_name": "Apex Global Treasury (US)",
+    "creditor_name": "Sanctioned Entity in Prohibited Jurisdiction"
+  },
+  "bank_supplied_evidence": {
+    "corridor_policy_matrix": {
+      "policy_id": "POL-CORRIDOR-PROHIBITED",
+      "general_license_permitted": false
+    },
+    "ofac_license_exemption_verified": false
+  },
+  "external_authoritative_evidence": {
+    "sanctions_watchlist": {
+      "sdn_match": true,
+      "program": "OFAC_TERRITORIAL_SANCTIONS"
+    }
+  },
+  "derived_evidence": {
+    "creditor_country": "NK"
+  },
+  "historical_evidence": {},
+  "evidence_provenance": "SYNTHETIC_TEST_FIXTURE",
+  "test_status": "TEST_ONLY"
+}

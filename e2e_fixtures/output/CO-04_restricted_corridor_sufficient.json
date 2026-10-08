@@ -1,0 +1,50 @@
+{
+  "exception_id": "PEX-E2E-CO04-SUFF",
+  "detected_profile_id": "CO-04",
+  "domain": "COMPLIANCE",
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+    "INBOUND_PAYMENT_TELEMETRY",
+    "CORRIDOR_POLICY_MATRIX",
+    "OFAC_LICENSE_EXEMPTION_VERIFIED",
+    "SANCTIONS_WATCHLIST",
+    "CORRIDOR_CLEARANCE_CODE"
+  ],
+  "evidence_missing": [],
+  "evidence_contradictions": [],
+  "resolution_status": "RESOLVED",
+  "resolution_recommendation": {
+    "action": "RELEASE_CORRIDOR_HOLD",
+    "license_id": "OFAC-GL-58A"
+  },
+  "resolution_basis": "Corridor restricted under general policy, but specific OFAC general license exemption verified.",
+  "repaired_fields": [],
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "stp_eligible": true,
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff ∧ R_det ∧ R_uniq ∧ V_det ∧ V_auth ∧ P_bank ∧ C_comp ∧ X_pre).",
+  "predicate_breakdown": {
+    "e_suff": true,
+    "r_det": true,
+    "r_uniq": true,
+    "v_det": true,
+    "v_auth": true,
+    "p_bank": true,
+    "c_comp": true,
+    "x_pre": true,
+    "stp_formula_result": true
+  },
+  "ai_confidence_score": 0.98,
+  "hitl_required": false,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "execution_owner": "BANK",
+  "audit_event_id": "AUD-9D2E51",
+  "audit_chain_block_hash": "733b1cfe4a6b8751f2cd891313f1a9cb99dd62b5c6cf0db84dd10bfdfe89e49c",
+  "processing_latency_ms": 0.56,
+  "processed_at": "2026-10-08T13:20:58.817053Z",
+  "warnings": [],
+  "errors": []
+}
