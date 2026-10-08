@@ -1,0 +1,51 @@
+{
+  "exception_id": "PEX-E2E-PR07-SUFF",
+  "detected_profile_id": "PR-07",
+  "domain": "PROCESSING",
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+    "INBOUND_PAYMENT_TELEMETRY",
+    "GATEWAY_SOCKET_STATE",
+    "IDEMPOTENCY_LEDGER_LOCK",
+    "RETRY_BUDGET_RECORD"
+  ],
+  "evidence_missing": [],
+  "evidence_contradictions": [],
+  "resolution_status": "RESOLVED",
+  "resolution_recommendation": {
+    "action": "IDEMPOTENT_GATEWAY_RETRY",
+    "payment_uetr": "9f1e2d3c-4b5a-6789-0123-abcdef070001",
+    "target_gateway": "GW-PRIMARY",
+    "retry_attempt": 1
+  },
+  "resolution_basis": "Gateway healthy (1.5ms). Safe idempotent retry approved (Attempt 1/3).",
+  "repaired_fields": [],
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "stp_eligible": true,
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff ∧ R_det ∧ R_uniq ∧ V_det ∧ V_auth ∧ P_bank ∧ C_comp ∧ X_pre).",
+  "predicate_breakdown": {
+    "e_suff": true,
+    "r_det": true,
+    "r_uniq": true,
+    "v_det": true,
+    "v_auth": true,
+    "p_bank": true,
+    "c_comp": true,
+    "x_pre": true,
+    "stp_formula_result": true
+  },
+  "ai_confidence_score": 0.98,
+  "hitl_required": false,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "execution_owner": "BANK",
+  "audit_event_id": "AUD-821580",
+  "audit_chain_block_hash": "f35ae573b491d92af30c1c731eb864ad2c2edb9c84e9fed1c47466065d0f3636",
+  "processing_latency_ms": 0.63,
+  "processed_at": "2026-10-08T19:49:58.597029Z",
+  "warnings": [],
+  "errors": []
+}

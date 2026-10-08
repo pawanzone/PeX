@@ -1,0 +1,76 @@
+{
+  "exception_id": "PEX-E2E-CO07-SUFF",
+  "detected_profile_id": "CO-07",
+  "domain": "COMPLIANCE",
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+    "INBOUND_PAYMENT_TELEMETRY",
+    "REGULATORY_PURPOSE_DIRECTORY",
+    "CENTRAL_BANK_BOP_CODES",
+    "STATUTORY_REPORTING_RULE",
+    "DESTINATION_COUNTRY",
+    "TRADE_CATEGORY"
+  ],
+  "evidence_missing": [],
+  "evidence_contradictions": [],
+  "resolution_status": "RESOLVED",
+  "resolution_recommendation": {
+    "action": "POPULATE_REGULATORY_REPORTING",
+    "RgltryRptg": {
+      "DbtCdtRptgInd": "BOTH",
+      "Authrty": {
+        "AuthrtyNm": "BANCO_CENTRAL_DO_BRASIL"
+      },
+      "Dtls": {
+        "Cd": "BOP-BR-101",
+        "Inf": "Cross-border goods import declaration code"
+      }
+    }
+  },
+  "resolution_basis": "Derived statutory declaration for BANCO_CENTRAL_DO_BRASIL (Code: BOP-BR-101, Statute: BACEN Circular 3691).",
+  "repaired_fields": [
+    {
+      "field_path": "regulatory_reporting",
+      "repaired_value": {
+        "RgltryRptg": {
+          "DbtCdtRptgInd": "BOTH",
+          "Authrty": {
+            "AuthrtyNm": "BANCO_CENTRAL_DO_BRASIL"
+          },
+          "Dtls": {
+            "Cd": "BOP-BR-101",
+            "Inf": "Cross-border goods import declaration code"
+          }
+        }
+      }
+    }
+  ],
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "stp_eligible": true,
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff ∧ R_det ∧ R_uniq ∧ V_det ∧ V_auth ∧ P_bank ∧ C_comp ∧ X_pre).",
+  "predicate_breakdown": {
+    "e_suff": true,
+    "r_det": true,
+    "r_uniq": true,
+    "v_det": true,
+    "v_auth": true,
+    "p_bank": true,
+    "c_comp": true,
+    "x_pre": true,
+    "stp_formula_result": true
+  },
+  "ai_confidence_score": 0.98,
+  "hitl_required": false,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "execution_owner": "BANK",
+  "audit_event_id": "AUD-715B00",
+  "audit_chain_block_hash": "aa80978d1636de3e0a5778aace691a5323927456c39baf960686f4b5cc9a27c6",
+  "processing_latency_ms": 0.51,
+  "processed_at": "2026-10-08T19:49:59.168719Z",
+  "warnings": [],
+  "errors": []
+}

@@ -1,4 +1,3 @@
-"""In-Memory Reference Adapters for Wave 0A Contracts."""
 from .reference_evidence_adapter import InMemoryEvidenceAdapter
 from .reference_authority_adapter import InMemoryContextualAuthorityAdapter
 from .reference_policy_adapter import InMemoryBankPolicyAdapter
@@ -12,6 +11,13 @@ from .reference_observability_adapter import InMemoryObservabilityTraceAdapter
 from .reference_bank_handoff_adapter import InMemoryBankHandoffAdapter
 from .reference_configuration_adapter import InMemoryConfigurationAdapter
 from .reference_health_adapter import InMemoryHealthReadinessAdapter
+from .reference_account_master_adapter import InMemoryAccountMasterAdapter
+from .reference_routing_directory_adapter import InMemoryRoutingDirectoryAdapter
+from .reference_clearing_calendar_adapter import InMemoryClearingRailCalendarAdapter
+from .reference_payment_hub_adapter import InMemoryPaymentHubRepairQueueAdapter
+from .reference_gateway_socket_adapter import InMemoryGatewaySocketAdapter
+from .reference_remittance_document_adapter import InMemoryRemittanceDocumentAdapter
+from .reference_regulatory_directory_adapter import InMemoryRegulatoryDirectoryAdapter
 
 __all__ = [
     "InMemoryEvidenceAdapter",
@@ -27,4 +33,11 @@ __all__ = [
     "InMemoryBankHandoffAdapter",
     "InMemoryConfigurationAdapter",
     "InMemoryHealthReadinessAdapter",
+    "InMemoryAccountMasterAdapter",
+    "InMemoryRoutingDirectoryAdapter",
+    "InMemoryClearingRailCalendarAdapter",
+    "InMemoryPaymentHubRepairQueueAdapter",
+    "InMemoryGatewaySocketAdapter",
+    "InMemoryRemittanceDocumentAdapter",
+    "InMemoryRegulatoryDirectoryAdapter",
 ]

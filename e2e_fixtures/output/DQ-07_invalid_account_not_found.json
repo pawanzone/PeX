@@ -1,0 +1,51 @@
+{
+  "exception_id": "PEX-E2E-DQ07-NOTFOUND",
+  "detected_profile_id": "DQ-07",
+  "domain": "DATA_QUALITY",
+  "evidence_status": "INSUFFICIENT",
+  "evidence_used": [
+    "INBOUND_PAYMENT_TELEMETRY",
+    "VERIFIED_ACCOUNT_NUMBER"
+  ],
+  "evidence_missing": [
+    "CORE_DDA_MASTER",
+    "ACCOUNT_STRUCTURE_RULES"
+  ],
+  "evidence_contradictions": [],
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "resolution_recommendation": null,
+  "resolution_basis": "Account number '00000000' does not exist in Core Banking DDA.",
+  "repaired_fields": [],
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "stp_eligible": false,
+  "stp_decision_reason": "Evidence insufficient: missing mandatory ['CORE_DDA_MASTER', 'ACCOUNT_STRUCTURE_RULES'] / stale [] / contradictory []; Deterministic resolution could not be derived.; Deterministic validation / checksum failed.",
+  "predicate_breakdown": {
+    "e_suff": false,
+    "r_det": false,
+    "r_uniq": true,
+    "v_det": false,
+    "v_auth": true,
+    "p_bank": true,
+    "c_comp": true,
+    "x_pre": true,
+    "stp_formula_result": false
+  },
+  "ai_confidence_score": 0.5,
+  "hitl_required": true,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "execution_owner": "BANK",
+  "audit_event_id": "AUD-414E25",
+  "audit_chain_block_hash": "20aa896355e5f0ffe3183ca99bc3d61a50b50eec65ac6905f36464b4ec7eb784",
+  "processing_latency_ms": 0.44,
+  "processed_at": "2026-10-08T19:49:59.959425Z",
+  "warnings": [],
+  "errors": [
+    "Evidence insufficient: missing mandatory ['CORE_DDA_MASTER', 'ACCOUNT_STRUCTURE_RULES'] / stale [] / contradictory []",
+    "Deterministic resolution could not be derived.",
+    "Deterministic validation / checksum failed."
+  ]
+}

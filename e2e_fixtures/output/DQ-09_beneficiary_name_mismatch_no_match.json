@@ -1,0 +1,48 @@
+{
+  "exception_id": "PEX-E2E-DQ09-NOMATCH",
+  "detected_profile_id": "DQ-09",
+  "domain": "DATA_QUALITY",
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+    "INBOUND_PAYMENT_TELEMETRY",
+    "CORE_ACCOUNT_TITLE",
+    "VERIFICATION_OF_PAYEE_CONFIRMATION"
+  ],
+  "evidence_missing": [],
+  "evidence_contradictions": [],
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "resolution_recommendation": null,
+  "resolution_basis": "VoP evaluation score: 0.2545 against authoritative title 'SIEMENS AG INDUSTRIAL POWER'.; Name match score (0.25) below acceptable threshold (0.85). Route to HITL.",
+  "repaired_fields": [],
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "stp_eligible": false,
+  "stp_decision_reason": "Deterministic resolution could not be derived.; Deterministic validation / checksum failed.",
+  "predicate_breakdown": {
+    "e_suff": true,
+    "r_det": false,
+    "r_uniq": true,
+    "v_det": false,
+    "v_auth": true,
+    "p_bank": true,
+    "c_comp": true,
+    "x_pre": true,
+    "stp_formula_result": false
+  },
+  "ai_confidence_score": 0.5,
+  "hitl_required": true,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "execution_owner": "BANK",
+  "audit_event_id": "AUD-38B903",
+  "audit_chain_block_hash": "14530f901db2a22ecd316e5bf27e0d39d808512532f057adbc3534b6e96a3d84",
+  "processing_latency_ms": 0.55,
+  "processed_at": "2026-10-08T19:50:00.202907Z",
+  "warnings": [],
+  "errors": [
+    "Deterministic resolution could not be derived.",
+    "Deterministic validation / checksum failed."
+  ]
+}

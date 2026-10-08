@@ -1,0 +1,63 @@
+{
+  "exception_id": "PEX-E2E-DQ03-SUFF",
+  "detected_profile_id": "DQ-03",
+  "domain": "DATA_QUALITY",
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+    "INBOUND_PAYMENT_TELEMETRY",
+    "CLIENT_MASTER_RECORD",
+    "VERIFIED_CREDITOR_NAME",
+    "CORE_DDA_ACCOUNT",
+    "DEBTOR_ID",
+    "CREDITOR_HINT"
+  ],
+  "evidence_missing": [],
+  "evidence_contradictions": [],
+  "resolution_status": "RESOLVED",
+  "resolution_recommendation": {
+    "action": "POPULATE_BENEFICIARY_DATA",
+    "creditor_name": "ACME INDUSTRIAL SUPPLIES LTD",
+    "postal_address": {
+      "street": "10 Commercial Rd",
+      "city": "London",
+      "postal_code": "EC1A 1BB",
+      "country": "GB"
+    },
+    "tax_id": "GB123456789"
+  },
+  "resolution_basis": "Retrieved authoritative creditor entity title 'ACME INDUSTRIAL SUPPLIES LTD' from Core DDA.",
+  "repaired_fields": [
+    {
+      "field_path": "creditor.name",
+      "repaired_value": "ACME INDUSTRIAL SUPPLIES LTD"
+    }
+  ],
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "stp_eligible": true,
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff ∧ R_det ∧ R_uniq ∧ V_det ∧ V_auth ∧ P_bank ∧ C_comp ∧ X_pre).",
+  "predicate_breakdown": {
+    "e_suff": true,
+    "r_det": true,
+    "r_uniq": true,
+    "v_det": true,
+    "v_auth": true,
+    "p_bank": true,
+    "c_comp": true,
+    "x_pre": true,
+    "stp_formula_result": true
+  },
+  "ai_confidence_score": 0.98,
+  "hitl_required": false,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "execution_owner": "BANK",
+  "audit_event_id": "AUD-2E00C9",
+  "audit_chain_block_hash": "5a6f9ff452fc6cbaed66f4496e361779bbde9bd454e7dfe50cb1b2c8efc03ccb",
+  "processing_latency_ms": 0.48,
+  "processed_at": "2026-10-08T19:49:56.954077Z",
+  "warnings": [],
+  "errors": []
+}

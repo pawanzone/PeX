@@ -48,10 +48,10 @@
   "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
   "bank_handoff_status": "MAKER_CHECKER_PENDING",
   "execution_owner": "BANK",
-  "audit_event_id": "AUD-DF3324",
-  "audit_chain_block_hash": "de243bf2f631c9334701a79970a2ef35ae7844ad35455da6b24b246636f7193b",
-  "processing_latency_ms": 0.53,
-  "processed_at": "2026-10-08T17:17:30.824771Z",
+  "audit_event_id": "AUD-E8BF34",
+  "audit_chain_block_hash": "8088d5a22b5c42cdc97ea45961e51037831746d16a98f0f6396d67460bc94a19",
+  "processing_latency_ms": 0.57,
+  "processed_at": "2026-10-08T19:47:12.191902Z",
   "warnings": [],
   "errors": [
     "Resolution is ambiguous with multiple candidate matches."

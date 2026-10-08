@@ -1,0 +1,49 @@
+{
+  "exception_id": "PEX-E2E-PR07-IDEMPCOLLISION",
+  "detected_profile_id": "PR-07",
+  "domain": "PROCESSING",
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+    "INBOUND_PAYMENT_TELEMETRY",
+    "GATEWAY_SOCKET_STATE",
+    "IDEMPOTENCY_LEDGER_LOCK",
+    "RETRY_BUDGET_RECORD"
+  ],
+  "evidence_missing": [],
+  "evidence_contradictions": [],
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "resolution_recommendation": null,
+  "resolution_basis": "Payment 9f1e2d3c-4b5a-6789-0123-abcdef070002 confirmed settled on remote clearing rail. Retry forbidden (duplicate prevention).",
+  "repaired_fields": [],
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "stp_eligible": false,
+  "stp_decision_reason": "Deterministic resolution could not be derived.; Deterministic validation / checksum failed.",
+  "predicate_breakdown": {
+    "e_suff": true,
+    "r_det": false,
+    "r_uniq": true,
+    "v_det": false,
+    "v_auth": true,
+    "p_bank": true,
+    "c_comp": true,
+    "x_pre": true,
+    "stp_formula_result": false
+  },
+  "ai_confidence_score": 0.5,
+  "hitl_required": true,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "execution_owner": "BANK",
+  "audit_event_id": "AUD-07EAE0",
+  "audit_chain_block_hash": "6f5f9be2b3de5d3715c64b723d3383ccf4306962f8be532edc36064a1aa3560f",
+  "processing_latency_ms": 0.46,
+  "processed_at": "2026-10-08T19:50:01.053620Z",
+  "warnings": [],
+  "errors": [
+    "Deterministic resolution could not be derived.",
+    "Deterministic validation / checksum failed."
+  ]
+}

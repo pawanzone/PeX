@@ -1,0 +1,33 @@
+{
+  "exception_id": "PEX-E2E-CO07-MISSINGSTAT",
+  "profile_id": "CO-07",
+  "domain": "COMPLIANCE",
+  "error_code": "ERR_REGULATORY_REPORTING_REQUIRED",
+  "error_message": "Cross-border payment corridor requires statutory Central Bank Balance of Payments reporting declaration.",
+  "payment_info": {
+    "payment_id": "PMT-2026-CO07-002",
+    "uetr": "UETR-CO07-MISSINGSTAT-0002-B2",
+    "amount": 75000.00,
+    "currency": "BRL",
+    "clearing_rail": "SWIFT_CBPR+",
+    "value_date": "2026-10-08",
+    "debtor_name": "Apex Global Treasury (US)",
+    "debtor_account": "US11APEX9988770100",
+    "debtor_agent_bic": "CHASUS33XXX",
+    "creditor_name": "Vale Do Rio Doce SA",
+    "creditor_account": "BR9300000000012345678901234",
+    "creditor_agent_bic": "BRAZBRRJXXX",
+    "remittance_info": "UNMAPPED RESTRICTED TRADE"
+  },
+  "bank_supplied_evidence": {
+    "missing_statutory_license": true,
+    "unmapped_statutory_corridor": true
+  },
+  "external_authoritative_evidence": {},
+  "derived_evidence": {
+    "destination_country": "XX",
+    "trade_category": "PROHIBITED"
+  },
+  "evidence_provenance": "SYNTHETIC_TEST_FIXTURE",
+  "test_status": "TEST_ONLY"
+}

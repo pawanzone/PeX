@@ -198,6 +198,255 @@ class InMemoryConfigurationAdapter(ConfigurationSchemaPort):
                         acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD]
                     )
                 ]
+            ),
+            # === WAVE 1 PROFILES (9 PROFILES) ===
+            # DQ-03: Missing Beneficiary Data
+            BankEvidenceRequiredConfig(
+                tenant_id="DEFAULT_BANK",
+                profile_id="DQ-03",
+                config_version="1.0.0",
+                rules=[
+                    EvidenceRuleDefinition(
+                        rule_id="R-DQ03-01",
+                        evidence_type="CLIENT_MASTER_RECORD",
+                        mandatory=True,
+                        min_trust_tier=TrustTier.TIER_1_CORE_RECORD,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR, EvidenceAcquisitionMode.MODE_3_BANK_PUSH, EvidenceAcquisitionMode.MODE_4_HITL_OPERATOR]
+                    ),
+                    EvidenceRuleDefinition(
+                        rule_id="R-DQ03-02",
+                        evidence_type="ACCOUNT_STATEMENT",
+                        mandatory=False,
+                        min_trust_tier=TrustTier.TIER_1_CORE_RECORD,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_3_BANK_PUSH, EvidenceAcquisitionMode.MODE_4_HITL_OPERATOR]
+                    )
+                ],
+                hitl_config=HitlWorkflowConfig(
+                    enabled=True,
+                    target_role="PAYMENT_OPERATOR",
+                    fields=[
+                        HitlFieldDefinition(field_id="verified_creditor_name", label="Verified Creditor Legal Name", field_type=HitlFieldType.TEXT, required=True),
+                        HitlFieldDefinition(field_id="verified_postal_address", label="Verified Postal Address", field_type=HitlFieldType.TEXT, required=False)
+                    ]
+                )
+            ),
+            # DQ-04: Missing Remittance Info
+            BankEvidenceRequiredConfig(
+                tenant_id="DEFAULT_BANK",
+                profile_id="DQ-04",
+                config_version="1.0.0",
+                rules=[
+                    EvidenceRuleDefinition(
+                        rule_id="R-DQ04-01",
+                        evidence_type="INVOICE_BILLING_RECORD",
+                        mandatory=True,
+                        min_trust_tier=TrustTier.TIER_1_CORE_RECORD,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR, EvidenceAcquisitionMode.MODE_3_BANK_PUSH, EvidenceAcquisitionMode.MODE_4_HITL_OPERATOR]
+                    ),
+                    EvidenceRuleDefinition(
+                        rule_id="R-DQ04-02",
+                        evidence_type="PURCHASE_ORDER_DOC",
+                        mandatory=False,
+                        min_trust_tier=TrustTier.TIER_2_REGULATORY_SCHEME,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_3_BANK_PUSH]
+                    )
+                ],
+                hitl_config=HitlWorkflowConfig(
+                    enabled=True,
+                    target_role="PAYMENT_OPERATOR",
+                    fields=[
+                        HitlFieldDefinition(field_id="invoice_reference_number", label="Invoice Reference Number", field_type=HitlFieldType.TEXT, required=True)
+                    ]
+                )
+            ),
+            # DQ-07: Invalid Account Number
+            BankEvidenceRequiredConfig(
+                tenant_id="DEFAULT_BANK",
+                profile_id="DQ-07",
+                config_version="1.0.0",
+                rules=[
+                    EvidenceRuleDefinition(
+                        rule_id="R-DQ07-01",
+                        evidence_type="CORE_DDA_MASTER",
+                        mandatory=True,
+                        min_trust_tier=TrustTier.TIER_1_CORE_RECORD,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR, EvidenceAcquisitionMode.MODE_3_BANK_PUSH, EvidenceAcquisitionMode.MODE_4_HITL_OPERATOR]
+                    ),
+                    EvidenceRuleDefinition(
+                        rule_id="R-DQ07-02",
+                        evidence_type="ACCOUNT_STRUCTURE_RULES",
+                        mandatory=True,
+                        min_trust_tier=TrustTier.TIER_2_REGULATORY_SCHEME,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR]
+                    )
+                ],
+                hitl_config=HitlWorkflowConfig(
+                    enabled=True,
+                    target_role="PAYMENT_OPERATOR",
+                    fields=[
+                        HitlFieldDefinition(field_id="verified_account_number", label="Verified Account Number", field_type=HitlFieldType.TEXT, required=True)
+                    ]
+                )
+            ),
+            # DQ-09: Beneficiary Name Mismatch (Confirmation of Payee)
+            BankEvidenceRequiredConfig(
+                tenant_id="DEFAULT_BANK",
+                profile_id="DQ-09",
+                config_version="1.0.0",
+                rules=[
+                    EvidenceRuleDefinition(
+                        rule_id="R-DQ09-01",
+                        evidence_type="CORE_ACCOUNT_TITLE",
+                        mandatory=True,
+                        min_trust_tier=TrustTier.TIER_1_CORE_RECORD,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR, EvidenceAcquisitionMode.MODE_3_BANK_PUSH]
+                    ),
+                    EvidenceRuleDefinition(
+                        rule_id="R-DQ09-02",
+                        evidence_type="VERIFICATION_OF_PAYEE_CONFIRMATION",
+                        mandatory=True,
+                        min_trust_tier=TrustTier.TIER_2_REGULATORY_SCHEME,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR]
+                    )
+                ],
+                hitl_config=HitlWorkflowConfig(
+                    enabled=True,
+                    target_role="PAYMENT_OPERATOR",
+                    fields=[
+                        HitlFieldDefinition(field_id="confirmed_payee_name", label="Confirmed Payee Legal Name", field_type=HitlFieldType.TEXT, required=True)
+                    ]
+                )
+            ),
+            # PR-02: Routing Failure
+            BankEvidenceRequiredConfig(
+                tenant_id="DEFAULT_BANK",
+                profile_id="PR-02",
+                config_version="1.0.0",
+                rules=[
+                    EvidenceRuleDefinition(
+                        rule_id="R-PR02-01",
+                        evidence_type="ROUTING_DIRECTORY_AUTHORITY",
+                        mandatory=True,
+                        min_trust_tier=TrustTier.TIER_2_REGULATORY_SCHEME,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR]
+                    ),
+                    EvidenceRuleDefinition(
+                        rule_id="R-PR02-02",
+                        evidence_type="BANK_DESIGNATED_SSI",
+                        mandatory=True,
+                        min_trust_tier=TrustTier.TIER_1_CORE_RECORD,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR, EvidenceAcquisitionMode.MODE_3_BANK_PUSH]
+                    )
+                ]
+            ),
+            # PR-04: Cutoff Missed
+            BankEvidenceRequiredConfig(
+                tenant_id="DEFAULT_BANK",
+                profile_id="PR-04",
+                config_version="1.0.0",
+                rules=[
+                    EvidenceRuleDefinition(
+                        rule_id="R-PR04-01",
+                        evidence_type="RAIL_OPERATING_CALENDAR",
+                        mandatory=True,
+                        min_trust_tier=TrustTier.TIER_2_REGULATORY_SCHEME,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR]
+                    ),
+                    EvidenceRuleDefinition(
+                        rule_id="R-PR04-02",
+                        evidence_type="RAIL_CUTOFF_SCHEDULE",
+                        mandatory=True,
+                        min_trust_tier=TrustTier.TIER_2_REGULATORY_SCHEME,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR]
+                    ),
+                    EvidenceRuleDefinition(
+                        rule_id="R-PR04-03",
+                        evidence_type="BANK_CUTOFF_POLICY",
+                        mandatory=True,
+                        min_trust_tier=TrustTier.TIER_2_REGULATORY_SCHEME,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR]
+                    )
+                ]
+            ),
+            # PR-07: Network Timeout
+            BankEvidenceRequiredConfig(
+                tenant_id="DEFAULT_BANK",
+                profile_id="PR-07",
+                config_version="1.0.0",
+                rules=[
+                    EvidenceRuleDefinition(
+                        rule_id="R-PR07-01",
+                        evidence_type="GATEWAY_SOCKET_STATE",
+                        mandatory=True,
+                        min_trust_tier=TrustTier.TIER_1_CORE_RECORD,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR, EvidenceAcquisitionMode.MODE_3_BANK_PUSH]
+                    ),
+                    EvidenceRuleDefinition(
+                        rule_id="R-PR07-02",
+                        evidence_type="IDEMPOTENCY_LEDGER_LOCK",
+                        mandatory=True,
+                        min_trust_tier=TrustTier.TIER_1_CORE_RECORD,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR]
+                    ),
+                    EvidenceRuleDefinition(
+                        rule_id="R-PR07-03",
+                        evidence_type="RETRY_BUDGET_RECORD",
+                        mandatory=True,
+                        min_trust_tier=TrustTier.TIER_2_REGULATORY_SCHEME,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR]
+                    )
+                ]
+            ),
+            # PR-09: Payment Held for Repair
+            BankEvidenceRequiredConfig(
+                tenant_id="DEFAULT_BANK",
+                profile_id="PR-09",
+                config_version="1.0.0",
+                rules=[
+                    EvidenceRuleDefinition(
+                        rule_id="R-PR09-01",
+                        evidence_type="PAYMENT_HUB_REPAIR_QUEUE",
+                        mandatory=True,
+                        min_trust_tier=TrustTier.TIER_1_CORE_RECORD,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR, EvidenceAcquisitionMode.MODE_3_BANK_PUSH]
+                    ),
+                    EvidenceRuleDefinition(
+                        rule_id="R-PR09-02",
+                        evidence_type="SYNTAX_ERROR_SPECIFICATION",
+                        mandatory=True,
+                        min_trust_tier=TrustTier.TIER_2_REGULATORY_SCHEME,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR]
+                    )
+                ]
+            ),
+            # CO-07: Regulatory Reporting Required
+            BankEvidenceRequiredConfig(
+                tenant_id="DEFAULT_BANK",
+                profile_id="CO-07",
+                config_version="1.0.0",
+                rules=[
+                    EvidenceRuleDefinition(
+                        rule_id="R-CO07-01",
+                        evidence_type="REGULATORY_PURPOSE_DIRECTORY",
+                        mandatory=True,
+                        min_trust_tier=TrustTier.TIER_2_REGULATORY_SCHEME,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR]
+                    ),
+                    EvidenceRuleDefinition(
+                        rule_id="R-CO07-02",
+                        evidence_type="CENTRAL_BANK_BOP_CODES",
+                        mandatory=True,
+                        min_trust_tier=TrustTier.TIER_2_REGULATORY_SCHEME,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR]
+                    ),
+                    EvidenceRuleDefinition(
+                        rule_id="R-CO07-03",
+                        evidence_type="STATUTORY_REPORTING_RULE",
+                        mandatory=True,
+                        min_trust_tier=TrustTier.TIER_2_REGULATORY_SCHEME,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR]
+                    )
+                ]
             )
         ]
         for cfg in defaults:

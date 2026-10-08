@@ -1,0 +1,56 @@
+{
+  "exception_id": "PEX-E2E-PR02-SUFF",
+  "detected_profile_id": "PR-02",
+  "domain": "PROCESSING",
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+    "INBOUND_PAYMENT_TELEMETRY",
+    "ROUTING_DIRECTORY_AUTHORITY",
+    "BANK_DESIGNATED_SSI"
+  ],
+  "evidence_missing": [],
+  "evidence_contradictions": [],
+  "resolution_status": "RESOLVED",
+  "resolution_recommendation": {
+    "action": "UPDATE_CLEARING_ROUTE",
+    "clearing_rail": "FEDWIRE",
+    "intermediary_agent_bic": null,
+    "clearing_system_member_id": "021000021",
+    "settlement_account": "FED-021000021-MAIN"
+  },
+  "resolution_basis": "Resolved route via FEDWIRE (intermediary=DIRECT, settlement_id=FED-021000021-MAIN).",
+  "repaired_fields": [
+    {
+      "field_path": "creditor_agent.bic",
+      "repaired_value": "CHASUS33XXX"
+    }
+  ],
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "stp_eligible": true,
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff ∧ R_det ∧ R_uniq ∧ V_det ∧ V_auth ∧ P_bank ∧ C_comp ∧ X_pre).",
+  "predicate_breakdown": {
+    "e_suff": true,
+    "r_det": true,
+    "r_uniq": true,
+    "v_det": true,
+    "v_auth": true,
+    "p_bank": true,
+    "c_comp": true,
+    "x_pre": true,
+    "stp_formula_result": true
+  },
+  "ai_confidence_score": 0.98,
+  "hitl_required": false,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "execution_owner": "BANK",
+  "audit_event_id": "AUD-93BBEC",
+  "audit_chain_block_hash": "0f6489d7e355663a83fd970c4ecd26003c3e0d725f458fa91216cc5c21d97e89",
+  "processing_latency_ms": 0.47,
+  "processed_at": "2026-10-08T19:49:58.102317Z",
+  "warnings": [],
+  "errors": []
+}

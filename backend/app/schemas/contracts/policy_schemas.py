@@ -24,6 +24,22 @@ class BankRiskThresholds(BaseModel):
     allowed_currencies: List[str] = Field(default_factory=lambda: ["USD", "EUR", "GBP", "CHF", "JPY", "SGD", "CAD", "AUD"])
 
 
+class W1PolicyMatchingThresholds(BaseModel):
+    """W1-POL-01: Bank-configurable Verification of Payee / Beneficiary Name Matching Threshold Bands."""
+    exact_match_threshold: float = 1.0
+    close_match_threshold: float = 0.85
+    reject_threshold: float = 0.70
+    allow_close_match_stp: bool = True
+
+
+class W1PolicyCutoffBuffer(BaseModel):
+    """W1-POL-02: Bank-configurable Cutoff Missed Buffer and Value-Date Roll Policy."""
+    cutoff_buffer_minutes: int = 15
+    allow_auto_value_date_roll: bool = True
+    max_value_date_roll_days: int = 3
+    require_client_roll_authorization: bool = False
+
+
 class BankPolicyEnvelope(BaseModel):
     """Authoritative Bank Policy Envelope."""
     policy_id: str
@@ -32,6 +48,8 @@ class BankPolicyEnvelope(BaseModel):
     effective_from: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     expires_at: Optional[datetime] = None
     risk_thresholds: BankRiskThresholds = Field(default_factory=BankRiskThresholds)
+    w1_matching_thresholds: W1PolicyMatchingThresholds = Field(default_factory=W1PolicyMatchingThresholds)
+    w1_cutoff_buffer: W1PolicyCutoffBuffer = Field(default_factory=W1PolicyCutoffBuffer)
     auto_stp_enabled_profiles: List[str] = Field(default_factory=list)
     dual_auth_required_profiles: List[str] = Field(default_factory=list)
     sanctions_zero_tolerance: bool = True

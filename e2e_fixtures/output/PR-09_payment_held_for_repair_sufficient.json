@@ -1,0 +1,59 @@
+{
+  "exception_id": "PEX-E2E-PR09-SUFF",
+  "detected_profile_id": "PR-09",
+  "domain": "PROCESSING",
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+    "INBOUND_PAYMENT_TELEMETRY",
+    "PAYMENT_HUB_REPAIR_QUEUE",
+    "SYNTAX_ERROR_SPECIFICATION"
+  ],
+  "evidence_missing": [],
+  "evidence_contradictions": [],
+  "resolution_status": "RESOLVED",
+  "resolution_recommendation": {
+    "action": "RELEASE_FROM_REPAIR_QUEUE",
+    "repaired_fields": [
+      {
+        "field_path": "GrpHdr.CreDtTm",
+        "status": "SYNTAX_NORMALIZED"
+      }
+    ],
+    "repaired_payload": "<Document xmlns=\"urn:iso:std:iso:20022:tech:xsd:pacs.008.001.08\"><PmtId>9f1e2d3c-4b5a-6789-0123-abcdef090001</PmtId></Document>"
+  },
+  "resolution_basis": "Payment hub queue status: 'HELD_IN_REPAIR' (Syntax Error: ERR_SYNTAX_TAG_UNCLOSED).; Repair syntax validated against payment hub schema. Release envelope prepared for bank execution.",
+  "repaired_fields": [
+    {
+      "field_path": "payment_hub.queue_action",
+      "repaired_value": "RELEASE_AFTER_SYNTAX_VALIDATION"
+    }
+  ],
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "stp_eligible": true,
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff ∧ R_det ∧ R_uniq ∧ V_det ∧ V_auth ∧ P_bank ∧ C_comp ∧ X_pre).",
+  "predicate_breakdown": {
+    "e_suff": true,
+    "r_det": true,
+    "r_uniq": true,
+    "v_det": true,
+    "v_auth": true,
+    "p_bank": true,
+    "c_comp": true,
+    "x_pre": true,
+    "stp_formula_result": true
+  },
+  "ai_confidence_score": 0.98,
+  "hitl_required": false,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "execution_owner": "BANK",
+  "audit_event_id": "AUD-6B2095",
+  "audit_chain_block_hash": "708f6e1f19236ca10169753fa843d8c8e89fd0f42c4f363c04616342b9e1971f",
+  "processing_latency_ms": 0.47,
+  "processed_at": "2026-10-08T19:49:58.915434Z",
+  "warnings": [],
+  "errors": []
+}

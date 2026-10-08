@@ -1,0 +1,57 @@
+{
+  "exception_id": "PEX-E2E-DQ07-SUFF",
+  "detected_profile_id": "DQ-07",
+  "domain": "DATA_QUALITY",
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+    "INBOUND_PAYMENT_TELEMETRY",
+    "CORE_DDA_MASTER",
+    "ACCOUNT_STRUCTURE_RULES",
+    "VERIFIED_ACCOUNT_NUMBER"
+  ],
+  "evidence_missing": [],
+  "evidence_contradictions": [],
+  "resolution_status": "RESOLVED",
+  "resolution_recommendation": {
+    "action": "SUBSTITUTE_ACCOUNT_NUMBER",
+    "account_number": "87654321",
+    "account_title": "GLOBAL LOGISTICS GMBH",
+    "currency": "EUR"
+  },
+  "resolution_basis": "Account '87654321' validated against Core DDA master (title: 'GLOBAL LOGISTICS GMBH').",
+  "repaired_fields": [
+    {
+      "field_path": "creditor_account.account_number",
+      "original_value": "87654321",
+      "repaired_value": "87654321"
+    }
+  ],
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "stp_eligible": true,
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff ∧ R_det ∧ R_uniq ∧ V_det ∧ V_auth ∧ P_bank ∧ C_comp ∧ X_pre).",
+  "predicate_breakdown": {
+    "e_suff": true,
+    "r_det": true,
+    "r_uniq": true,
+    "v_det": true,
+    "v_auth": true,
+    "p_bank": true,
+    "c_comp": true,
+    "x_pre": true,
+    "stp_formula_result": true
+  },
+  "ai_confidence_score": 0.98,
+  "hitl_required": false,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "execution_owner": "BANK",
+  "audit_event_id": "AUD-A7AE78",
+  "audit_chain_block_hash": "d931d1c39bb48866c48d52362b60fda27dec9f7f4b93f26e11c5aa7c4dd19313",
+  "processing_latency_ms": 0.59,
+  "processed_at": "2026-10-08T19:49:57.538978Z",
+  "warnings": [],
+  "errors": []
+}

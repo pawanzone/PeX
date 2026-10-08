@@ -1,0 +1,51 @@
+{
+  "exception_id": "PEX-E2E-PR09-UNRESOLVED",
+  "detected_profile_id": "PR-09",
+  "domain": "PROCESSING",
+  "evidence_status": "INSUFFICIENT",
+  "evidence_used": [
+    "INBOUND_PAYMENT_TELEMETRY",
+    "PAYMENT_HUB_REPAIR_QUEUE",
+    "UNRESOLVED_SYNTAX_ERROR"
+  ],
+  "evidence_missing": [
+    "SYNTAX_ERROR_SPECIFICATION"
+  ],
+  "evidence_contradictions": [],
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "resolution_recommendation": null,
+  "resolution_basis": "Payment hub queue status: 'HELD_IN_REPAIR' (Syntax Error: ERR_SYNTAX_TAG_UNCLOSED).; Syntax error in repair item could not be resolved automatically. PeX HITL repair required.",
+  "repaired_fields": [],
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "stp_eligible": false,
+  "stp_decision_reason": "Evidence insufficient: missing mandatory ['SYNTAX_ERROR_SPECIFICATION'] / stale [] / contradictory []; Deterministic resolution could not be derived.; Deterministic validation / checksum failed.",
+  "predicate_breakdown": {
+    "e_suff": false,
+    "r_det": false,
+    "r_uniq": true,
+    "v_det": false,
+    "v_auth": true,
+    "p_bank": true,
+    "c_comp": true,
+    "x_pre": true,
+    "stp_formula_result": false
+  },
+  "ai_confidence_score": 0.5,
+  "hitl_required": true,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "execution_owner": "BANK",
+  "audit_event_id": "AUD-883511",
+  "audit_chain_block_hash": "59d8882e7c62d0f6f36a5971fdd09e3740fe48ac783e937054d3ca286622074e",
+  "processing_latency_ms": 0.52,
+  "processed_at": "2026-10-08T19:50:01.383052Z",
+  "warnings": [],
+  "errors": [
+    "Evidence insufficient: missing mandatory ['SYNTAX_ERROR_SPECIFICATION'] / stale [] / contradictory []",
+    "Deterministic resolution could not be derived.",
+    "Deterministic validation / checksum failed."
+  ]
+}

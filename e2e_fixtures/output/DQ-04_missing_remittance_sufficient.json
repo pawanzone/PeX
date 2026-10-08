@@ -1,0 +1,93 @@
+{
+  "exception_id": "PEX-E2E-DQ04-SUFF",
+  "detected_profile_id": "DQ-04",
+  "domain": "DATA_QUALITY",
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+    "INBOUND_PAYMENT_TELEMETRY",
+    "INVOICE_BILLING_RECORD",
+    "INVOICE_REFERENCE_NUMBER"
+  ],
+  "evidence_missing": [],
+  "evidence_contradictions": [],
+  "resolution_status": "RESOLVED",
+  "resolution_recommendation": {
+    "action": "POPULATE_STRUCTURED_REMITTANCE",
+    "RmtInf": {
+      "Strd": {
+        "RfrdDocInf": {
+          "Tp": {
+            "CdOrPrtry": {
+              "Cd": "CINV"
+            }
+          },
+          "Nb": "INV-2026-US-4401",
+          "RltdDt": "2026-10-05"
+        },
+        "RfrdDocAmt": {
+          "DuePyblAmt": 45000.0,
+          "RmtdAmt": 45000.0
+        },
+        "CdtrRefInf": {
+          "Ref": "CINV-ACME-4401"
+        }
+      }
+    }
+  },
+  "resolution_basis": "Retrieved authoritative invoice document 'INV-2026-US-4401' from ERP directory.",
+  "repaired_fields": [
+    {
+      "field_path": "remittance_info.structured",
+      "repaired_value": {
+        "RmtInf": {
+          "Strd": {
+            "RfrdDocInf": {
+              "Tp": {
+                "CdOrPrtry": {
+                  "Cd": "CINV"
+                }
+              },
+              "Nb": "INV-2026-US-4401",
+              "RltdDt": "2026-10-05"
+            },
+            "RfrdDocAmt": {
+              "DuePyblAmt": 45000.0,
+              "RmtdAmt": 45000.0
+            },
+            "CdtrRefInf": {
+              "Ref": "CINV-ACME-4401"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "stp_eligible": true,
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff ∧ R_det ∧ R_uniq ∧ V_det ∧ V_auth ∧ P_bank ∧ C_comp ∧ X_pre).",
+  "predicate_breakdown": {
+    "e_suff": true,
+    "r_det": true,
+    "r_uniq": true,
+    "v_det": true,
+    "v_auth": true,
+    "p_bank": true,
+    "c_comp": true,
+    "x_pre": true,
+    "stp_formula_result": true
+  },
+  "ai_confidence_score": 0.98,
+  "hitl_required": false,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "execution_owner": "BANK",
+  "audit_event_id": "AUD-905E07",
+  "audit_chain_block_hash": "18c703ff3599fd858974968fe70b1c5b467400f102509b8cdc423c30cb636e88",
+  "processing_latency_ms": 0.46,
+  "processed_at": "2026-10-08T19:49:57.276500Z",
+  "warnings": [],
+  "errors": []
+}

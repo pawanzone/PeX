@@ -1,0 +1,56 @@
+{
+  "exception_id": "PEX-E2E-CO07-MISSINGSTAT",
+  "detected_profile_id": "CO-07",
+  "domain": "COMPLIANCE",
+  "evidence_status": "INSUFFICIENT",
+  "evidence_used": [
+    "INBOUND_PAYMENT_TELEMETRY",
+    "MISSING_STATUTORY_LICENSE",
+    "UNMAPPED_STATUTORY_CORRIDOR",
+    "DESTINATION_COUNTRY",
+    "TRADE_CATEGORY"
+  ],
+  "evidence_missing": [
+    "REGULATORY_PURPOSE_DIRECTORY",
+    "CENTRAL_BANK_BOP_CODES",
+    "STATUTORY_REPORTING_RULE"
+  ],
+  "evidence_contradictions": [],
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "resolution_recommendation": null,
+  "resolution_basis": "Mandatory statutory documentation or central bank declaration missing. Compliance hold in HITL.",
+  "repaired_fields": [],
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_policy_status": "POLICY_BLOCKED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "stp_eligible": false,
+  "stp_decision_reason": "Evidence insufficient: missing mandatory ['REGULATORY_PURPOSE_DIRECTORY', 'CENTRAL_BANK_BOP_CODES', 'STATUTORY_REPORTING_RULE'] / stale [] / contradictory []; Deterministic resolution could not be derived.; Deterministic validation / checksum failed.; Bank policy disallows autonomous STP: ['Amount ($75,000.00) exceeds fast-lane batch threshold ($25,000.00).', 'Currency BRL is not supported by bank policy.']",
+  "predicate_breakdown": {
+    "e_suff": false,
+    "r_det": false,
+    "r_uniq": true,
+    "v_det": false,
+    "v_auth": true,
+    "p_bank": false,
+    "c_comp": true,
+    "x_pre": true,
+    "stp_formula_result": false
+  },
+  "ai_confidence_score": 0.5,
+  "hitl_required": true,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "execution_owner": "BANK",
+  "audit_event_id": "AUD-480282",
+  "audit_chain_block_hash": "8b6c9e6248e426a802420cb5aa7949dfb67bb38fbc78db3c49962e454fb9b702",
+  "processing_latency_ms": 0.45,
+  "processed_at": "2026-10-08T19:50:01.671259Z",
+  "warnings": [],
+  "errors": [
+    "Evidence insufficient: missing mandatory ['REGULATORY_PURPOSE_DIRECTORY', 'CENTRAL_BANK_BOP_CODES', 'STATUTORY_REPORTING_RULE'] / stale [] / contradictory []",
+    "Deterministic resolution could not be derived.",
+    "Deterministic validation / checksum failed.",
+    "Bank policy disallows autonomous STP: ['Amount ($75,000.00) exceeds fast-lane batch threshold ($25,000.00).', 'Currency BRL is not supported by bank policy.']"
+  ]
+}

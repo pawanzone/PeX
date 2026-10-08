@@ -1,0 +1,54 @@
+{
+  "exception_id": "PEX-E2E-DQ03-AMBIG",
+  "detected_profile_id": "DQ-03",
+  "domain": "DATA_QUALITY",
+  "evidence_status": "INSUFFICIENT",
+  "evidence_used": [
+    "INBOUND_PAYMENT_TELEMETRY",
+    "AMBIGUOUS_BENEFICIARY_MATCHES",
+    "MULTIPLE_MATCHING_PROFILES",
+    "DEBTOR_ID",
+    "CREDITOR_HINT"
+  ],
+  "evidence_missing": [
+    "CLIENT_MASTER_RECORD"
+  ],
+  "evidence_contradictions": [],
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "resolution_recommendation": null,
+  "resolution_basis": "Multiple matching beneficiary records identified in directory. Disambiguation required in HITL.",
+  "repaired_fields": [],
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "stp_eligible": false,
+  "stp_decision_reason": "Evidence insufficient: missing mandatory ['CLIENT_MASTER_RECORD'] / stale [] / contradictory []; Deterministic resolution could not be derived.; Resolution is ambiguous with multiple candidate matches.; Deterministic validation / checksum failed.",
+  "predicate_breakdown": {
+    "e_suff": false,
+    "r_det": false,
+    "r_uniq": false,
+    "v_det": false,
+    "v_auth": true,
+    "p_bank": true,
+    "c_comp": true,
+    "x_pre": true,
+    "stp_formula_result": false
+  },
+  "ai_confidence_score": 0.5,
+  "hitl_required": true,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "execution_owner": "BANK",
+  "audit_event_id": "AUD-E2B15E",
+  "audit_chain_block_hash": "cf18582de68063573cc43851809bc51f0023cff2936b800f78774cf406209361",
+  "processing_latency_ms": 0.52,
+  "processed_at": "2026-10-08T19:49:59.410586Z",
+  "warnings": [],
+  "errors": [
+    "Evidence insufficient: missing mandatory ['CLIENT_MASTER_RECORD'] / stale [] / contradictory []",
+    "Deterministic resolution could not be derived.",
+    "Resolution is ambiguous with multiple candidate matches.",
+    "Deterministic validation / checksum failed."
+  ]
+}

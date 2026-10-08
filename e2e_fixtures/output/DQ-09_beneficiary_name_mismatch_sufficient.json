@@ -1,0 +1,56 @@
+{
+  "exception_id": "PEX-E2E-DQ09-SUFF",
+  "detected_profile_id": "DQ-09",
+  "domain": "DATA_QUALITY",
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+    "INBOUND_PAYMENT_TELEMETRY",
+    "CORE_ACCOUNT_TITLE",
+    "VERIFICATION_OF_PAYEE_CONFIRMATION"
+  ],
+  "evidence_missing": [],
+  "evidence_contradictions": [],
+  "resolution_status": "RESOLVED",
+  "resolution_recommendation": {
+    "action": "ALIGN_BENEFICIARY_TITLE",
+    "creditor_name": "SIEMENS AG INDUSTRIAL POWER",
+    "vop_score": 0.9412,
+    "original_name": "SIEMENS INDUSTRIAL POWER"
+  },
+  "resolution_basis": "VoP evaluation score: 0.9412 against authoritative title 'SIEMENS AG INDUSTRIAL POWER'.; Close match band (0.94 >= 0.85). Policy permits deterministic title alignment.",
+  "repaired_fields": [
+    {
+      "field_path": "creditor.name",
+      "original_value": "SIEMENS INDUSTRIAL POWER",
+      "repaired_value": "SIEMENS AG INDUSTRIAL POWER"
+    }
+  ],
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "stp_eligible": true,
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff ∧ R_det ∧ R_uniq ∧ V_det ∧ V_auth ∧ P_bank ∧ C_comp ∧ X_pre).",
+  "predicate_breakdown": {
+    "e_suff": true,
+    "r_det": true,
+    "r_uniq": true,
+    "v_det": true,
+    "v_auth": true,
+    "p_bank": true,
+    "c_comp": true,
+    "x_pre": true,
+    "stp_formula_result": true
+  },
+  "ai_confidence_score": 0.98,
+  "hitl_required": false,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "execution_owner": "BANK",
+  "audit_event_id": "AUD-1E8AEF",
+  "audit_chain_block_hash": "fe00557ba49ab2d5ba1c37eb2a08a3aa1987c558832d8053b78675a9df0b1c2c",
+  "processing_latency_ms": 0.53,
+  "processed_at": "2026-10-08T19:49:57.787629Z",
+  "warnings": [],
+  "errors": []
+}

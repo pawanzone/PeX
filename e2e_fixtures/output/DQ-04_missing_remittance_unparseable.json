@@ -1,0 +1,51 @@
+{
+  "exception_id": "PEX-E2E-DQ04-UNPARSE",
+  "detected_profile_id": "DQ-04",
+  "domain": "DATA_QUALITY",
+  "evidence_status": "INSUFFICIENT",
+  "evidence_used": [
+    "INBOUND_PAYMENT_TELEMETRY",
+    "UNPARSEABLE_REMITTANCE_DOCUMENT"
+  ],
+  "evidence_missing": [
+    "INVOICE_BILLING_RECORD"
+  ],
+  "evidence_contradictions": [],
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "resolution_recommendation": null,
+  "resolution_basis": "Invoice document is corrupted or unparseable. PeX HITL document review required.",
+  "repaired_fields": [],
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_policy_status": "POLICY_BLOCKED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "stp_eligible": false,
+  "stp_decision_reason": "Evidence insufficient: missing mandatory ['INVOICE_BILLING_RECORD'] / stale [] / contradictory []; Deterministic resolution could not be derived.; Deterministic validation / checksum failed.; Bank policy disallows autonomous STP: ['Amount ($45,000.00) exceeds fast-lane batch threshold ($25,000.00).']",
+  "predicate_breakdown": {
+    "e_suff": false,
+    "r_det": false,
+    "r_uniq": true,
+    "v_det": false,
+    "v_auth": true,
+    "p_bank": false,
+    "c_comp": true,
+    "x_pre": true,
+    "stp_formula_result": false
+  },
+  "ai_confidence_score": 0.5,
+  "hitl_required": true,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "execution_owner": "BANK",
+  "audit_event_id": "AUD-E5B275",
+  "audit_chain_block_hash": "43c53f23fdc1e9106ad2ce633e435125646e18f491ac4a2cc913592a235e6bdc",
+  "processing_latency_ms": 0.43,
+  "processed_at": "2026-10-08T19:49:59.652159Z",
+  "warnings": [],
+  "errors": [
+    "Evidence insufficient: missing mandatory ['INVOICE_BILLING_RECORD'] / stale [] / contradictory []",
+    "Deterministic resolution could not be derived.",
+    "Deterministic validation / checksum failed.",
+    "Bank policy disallows autonomous STP: ['Amount ($45,000.00) exceeds fast-lane batch threshold ($25,000.00).']"
+  ]
+}

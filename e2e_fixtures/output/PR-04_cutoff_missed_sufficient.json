@@ -1,0 +1,58 @@
+{
+  "exception_id": "PEX-E2E-PR04-SUFF",
+  "detected_profile_id": "PR-04",
+  "domain": "PROCESSING",
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+    "INBOUND_PAYMENT_TELEMETRY",
+    "RAIL_OPERATING_CALENDAR",
+    "RAIL_CUTOFF_SCHEDULE",
+    "BANK_CUTOFF_POLICY"
+  ],
+  "evidence_missing": [],
+  "evidence_contradictions": [],
+  "resolution_status": "RESOLVED",
+  "resolution_recommendation": {
+    "action": "ADJUST_VALUE_DATE",
+    "value_date": "2026-10-09",
+    "original_value_date": "2026-10-08",
+    "days_rolled": 1,
+    "clearing_rail": "FEDWIRE"
+  },
+  "resolution_basis": "Rail FEDWIRE cutoff time: 22:00 UTC (Buffer: 15m).; Recalculated value date from 2026-10-08 to 2026-10-09 (T+1 business day).",
+  "repaired_fields": [
+    {
+      "field_path": "payment.value_date",
+      "original_value": "2026-10-08",
+      "repaired_value": "2026-10-09"
+    }
+  ],
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "stp_eligible": true,
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff ∧ R_det ∧ R_uniq ∧ V_det ∧ V_auth ∧ P_bank ∧ C_comp ∧ X_pre).",
+  "predicate_breakdown": {
+    "e_suff": true,
+    "r_det": true,
+    "r_uniq": true,
+    "v_det": true,
+    "v_auth": true,
+    "p_bank": true,
+    "c_comp": true,
+    "x_pre": true,
+    "stp_formula_result": true
+  },
+  "ai_confidence_score": 0.98,
+  "hitl_required": false,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "execution_owner": "BANK",
+  "audit_event_id": "AUD-4EDB25",
+  "audit_chain_block_hash": "7a6b4ee6c00fa3c946b571291aea0bcb505c0edb8903a3963da749381cfb911d",
+  "processing_latency_ms": 2.93,
+  "processed_at": "2026-10-08T19:49:58.352265Z",
+  "warnings": [],
+  "errors": []
+}

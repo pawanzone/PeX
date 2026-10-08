@@ -1428,6 +1428,227 @@ class ResolutionEngine:
                 error_message=err
             )
 
+        # === WAVE 1 PROFILES ===
+        elif profile_id in ["DQ-03", "MISSING_BENEFICIARY_DATA"]:
+            from app.services.engines import account_master_engine
+            debtor_id = dossier.metadata.get("debtor_id") or "DEBTOR-001"
+            acct_num = dossier.metadata.get("creditor_account") or ""
+            cred_hint = dossier.metadata.get("creditor_name") or acct_num
+            status, uniqueness, primary_cand, diff_log, err = account_master_engine.resolve_dq03_missing_beneficiary(
+                debtor_id=debtor_id,
+                account_number=acct_num,
+                creditor_hint=cred_hint,
+                evidence_context=dossier.metadata
+            )
+            trail.extend(diff_log)
+            candidates = [primary_cand] if primary_cand else []
+            return ResolutionResult(
+                profile_id=profile_id,
+                status=status,
+                uniqueness=uniqueness,
+                candidates=candidates,
+                primary_candidate=primary_cand,
+                is_lossless=True,
+                audit_trail=trail,
+                error_message=err
+            )
+
+        elif profile_id in ["DQ-04", "MISSING_REMITTANCE_INFO"]:
+            from app.services.engines import remittance_document_engine
+            inv_ref = dossier.metadata.get("invoice_reference_number") or dossier.metadata.get("remittance_info") or ""
+            amount = float(dossier.metadata.get("amount", 0.0))
+            currency = dossier.metadata.get("currency", "USD")
+            status, uniqueness, primary_cand, diff_log, err = remittance_document_engine.resolve_dq04_missing_remittance(
+                invoice_id_or_narrative=inv_ref,
+                amount=amount,
+                currency=currency,
+                evidence_context=dossier.metadata
+            )
+            trail.extend(diff_log)
+            candidates = [primary_cand] if primary_cand else []
+            return ResolutionResult(
+                profile_id=profile_id,
+                status=status,
+                uniqueness=uniqueness,
+                candidates=candidates,
+                primary_candidate=primary_cand,
+                is_lossless=True,
+                audit_trail=trail,
+                error_message=err
+            )
+
+        elif profile_id in ["DQ-07", "INVALID_ACCOUNT_NUMBER"]:
+            from app.services.engines import account_master_engine
+            acct_num = dossier.metadata.get("creditor_account") or ""
+            clearing_rail = dossier.metadata.get("clearing_rail") or "FEDWIRE"
+            currency = dossier.metadata.get("currency") or "USD"
+            status, uniqueness, primary_cand, diff_log, err = account_master_engine.resolve_dq07_invalid_account_number(
+                inbound_account_number=acct_num,
+                clearing_rail=clearing_rail,
+                currency=currency,
+                evidence_context=dossier.metadata
+            )
+            trail.extend(diff_log)
+            candidates = [primary_cand] if primary_cand else []
+            return ResolutionResult(
+                profile_id=profile_id,
+                status=status,
+                uniqueness=uniqueness,
+                candidates=candidates,
+                primary_candidate=primary_cand,
+                is_lossless=True,
+                audit_trail=trail,
+                error_message=err
+            )
+
+        elif profile_id in ["DQ-09", "BENEFICIARY_NAME_MISMATCH"]:
+            from app.services.engines import account_master_engine
+            acct_num = dossier.metadata.get("creditor_account") or ""
+            payee_name = dossier.metadata.get("creditor_name") or ""
+            status, uniqueness, primary_cand, diff_log, err = account_master_engine.resolve_dq09_beneficiary_name_mismatch(
+                account_number=acct_num,
+                inbound_payee_name=payee_name,
+                evidence_context=dossier.metadata
+            )
+            trail.extend(diff_log)
+            candidates = [primary_cand] if primary_cand else []
+            return ResolutionResult(
+                profile_id=profile_id,
+                status=status,
+                uniqueness=uniqueness,
+                candidates=candidates,
+                primary_candidate=primary_cand,
+                is_lossless=True,
+                audit_trail=trail,
+                error_message=err
+            )
+
+        elif profile_id in ["PR-02", "ROUTING_FAILURE"]:
+            from app.services.engines import routing_clearing_engine
+            debtor_bic = dossier.metadata.get("debtor_agent_bic") or "BNPAFRPPXXX"
+            creditor_bic = dossier.metadata.get("creditor_agent_bic") or "CHASUS33XXX"
+            currency = dossier.metadata.get("currency") or "USD"
+            rail = dossier.metadata.get("clearing_rail") or "SWIFT_CBPR+"
+            status, uniqueness, primary_cand, diff_log, err = routing_clearing_engine.resolve_pr02_routing_failure(
+                debtor_agent_bic=debtor_bic,
+                creditor_agent_bic=creditor_bic,
+                currency=currency,
+                clearing_rail=rail,
+                evidence_context=dossier.metadata
+            )
+            trail.extend(diff_log)
+            candidates = [primary_cand] if primary_cand else []
+            return ResolutionResult(
+                profile_id=profile_id,
+                status=status,
+                uniqueness=uniqueness,
+                candidates=candidates,
+                primary_candidate=primary_cand,
+                is_lossless=True,
+                audit_trail=trail,
+                error_message=err
+            )
+
+        elif profile_id in ["PR-04", "CUTOFF_MISSED"]:
+            from app.services.engines import routing_clearing_engine
+            rail = dossier.metadata.get("clearing_rail") or "FEDWIRE"
+            currency = dossier.metadata.get("currency") or "USD"
+            v_date_str = dossier.metadata.get("value_date")
+            try:
+                curr_date = datetime.strptime(v_date_str, "%Y-%m-%d").date() if v_date_str else datetime.now(timezone.utc).date()
+            except Exception:
+                curr_date = datetime.now(timezone.utc).date()
+            status, uniqueness, primary_cand, diff_log, err = routing_clearing_engine.resolve_pr04_cutoff_missed(
+                clearing_rail=rail,
+                currency=currency,
+                current_value_date=curr_date,
+                evidence_context=dossier.metadata
+            )
+            trail.extend(diff_log)
+            candidates = [primary_cand] if primary_cand else []
+            return ResolutionResult(
+                profile_id=profile_id,
+                status=status,
+                uniqueness=uniqueness,
+                candidates=candidates,
+                primary_candidate=primary_cand,
+                is_lossless=True,
+                audit_trail=trail,
+                error_message=err
+            )
+
+        elif profile_id in ["PR-07", "NETWORK_TIMEOUT"]:
+            from app.services.engines import routing_clearing_engine
+            pmt_id = dossier.metadata.get("payment_id") or "PMT-UNKNOWN"
+            uetr = dossier.metadata.get("uetr") or "UNKNOWN-UETR"
+            rail = dossier.metadata.get("clearing_rail") or "FEDWIRE"
+            status, uniqueness, primary_cand, diff_log, err = routing_clearing_engine.resolve_pr07_network_timeout(
+                payment_id=pmt_id,
+                payment_uetr=uetr,
+                rail_code=rail,
+                evidence_context=dossier.metadata
+            )
+            trail.extend(diff_log)
+            candidates = [primary_cand] if primary_cand else []
+            return ResolutionResult(
+                profile_id=profile_id,
+                status=status,
+                uniqueness=uniqueness,
+                candidates=candidates,
+                primary_candidate=primary_cand,
+                is_lossless=True,
+                audit_trail=trail,
+                error_message=err
+            )
+
+        elif profile_id in ["PR-09", "PAYMENT_HELD_FOR_REPAIR"]:
+            from app.services.engines import routing_clearing_engine
+            pmt_id = dossier.metadata.get("payment_id") or "PMT-UNKNOWN"
+            uetr = dossier.metadata.get("uetr") or "UNKNOWN-UETR"
+            status, uniqueness, primary_cand, diff_log, err = routing_clearing_engine.resolve_pr09_held_for_repair(
+                payment_id=pmt_id,
+                payment_uetr=uetr,
+                evidence_context=dossier.metadata
+            )
+            trail.extend(diff_log)
+            candidates = [primary_cand] if primary_cand else []
+            return ResolutionResult(
+                profile_id=profile_id,
+                status=status,
+                uniqueness=uniqueness,
+                candidates=candidates,
+                primary_candidate=primary_cand,
+                is_lossless=True,
+                audit_trail=trail,
+                error_message=err
+            )
+
+        elif profile_id in ["CO-07", "REGULATORY_REPORTING_REQUIRED"]:
+            from app.services.engines import remittance_document_engine
+            dest_country = dossier.metadata.get("destination_country") or dossier.metadata.get("creditor_country") or "BR"
+            currency = dossier.metadata.get("currency") or "BRL"
+            amount = float(dossier.metadata.get("amount", 0.0))
+            rail = dossier.metadata.get("clearing_rail") or "SWIFT_CBPR+"
+            status, uniqueness, primary_cand, diff_log, err = remittance_document_engine.resolve_co07_regulatory_reporting(
+                destination_country=dest_country,
+                currency=currency,
+                amount=amount,
+                clearing_rail=rail,
+                evidence_context=dossier.metadata
+            )
+            trail.extend(diff_log)
+            candidates = [primary_cand] if primary_cand else []
+            return ResolutionResult(
+                profile_id=profile_id,
+                status=status,
+                uniqueness=uniqueness,
+                candidates=candidates,
+                primary_candidate=primary_cand,
+                is_lossless=True,
+                audit_trail=trail,
+                error_message=err
+            )
+
         # Fallback for unregistered profiles
         trail.append(f"No deterministic resolver registered for profile {profile_id}.")
         return ResolutionResult(

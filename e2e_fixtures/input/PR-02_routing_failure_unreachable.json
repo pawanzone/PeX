@@ -1,0 +1,32 @@
+{
+  "exception_id": "PEX-E2E-PR02-UNREACH",
+  "profile_id": "PR-02",
+  "domain": "PROCESSING",
+  "error_code": "ERR_CORRIDOR_ROUTING_FAILURE",
+  "error_message": "Clearing rail path between debtor agent and creditor agent is broken or requires intermediary correspondent hop.",
+  "payment_info": {
+    "payment_id": "PMT-2026-PR02-002",
+    "uetr": "UETR-PR02-UNREACH-0002-B2",
+    "amount": 7500.00,
+    "currency": "EUR",
+    "clearing_rail": "TARGET2",
+    "value_date": "2026-10-08",
+    "debtor_name": "Apex Global Treasury (Spain)",
+    "debtor_account": "ES9121000418450200051332",
+    "debtor_agent_bic": "SANUESMMXXX",
+    "creditor_name": "Unreachable Institution",
+    "creditor_account": "99887766",
+    "creditor_agent_bic": "CORRUPTED_BIC",
+    "remittance_info": "CONTAINER SHIPMENT FREIGHT"
+  },
+  "bank_supplied_evidence": {
+    "routing_directory_authority": {
+      "bic": "CORRUPTED_BIC",
+      "status": "UNREACHABLE"
+    }
+  },
+  "external_authoritative_evidence": {},
+  "derived_evidence": {},
+  "evidence_provenance": "SYNTHETIC_TEST_FIXTURE",
+  "test_status": "TEST_ONLY"
+}

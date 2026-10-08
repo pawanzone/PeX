@@ -28,8 +28,15 @@ class InMemoryBankPolicyAdapter(BankPolicyEnvelopePort):
                 dual_auth_mandatory_threshold=250000.0
             ),
             auto_stp_enabled_profiles=[
+                # Phase 2 Profiles
                 "INVALID_IBAN", "INVALID_ROUTING_CODE", "DUPLICATE_PAYMENT",
-                "QUEUE_PROCESSING_FAILURE", "RETURNED_PAYMENT", "RESTRICTED_CORRIDOR"
+                "QUEUE_PROCESSING_FAILURE", "RETURNED_PAYMENT", "RESTRICTED_CORRIDOR",
+                "DQ-01", "DQ-08", "PR-01", "PR-08", "ST-01", "CO-04",
+                # Wave 1 Profiles
+                "MISSING_BENEFICIARY_DATA", "MISSING_REMITTANCE_INFO", "INVALID_ACCOUNT_NUMBER",
+                "BENEFICIARY_NAME_MISMATCH", "ROUTING_FAILURE", "CUTOFF_MISSED",
+                "NETWORK_TIMEOUT", "PAYMENT_HELD_FOR_REPAIR", "REGULATORY_REPORTING_REQUIRED",
+                "DQ-03", "DQ-04", "DQ-07", "DQ-09", "PR-02", "PR-04", "PR-07", "PR-09", "CO-07"
             ],
             dual_auth_required_profiles=["SANCTIONS_HOLD", "HIGH_VALUE_WIRE", "AML_SUSPENDED"]
         )

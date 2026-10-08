@@ -55,6 +55,11 @@ from app.adapters.reference.reference_bank_handoff_adapter import InMemoryBankHa
 from app.adapters.reference.reference_configuration_adapter import InMemoryConfigurationAdapter
 from app.adapters.reference.reference_health_adapter import InMemoryHealthReadinessAdapter
 from app.services.dynamic_config_resolver import DynamicEvidenceConfigResolver
+from app.services.engines import (
+    account_master_engine,
+    routing_clearing_engine,
+    remittance_document_engine,
+)
 
 
 class E2EExecutionHarness:
@@ -145,6 +150,11 @@ class E2EExecutionHarness:
         e_suff = envelope.evidence_sufficient
 
 
+        # Resolve Bank Policy
+        active_policy = self.policy_port.get_active_policy()
+        if e2e_input.bank_policy_overrides:
+            active_policy = BankPolicyEnvelope(**e2e_input.bank_policy_overrides)
+
         # 3. Deterministic Resolution Derivation (R_det, R_uniq, V_det)
         r_det = False
         r_uniq = False
@@ -233,6 +243,171 @@ class E2EExecutionHarness:
             else:
                 resolution_basis = "Mandatory statutory corridor restriction without verified licensing exemption."
 
+        # === WAVE 1 PROFILES ===
+        elif profile == "DQ-03":
+            # Missing Beneficiary Data
+            debtor_id = evidence_ctx.get("debtor_id") or pmt.debtor_name or "DEBTOR-001"
+            cred_hint = evidence_ctx.get("creditor_hint") or pmt.creditor_name or pmt.creditor_account
+            status, uniq, cand, diff_log, err = account_master_engine.resolve_dq03_missing_beneficiary(
+                debtor_id=debtor_id,
+                account_number=pmt.creditor_account or "",
+                creditor_hint=cred_hint,
+                evidence_context=evidence_ctx
+            )
+            r_det = (status.value == "RESOLUTION_DETERMINED")
+            r_uniq = (uniq.value == "RESOLUTION_UNIQUE")
+            v_det = bool(r_det and cand is not None)
+            if cand:
+                struct_data = cand.repaired_structured or {}
+                repaired_fields = [{"field_path": "creditor.name", "repaired_value": struct_data.get("creditor_name")}]
+                resolution_rec = {"action": "POPULATE_BENEFICIARY_DATA", **struct_data}
+            resolution_basis = "; ".join(diff_log) if diff_log else (err or "Evaluated DQ-03")
+
+        elif profile == "DQ-04":
+            # Missing Remittance Info
+            inv_ref = evidence_ctx.get("invoice_reference_number") or pmt.remittance_info or ""
+            status, uniq, cand, diff_log, err = remittance_document_engine.resolve_dq04_missing_remittance(
+                invoice_id_or_narrative=inv_ref,
+                amount=pmt.amount,
+                currency=pmt.currency,
+                evidence_context=evidence_ctx
+            )
+            r_det = (status.value == "RESOLUTION_DETERMINED")
+            r_uniq = (uniq.value == "RESOLUTION_UNIQUE")
+            v_det = bool(r_det and cand is not None)
+            if cand:
+                struct_data = cand.repaired_structured or {}
+                repaired_fields = [{"field_path": "remittance_info.structured", "repaired_value": struct_data}]
+                resolution_rec = {"action": "POPULATE_STRUCTURED_REMITTANCE", **struct_data}
+            resolution_basis = "; ".join(diff_log) if diff_log else (err or "Evaluated DQ-04")
+
+        elif profile == "DQ-07":
+            # Invalid Account Number
+            status, uniq, cand, diff_log, err = account_master_engine.resolve_dq07_invalid_account_number(
+                inbound_account_number=pmt.creditor_account or "",
+                clearing_rail=pmt.clearing_rail,
+                currency=pmt.currency,
+                evidence_context=evidence_ctx
+            )
+            r_det = (status.value == "RESOLUTION_DETERMINED")
+            r_uniq = (uniq.value == "RESOLUTION_UNIQUE")
+            v_det = bool(r_det and cand is not None)
+            if cand:
+                struct_data = cand.repaired_structured or {}
+                repaired_fields = [{"field_path": "creditor_account.account_number", "original_value": pmt.creditor_account, "repaired_value": struct_data.get("account_number")}]
+                resolution_rec = {"action": "SUBSTITUTE_ACCOUNT_NUMBER", **struct_data}
+            resolution_basis = "; ".join(diff_log) if diff_log else (err or "Evaluated DQ-07")
+
+        elif profile == "DQ-09":
+            # Beneficiary Name Mismatch (Confirmation of Payee)
+            pol_thresholds = active_policy.w1_matching_thresholds if active_policy else None
+            status, uniq, cand, diff_log, err = account_master_engine.resolve_dq09_beneficiary_name_mismatch(
+                account_number=pmt.creditor_account or "",
+                inbound_payee_name=pmt.creditor_name or "",
+                policy_thresholds=pol_thresholds,
+                evidence_context=evidence_ctx
+            )
+            r_det = (status.value == "RESOLUTION_DETERMINED")
+            r_uniq = (uniq.value == "RESOLUTION_UNIQUE")
+            v_det = bool(r_det and cand is not None)
+            if cand:
+                struct_data = cand.repaired_structured or {}
+                repaired_fields = [{"field_path": "creditor.name", "original_value": pmt.creditor_name, "repaired_value": struct_data.get("creditor_name")}]
+                resolution_rec = {"action": "ALIGN_BENEFICIARY_TITLE", **struct_data}
+            resolution_basis = "; ".join(diff_log) if diff_log else (err or "Evaluated DQ-09")
+
+        elif profile == "PR-02":
+            # Routing Failure
+            status, uniq, cand, diff_log, err = routing_clearing_engine.resolve_pr02_routing_failure(
+                debtor_agent_bic=pmt.debtor_agent_bic or "BNPAFRPPXXX",
+                creditor_agent_bic=pmt.creditor_agent_bic or "CHASUS33XXX",
+                currency=pmt.currency,
+                clearing_rail=pmt.clearing_rail,
+                evidence_context=evidence_ctx
+            )
+            r_det = (status.value == "RESOLUTION_DETERMINED")
+            r_uniq = (uniq.value == "RESOLUTION_UNIQUE")
+            v_det = bool(r_det and cand is not None)
+            if cand:
+                struct_data = cand.repaired_structured or {}
+                repaired_fields = [{"field_path": "creditor_agent.bic", "repaired_value": struct_data.get("intermediary_agent_bic") or pmt.creditor_agent_bic}]
+                resolution_rec = {"action": "UPDATE_CLEARING_ROUTE", **struct_data}
+            resolution_basis = "; ".join(diff_log) if diff_log else (err or "Evaluated PR-02")
+
+        elif profile == "PR-04":
+            # Cutoff Missed
+            pol_buffer = active_policy.w1_cutoff_buffer if active_policy else None
+            try:
+                curr_date = datetime.strptime(pmt.value_date, "%Y-%m-%d").date() if pmt.value_date else datetime.now(timezone.utc).date()
+            except Exception:
+                curr_date = datetime.now(timezone.utc).date()
+            status, uniq, cand, diff_log, err = routing_clearing_engine.resolve_pr04_cutoff_missed(
+                clearing_rail=pmt.clearing_rail,
+                currency=pmt.currency,
+                current_value_date=curr_date,
+                policy_buffer=pol_buffer,
+                evidence_context=evidence_ctx
+            )
+            r_det = (status.value == "RESOLUTION_DETERMINED")
+            r_uniq = (uniq.value == "RESOLUTION_UNIQUE")
+            v_det = bool(r_det and cand is not None)
+            if cand:
+                struct_data = cand.repaired_structured or {}
+                repaired_fields = [{"field_path": "payment.value_date", "original_value": pmt.value_date, "repaired_value": struct_data.get("value_date")}]
+                resolution_rec = {"action": "ADJUST_VALUE_DATE", **struct_data}
+            resolution_basis = "; ".join(diff_log) if diff_log else (err or "Evaluated PR-04")
+
+        elif profile == "PR-07":
+            # Network Timeout
+            status, uniq, cand, diff_log, err = routing_clearing_engine.resolve_pr07_network_timeout(
+                payment_id=pmt.payment_id,
+                payment_uetr=pmt.uetr,
+                rail_code=pmt.clearing_rail,
+                evidence_context=evidence_ctx
+            )
+            r_det = (status.value == "RESOLUTION_DETERMINED")
+            r_uniq = (uniq.value == "RESOLUTION_UNIQUE")
+            v_det = bool(r_det and cand is not None)
+            if cand:
+                struct_data = cand.repaired_structured or {}
+                repaired_fields = []
+                resolution_rec = {"action": "IDEMPOTENT_SAFE_RETRY", **struct_data}
+            resolution_basis = "; ".join(diff_log) if diff_log else (err or "Evaluated PR-07")
+
+        elif profile == "PR-09":
+            # Payment Held for Repair
+            status, uniq, cand, diff_log, err = routing_clearing_engine.resolve_pr09_held_for_repair(
+                payment_id=pmt.payment_id,
+                payment_uetr=pmt.uetr,
+                evidence_context=evidence_ctx
+            )
+            r_det = (status.value == "RESOLUTION_DETERMINED")
+            r_uniq = (uniq.value == "RESOLUTION_UNIQUE")
+            v_det = bool(r_det and cand is not None)
+            if cand:
+                struct_data = cand.repaired_structured or {}
+                repaired_fields = [{"field_path": "payment_hub.queue_action", "repaired_value": "RELEASE_AFTER_SYNTAX_VALIDATION"}]
+                resolution_rec = {"action": "RELEASE_FROM_REPAIR_QUEUE", **struct_data}
+            resolution_basis = "; ".join(diff_log) if diff_log else (err or "Evaluated PR-09")
+
+        elif profile == "CO-07":
+            # Regulatory Reporting Required
+            status, uniq, cand, diff_log, err = remittance_document_engine.resolve_co07_regulatory_reporting(
+                destination_country=evidence_ctx.get("destination_country") or evidence_ctx.get("creditor_country") or "BR",
+                currency=pmt.currency,
+                amount=pmt.amount,
+                clearing_rail=pmt.clearing_rail,
+                evidence_context=evidence_ctx
+            )
+            r_det = (status.value == "RESOLUTION_DETERMINED")
+            r_uniq = (uniq.value == "RESOLUTION_UNIQUE")
+            v_det = bool(r_det and cand is not None)
+            if cand:
+                struct_data = cand.repaired_structured or {}
+                repaired_fields = [{"field_path": "regulatory_reporting", "repaired_value": struct_data}]
+                resolution_rec = {"action": "POPULATE_REGULATORY_REPORTING", **struct_data}
+            resolution_basis = "; ".join(diff_log) if diff_log else (err or "Evaluated CO-07")
+
         else:
             resolution_basis = f"Profile {profile} evaluated under standard rules."
             r_det = True
@@ -241,17 +416,12 @@ class E2EExecutionHarness:
 
         # 4. Contextual Authority Validation (V_auth)
         q_domain = QuestionDomain.ACCOUNT_OWNERSHIP_BALANCE if "DQ" in profile else (
-            QuestionDomain.QUEUE_PROCESSING_STATE if profile == "PR-08" else (
+            QuestionDomain.QUEUE_PROCESSING_STATE if profile in ["PR-08", "PR-07", "PR-09"] else (
                 QuestionDomain.LEGAL_PROHIBITION if "CO" in profile else QuestionDomain.CLEARING_SETTLEMENT_STATUS
             )
         )
         auth_res = self.authority_port.resolve_authority(q_domain, evidence_ctx)
         v_auth = auth_res.is_valid_authority
-
-        # 5. Bank Policy Evaluation (P_bank)
-        active_policy = self.policy_port.get_active_policy()
-        if e2e_input.bank_policy_overrides:
-            active_policy = BankPolicyEnvelope(**e2e_input.bank_policy_overrides)
             
         policy_eval = self.policy_port.evaluate_transaction(
             policy=active_policy,

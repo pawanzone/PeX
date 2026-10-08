@@ -1,0 +1,50 @@
+{
+  "exception_id": "PEX-E2E-PR02-UNREACH",
+  "detected_profile_id": "PR-02",
+  "domain": "PROCESSING",
+  "evidence_status": "INSUFFICIENT",
+  "evidence_used": [
+    "INBOUND_PAYMENT_TELEMETRY",
+    "ROUTING_DIRECTORY_AUTHORITY"
+  ],
+  "evidence_missing": [
+    "BANK_DESIGNATED_SSI"
+  ],
+  "evidence_contradictions": [],
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "resolution_recommendation": null,
+  "resolution_basis": "Routing resolution failed: INVALID_BIC_OR_UNREACHABLE_CLEARING_PATH",
+  "repaired_fields": [],
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "stp_eligible": false,
+  "stp_decision_reason": "Evidence insufficient: missing mandatory ['BANK_DESIGNATED_SSI'] / stale [] / contradictory []; Deterministic resolution could not be derived.; Deterministic validation / checksum failed.",
+  "predicate_breakdown": {
+    "e_suff": false,
+    "r_det": false,
+    "r_uniq": true,
+    "v_det": false,
+    "v_auth": true,
+    "p_bank": true,
+    "c_comp": true,
+    "x_pre": true,
+    "stp_formula_result": false
+  },
+  "ai_confidence_score": 0.5,
+  "hitl_required": true,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "execution_owner": "BANK",
+  "audit_event_id": "AUD-17DD08",
+  "audit_chain_block_hash": "bf1cfd55c2bee20d7c2aba2b93f6b5e2d179a757fa9663bf18fad68eac88ca73",
+  "processing_latency_ms": 0.44,
+  "processed_at": "2026-10-08T19:50:00.559880Z",
+  "warnings": [],
+  "errors": [
+    "Evidence insufficient: missing mandatory ['BANK_DESIGNATED_SSI'] / stale [] / contradictory []",
+    "Deterministic resolution could not be derived.",
+    "Deterministic validation / checksum failed."
+  ]
+}
