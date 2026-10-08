@@ -120,7 +120,7 @@ class AccountMasterEngine:
         currency: str,
         evidence_context: Optional[Dict[str, Any]] = None
     ) -> Tuple[ResolutionStatus, ResolutionUniqueness, Optional[ResolutionCandidate], List[str], Optional[str]]:
-        """Validates domestic account number structure/modulus and resolves against authoritative Core DDA."""
+        """Core DDA Authoritative Account/Master Validation & Lookup: validates domestic structure and checks bank ledger master."""
         diff_log: List[str] = []
         ctx = evidence_context or {}
 
@@ -141,7 +141,7 @@ class AccountMasterEngine:
 
         if not acct_rec:
             diff_log.append(f"Account number '{target_account}' does not exist in Core Banking DDA.")
-            return ResolutionStatus.RESOLUTION_NOT_DETERMINED, ResolutionUniqueness.RESOLUTION_UNIQUE, None, diff_log, "Account not found in authoritative ledger."
+            return ResolutionStatus.RESOLUTION_NOT_DETERMINED, ResolutionUniqueness.RESOLUTION_UNIQUE, None, diff_log, "Account not found in authoritative bank ledger/account-master."
 
         if acct_rec.is_frozen or acct_rec.account_status != "ACTIVE":
             diff_log.append(f"Account '{target_account}' is in status '{acct_rec.account_status}' (frozen={acct_rec.is_frozen}).")
@@ -160,7 +160,7 @@ class AccountMasterEngine:
             repaired_payload=json.dumps(repaired_dict_dq07),
             repaired_structured=repaired_dict_dq07,
             diff_summary="; ".join(diff_log),
-            derivation_method="PAT_A_CORE_DDA_ACCOUNT_VALIDATOR",
+            derivation_method="PAT_A_CORE_DDA_AUTHORITATIVE_ACCOUNT_LOOKUP",
             is_lossless=True,
             fields_reordered=[]
         )

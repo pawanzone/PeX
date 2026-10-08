@@ -84,10 +84,10 @@
   "next_action": "DISPATCH_TO_BANK_GATEWAY",
   "bank_handoff_status": "BANK_HANDOFF_READY",
   "execution_owner": "BANK",
-  "audit_event_id": "AUD-905E07",
-  "audit_chain_block_hash": "18c703ff3599fd858974968fe70b1c5b467400f102509b8cdc423c30cb636e88",
-  "processing_latency_ms": 0.46,
-  "processed_at": "2026-10-08T19:49:57.276500Z",
+  "audit_event_id": "AUD-7FD864",
+  "audit_chain_block_hash": "65e0e7920a20f8458fc1f4dbe4c51bbb8ca1d0fdac41b2f457824ca45103ba41",
+  "processing_latency_ms": 0.61,
+  "processed_at": "2026-10-08T20:24:57.569379Z",
   "warnings": [],
   "errors": []
 }
