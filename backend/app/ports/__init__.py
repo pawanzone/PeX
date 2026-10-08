@@ -6,6 +6,8 @@ Zero third-party vendor or cloud SDK dependencies.
 """
 
 from .evidence_port import EvidencePackagePort
+from .evidence_store_port import EvidenceStorePort
+from .acquisition_port import EvidenceAcquisitionPort
 from .authority_port import ContextualAuthorityPort
 from .policy_port import BankPolicyEnvelopePort
 from .idempotency_port import DistributedIdempotencyPort
@@ -21,6 +23,8 @@ from .health_port import HealthReadinessPort
 
 __all__ = [
     "EvidencePackagePort",
+    "EvidenceStorePort",
+    "EvidenceAcquisitionPort",
     "ContextualAuthorityPort",
     "BankPolicyEnvelopePort",
     "DistributedIdempotencyPort",
@@ -34,3 +38,4 @@ __all__ = [
     "ConfigurationSchemaPort",
     "HealthReadinessPort",
 ]
+

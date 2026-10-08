@@ -55,6 +55,16 @@ from .configuration_schemas import (
     RailCutoffSchedule,
     ValidatedSystemConfig,
 )
+from .evidence_config_schemas import (
+    EvidenceAcquisitionMode,
+    HitlFieldType,
+    HitlFieldDefinition,
+    HitlWorkflowConfig,
+    EvidenceRuleDefinition,
+    BankEvidenceRequiredConfig,
+    HitlEvidenceSubmissionRequest,
+    HitlEvidenceSubmissionResponse,
+)
 from .health_schemas import (
     HealthStatus,
     ComponentProbe,
@@ -73,6 +83,14 @@ __all__ = [
     "EvidenceValidationStatus",
     "EvidenceItem",
     "EvidencePackageEnvelope",
+    "EvidenceAcquisitionMode",
+    "HitlFieldType",
+    "HitlFieldDefinition",
+    "HitlWorkflowConfig",
+    "EvidenceRuleDefinition",
+    "BankEvidenceRequiredConfig",
+    "HitlEvidenceSubmissionRequest",
+    "HitlEvidenceSubmissionResponse",
     "QuestionDomain",
     "AuthorityClassification",
     "AuthorityResolutionContext",
@@ -110,3 +128,4 @@ __all__ = [
     "PredicateBreakdown",
     "CanonicalE2EOutput",
 ]
+

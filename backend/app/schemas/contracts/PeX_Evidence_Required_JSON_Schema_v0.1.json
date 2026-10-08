@@ -1,0 +1,187 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pex.bank/schemas/v0.1/evidence-required-config.json",
+  "title": "BankEvidenceRequiredConfig",
+  "description": "Published single Bank Evidence Required JSON configuration binding per (tenant_id, profile_id). Authoritative contract for PeX Wave 0B.",
+  "type": "object",
+  "required": [
+    "tenant_id",
+    "profile_id",
+    "config_version",
+    "rules"
+  ],
+  "properties": {
+    "tenant_id": {
+      "type": "string",
+      "description": "Bank tenant identifier, or DEFAULT_BANK for standard fallback."
+    },
+    "profile_id": {
+      "type": "string",
+      "description": "Exception profile identifier (e.g. DQ-01, DQ-08, PR-01, PR-08, ST-01, CO-04)."
+    },
+    "config_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "description": "Semantic version of the published configuration document."
+    },
+    "published_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "UTC timestamp of publication."
+    },
+    "published_by": {
+      "type": "string",
+      "description": "Governance user or automated system that published and signed the configuration."
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether this configuration version is active."
+    },
+    "rules": {
+      "type": "array",
+      "description": "List of evidence rules required for this profile.",
+      "items": {
+        "$ref": "#/$defs/EvidenceRuleDefinition"
+      },
+      "minItems": 1
+    },
+    "hitl_config": {
+      "$ref": "#/$defs/HitlWorkflowConfig"
+    },
+    "governance_hash": {
+      "type": "string",
+      "description": "SHA-256 tamper-evident checksum of rules payload."
+    }
+  },
+  "$defs": {
+    "EvidenceRuleDefinition": {
+      "type": "object",
+      "required": [
+        "rule_id",
+        "evidence_type",
+        "mandatory",
+        "min_trust_tier"
+      ],
+      "properties": {
+        "rule_id": {
+          "type": "string",
+          "description": "Unique identifier for the evidence rule."
+        },
+        "evidence_type": {
+          "type": "string",
+          "description": "Canonical evidence type code (e.g., CORE_DDA_ACCOUNT, ROUTING_DIRECTORY)."
+        },
+        "mandatory": {
+          "type": "boolean",
+          "description": "Whether this evidence item is strictly required for E_suff = True."
+        },
+        "min_trust_tier": {
+          "type": "integer",
+          "enum": [1, 2, 3, 4],
+          "description": "Minimum acceptable trust tier (1 = Sovereign/Core, 2 = Regulatory, 3 = Client ERP, 4 = Advisory)."
+        },
+        "condition_expression": {
+          "type": ["string", "null"],
+          "description": "Optional deterministic expression (e.g. amount > 100000) governing applicability."
+        },
+        "acquisition_modes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "MODE_1_INBOUND_PAYLOAD",
+              "MODE_2_API_CONNECTOR",
+              "MODE_3_BANK_PUSH",
+              "MODE_4_HITL_OPERATOR"
+            ]
+          },
+          "description": "Permitted acquisition channels for this evidence type."
+        },
+        "freshness_ttl_seconds": {
+          "type": "integer",
+          "default": 86400,
+          "description": "Time-to-live in seconds before acquired evidence is considered stale."
+        },
+        "description": {
+          "type": ["string", "null"],
+          "description": "Human-readable description of the evidence requirement."
+        }
+      }
+    },
+    "HitlFieldDefinition": {
+      "type": "object",
+      "required": [
+        "field_id",
+        "label",
+        "field_type"
+      ],
+      "properties": {
+        "field_id": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "field_type": {
+          "type": "string",
+          "enum": ["text", "number", "iban", "bic", "dropdown", "boolean", "document"]
+        },
+        "required": {
+          "type": "boolean",
+          "default": true
+        },
+        "validation_regex": {
+          "type": ["string", "null"]
+        },
+        "allowed_values": {
+          "type": ["array", "null"],
+          "items": {
+            "type": "string"
+          }
+        },
+        "help_text": {
+          "type": ["string", "null"]
+        },
+        "placeholder": {
+          "type": ["string", "null"]
+        }
+      }
+    },
+    "HitlWorkflowConfig": {
+      "type": "object",
+      "required": [
+        "enabled",
+        "target_role",
+        "fields"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "target_role": {
+          "type": "string",
+          "default": "PAYMENT_OPERATOR"
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/HitlFieldDefinition"
+          }
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": ["SUPPLY_EVIDENCE", "CONFIRM_REPAIR", "ESCALATE", "REJECT"]
+        },
+        "auto_re_evaluate": {
+          "type": "boolean",
+          "default": true
+        }
+      }
+    }
+  }
+}

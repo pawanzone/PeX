@@ -37,7 +37,9 @@ class E2EPaymentInfo(BaseModel):
 class CanonicalE2EInput(BaseModel):
     """Universal Canonical Input Schema for Drop-in JSON Payment Exception Processing."""
     exception_id: str
+    tenant_id: str = "DEFAULT_BANK"
     profile_id: Optional[str] = None                 # Known or suspected profile (e.g. "DQ-01", "PR-08")
+
     domain: Optional[str] = None                     # "DATA_QUALITY", "PROCESSING", "COMPLIANCE", "CLIENT_TREASURY", "SETTLEMENT_RETURNS"
     error_code: Optional[str] = None
     error_message: Optional[str] = None

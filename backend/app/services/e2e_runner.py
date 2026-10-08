@@ -54,6 +54,7 @@ from app.adapters.reference.reference_observability_adapter import InMemoryObser
 from app.adapters.reference.reference_bank_handoff_adapter import InMemoryBankHandoffAdapter
 from app.adapters.reference.reference_configuration_adapter import InMemoryConfigurationAdapter
 from app.adapters.reference.reference_health_adapter import InMemoryHealthReadinessAdapter
+from app.services.dynamic_config_resolver import DynamicEvidenceConfigResolver
 
 
 class E2EExecutionHarness:
@@ -88,6 +89,7 @@ class E2EExecutionHarness:
         self.bank_handoff_port = bank_handoff_port or InMemoryBankHandoffAdapter()
         self.config_port = config_port or InMemoryConfigurationAdapter()
         self.health_port = health_port or InMemoryHealthReadinessAdapter()
+        self.dynamic_config_resolver = DynamicEvidenceConfigResolver(self.config_port)
 
     def process_input(
         self,
@@ -122,20 +124,26 @@ class E2EExecutionHarness:
             **e2e_input.derived_evidence
         }
         
-        # Determine mandatory evidence requirements by profile
-        mandatory_map = {
-            "DQ-01": ["CORE_DDA_ACCOUNT", "ROUTING_DIRECTORY"],
-            "DQ-08": ["FEDLINE_ROUTING_DIRECTORY", "ROUTING_SYNTAX_MASTER"],
-            "PR-01": ["HISTORICAL_PAYMENT_JOURNAL", "SETTLEMENT_LEDGER"],
-            "PR-08": ["STREAMING_BROKER_JOURNAL", "DLQ_RECORD"],
-            "ST-01": ["INWARD_PACS004_RETURN", "ORIGINAL_DEBIT_RECORD"],
-            "CO-04": ["SANCTIONS_WATCHLIST", "CORRIDOR_POLICY_MATRIX"]
+        # Resolve dynamic published evidence configuration
+        tx_context = {
+            "amount": pmt.amount,
+            "currency": pmt.currency,
+            "clearing_rail": pmt.clearing_rail,
+            "profile_id": profile,
+            "tenant_id": getattr(e2e_input, "tenant_id", "DEFAULT_BANK"),
+            **evidence_ctx
         }
-        mandatory_types = mandatory_map.get(profile, ["CORE_DDA_ACCOUNT"])
+        resolved_reqs = self.dynamic_config_resolver.resolve_requirements(
+            tenant_id=getattr(e2e_input, "tenant_id", "DEFAULT_BANK"),
+            profile_id=profile,
+            transaction_context=tx_context
+        )
+        mandatory_types = resolved_reqs.active_mandatory_types
         
         envelope = self.evidence_port.acquire_evidence(case_id, profile, pmt.model_dump(), evidence_ctx)
         envelope = self.evidence_port.evaluate_sufficiency(envelope, mandatory_types)
         e_suff = envelope.evidence_sufficient
+
 
         # 3. Deterministic Resolution Derivation (R_det, R_uniq, V_det)
         r_det = False
