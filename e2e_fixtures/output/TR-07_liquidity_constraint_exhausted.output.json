@@ -1,0 +1,79 @@
+{
+  "exception_id": "PEX-E2E-TR07-EXHAUSTED",
+  "detected_profile_id": "TR-07",
+  "domain": "CLIENT_TREASURY",
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+    "INBOUND_PAYMENT_TELEMETRY",
+    "CLEARING_CONTEXT",
+    "CLEARING_LIQUIDITY_RESERVE",
+    "SETTLEMENT_QUEUE_STATUS",
+    "LIQUIDITY_EXHAUSTED"
+  ],
+  "evidence_missing": [],
+  "evidence_contradictions": [],
+  "resolution_status": "RESOLVED",
+  "resolution_recommendation": {
+    "clearing_context": "TARGET2",
+    "instructed_amount": 2000000.0,
+    "currency": "EUR",
+    "pacing_schedule": {
+      "schedule_id": "PACE-LIQ-7A5B48",
+      "target_profile": "TR-07",
+      "pacing_interval_seconds": 600.0,
+      "max_retry_attempts": 3,
+      "current_attempt": 1,
+      "next_evaluation_time": "2026-10-15T19:24:06.124890Z",
+      "pacing_reason": "Pacing queue delay of 600.0s for clearing context TARGET2",
+      "execution_owner": "BANK"
+    },
+    "resolution_action": "QUEUE_FOR_LIQUIDITY_PACING_RELEASE",
+    "execution_owner": "BANK"
+  },
+  "resolution_basis": "Clearing context TARGET2 constrained (Queue depth: 42). Scheduling liquidity pacing delay (600.0s).",
+  "repaired_fields": [
+    {
+      "field_path": "treasury.liquidity_pacing",
+      "repaired_value": {
+        "schedule_id": "PACE-LIQ-7A5B48",
+        "target_profile": "TR-07",
+        "pacing_interval_seconds": 600.0,
+        "max_retry_attempts": 3,
+        "current_attempt": 1,
+        "next_evaluation_time": "2026-10-15T19:24:06.124890Z",
+        "pacing_reason": "Pacing queue delay of 600.0s for clearing context TARGET2",
+        "execution_owner": "BANK"
+      }
+    }
+  ],
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_policy_status": "POLICY_BLOCKED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "stp_eligible": false,
+  "stp_decision_reason": "Bank policy disallows autonomous STP: ['High-value amount ($2,000,000.00) exceeds dual-auth threshold ($250,000.00).']",
+  "predicate_breakdown": {
+    "e_suff": true,
+    "r_det": true,
+    "r_uniq": true,
+    "v_det": true,
+    "v_auth": true,
+    "p_bank": false,
+    "c_comp": true,
+    "x_pre": true,
+    "stp_formula_result": false
+  },
+  "ai_confidence_score": 0.5,
+  "hitl_required": true,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "execution_owner": "BANK",
+  "audit_event_id": "AUD-A8D5E5",
+  "audit_chain_block_hash": "a3daaed8712c3f624b9dd4526e0e23b82a3b52d12696c59a9aa4e12d44e59b8a",
+  "processing_latency_ms": 0.68,
+  "processed_at": "2026-10-15T19:24:06.124890Z",
+  "warnings": [],
+  "errors": [
+    "Bank policy disallows autonomous STP: ['High-value amount ($2,000,000.00) exceeds dual-auth threshold ($250,000.00).']"
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "exception_id": "PEX-E2E-TR06-WAIVER",
+  "profile_id": "TR-06",
+  "domain": "CLIENT_TREASURY",
+  "error_code": "ERR_LIMIT_BREACH",
+  "error_message": "Hard limit breach exceeds pre-authorized cap; operational waiver dossier required.",
+  "payment_info": {
+    "payment_id": "PMT-2026-TR06-002",
+    "uetr": "UETR-TR06-WAIVER-0002-B1",
+    "amount": 250000.00,
+    "currency": "USD",
+    "clearing_rail": "FEDWIRE",
+    "value_date": "2026-10-08",
+    "debtor_name": "Apex Commercial Holdings",
+    "debtor_account": "ACCT-CORP-USD-001",
+    "debtor_agent_bic": "CHASUS33XXX",
+    "creditor_name": "Heavy Machinery Supply",
+    "creditor_account": "33445566",
+    "creditor_agent_bic": "BNPAFRPPXXX",
+    "remittance_info": "INDUSTRIAL CRANE PURCHASE"
+  },
+  "bank_supplied_evidence": {
+    "limit_id": "LIM-BREACHED-01",
+    "client_id": "CLI-CORP-001",
+    "limit_utilization_record": {
+      "limit_id": "LIM-BREACHED-01",
+      "limit_type": "DAILY_ACCOUNT_LIMIT",
+      "limit_cap": 500000.00,
+      "current_utilization": 490000.00,
+      "currency": "USD",
+      "is_breached": false,
+      "is_authoritative": true,
+      "authority_source": "BANK_LIMIT_ENGINE"
+    },
+    "client_limit_agreement": {
+      "client_id": "CLI-CORP-001",
+      "account_number": "ACCT-CORP-USD-001",
+      "approved_overdraft_facility": 50000.00,
+      "preauthorized_waiver_cap": 25000.00,
+      "waiver_requires_dual_auth": true
+    }
+  },
+  "external_authoritative_evidence": {},
+  "derived_evidence": {
+    "waiver_required": true
+  },
+  "evidence_provenance": "SYNTHETIC_TEST_FIXTURE",
+  "test_status": "TEST_ONLY"
+}

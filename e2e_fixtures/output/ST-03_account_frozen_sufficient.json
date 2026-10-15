@@ -1,0 +1,70 @@
+{
+  "exception_id": "PEX-E2E-ST03-SUFF",
+  "detected_profile_id": "ST-03",
+  "domain": "SETTLEMENT_RETURNS",
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+    "INBOUND_PAYMENT_TELEMETRY",
+    "ACCOUNT_NUMBER",
+    "CORE_ACCOUNT_RESTRICTION_FLAG",
+    "LEGAL_FREEZE_DOSSIER",
+    "INWARD_PAYMENT_RECORD",
+    "SUSPENSE_LEDGER_MATRIX",
+    "LEGAL_REGISTRY_ORDER_VERIFICATION",
+    "PERMITTED_RESOLUTION",
+    "RETURN_REASON"
+  ],
+  "evidence_missing": [],
+  "evidence_contradictions": [],
+  "resolution_status": "RESOLVED",
+  "resolution_recommendation": {
+    "return_id": "RET-FEDWIRE-E770FCBC",
+    "original_uetr": "UETR-ST03-SUFF-0001-A1",
+    "original_payment_id": "PMT-2026-ST03-001",
+    "return_amount": 18000.0,
+    "currency": "USD",
+    "return_reason_code": "PNC",
+    "return_reason_narrative": "Account subject to active credit restriction (POST_NO_CREDITS).",
+    "debtor_recredit_account": "GL-1090-RETURN-SETTLEMENT",
+    "creditor_nostro_account": "GL-1010-FEDWIRE-NOSTRO",
+    "target_clearing_rail": "FEDWIRE",
+    "return_mechanism": "pacs.004_or_rail_return",
+    "is_fully_balanced": true,
+    "generated_at": "2026-10-15T19:23:45.871341Z"
+  },
+  "resolution_basis": "Authoritative restriction confirmed: POST_NO_CREDITS (issuing authority: NEW_YORK_SUPREME_COURT). Credit posting is prohibited.; Validated legal dossier DOS-2026-NY-9912 (COURT_INJUNCTION, court: 'New York State Supreme Court', docket: 'Index No. 650123/2026'). Permitted disposition: RETURN_TO_ORDERING_INSTITUTION.; Compiled compliant settlement return package RET-FEDWIRE-E770FCBC (Reason: PNC, Rail: FEDWIRE).",
+  "repaired_fields": [
+    {
+      "field_path": "settlement_return.reason",
+      "repaired_value": "PNC"
+    }
+  ],
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "stp_eligible": true,
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff ∧ R_det ∧ R_uniq ∧ V_det ∧ V_auth ∧ P_bank ∧ C_comp ∧ X_pre).",
+  "predicate_breakdown": {
+    "e_suff": true,
+    "r_det": true,
+    "r_uniq": true,
+    "v_det": true,
+    "v_auth": true,
+    "p_bank": true,
+    "c_comp": true,
+    "x_pre": true,
+    "stp_formula_result": true
+  },
+  "ai_confidence_score": 0.98,
+  "hitl_required": false,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "execution_owner": "BANK",
+  "audit_event_id": "AUD-FB672C",
+  "audit_chain_block_hash": "a0a8d6681f4e203b3f5e604b958f2b80163352bfd58e4dbaf2453fbc412c6216",
+  "processing_latency_ms": 0.69,
+  "processed_at": "2026-10-15T19:23:45.871341Z",
+  "warnings": [],
+  "errors": []
+}

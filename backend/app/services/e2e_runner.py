@@ -59,6 +59,10 @@ from app.services.engines import (
     account_master_engine,
     routing_clearing_engine,
     remittance_document_engine,
+    settlement_reconciliation_engine,
+    compliance_dossier_engine,
+    treasury_exposure_engine,
+    wave4_resolution_engine,
 )
 
 
@@ -111,13 +115,15 @@ class E2EExecutionHarness:
             e2e_input = CanonicalE2EInput(**raw_dict)
         elif isinstance(input_data, dict):
             e2e_input = CanonicalE2EInput(**input_data)
+        elif isinstance(input_data, CanonicalE2EInput):
+            e2e_input = input_data
         else:
             raise TypeError(f"Unsupported input type: {type(input_data)}")
 
         case_id = e2e_input.exception_id
         pmt = e2e_input.payment_info
         profile = (e2e_input.profile_id or "UNKNOWN").upper()
-        domain = e2e_input.domain or ("DATA_QUALITY" if "DQ" in profile else ("PROCESSING" if "PR" in profile else ("COMPLIANCE" if "CO" in profile else "SETTLEMENT_RETURNS")))
+        domain = e2e_input.domain or ("DATA_QUALITY" if "DQ" in profile else ("PROCESSING" if "PR" in profile else ("COMPLIANCE" if "CO" in profile else ("CLIENT_TREASURY" if "TR" in profile else "SETTLEMENT_RETURNS"))))
         
         # Start Observability Trace
         trace = self.observability_port.start_trace(case_id, pmt.uetr)
@@ -408,6 +414,288 @@ class E2EExecutionHarness:
                 resolution_rec = {"action": "POPULATE_REGULATORY_REPORTING", **struct_data}
             resolution_basis = "; ".join(diff_log) if diff_log else (err or "Evaluated CO-07")
 
+        # === WAVE 2 PROFILES ===
+        elif profile == "PR-06":
+            # Intermediary Bank Rejection
+            pol_thresholds = active_policy.w2_policy_thresholds if active_policy else None
+            status, uniq, cand, diff_log, err = settlement_reconciliation_engine.resolve_pr06_intermediary_rejection(
+                uetr=pmt.uetr,
+                payment_id=pmt.payment_id,
+                amount=pmt.amount,
+                currency=pmt.currency,
+                debtor_agent_bic=pmt.debtor_agent_bic or "BNPAFRPPXXX",
+                creditor_agent_bic=pmt.creditor_agent_bic or "DEUTDEDDXXX",
+                original_intermediary_bic=evidence_ctx.get("original_intermediary_bic") or "BNPAFRPPXXX",
+                clearing_rail=pmt.clearing_rail,
+                policy_thresholds=pol_thresholds,
+                evidence_context=evidence_ctx
+            )
+            r_det = (status.value == "RESOLUTION_DETERMINED")
+            r_uniq = (uniq.value == "RESOLUTION_UNIQUE")
+            v_det = bool(r_det and cand is not None)
+            if cand:
+                struct_data = cand.repaired_structured or {}
+                if "intermediary_agent_bic" in struct_data:
+                    repaired_fields = [{"field_path": "intermediary_agent.bic", "repaired_value": struct_data.get("intermediary_agent_bic")}]
+                elif "return_reason_code" in struct_data:
+                    repaired_fields = [{"field_path": "settlement_return.reason", "repaired_value": struct_data.get("return_reason_code")}]
+                resolution_rec = struct_data
+            resolution_basis = "; ".join(diff_log) if diff_log else (err or "Evaluated PR-06")
+
+        elif profile == "ST-02":
+            # Account Closed
+            pol_thresholds = active_policy.w2_policy_thresholds if active_policy else None
+            status, uniq, cand, diff_log, err = account_master_engine.resolve_st02_account_closed(
+                account_number=pmt.creditor_account or "",
+                uetr=pmt.uetr,
+                payment_id=pmt.payment_id,
+                amount=pmt.amount,
+                currency=pmt.currency,
+                clearing_rail=pmt.clearing_rail,
+                policy_thresholds=pol_thresholds,
+                evidence_context=evidence_ctx
+            )
+            r_det = (status.value == "RESOLUTION_DETERMINED")
+            r_uniq = (uniq.value == "RESOLUTION_UNIQUE")
+            v_det = bool(r_det and cand is not None)
+            if cand:
+                struct_data = cand.repaired_structured or {}
+                if "return_reason_code" in struct_data:
+                    repaired_fields = [{"field_path": "settlement_return.reason", "repaired_value": struct_data.get("return_reason_code")}]
+                elif "successor_account_number" in struct_data:
+                    repaired_fields = [{"field_path": "creditor_account.account_number", "repaired_value": struct_data.get("successor_account_number")}]
+                resolution_rec = struct_data
+            resolution_basis = "; ".join(diff_log) if diff_log else (err or "Evaluated ST-02")
+
+        elif profile == "ST-03":
+            # Beneficiary Account Frozen
+            pol_thresholds = active_policy.w2_policy_thresholds if active_policy else None
+            status, uniq, cand, diff_log, err = account_master_engine.resolve_st03_account_frozen(
+                account_number=pmt.creditor_account or "",
+                uetr=pmt.uetr,
+                payment_id=pmt.payment_id,
+                amount=pmt.amount,
+                currency=pmt.currency,
+                clearing_rail=pmt.clearing_rail,
+                policy_thresholds=pol_thresholds,
+                evidence_context=evidence_ctx
+            )
+            r_det = (status.value == "RESOLUTION_DETERMINED")
+            r_uniq = (uniq.value == "RESOLUTION_UNIQUE")
+            v_det = bool(r_det and cand is not None)
+            if cand:
+                struct_data = cand.repaired_structured or {}
+                if "return_reason_code" in struct_data:
+                    repaired_fields = [{"field_path": "settlement_return.reason", "repaired_value": struct_data.get("return_reason_code")}]
+                elif "suspense_gl_account" in struct_data:
+                    repaired_fields = [{"field_path": "general_ledger.suspense_account", "repaired_value": struct_data.get("suspense_gl_account")}]
+                resolution_rec = struct_data
+            resolution_basis = "; ".join(diff_log) if diff_log else (err or "Evaluated ST-03")
+
+        # === WAVE 3 PROFILES ===
+        elif profile == "TR-02":
+            # Insufficient Funds
+            pol_thresholds = active_policy.w3_policy_thresholds if active_policy else None
+            status, uniq, cand, diff_log, err = treasury_exposure_engine.resolve_tr02_insufficient_funds(
+                account_number=pmt.debtor_account or evidence_ctx.get("debtor_account") or "ACCT-CORP-USD-001",
+                instructed_amount=pmt.amount,
+                currency=pmt.currency,
+                policy_thresholds=pol_thresholds,
+                evidence_context=evidence_ctx
+            )
+            r_det = (status.value == "RESOLUTION_DETERMINED")
+            r_uniq = (uniq.value == "RESOLUTION_UNIQUE")
+            v_det = not bool(evidence_ctx.get("deterministic_validation_failed", False) or evidence_ctx.get("syntax_validation_failed", False))
+            if cand:
+                struct_data = cand.repaired_structured or {}
+                if "reservation_id" in struct_data:
+                    repaired_fields = [{"field_path": "treasury.reservation_id", "repaired_value": struct_data.get("reservation_id")}]
+                elif "pacing_schedule" in struct_data:
+                    repaired_fields = [{"field_path": "treasury.pacing_schedule", "repaired_value": struct_data.get("pacing_schedule")}]
+                resolution_rec = struct_data
+            resolution_basis = "; ".join(diff_log) if diff_log else (err or "Evaluated TR-02")
+
+        elif profile == "TR-03":
+            # Nostro Shortfall
+            pol_thresholds = active_policy.w3_policy_thresholds if active_policy else None
+            nostro_bic = evidence_ctx.get("nostro_bic") or pmt.creditor_agent_bic or "BNPAFRPPXXX"
+            status, uniq, cand, diff_log, err = treasury_exposure_engine.resolve_tr03_nostro_shortfall(
+                nostro_bic=nostro_bic,
+                instructed_amount=pmt.amount,
+                currency=pmt.currency,
+                policy_thresholds=pol_thresholds,
+                evidence_context=evidence_ctx
+            )
+            r_det = (status.value == "RESOLUTION_DETERMINED")
+            r_uniq = (uniq.value == "RESOLUTION_UNIQUE")
+            v_det = not bool(evidence_ctx.get("deterministic_validation_failed", False) or evidence_ctx.get("syntax_validation_failed", False))
+            if cand:
+                struct_data = cand.repaired_structured or {}
+                if "rebalancing_candidate" in struct_data:
+                    repaired_fields = [{"field_path": "treasury.nostro_rebalancing", "repaired_value": struct_data.get("rebalancing_candidate")}]
+                resolution_rec = struct_data
+            resolution_basis = "; ".join(diff_log) if diff_log else (err or "Evaluated TR-03")
+
+        elif profile == "TR-04":
+            # FX Rate Unavailable
+            pol_thresholds = active_policy.w3_policy_thresholds if active_policy else None
+            pair = evidence_ctx.get("currency_pair") or f"{pmt.currency}/USD"
+            settle_ccy = evidence_ctx.get("settlement_currency") or "USD"
+            status, uniq, cand, diff_log, err = treasury_exposure_engine.resolve_tr04_fx_rate_unavailable(
+                currency_pair=pair,
+                instructed_amount=pmt.amount,
+                instructed_currency=pmt.currency,
+                settlement_currency=settle_ccy,
+                policy_thresholds=pol_thresholds,
+                evidence_context=evidence_ctx
+            )
+            r_det = (status.value == "RESOLUTION_DETERMINED")
+            r_uniq = (uniq.value == "RESOLUTION_UNIQUE")
+            v_det = not bool(evidence_ctx.get("deterministic_validation_failed", False) or evidence_ctx.get("syntax_validation_failed", False))
+            if cand:
+                struct_data = cand.repaired_structured or {}
+                repaired_fields = [
+                    {"field_path": "payment.fx_applied_rate", "repaired_value": struct_data.get("applied_rate")},
+                    {"field_path": "payment.settlement_amount", "repaired_value": struct_data.get("settlement_amount")}
+                ]
+                resolution_rec = struct_data
+            resolution_basis = "; ".join(diff_log) if diff_log else (err or "Evaluated TR-04")
+
+        elif profile == "TR-06":
+            # Limit Breach
+            pol_thresholds = active_policy.w3_policy_thresholds if active_policy else None
+            lim_id = evidence_ctx.get("limit_id") or "LIM-DAILY-CORP-01"
+            cli_id = evidence_ctx.get("client_id") or pmt.debtor_name or "CLI-CORP-001"
+            acct = pmt.debtor_account or "ACCT-CORP-USD-001"
+            status, uniq, cand, diff_log, err = treasury_exposure_engine.resolve_tr06_limit_breach(
+                limit_id=lim_id,
+                client_id=cli_id,
+                account_number=acct,
+                instructed_amount=pmt.amount,
+                currency=pmt.currency,
+                policy_thresholds=pol_thresholds,
+                evidence_context=evidence_ctx
+            )
+            r_det = (status.value == "RESOLUTION_DETERMINED")
+            r_uniq = (uniq.value == "RESOLUTION_UNIQUE")
+            v_det = not bool(evidence_ctx.get("deterministic_validation_failed", False) or evidence_ctx.get("syntax_validation_failed", False))
+            if cand:
+                struct_data = cand.repaired_structured or {}
+                if "pacing_schedule" in struct_data:
+                    repaired_fields = [{"field_path": "treasury.limit_pacing", "repaired_value": struct_data.get("pacing_schedule")}]
+                elif "dossier_id" in struct_data:
+                    repaired_fields = [{"field_path": "compliance.waiver_dossier_id", "repaired_value": struct_data.get("dossier_id")}]
+                resolution_rec = struct_data
+            resolution_basis = "; ".join(diff_log) if diff_log else (err or "Evaluated TR-06")
+
+        elif profile == "TR-07":
+            # Liquidity Constraint
+            pol_thresholds = active_policy.w3_policy_thresholds if active_policy else None
+            clr_ctx = evidence_ctx.get("clearing_context") or pmt.clearing_rail or "FEDWIRE"
+            status, uniq, cand, diff_log, err = treasury_exposure_engine.resolve_tr07_liquidity_constraint(
+                clearing_context=clr_ctx,
+                instructed_amount=pmt.amount,
+                currency=pmt.currency,
+                policy_thresholds=pol_thresholds,
+                evidence_context=evidence_ctx
+            )
+            r_det = (status.value == "RESOLUTION_DETERMINED")
+            r_uniq = (uniq.value == "RESOLUTION_UNIQUE")
+            v_det = not bool(evidence_ctx.get("deterministic_validation_failed", False) or evidence_ctx.get("syntax_validation_failed", False))
+            if cand:
+                struct_data = cand.repaired_structured or {}
+                if "pacing_schedule" in struct_data:
+                    repaired_fields = [{"field_path": "treasury.liquidity_pacing", "repaired_value": struct_data.get("pacing_schedule")}]
+                resolution_rec = struct_data
+            resolution_basis = "; ".join(diff_log) if diff_log else (err or "Evaluated TR-07")
+
+        elif profile == "TR-08":
+            # Credit Exposure Breach (Autonomous STP strictly prohibited)
+            pol_thresholds = active_policy.w3_policy_thresholds if active_policy else None
+            cpty_id = evidence_ctx.get("counterparty_id") or pmt.debtor_name or "CPTY-CORP-ALPHA"
+            fac_id = evidence_ctx.get("facility_id") or "FAC-ALPHA-01"
+            status, uniq, cand, diff_log, err = treasury_exposure_engine.resolve_tr08_credit_exposure_breach(
+                counterparty_id=cpty_id,
+                instructed_amount=pmt.amount,
+                currency=pmt.currency,
+                facility_id=fac_id,
+                policy_thresholds=pol_thresholds,
+                evidence_context=evidence_ctx
+            )
+            r_det = (status.value == "RESOLUTION_DETERMINED")
+            r_uniq = (uniq.value == "RESOLUTION_UNIQUE")
+            v_det = not bool(evidence_ctx.get("deterministic_validation_failed", False) or evidence_ctx.get("syntax_validation_failed", False))
+            if cand:
+                struct_data = cand.repaired_structured or {}
+                repaired_fields = [{"field_path": "compliance.credit_dossier_id", "repaired_value": struct_data.get("dossier_id")}]
+                resolution_rec = struct_data
+            resolution_basis = "; ".join(diff_log) if diff_log else (err or "Evaluated TR-08")
+
+        # === WAVE 4 PROFILES ===
+        elif profile == "TR-01":
+            # KYC Expired (SOP-302 Provisional Waiver Evaluation)
+            pol_thresholds = active_policy.w4_policy_thresholds if active_policy else None
+            cli_id = evidence_ctx.get("client_id") or pmt.debtor_name or "CLI-CORP-001"
+            status, uniq, cand, diff_log, err = wave4_resolution_engine.resolve_tr01_kyc_expired(
+                client_id=cli_id,
+                amount=pmt.amount,
+                currency=pmt.currency,
+                policy_thresholds=pol_thresholds,
+                evidence_context=evidence_ctx
+            )
+            r_det = (status.value == "RESOLUTION_DETERMINED")
+            r_uniq = (uniq.value == "RESOLUTION_UNIQUE")
+            v_det = not bool(evidence_ctx.get("deterministic_validation_failed", False) or evidence_ctx.get("syntax_validation_failed", False))
+            if cand:
+                struct_data = cand.repaired_structured or {}
+                repaired_fields = [{"field_path": "customer_kyc.provisional_status", "repaired_value": struct_data.get("provisional_status")}]
+                resolution_rec = struct_data
+            resolution_basis = "; ".join(diff_log) if diff_log else (err or "Evaluated TR-01")
+
+        elif profile == "TR-05":
+            # Authorization Missing (Corporate Dual-Signatory Mandate)
+            pol_thresholds = active_policy.w4_policy_thresholds if active_policy else None
+            acct = pmt.debtor_account or "ACCT-CORP-USD-001"
+            sec_sig = evidence_ctx.get("secondary_signatory_id")
+            status, uniq, cand, diff_log, err = wave4_resolution_engine.resolve_tr05_authorization_missing(
+                debtor_account=acct,
+                amount=pmt.amount,
+                currency=pmt.currency,
+                primary_signatory_id=evidence_ctx.get("primary_signatory_id"),
+                secondary_signatory_id=sec_sig,
+                policy_thresholds=pol_thresholds,
+                evidence_context=evidence_ctx
+            )
+            r_det = (status.value == "RESOLUTION_DETERMINED")
+            r_uniq = (uniq.value == "RESOLUTION_UNIQUE")
+            v_det = not bool(evidence_ctx.get("deterministic_validation_failed", False) or evidence_ctx.get("syntax_validation_failed", False))
+            if cand:
+                struct_data = cand.repaired_structured or {}
+                repaired_fields = [{"field_path": "mandate_authorization.status", "repaired_value": struct_data.get("authorization_status")}]
+                resolution_rec = struct_data
+            resolution_basis = "; ".join(diff_log) if diff_log else (err or "Evaluated TR-05")
+
+        elif profile == "ST-06":
+            # Funds Trapped at Correspondent (Group 4 Transit Break - zero autonomous STP)
+            pol_thresholds = active_policy.w4_policy_thresholds if active_policy else None
+            inter_bic = evidence_ctx.get("intermediary_bic")
+            status, uniq, cand, diff_log, err = wave4_resolution_engine.resolve_st06_funds_trapped(
+                uetr=pmt.uetr,
+                amount=pmt.amount,
+                currency=pmt.currency,
+                intermediary_bic=inter_bic,
+                policy_thresholds=pol_thresholds,
+                evidence_context=evidence_ctx
+            )
+            r_det = (status.value == "RESOLUTION_DETERMINED")
+            r_uniq = (uniq.value == "RESOLUTION_UNIQUE")
+            v_det = not bool(evidence_ctx.get("deterministic_validation_failed", False) or evidence_ctx.get("syntax_validation_failed", False))
+            if cand:
+                struct_data = cand.repaired_structured or {}
+                repaired_fields = [{"field_path": "transit_investigation.status", "repaired_value": struct_data.get("status")}]
+                resolution_rec = struct_data
+            resolution_basis = "; ".join(diff_log) if diff_log else (err or "Evaluated ST-06")
+
         else:
             resolution_basis = f"Profile {profile} evaluated under standard rules."
             r_det = True
@@ -415,11 +703,15 @@ class E2EExecutionHarness:
             v_det = True
 
         # 4. Contextual Authority Validation (V_auth)
-        q_domain = QuestionDomain.ACCOUNT_OWNERSHIP_BALANCE if "DQ" in profile else (
-            QuestionDomain.QUEUE_PROCESSING_STATE if profile in ["PR-08", "PR-07", "PR-09"] else (
-                QuestionDomain.LEGAL_PROHIBITION if "CO" in profile else QuestionDomain.CLEARING_SETTLEMENT_STATUS
-            )
-        )
+        if "DQ" in profile or profile in ["ST-02", "ST-03", "TR-01", "TR-02", "TR-03", "TR-05", "TR-06", "TR-08"]:
+            q_domain = QuestionDomain.ACCOUNT_OWNERSHIP_BALANCE
+        elif profile in ["PR-08", "PR-07", "PR-09", "TR-07"]:
+            q_domain = QuestionDomain.QUEUE_PROCESSING_STATE
+        elif "CO" in profile:
+            q_domain = QuestionDomain.LEGAL_PROHIBITION
+        else:
+            q_domain = QuestionDomain.CLEARING_SETTLEMENT_STATUS
+
         auth_res = self.authority_port.resolve_authority(q_domain, evidence_ctx)
         v_auth = auth_res.is_valid_authority
             
@@ -443,8 +735,11 @@ class E2EExecutionHarness:
 
         # 7. Execution Preconditions (X_pre)
         # Verify idempotency lock acquisition
-        idemp_res = self.idempotency_port.acquire_lock(f"IDEMP-{case_id}", holder_id="PEX-E2E-ENGINE")
-        x_pre = (idemp_res.status.value in ["ACQUIRED", "ALREADY_EXECUTED"])
+        if evidence_ctx.get("idempotency_locked", False):
+            x_pre = False
+        else:
+            idemp_res = self.idempotency_port.acquire_lock(f"IDEMP-{case_id}", holder_id="PEX-E2E-ENGINE")
+            x_pre = (idemp_res.status.value in ["ACQUIRED", "ALREADY_EXECUTED"])
 
         # 8. Canonical 8-Predicate Conjunction:
         stp_eligible = bool(e_suff and r_det and r_uniq and v_det and v_auth and p_bank and c_comp and x_pre)

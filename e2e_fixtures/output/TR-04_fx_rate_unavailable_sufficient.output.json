@@ -1,0 +1,69 @@
+{
+  "exception_id": "PEX-E2E-TR04-SUFF",
+  "detected_profile_id": "TR-04",
+  "domain": "CLIENT_TREASURY",
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+    "INBOUND_PAYMENT_TELEMETRY",
+    "CURRENCY_PAIR",
+    "SETTLEMENT_CURRENCY",
+    "OFFICIAL_FX_RATE_FEED",
+    "FX_SPREAD_POLICY_MATRIX",
+    "INWARD_PAYMENT_RECORD",
+    "APPLIED_RATE",
+    "SETTLEMENT_AMOUNT"
+  ],
+  "evidence_missing": [],
+  "evidence_contradictions": [],
+  "resolution_status": "RESOLVED",
+  "resolution_recommendation": {
+    "booking_id": "FXBOOK-3937BE83",
+    "currency_pair": "EUR/USD",
+    "applied_rate": 1.085,
+    "instructed_amount": 7500.0,
+    "instructed_currency": "EUR",
+    "settlement_amount": 8137.5,
+    "settlement_currency": "USD",
+    "quote_timestamp": "2026-10-15T19:24:04.608985Z",
+    "execution_owner": "BANK"
+  },
+  "resolution_basis": "Successfully booked rate 1.0850 for EUR/USD. Settlement: 8,137.50 USD.",
+  "repaired_fields": [
+    {
+      "field_path": "payment.fx_applied_rate",
+      "repaired_value": 1.085
+    },
+    {
+      "field_path": "payment.settlement_amount",
+      "repaired_value": 8137.5
+    }
+  ],
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "stp_eligible": true,
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff ∧ R_det ∧ R_uniq ∧ V_det ∧ V_auth ∧ P_bank ∧ C_comp ∧ X_pre).",
+  "predicate_breakdown": {
+    "e_suff": true,
+    "r_det": true,
+    "r_uniq": true,
+    "v_det": true,
+    "v_auth": true,
+    "p_bank": true,
+    "c_comp": true,
+    "x_pre": true,
+    "stp_formula_result": true
+  },
+  "ai_confidence_score": 0.98,
+  "hitl_required": false,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "execution_owner": "BANK",
+  "audit_event_id": "AUD-9A3230",
+  "audit_chain_block_hash": "a786f41c4d162c9a178f337399fbc5985192ff88ebe2bf91566ff064e03e748a",
+  "processing_latency_ms": 0.69,
+  "processed_at": "2026-10-15T19:24:04.608985Z",
+  "warnings": [],
+  "errors": []
+}

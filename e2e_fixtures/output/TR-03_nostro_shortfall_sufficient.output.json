@@ -1,0 +1,53 @@
+{
+  "exception_id": "PEX-E2E-TR03-SUFF",
+  "detected_profile_id": "TR-03",
+  "domain": "CLIENT_TREASURY",
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+    "INBOUND_PAYMENT_TELEMETRY",
+    "NOSTRO_BIC",
+    "NOSTRO_POSITION_STATEMENT",
+    "PENDING_CORRESPONDENT_CREDITS",
+    "RESOLUTION_ACTION"
+  ],
+  "evidence_missing": [],
+  "evidence_contradictions": [],
+  "resolution_status": "RESOLVED",
+  "resolution_recommendation": {
+    "nostro_bic": "BNPAFRPPXXX",
+    "instructed_amount": 8000.0,
+    "currency": "EUR",
+    "resolution_action": "NOSTRO_POSITION_VERIFIED_RELEASE",
+    "execution_owner": "BANK"
+  },
+  "resolution_basis": "Nostro position for BNPAFRPPXXX is sufficient (50,000.00 EUR >= 8,000.00 EUR).",
+  "repaired_fields": [],
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "stp_eligible": true,
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff ∧ R_det ∧ R_uniq ∧ V_det ∧ V_auth ∧ P_bank ∧ C_comp ∧ X_pre).",
+  "predicate_breakdown": {
+    "e_suff": true,
+    "r_det": true,
+    "r_uniq": true,
+    "v_det": true,
+    "v_auth": true,
+    "p_bank": true,
+    "c_comp": true,
+    "x_pre": true,
+    "stp_formula_result": true
+  },
+  "ai_confidence_score": 0.98,
+  "hitl_required": false,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "execution_owner": "BANK",
+  "audit_event_id": "AUD-0DF92B",
+  "audit_chain_block_hash": "e00003f902a75791342d28c5aa6902d270d9724d1e396d8bd51d786551dbade8",
+  "processing_latency_ms": 0.68,
+  "processed_at": "2026-10-15T19:24:03.967117Z",
+  "warnings": [],
+  "errors": []
+}

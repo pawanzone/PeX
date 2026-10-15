@@ -27,6 +27,16 @@ from .payment_hub_repair_queue_port import PaymentHubRepairQueuePort
 from .gateway_socket_probe_port import GatewaySocketProbePort
 from .remittance_document_port import RemittanceDocumentPort
 from .regulatory_directory_port import RegulatoryDirectoryPort
+from .correspondent_gateway_port import CorrespondentGatewayPort
+from .settlement_return_port import SettlementReturnPort
+from .legal_registry_port import LegalRegistryPort
+from .general_ledger_suspense_port import GeneralLedgerSuspensePort
+from .treasury_position_port import TreasuryPositionPort
+from .nostro_position_port import NostroPositionPort
+from .fx_pricing_port import FXPricingPort
+from .limit_management_port import LimitManagementPort
+from .credit_risk_port import CreditRiskPort
+from .liquidity_reserve_port import LiquidityReservePort
 
 __all__ = [
     "EvidencePackagePort",
@@ -51,5 +61,14 @@ __all__ = [
     "GatewaySocketProbePort",
     "RemittanceDocumentPort",
     "RegulatoryDirectoryPort",
+    "CorrespondentGatewayPort",
+    "SettlementReturnPort",
+    "LegalRegistryPort",
+    "GeneralLedgerSuspensePort",
+    "TreasuryPositionPort",
+    "NostroPositionPort",
+    "FXPricingPort",
+    "LimitManagementPort",
+    "CreditRiskPort",
+    "LiquidityReservePort",
 ]
-

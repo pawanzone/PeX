@@ -1,0 +1,50 @@
+{
+  "exception_id": "PEX-E2E-TR01-DIST",
+  "detected_profile_id": "TR-01",
+  "domain": "CLIENT_TREASURY",
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+    "INBOUND_PAYMENT_TELEMETRY",
+    "CLIENT_ID",
+    "CUSTOMER_KYC_RECORD",
+    "CORPORATE_STANDING_RECORD",
+    "RESOLUTION_ACTION"
+  ],
+  "evidence_missing": [],
+  "evidence_contradictions": [],
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "resolution_recommendation": null,
+  "resolution_basis": "Client CLI-DISTRESSED-02 has an active SAR or regulatory query on file. Provisional waiver strictly prohibited.",
+  "repaired_fields": [],
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_policy_status": "POLICY_BLOCKED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "stp_eligible": false,
+  "stp_decision_reason": "Deterministic resolution could not be derived.; Bank policy disallows autonomous STP: ['Amount ($85,000.00) exceeds fast-lane batch threshold ($25,000.00).']",
+  "predicate_breakdown": {
+    "e_suff": true,
+    "r_det": false,
+    "r_uniq": true,
+    "v_det": true,
+    "v_auth": true,
+    "p_bank": false,
+    "c_comp": true,
+    "x_pre": true,
+    "stp_formula_result": false
+  },
+  "ai_confidence_score": 0.5,
+  "hitl_required": true,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "execution_owner": "BANK",
+  "audit_event_id": "AUD-6A0023",
+  "audit_chain_block_hash": "50c228f8297f1948df31f8eb1adc91a1b1d28a257b8c52a6c190648a3e8aa1e5",
+  "processing_latency_ms": 0.61,
+  "processed_at": "2026-10-15T19:24:26.072412Z",
+  "warnings": [],
+  "errors": [
+    "Deterministic resolution could not be derived.",
+    "Bank policy disallows autonomous STP: ['Amount ($85,000.00) exceeds fast-lane batch threshold ($25,000.00).']"
+  ]
+}

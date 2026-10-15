@@ -1,0 +1,52 @@
+{
+  "exception_id": "PEX-E2E-TR04-STALE",
+  "profile_id": "TR-04",
+  "domain": "CLIENT_TREASURY",
+  "error_code": "ERR_FX_RATE_UNAVAILABLE",
+  "error_message": "FX pricing feed returned stale rate quote exceeding bank freshness tolerance.",
+  "payment_info": {
+    "payment_id": "PMT-2026-TR04-002",
+    "uetr": "UETR-TR04-STALE-0002-B1",
+    "amount": 15000.00,
+    "currency": "JPY",
+    "clearing_rail": "SWIFT_CBPR+",
+    "value_date": "2026-10-08",
+    "debtor_name": "Tokyo Trade Corp",
+    "debtor_account": "ACCT-CORP-USD-001",
+    "debtor_agent_bic": "BOTKJPJTXXX",
+    "creditor_name": "Global Tech Importers",
+    "creditor_account": "55667788",
+    "creditor_agent_bic": "CHASUS33XXX",
+    "remittance_info": "YEN CONVERSION TO USD"
+  },
+  "bank_supplied_evidence": {
+    "currency_pair": "USD/JPY",
+    "settlement_currency": "USD",
+    "official_fx_rate_feed": {
+      "currency_pair": "USD/JPY",
+      "base_currency": "USD",
+      "quote_currency": "JPY",
+      "mid_rate": 155.20,
+      "is_live": false,
+      "is_authoritative": false,
+      "quote_source": "OFFICIAL_FX_PRICING_ENGINE"
+    },
+    "fx_spread_policy_matrix": {
+      "currency_pair": "USD/JPY",
+      "max_rate_age_seconds": 60.0,
+      "max_spread_tolerance_bps": 50.0,
+      "allow_auto_booking": true
+    },
+    "inward_payment_record": {
+      "payment_id": "PMT-2026-TR04-002",
+      "amount": 15000.00,
+      "currency": "JPY"
+    }
+  },
+  "external_authoritative_evidence": {},
+  "derived_evidence": {
+    "rate_stale": true
+  },
+  "evidence_provenance": "SYNTHETIC_TEST_FIXTURE",
+  "test_status": "TEST_ONLY"
+}

@@ -1,0 +1,59 @@
+{
+  "exception_id": "PEX-E2E-TR02-SUFF",
+  "detected_profile_id": "TR-02",
+  "domain": "CLIENT_TREASURY",
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+    "INBOUND_PAYMENT_TELEMETRY",
+    "DEBTOR_ACCOUNT",
+    "CORE_DDA_BALANCE_RECORD",
+    "INTRADAY_RESERVATION_SCHEDULE",
+    "RESOLUTION_ACTION"
+  ],
+  "evidence_missing": [],
+  "evidence_contradictions": [],
+  "resolution_status": "RESOLVED",
+  "resolution_recommendation": {
+    "account_number": "ACCT-CORP-USD-001",
+    "instructed_amount": 5000.0,
+    "currency": "USD",
+    "reservation_id": "RES-D8264626",
+    "resolution_action": "FUNDS_RESERVED_RELEASE_PAYMENT",
+    "execution_owner": "BANK"
+  },
+  "resolution_basis": "Account ACCT-CORP-USD-001 has sufficient available balance ($450,000.00 >= $5,000.00).",
+  "repaired_fields": [
+    {
+      "field_path": "treasury.reservation_id",
+      "repaired_value": "RES-D8264626"
+    }
+  ],
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "stp_eligible": true,
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff ∧ R_det ∧ R_uniq ∧ V_det ∧ V_auth ∧ P_bank ∧ C_comp ∧ X_pre).",
+  "predicate_breakdown": {
+    "e_suff": true,
+    "r_det": true,
+    "r_uniq": true,
+    "v_det": true,
+    "v_auth": true,
+    "p_bank": true,
+    "c_comp": true,
+    "x_pre": true,
+    "stp_formula_result": true
+  },
+  "ai_confidence_score": 0.98,
+  "hitl_required": false,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "execution_owner": "BANK",
+  "audit_event_id": "AUD-08FC22",
+  "audit_chain_block_hash": "bdad1d31c3c14e4521726c2a25f9e08a115619f4f7dfc71be7b3f7d2f8170f17",
+  "processing_latency_ms": 0.78,
+  "processed_at": "2026-10-15T19:24:03.348938Z",
+  "warnings": [],
+  "errors": []
+}

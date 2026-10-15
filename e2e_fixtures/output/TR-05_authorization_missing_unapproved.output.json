@@ -1,0 +1,52 @@
+{
+  "exception_id": "PEX-E2E-TR05-UNAPP",
+  "detected_profile_id": "TR-05",
+  "domain": "CLIENT_TREASURY",
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+    "INBOUND_PAYMENT_TELEMETRY",
+    "DEBTOR_ACCOUNT",
+    "SECONDARY_SIGNATORY_ID",
+    "CORPORATE_MANDATE_RECORD",
+    "SECONDARY_SIGNATORY_RECORD",
+    "PORTAL_CALLBACK_RECORD",
+    "RESOLUTION_ACTION"
+  ],
+  "evidence_missing": [],
+  "evidence_contradictions": [],
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "resolution_recommendation": null,
+  "resolution_basis": "Secondary signature status is PENDING. Dual authorization incomplete.",
+  "repaired_fields": [],
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_policy_status": "POLICY_BLOCKED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "stp_eligible": false,
+  "stp_decision_reason": "Deterministic resolution could not be derived.; Bank policy disallows autonomous STP: ['High-value amount ($350,000.00) exceeds dual-auth threshold ($250,000.00).']",
+  "predicate_breakdown": {
+    "e_suff": true,
+    "r_det": false,
+    "r_uniq": true,
+    "v_det": true,
+    "v_auth": true,
+    "p_bank": false,
+    "c_comp": true,
+    "x_pre": true,
+    "stp_formula_result": false
+  },
+  "ai_confidence_score": 0.5,
+  "hitl_required": true,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "execution_owner": "BANK",
+  "audit_event_id": "AUD-143BBF",
+  "audit_chain_block_hash": "faec3f19c60a0b064b579a47374b586b8f5775c21f63badc271a545d7debb69d",
+  "processing_latency_ms": 0.76,
+  "processed_at": "2026-10-15T19:24:26.934637Z",
+  "warnings": [],
+  "errors": [
+    "Deterministic resolution could not be derived.",
+    "Bank policy disallows autonomous STP: ['High-value amount ($350,000.00) exceeds dual-auth threshold ($250,000.00).']"
+  ]
+}

@@ -68,6 +68,29 @@ class InMemoryAccountMasterAdapter(AccountMasterPort):
                 postal_address={"street": "Werner-von-Siemens-Strasse 1", "city": "Munich", "postal_code": "80333", "country": "DE"},
                 tax_identifier="DE112233445"
             ),
+            "99887700": AccountMasterRecord(
+                account_number="99887700",
+                account_title="PACIFIC RIM TRADING CORP",
+                account_status="CLOSED",
+                currency="USD",
+                bank_id_or_bic="CHASUS33XXX",
+                country="US",
+                entity_legal_name="PACIFIC RIM TRADING CORP",
+                postal_address={"street": "500 Howard St", "city": "San Francisco", "postal_code": "94105", "country": "US"},
+                tax_identifier="US-94-1234567"
+            ),
+            "33445566": AccountMasterRecord(
+                account_number="33445566",
+                account_title="METRO PROPERTIES HOLDING LLC",
+                account_status="FROZEN",
+                is_frozen=True,
+                currency="USD",
+                bank_id_or_bic="CHASUS33XXX",
+                country="US",
+                entity_legal_name="METRO PROPERTIES HOLDING LLC",
+                postal_address={"street": "200 Park Ave", "city": "New York", "postal_code": "10166", "country": "US"},
+                tax_identifier="US-13-1122334"
+            ),
         }
 
         self._beneficiaries: Dict[str, BeneficiaryProfileRecord] = beneficiaries or {

@@ -1,0 +1,57 @@
+{
+  "exception_id": "PEX-E2E-ST02-SUFF",
+  "profile_id": "ST-02",
+  "domain": "SETTLEMENT_RETURNS",
+  "error_code": "ERR_ACCOUNT_CLOSED",
+  "error_message": "Inbound credit wire targets creditor account verified as CLOSED / TERMINATED in Core Banking DDA.",
+  "payment_info": {
+    "payment_id": "PMT-2026-ST02-001",
+    "uetr": "UETR-ST02-SUFF-0001-A1",
+    "amount": 12400.00,
+    "currency": "USD",
+    "clearing_rail": "FEDWIRE",
+    "value_date": "2026-10-08",
+    "debtor_name": "Pacific Rim Trading",
+    "debtor_account": "US99PACIFIC12345678",
+    "debtor_agent_bic": "CHASUS33XXX",
+    "creditor_name": "Pacific Rim Trading Corp",
+    "creditor_account": "99887700",
+    "creditor_agent_bic": "CHASUS33XXX",
+    "remittance_info": "DIVIDEND DISTRIBUTION Q3"
+  },
+  "bank_supplied_evidence": {
+    "core_dda_account_status": {
+      "account_number": "99887700",
+      "account_title": "PACIFIC RIM TRADING CORP",
+      "account_status": "CLOSED",
+      "closed_date": "2026-01-15",
+      "currency": "USD"
+    },
+    "inward_payment_record": {
+      "payment_id": "PMT-2026-ST02-001",
+      "uetr": "UETR-ST02-SUFF-0001-A1",
+      "amount": 12400.00,
+      "currency": "USD",
+      "rail": "FEDWIRE"
+    },
+    "clearing_return_schedule": {
+      "clearing_rail": "FEDWIRE",
+      "return_sla_hours": 24,
+      "max_return_amount": 100000.00,
+      "status": "ACTIVE"
+    }
+  },
+  "external_authoritative_evidence": {
+    "core_dda_signed_closed_status": {
+      "account_number": "99887700",
+      "status": "CLOSED",
+      "authority": "CORE_DDA_MASTER_SPI"
+    }
+  },
+  "derived_evidence": {
+    "target_disposition": "GOVERNED_RETURN_TO_ORDERING_INSTITUTION",
+    "return_code": "AC04"
+  },
+  "evidence_provenance": "SYNTHETIC_TEST_FIXTURE",
+  "test_status": "TEST_ONLY"
+}

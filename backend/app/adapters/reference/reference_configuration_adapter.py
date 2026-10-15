@@ -447,6 +447,441 @@ class InMemoryConfigurationAdapter(ConfigurationSchemaPort):
                         acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR]
                     )
                 ]
+            ),
+            # PR-06: Intermediary Bank Rejection
+            BankEvidenceRequiredConfig(
+                tenant_id="DEFAULT_BANK",
+                profile_id="PR-06",
+                config_version="1.0.0",
+                rules=[
+                    EvidenceRuleDefinition(
+                        rule_id="R-PR06-01",
+                        evidence_type="INWARD_REJECTION_ADVICE",
+                        mandatory=True,
+                        min_trust_tier=TrustTier.TIER_1_CORE_RECORD,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR, EvidenceAcquisitionMode.MODE_3_BANK_PUSH]
+                    ),
+                    EvidenceRuleDefinition(
+                        rule_id="R-PR06-02",
+                        evidence_type="OUTBOUND_PAYMENT_RECORD",
+                        mandatory=True,
+                        min_trust_tier=TrustTier.TIER_1_CORE_RECORD,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR]
+                    ),
+                    EvidenceRuleDefinition(
+                        rule_id="R-PR06-03",
+                        evidence_type="CORRESPONDENT_SSI_DIRECTORY",
+                        mandatory=True,
+                        min_trust_tier=TrustTier.TIER_2_REGULATORY_SCHEME,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR]
+                    ),
+                    EvidenceRuleDefinition(
+                        rule_id="R-PR06-04",
+                        evidence_type="RAIL_CUTOFF_SCHEDULE",
+                        mandatory=True,
+                        min_trust_tier=TrustTier.TIER_2_REGULATORY_SCHEME,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR]
+                    )
+                ],
+                hitl_config=HitlWorkflowConfig(
+                    enabled=True,
+                    target_role="CLEARING_OPERATIONS_ANALYST",
+                    fields=[
+                        HitlFieldDefinition(field_id="verified_alternate_intermediary_bic", label="Verified Alternate Intermediary BIC", field_type=HitlFieldType.BIC, required=False),
+                        HitlFieldDefinition(field_id="operator_rejection_notes", label="Analyst Investigation Notes", field_type=HitlFieldType.TEXT, required=False)
+                    ]
+                )
+            ),
+            # ST-02: Account Closed
+            BankEvidenceRequiredConfig(
+                tenant_id="DEFAULT_BANK",
+                profile_id="ST-02",
+                config_version="1.0.0",
+                rules=[
+                    EvidenceRuleDefinition(
+                        rule_id="R-ST02-01",
+                        evidence_type="CORE_DDA_ACCOUNT_STATUS",
+                        mandatory=True,
+                        min_trust_tier=TrustTier.TIER_1_CORE_RECORD,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR, EvidenceAcquisitionMode.MODE_3_BANK_PUSH]
+                    ),
+                    EvidenceRuleDefinition(
+                        rule_id="R-ST02-02",
+                        evidence_type="INWARD_PAYMENT_RECORD",
+                        mandatory=True,
+                        min_trust_tier=TrustTier.TIER_1_CORE_RECORD,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR]
+                    ),
+                    EvidenceRuleDefinition(
+                        rule_id="R-ST02-03",
+                        evidence_type="CLEARING_RETURN_SCHEDULE",
+                        mandatory=True,
+                        min_trust_tier=TrustTier.TIER_2_REGULATORY_SCHEME,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR]
+                    )
+                ],
+                hitl_config=HitlWorkflowConfig(
+                    enabled=True,
+                    target_role="PAYMENT_OPERATOR",
+                    fields=[
+                        HitlFieldDefinition(field_id="closed_account_override_notes", label="Closed Account Review Notes", field_type=HitlFieldType.TEXT, required=False)
+                    ]
+                )
+            ),
+            # ST-03: Beneficiary Account Frozen
+            BankEvidenceRequiredConfig(
+                tenant_id="DEFAULT_BANK",
+                profile_id="ST-03",
+                config_version="1.0.0",
+                rules=[
+                    EvidenceRuleDefinition(
+                        rule_id="R-ST03-01",
+                        evidence_type="CORE_ACCOUNT_RESTRICTION_FLAG",
+                        mandatory=True,
+                        min_trust_tier=TrustTier.TIER_1_CORE_RECORD,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR, EvidenceAcquisitionMode.MODE_3_BANK_PUSH]
+                    ),
+                    EvidenceRuleDefinition(
+                        rule_id="R-ST03-02",
+                        evidence_type="LEGAL_FREEZE_DOSSIER",
+                        mandatory=True,
+                        min_trust_tier=TrustTier.TIER_1_CORE_RECORD,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR]
+                    ),
+                    EvidenceRuleDefinition(
+                        rule_id="R-ST03-03",
+                        evidence_type="INWARD_PAYMENT_RECORD",
+                        mandatory=True,
+                        min_trust_tier=TrustTier.TIER_1_CORE_RECORD,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR]
+                    ),
+                    EvidenceRuleDefinition(
+                        rule_id="R-ST03-04",
+                        evidence_type="SUSPENSE_LEDGER_MATRIX",
+                        mandatory=True,
+                        min_trust_tier=TrustTier.TIER_1_CORE_RECORD,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR]
+                    )
+                ],
+                hitl_config=HitlWorkflowConfig(
+                    enabled=True,
+                    target_role="COMPLIANCE_OPERATIONS_OFFICER",
+                    fields=[
+                        HitlFieldDefinition(field_id="legal_officer_review_notes", label="Legal Officer Adjudication Notes", field_type=HitlFieldType.TEXT, required=False)
+                    ]
+                )
+            ),
+            # TR-02: Insufficient Funds
+            BankEvidenceRequiredConfig(
+                tenant_id="DEFAULT_BANK",
+                profile_id="TR-02",
+                config_version="1.0.0",
+                rules=[
+                    EvidenceRuleDefinition(
+                        rule_id="R-TR02-01",
+                        evidence_type="CORE_DDA_BALANCE_RECORD",
+                        mandatory=True,
+                        min_trust_tier=TrustTier.TIER_1_CORE_RECORD,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR, EvidenceAcquisitionMode.MODE_3_BANK_PUSH]
+                    ),
+                    EvidenceRuleDefinition(
+                        rule_id="R-TR02-02",
+                        evidence_type="INTRADAY_RESERVATION_SCHEDULE",
+                        mandatory=True,
+                        min_trust_tier=TrustTier.TIER_1_CORE_RECORD,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR]
+                    ),
+                    EvidenceRuleDefinition(
+                        rule_id="R-TR02-03",
+                        evidence_type="CLEARING_PENDING_CREDITS",
+                        mandatory=False,
+                        min_trust_tier=TrustTier.TIER_2_REGULATORY_SCHEME,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR]
+                    )
+                ],
+                hitl_config=HitlWorkflowConfig(
+                    enabled=True,
+                    target_role="TREASURY_OPERATIONS_ANALYST",
+                    fields=[
+                        HitlFieldDefinition(field_id="treasury_pacing_override_notes", label="Treasury Pacing Override Notes", field_type=HitlFieldType.TEXT, required=False)
+                    ]
+                )
+            ),
+            # TR-03: Nostro Shortfall
+            BankEvidenceRequiredConfig(
+                tenant_id="DEFAULT_BANK",
+                profile_id="TR-03",
+                config_version="1.0.0",
+                rules=[
+                    EvidenceRuleDefinition(
+                        rule_id="R-TR03-01",
+                        evidence_type="NOSTRO_POSITION_STATEMENT",
+                        mandatory=True,
+                        min_trust_tier=TrustTier.TIER_1_CORE_RECORD,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR, EvidenceAcquisitionMode.MODE_3_BANK_PUSH]
+                    ),
+                    EvidenceRuleDefinition(
+                        rule_id="R-TR03-02",
+                        evidence_type="PENDING_CORRESPONDENT_CREDITS",
+                        mandatory=True,
+                        min_trust_tier=TrustTier.TIER_2_REGULATORY_SCHEME,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR]
+                    ),
+                    EvidenceRuleDefinition(
+                        rule_id="R-TR03-03",
+                        evidence_type="INTERBANK_SWEEP_FACILITY",
+                        mandatory=False,
+                        min_trust_tier=TrustTier.TIER_1_CORE_RECORD,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR]
+                    )
+                ],
+                hitl_config=HitlWorkflowConfig(
+                    enabled=True,
+                    target_role="TREASURY_OPERATIONS_ANALYST",
+                    fields=[
+                        HitlFieldDefinition(field_id="nostro_sweep_manual_override", label="Nostro Sweep Authorization Notes", field_type=HitlFieldType.TEXT, required=False)
+                    ]
+                )
+            ),
+            # TR-04: FX Rate Unavailable
+            BankEvidenceRequiredConfig(
+                tenant_id="DEFAULT_BANK",
+                profile_id="TR-04",
+                config_version="1.0.0",
+                rules=[
+                    EvidenceRuleDefinition(
+                        rule_id="R-TR04-01",
+                        evidence_type="OFFICIAL_FX_RATE_FEED",
+                        mandatory=True,
+                        min_trust_tier=TrustTier.TIER_2_REGULATORY_SCHEME,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR, EvidenceAcquisitionMode.MODE_3_BANK_PUSH]
+                    ),
+                    EvidenceRuleDefinition(
+                        rule_id="R-TR04-02",
+                        evidence_type="FX_SPREAD_POLICY_MATRIX",
+                        mandatory=True,
+                        min_trust_tier=TrustTier.TIER_1_CORE_RECORD,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR]
+                    ),
+                    EvidenceRuleDefinition(
+                        rule_id="R-TR04-03",
+                        evidence_type="INWARD_PAYMENT_RECORD",
+                        mandatory=True,
+                        min_trust_tier=TrustTier.TIER_1_CORE_RECORD,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR]
+                    )
+                ],
+                hitl_config=HitlWorkflowConfig(
+                    enabled=True,
+                    target_role="FX_OPERATIONS_OFFICER",
+                    fields=[
+                        HitlFieldDefinition(field_id="manual_fx_quote_rate", label="Manual FX Quote Rate", field_type=HitlFieldType.TEXT, required=False)
+                    ]
+                )
+            ),
+            # TR-06: Limit Breach
+            BankEvidenceRequiredConfig(
+                tenant_id="DEFAULT_BANK",
+                profile_id="TR-06",
+                config_version="1.0.0",
+                rules=[
+                    EvidenceRuleDefinition(
+                        rule_id="R-TR06-01",
+                        evidence_type="LIMIT_UTILIZATION_RECORD",
+                        mandatory=True,
+                        min_trust_tier=TrustTier.TIER_1_CORE_RECORD,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR, EvidenceAcquisitionMode.MODE_3_BANK_PUSH]
+                    ),
+                    EvidenceRuleDefinition(
+                        rule_id="R-TR06-02",
+                        evidence_type="CLIENT_LIMIT_AGREEMENT",
+                        mandatory=True,
+                        min_trust_tier=TrustTier.TIER_1_CORE_RECORD,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR]
+                    ),
+                    EvidenceRuleDefinition(
+                        rule_id="R-TR06-03",
+                        evidence_type="OPERATIONAL_RESET_SCHEDULE",
+                        mandatory=False,
+                        min_trust_tier=TrustTier.TIER_2_REGULATORY_SCHEME,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR]
+                    )
+                ],
+                hitl_config=HitlWorkflowConfig(
+                    enabled=True,
+                    target_role="CREDIT_RISK_OFFICER",
+                    fields=[
+                        HitlFieldDefinition(field_id="limit_waiver_justification", label="Limit Waiver Justification Notes", field_type=HitlFieldType.TEXT, required=False)
+                    ]
+                )
+            ),
+            # TR-07: Liquidity Constraint
+            BankEvidenceRequiredConfig(
+                tenant_id="DEFAULT_BANK",
+                profile_id="TR-07",
+                config_version="1.0.0",
+                rules=[
+                    EvidenceRuleDefinition(
+                        rule_id="R-TR07-01",
+                        evidence_type="CLEARING_LIQUIDITY_RESERVE",
+                        mandatory=True,
+                        min_trust_tier=TrustTier.TIER_1_CORE_RECORD,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR, EvidenceAcquisitionMode.MODE_3_BANK_PUSH]
+                    ),
+                    EvidenceRuleDefinition(
+                        rule_id="R-TR07-02",
+                        evidence_type="SETTLEMENT_QUEUE_STATUS",
+                        mandatory=True,
+                        min_trust_tier=TrustTier.TIER_2_REGULATORY_SCHEME,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR]
+                    ),
+                    EvidenceRuleDefinition(
+                        rule_id="R-TR07-03",
+                        evidence_type="PACING_RETRY_POLICY",
+                        mandatory=False,
+                        min_trust_tier=TrustTier.TIER_1_CORE_RECORD,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR]
+                    )
+                ],
+                hitl_config=HitlWorkflowConfig(
+                    enabled=True,
+                    target_role="TREASURY_OPERATIONS_ANALYST",
+                    fields=[
+                        HitlFieldDefinition(field_id="liquidity_priority_override", label="Liquidity Priority Override Notes", field_type=HitlFieldType.TEXT, required=False)
+                    ]
+                )
+            ),
+            # TR-08: Credit Exposure Breach
+            BankEvidenceRequiredConfig(
+                tenant_id="DEFAULT_BANK",
+                profile_id="TR-08",
+                config_version="1.0.0",
+                rules=[
+                    EvidenceRuleDefinition(
+                        rule_id="R-TR08-01",
+                        evidence_type="COUNTERPARTY_EXPOSURE_RECORD",
+                        mandatory=True,
+                        min_trust_tier=TrustTier.TIER_1_CORE_RECORD,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR, EvidenceAcquisitionMode.MODE_3_BANK_PUSH]
+                    ),
+                    EvidenceRuleDefinition(
+                        rule_id="R-TR08-02",
+                        evidence_type="CREDIT_FACILITY_AGREEMENT",
+                        mandatory=True,
+                        min_trust_tier=TrustTier.TIER_1_CORE_RECORD,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR]
+                    ),
+                    EvidenceRuleDefinition(
+                        rule_id="R-TR08-03",
+                        evidence_type="ENTERPRISE_RISK_RATING",
+                        mandatory=True,
+                        min_trust_tier=TrustTier.TIER_1_CORE_RECORD,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR]
+                    )
+                ],
+                hitl_config=HitlWorkflowConfig(
+                    enabled=True,
+                    target_role="SENIOR_CREDIT_OFFICER",
+                    fields=[
+                        HitlFieldDefinition(field_id="credit_officer_waiver_token", label="Credit Officer Waiver Authorization Token", field_type=HitlFieldType.TEXT, required=True),
+                        HitlFieldDefinition(field_id="credit_committee_minutes_ref", label="Credit Committee Minutes Reference", field_type=HitlFieldType.TEXT, required=False)
+                    ]
+                )
+            ),
+            # === WAVE 4 PROFILES (3 PROFILES) ===
+            # TR-01: KYC Expired
+            BankEvidenceRequiredConfig(
+                tenant_id="DEFAULT_BANK",
+                profile_id="TR-01",
+                config_version="1.0.0",
+                rules=[
+                    EvidenceRuleDefinition(
+                        rule_id="R-TR01-01",
+                        evidence_type="CUSTOMER_KYC_RECORD",
+                        mandatory=True,
+                        min_trust_tier=TrustTier.TIER_1_CORE_RECORD,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR, EvidenceAcquisitionMode.MODE_3_BANK_PUSH]
+                    ),
+                    EvidenceRuleDefinition(
+                        rule_id="R-TR01-02",
+                        evidence_type="CORPORATE_STANDING_RECORD",
+                        mandatory=True,
+                        min_trust_tier=TrustTier.TIER_1_CORE_RECORD,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR]
+                    )
+                ],
+                hitl_config=HitlWorkflowConfig(
+                    enabled=True,
+                    target_role="COMPLIANCE_KYC_OFFICER",
+                    fields=[
+                        HitlFieldDefinition(field_id="kyc_provisional_waiver_notes", label="KYC Provisional Waiver Notes", field_type=HitlFieldType.TEXT, required=False)
+                    ]
+                )
+            ),
+            # TR-05: Authorization Missing
+            BankEvidenceRequiredConfig(
+                tenant_id="DEFAULT_BANK",
+                profile_id="TR-05",
+                config_version="1.0.0",
+                rules=[
+                    EvidenceRuleDefinition(
+                        rule_id="R-TR05-01",
+                        evidence_type="CORPORATE_MANDATE_RECORD",
+                        mandatory=True,
+                        min_trust_tier=TrustTier.TIER_1_CORE_RECORD,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR, EvidenceAcquisitionMode.MODE_3_BANK_PUSH]
+                    ),
+                    EvidenceRuleDefinition(
+                        rule_id="R-TR05-02",
+                        evidence_type="SECONDARY_SIGNATORY_RECORD",
+                        mandatory=True,
+                        min_trust_tier=TrustTier.TIER_1_CORE_RECORD,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR]
+                    ),
+                    EvidenceRuleDefinition(
+                        rule_id="R-TR05-03",
+                        evidence_type="PORTAL_CALLBACK_RECORD",
+                        mandatory=False,
+                        min_trust_tier=TrustTier.TIER_1_CORE_RECORD,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR]
+                    )
+                ],
+                hitl_config=HitlWorkflowConfig(
+                    enabled=True,
+                    target_role="CORPORATE_MANDATE_OFFICER",
+                    fields=[
+                        HitlFieldDefinition(field_id="mandate_override_token", label="Mandate Override Token", field_type=HitlFieldType.TEXT, required=False)
+                    ]
+                )
+            ),
+            # ST-06: Funds Trapped at Correspondent
+            BankEvidenceRequiredConfig(
+                tenant_id="DEFAULT_BANK",
+                profile_id="ST-06",
+                config_version="1.0.0",
+                rules=[
+                    EvidenceRuleDefinition(
+                        rule_id="R-ST06-01",
+                        evidence_type="TRACKER_HOP_RECORD",
+                        mandatory=True,
+                        min_trust_tier=TrustTier.TIER_1_CORE_RECORD,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR, EvidenceAcquisitionMode.MODE_3_BANK_PUSH]
+                    ),
+                    EvidenceRuleDefinition(
+                        rule_id="R-ST06-02",
+                        evidence_type="DEBIT_CONFIRMATION_RECORD",
+                        mandatory=True,
+                        min_trust_tier=TrustTier.TIER_1_CORE_RECORD,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR]
+                    )
+                ],
+                hitl_config=HitlWorkflowConfig(
+                    enabled=True,
+                    target_role="CORRESPONDENT_INVESTIGATION_OPERATOR",
+                    fields=[
+                        HitlFieldDefinition(field_id="inquiry_dispatch_authorization", label="camt.056 Inquiry Dispatch Authorization", field_type=HitlFieldType.TEXT, required=True)
+                    ]
+                )
             )
         ]
         for cfg in defaults:

@@ -1,0 +1,53 @@
+{
+  "exception_id": "PEX-E2E-ST06-TELMISS",
+  "detected_profile_id": "ST-06",
+  "domain": "SETTLEMENT_RETURNS",
+  "evidence_status": "INSUFFICIENT",
+  "evidence_used": [
+    "INBOUND_PAYMENT_TELEMETRY",
+    "INTERMEDIARY_BIC",
+    "TRACKER_HOP_RECORD_STALE",
+    "RESOLUTION_ACTION"
+  ],
+  "evidence_missing": [
+    "TRACKER_HOP_RECORD",
+    "DEBIT_CONFIRMATION_RECORD"
+  ],
+  "evidence_contradictions": [],
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "resolution_recommendation": null,
+  "resolution_basis": "No authoritative SWIFT gpi tracker hop telemetry found for UETR UETR-ST06-MISSING-TEL.",
+  "repaired_fields": [],
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_policy_status": "POLICY_BLOCKED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "stp_eligible": false,
+  "stp_decision_reason": "Evidence insufficient: missing mandatory ['TRACKER_HOP_RECORD', 'DEBIT_CONFIRMATION_RECORD'] / stale [] / contradictory []; Deterministic resolution could not be derived.; Bank policy disallows autonomous STP: ['ST-06 Funds Trapped at Correspondent: Autonomous STP is strictly prohibited for transit breaks. Operations dual-authorization required.']",
+  "predicate_breakdown": {
+    "e_suff": false,
+    "r_det": false,
+    "r_uniq": true,
+    "v_det": true,
+    "v_auth": true,
+    "p_bank": false,
+    "c_comp": true,
+    "x_pre": true,
+    "stp_formula_result": false
+  },
+  "ai_confidence_score": 0.5,
+  "hitl_required": true,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "execution_owner": "BANK",
+  "audit_event_id": "AUD-689933",
+  "audit_chain_block_hash": "1c2c7c41cf72e82e0705b6961369dcc08617f9f8b3bc4e7754709ebaf721b8c9",
+  "processing_latency_ms": 0.57,
+  "processed_at": "2026-10-15T19:24:27.540119Z",
+  "warnings": [],
+  "errors": [
+    "Evidence insufficient: missing mandatory ['TRACKER_HOP_RECORD', 'DEBIT_CONFIRMATION_RECORD'] / stale [] / contradictory []",
+    "Deterministic resolution could not be derived.",
+    "Bank policy disallows autonomous STP: ['ST-06 Funds Trapped at Correspondent: Autonomous STP is strictly prohibited for transit breaks. Operations dual-authorization required.']"
+  ]
+}

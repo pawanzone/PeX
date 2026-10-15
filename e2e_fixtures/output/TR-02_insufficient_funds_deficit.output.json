@@ -1,0 +1,50 @@
+{
+  "exception_id": "PEX-E2E-TR02-DEFICIT",
+  "detected_profile_id": "TR-02",
+  "domain": "CLIENT_TREASURY",
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+    "INBOUND_PAYMENT_TELEMETRY",
+    "DEBTOR_ACCOUNT",
+    "CORE_DDA_BALANCE_RECORD",
+    "INTRADAY_RESERVATION_SCHEDULE",
+    "DEFICIT_DETECTED"
+  ],
+  "evidence_missing": [],
+  "evidence_contradictions": [],
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "resolution_recommendation": null,
+  "resolution_basis": "Account ACCT-DEFICIT-USD-002 has persistent deficit ($49,500.00) without qualifying pending credits. Fails closed to HITL/Return.",
+  "repaired_fields": [],
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_policy_status": "POLICY_BLOCKED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "stp_eligible": false,
+  "stp_decision_reason": "Deterministic resolution could not be derived.; Bank policy disallows autonomous STP: ['Amount ($50,000.00) exceeds fast-lane batch threshold ($25,000.00).']",
+  "predicate_breakdown": {
+    "e_suff": true,
+    "r_det": false,
+    "r_uniq": true,
+    "v_det": true,
+    "v_auth": true,
+    "p_bank": false,
+    "c_comp": true,
+    "x_pre": true,
+    "stp_formula_result": false
+  },
+  "ai_confidence_score": 0.5,
+  "hitl_required": true,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "execution_owner": "BANK",
+  "audit_event_id": "AUD-F7283C",
+  "audit_chain_block_hash": "1dfe732bc7b75aec546ad7612be15b1e396e0fe5083273214e1bd3b6e768ee2c",
+  "processing_latency_ms": 0.61,
+  "processed_at": "2026-10-15T19:24:03.628172Z",
+  "warnings": [],
+  "errors": [
+    "Deterministic resolution could not be derived.",
+    "Bank policy disallows autonomous STP: ['Amount ($50,000.00) exceeds fast-lane batch threshold ($25,000.00).']"
+  ]
+}

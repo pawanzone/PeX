@@ -36,9 +36,23 @@ class InMemoryBankPolicyAdapter(BankPolicyEnvelopePort):
                 "MISSING_BENEFICIARY_DATA", "MISSING_REMITTANCE_INFO", "INVALID_ACCOUNT_NUMBER",
                 "BENEFICIARY_NAME_MISMATCH", "ROUTING_FAILURE", "CUTOFF_MISSED",
                 "NETWORK_TIMEOUT", "PAYMENT_HELD_FOR_REPAIR", "REGULATORY_REPORTING_REQUIRED",
-                "DQ-03", "DQ-04", "DQ-07", "DQ-09", "PR-02", "PR-04", "PR-07", "PR-09", "CO-07"
+                "DQ-03", "DQ-04", "DQ-07", "DQ-09", "PR-02", "PR-04", "PR-07", "PR-09", "CO-07",
+                # Wave 2 Profiles
+                "INTERMEDIARY_BANK_REJECTION", "ACCOUNT_CLOSED", "BENEFICIARY_ACCOUNT_FROZEN",
+                "PR-06", "ST-02", "ST-03",
+                # Wave 3 Profiles (TR-08 Strictly Excluded from Auto-STP)
+                "INSUFFICIENT_FUNDS", "NOSTRO_SHORTFALL", "FX_RATE_UNAVAILABLE",
+                "LIMIT_BREACH", "LIQUIDITY_CONSTRAINT",
+                "TR-02", "TR-03", "TR-04", "TR-06", "TR-07",
+                # Wave 4 Profiles (ST-06 Strictly Excluded from Auto-STP)
+                "KYC_EXPIRED", "AUTHORIZATION_MISSING",
+                "TR-01", "TR-05"
             ],
-            dual_auth_required_profiles=["SANCTIONS_HOLD", "HIGH_VALUE_WIRE", "AML_SUSPENDED"]
+            dual_auth_required_profiles=[
+                "SANCTIONS_HOLD", "HIGH_VALUE_WIRE", "AML_SUSPENDED",
+                "CREDIT_EXPOSURE_BREACH", "TR-08",
+                "FUNDS_TRAPPED_AT_CORRESPONDENT", "ST-06"
+            ]
         )
 
     def set_policy(self, policy: Optional[BankPolicyEnvelope]):
@@ -79,7 +93,19 @@ class InMemoryBankPolicyAdapter(BankPolicyEnvelopePort):
         approver_roles = []
 
         # 2. Dual Authorization Ceiling Check
-        if amount >= policy.risk_thresholds.dual_auth_mandatory_threshold:
+        if profile_id in ["TR-08", "CREDIT_EXPOSURE_BREACH"] or (policy.w3_policy_thresholds.zero_auto_stp_on_credit_breach and profile_id in ["TR-08", "CREDIT_EXPOSURE_BREACH"]):
+            requires_mc = True
+            is_auto = False
+            approver_roles = ["SENIOR_CREDIT_OFFICER", "SENIOR_RISK_CHECKER"]
+            denial_reasons.append("TR-08 Credit Exposure Breach: Autonomous STP is strictly prohibited. Senior Credit Officer dual-authorization required.")
+
+        elif profile_id in ["ST-06", "FUNDS_TRAPPED_AT_CORRESPONDENT"] or (policy.w4_policy_thresholds.zero_auto_stp_on_transit_break and profile_id in ["ST-06", "FUNDS_TRAPPED_AT_CORRESPONDENT"]):
+            requires_mc = True
+            is_auto = False
+            approver_roles = ["OPERATIONS_MAKER", "OPERATIONS_CHECKER"]
+            denial_reasons.append("ST-06 Funds Trapped at Correspondent: Autonomous STP is strictly prohibited for transit breaks. Operations dual-authorization required.")
+
+        elif amount >= policy.risk_thresholds.dual_auth_mandatory_threshold:
             requires_mc = True
             approver_roles = ["OPERATIONS_MAKER", "SENIOR_RISK_CHECKER"]
             denial_reasons.append(f"High-value amount (${amount:,.2f}) exceeds dual-auth threshold (${policy.risk_thresholds.dual_auth_mandatory_threshold:,.2f}).")

@@ -37,12 +37,12 @@ class InMemoryRegulatoryScreeningAdapter(RegulatoryScreeningPort):
         has_license_exemption = ctx.get("ofac_license_exemption_verified", False)
 
         # 1. Check direct keyword match
-        is_sanctioned_name = any(kw in name_upper for kw in self._sanctioned_keywords)
+        is_sanctioned_name = any(kw in name_upper for kw in self._sanctioned_keywords) or bool(ctx.get("ofac_sanctions_hit") or ctx.get("ofac_sdn_hit"))
         
         # Exact code match on country or tokenized corridor
         country_tokens = set(country_upper.replace("-", " ").replace("_", " ").split())
         corridor_tokens = set(corridor_upper.replace("-", " ").replace("_", " ").split())
-        is_restricted_country = bool((country_tokens | corridor_tokens) & set(self._restricted_corridors)) or (country_upper in self._restricted_corridors)
+        is_restricted_country = bool((country_tokens | corridor_tokens) & set(self._restricted_corridors)) or (country_upper in self._restricted_corridors) or bool(ctx.get("corridor_prohibited"))
 
         if (is_sanctioned_name or is_restricted_country) and not has_license_exemption:
             return ScreeningAssessment(

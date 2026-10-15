@@ -1,0 +1,83 @@
+{
+  "exception_id": "PEX-E2E-TR08-DISTRESSED",
+  "detected_profile_id": "TR-08",
+  "domain": "CLIENT_TREASURY",
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+    "INBOUND_PAYMENT_TELEMETRY",
+    "COUNTERPARTY_ID",
+    "COUNTERPARTY_EXPOSURE_RECORD",
+    "CREDIT_FACILITY_AGREEMENT",
+    "ENTERPRISE_RISK_RATING",
+    "DISTRESSED_RATING",
+    "EXCESS_EXPOSURE"
+  ],
+  "evidence_missing": [],
+  "evidence_contradictions": [],
+  "resolution_status": "RESOLVED",
+  "resolution_recommendation": {
+    "dossier_id": "DOS-CREDIT-B4193179",
+    "counterparty_id": "CPTY-DISTRESSED-01",
+    "requested_amount": 500000.0,
+    "currency": "USD",
+    "exposure_record": {
+      "counterparty_id": "CPTY-DISTRESSED-01",
+      "counterparty_bic": "DISTUS33XXX",
+      "credit_rating": "SUB_INVESTMENT",
+      "total_facility_limit": 1000000.0,
+      "current_drawn_exposure": 1200000.0,
+      "currency": "USD",
+      "is_breached": true,
+      "is_authoritative": true,
+      "authority_source": "ENTERPRISE_CREDIT_RISK_SYSTEM"
+    },
+    "facility_record": {
+      "facility_id": "FAC-ALPHA-01",
+      "borrower_entity": "CPTY-CORP-ALPHA",
+      "facility_type": "REVOLVING_CREDIT",
+      "collateral_coverage_ratio": 1.25,
+      "expiry_date": null,
+      "approval_tier_required": "SENIOR_CREDIT_OFFICER"
+    },
+    "decision_record": null,
+    "autonomous_stp_prohibited": true,
+    "execution_owner": "BANK"
+  },
+  "resolution_basis": "TR-08 Credit Exposure Breach: Autonomous STP is STRICTLY PROHIBITED under bank credit governance.; Counterparty CPTY-DISTRESSED-01 has distressed credit rating (SUB_INVESTMENT). Escalating for immediate freeze review.; Assembled Credit Risk Dossier DOS-CREDIT-B4193179 (Drawn: $1,200,000.00 / Limit: $1,000,000.00, Excess: $500,000.00). Requires Senior Credit Officer sign-off.",
+  "repaired_fields": [
+    {
+      "field_path": "compliance.credit_dossier_id",
+      "repaired_value": "DOS-CREDIT-B4193179"
+    }
+  ],
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_policy_status": "POLICY_BLOCKED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "stp_eligible": false,
+  "stp_decision_reason": "Bank policy disallows autonomous STP: ['TR-08 Credit Exposure Breach: Autonomous STP is strictly prohibited. Senior Credit Officer dual-authorization required.']",
+  "predicate_breakdown": {
+    "e_suff": true,
+    "r_det": true,
+    "r_uniq": true,
+    "v_det": true,
+    "v_auth": true,
+    "p_bank": false,
+    "c_comp": true,
+    "x_pre": true,
+    "stp_formula_result": false
+  },
+  "ai_confidence_score": 0.5,
+  "hitl_required": true,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "execution_owner": "BANK",
+  "audit_event_id": "AUD-5412C3",
+  "audit_chain_block_hash": "62282e44be90d651d8b513efa9483a43f3d8e0522d267b5f30ac8cbd7f782d36",
+  "processing_latency_ms": 0.67,
+  "processed_at": "2026-10-15T19:24:06.844015Z",
+  "warnings": [],
+  "errors": [
+    "Bank policy disallows autonomous STP: ['TR-08 Credit Exposure Breach: Autonomous STP is strictly prohibited. Senior Credit Officer dual-authorization required.']"
+  ]
+}

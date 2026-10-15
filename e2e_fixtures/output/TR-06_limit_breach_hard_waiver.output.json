@@ -1,0 +1,82 @@
+{
+  "exception_id": "PEX-E2E-TR06-WAIVER",
+  "detected_profile_id": "TR-06",
+  "domain": "CLIENT_TREASURY",
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+    "INBOUND_PAYMENT_TELEMETRY",
+    "LIMIT_ID",
+    "CLIENT_ID",
+    "LIMIT_UTILIZATION_RECORD",
+    "CLIENT_LIMIT_AGREEMENT",
+    "WAIVER_REQUIRED"
+  ],
+  "evidence_missing": [],
+  "evidence_contradictions": [],
+  "resolution_status": "RESOLVED",
+  "resolution_recommendation": {
+    "dossier_id": "DOS-LIM-0E2EC48B",
+    "limit_id": "LIM-BREACHED-01",
+    "breached_amount": 240000.0,
+    "currency": "USD",
+    "utilization_percentage": 146.0,
+    "requires_credit_approver": true,
+    "pacing_schedule": {
+      "schedule_id": "PACE-LIM-998845",
+      "target_profile": "TR-06",
+      "pacing_interval_seconds": 1800.0,
+      "max_retry_attempts": 2,
+      "current_attempt": 1,
+      "next_evaluation_time": "2026-10-15T20:19:52.427461Z",
+      "pacing_reason": "Pacing queued until intraday limit reset cycle at 2026-10-15T20:19:52.427461+00:00",
+      "execution_owner": "BANK"
+    },
+    "execution_owner": "BANK"
+  },
+  "resolution_basis": "Limit LIM-BREACHED-01 breached by $240,000.00. Scheduling intraday reset pacing.",
+  "repaired_fields": [
+    {
+      "field_path": "treasury.limit_pacing",
+      "repaired_value": {
+        "schedule_id": "PACE-LIM-998845",
+        "target_profile": "TR-06",
+        "pacing_interval_seconds": 1800.0,
+        "max_retry_attempts": 2,
+        "current_attempt": 1,
+        "next_evaluation_time": "2026-10-15T20:19:52.427461Z",
+        "pacing_reason": "Pacing queued until intraday limit reset cycle at 2026-10-15T20:19:52.427461+00:00",
+        "execution_owner": "BANK"
+      }
+    }
+  ],
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_policy_status": "POLICY_BLOCKED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "stp_eligible": false,
+  "stp_decision_reason": "Bank policy disallows autonomous STP: ['High-value amount ($250,000.00) exceeds dual-auth threshold ($250,000.00).']",
+  "predicate_breakdown": {
+    "e_suff": true,
+    "r_det": true,
+    "r_uniq": true,
+    "v_det": true,
+    "v_auth": true,
+    "p_bank": false,
+    "c_comp": true,
+    "x_pre": true,
+    "stp_formula_result": false
+  },
+  "ai_confidence_score": 0.5,
+  "hitl_required": true,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "execution_owner": "BANK",
+  "audit_event_id": "AUD-64E5F2",
+  "audit_chain_block_hash": "3d2fe497f532894a4f6898f60a2637fc6c07f374cb3c66f6058127538159716f",
+  "processing_latency_ms": 0.66,
+  "processed_at": "2026-10-15T19:24:05.572464Z",
+  "warnings": [],
+  "errors": [
+    "Bank policy disallows autonomous STP: ['High-value amount ($250,000.00) exceeds dual-auth threshold ($250,000.00).']"
+  ]
+}

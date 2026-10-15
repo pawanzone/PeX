@@ -1,0 +1,63 @@
+{
+  "exception_id": "PEX-E2E-TR05-SUFF",
+  "detected_profile_id": "TR-05",
+  "domain": "CLIENT_TREASURY",
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+    "INBOUND_PAYMENT_TELEMETRY",
+    "DEBTOR_ACCOUNT",
+    "PRIMARY_SIGNATORY_ID",
+    "SECONDARY_SIGNATORY_ID",
+    "CORPORATE_MANDATE_RECORD",
+    "SECONDARY_SIGNATORY_RECORD",
+    "PORTAL_CALLBACK_RECORD",
+    "RESOLUTION_ACTION"
+  ],
+  "evidence_missing": [],
+  "evidence_contradictions": [],
+  "resolution_status": "RESOLVED",
+  "resolution_recommendation": {
+    "authorization_id": "AUTH-MAND-FD15A8E7",
+    "mandate_id": "MAND-CORP-001",
+    "primary_signatory_id": "SIG-PRIMARY-01",
+    "secondary_signatory_id": "SIG-CLASS-A-99",
+    "authorization_status": "DUAL_AUTHORIZATION_VERIFIED",
+    "execution_owner": "BANK",
+    "rationale": "Dual authorization verified for mandate MAND-CORP-001 via secondary digital signature (SIG-CLASS-A-99)."
+  },
+  "resolution_basis": "Dual authorization AUTH-MAND-FD15A8E7 verified for mandate MAND-CORP-001. Signatories: SIG-PRIMARY-01 (Primary), SIG-CLASS-A-99 (CLASS_A, MFA verified).",
+  "repaired_fields": [
+    {
+      "field_path": "mandate_authorization.status",
+      "repaired_value": "DUAL_AUTHORIZATION_VERIFIED"
+    }
+  ],
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "stp_eligible": true,
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff ∧ R_det ∧ R_uniq ∧ V_det ∧ V_auth ∧ P_bank ∧ C_comp ∧ X_pre).",
+  "predicate_breakdown": {
+    "e_suff": true,
+    "r_det": true,
+    "r_uniq": true,
+    "v_det": true,
+    "v_auth": true,
+    "p_bank": true,
+    "c_comp": true,
+    "x_pre": true,
+    "stp_formula_result": true
+  },
+  "ai_confidence_score": 0.98,
+  "hitl_required": false,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "execution_owner": "BANK",
+  "audit_event_id": "AUD-123705",
+  "audit_chain_block_hash": "f1343a7f7decc8375cf4f7b83297bcf4f7aa181e05bb148cb68185ec5732b8c3",
+  "processing_latency_ms": 1.39,
+  "processed_at": "2026-10-15T19:24:26.438766Z",
+  "warnings": [],
+  "errors": []
+}

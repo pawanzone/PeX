@@ -1,0 +1,64 @@
+{
+  "exception_id": "PEX-E2E-ST06-INQ",
+  "detected_profile_id": "ST-06",
+  "domain": "SETTLEMENT_RETURNS",
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+    "INBOUND_PAYMENT_TELEMETRY",
+    "INTERMEDIARY_BIC",
+    "TRACKER_HOP_RECORD",
+    "DEBIT_CONFIRMATION_RECORD",
+    "RESOLUTION_ACTION"
+  ],
+  "evidence_missing": [],
+  "evidence_contradictions": [],
+  "resolution_status": "RESOLVED",
+  "resolution_recommendation": {
+    "investigation_id": "INV-TRAP-82559DA3",
+    "uetr": "UETR-ST06-SUFF",
+    "target_intermediary_bic": "DEUTDEDDXXX",
+    "inquiry_type": "CAMT_056",
+    "inquiry_reference": "INQ-CA6BFBC0",
+    "status": "DISPATCH_CAMT_056_INTERMEDIARY_INQUIRY",
+    "autonomous_stp_prohibited": true,
+    "execution_owner": "BANK",
+    "rationale": "Funds confirmed debited and held at intermediary DEUTDEDDXXX beyond inquiry threshold; structured CAMT_056 inquiry generated under bank-owned operations review."
+  },
+  "resolution_basis": "Generated CAMT_056 inquiry INQ-CA6BFBC0 for intermediary DEUTDEDDXXX (hold: 180.0m). Autonomous STP prohibited (Group 4 Transit Break); assigned to Bank Operations.",
+  "repaired_fields": [
+    {
+      "field_path": "transit_investigation.status",
+      "repaired_value": "DISPATCH_CAMT_056_INTERMEDIARY_INQUIRY"
+    }
+  ],
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_policy_status": "POLICY_BLOCKED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "stp_eligible": false,
+  "stp_decision_reason": "Bank policy disallows autonomous STP: ['ST-06 Funds Trapped at Correspondent: Autonomous STP is strictly prohibited for transit breaks. Operations dual-authorization required.']",
+  "predicate_breakdown": {
+    "e_suff": true,
+    "r_det": true,
+    "r_uniq": true,
+    "v_det": true,
+    "v_auth": true,
+    "p_bank": false,
+    "c_comp": true,
+    "x_pre": true,
+    "stp_formula_result": false
+  },
+  "ai_confidence_score": 0.5,
+  "hitl_required": true,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "execution_owner": "BANK",
+  "audit_event_id": "AUD-CB1B77",
+  "audit_chain_block_hash": "95021eecceed48bdc9c77c192eef3e97585352338a05aa97ca50b7f4c46ffab2",
+  "processing_latency_ms": 0.65,
+  "processed_at": "2026-10-15T19:24:27.255718Z",
+  "warnings": [],
+  "errors": [
+    "Bank policy disallows autonomous STP: ['ST-06 Funds Trapped at Correspondent: Autonomous STP is strictly prohibited for transit breaks. Operations dual-authorization required.']"
+  ]
+}

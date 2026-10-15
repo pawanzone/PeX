@@ -1,0 +1,60 @@
+{
+  "exception_id": "PEX-E2E-TR01-SUFF",
+  "detected_profile_id": "TR-01",
+  "domain": "CLIENT_TREASURY",
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+    "INBOUND_PAYMENT_TELEMETRY",
+    "CLIENT_ID",
+    "CUSTOMER_KYC_RECORD",
+    "CORPORATE_STANDING_RECORD",
+    "RESOLUTION_ACTION"
+  ],
+  "evidence_missing": [],
+  "evidence_contradictions": [],
+  "resolution_status": "RESOLVED",
+  "resolution_recommendation": {
+    "waiver_id": "WVR-KYC-C8BD31E4",
+    "client_id": "CLI-CORP-001",
+    "waiver_duration_days": 30,
+    "expiry_timestamp": "2026-11-14T19:24:25.807471Z",
+    "provisional_status": "WAIVER_ACTIVE_30_DAYS",
+    "execution_owner": "BANK",
+    "rationale": "Provisional 30-day KYC processing waiver granted under SOP-302 for CLI-CORP-001."
+  },
+  "resolution_basis": "Provisional 30-day KYC waiver WVR-KYC-C8BD31E4 granted for CLI-CORP-001 under SOP-302. Documentation refresh confirmed in progress.",
+  "repaired_fields": [
+    {
+      "field_path": "customer_kyc.provisional_status",
+      "repaired_value": "WAIVER_ACTIVE_30_DAYS"
+    }
+  ],
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "stp_eligible": true,
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff ∧ R_det ∧ R_uniq ∧ V_det ∧ V_auth ∧ P_bank ∧ C_comp ∧ X_pre).",
+  "predicate_breakdown": {
+    "e_suff": true,
+    "r_det": true,
+    "r_uniq": true,
+    "v_det": true,
+    "v_auth": true,
+    "p_bank": true,
+    "c_comp": true,
+    "x_pre": true,
+    "stp_formula_result": true
+  },
+  "ai_confidence_score": 0.98,
+  "hitl_required": false,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "execution_owner": "BANK",
+  "audit_event_id": "AUD-17A79F",
+  "audit_chain_block_hash": "764fb1d6115200a95785029bc573957c22af90be2846fb13533999eb5da70dbc",
+  "processing_latency_ms": 0.65,
+  "processed_at": "2026-10-15T19:24:25.808472Z",
+  "warnings": [],
+  "errors": []
+}

@@ -1,0 +1,52 @@
+{
+  "exception_id": "PEX-E2E-ST03-NEG",
+  "profile_id": "ST-03",
+  "domain": "SETTLEMENT_RETURNS",
+  "error_code": "ERR_LEGAL_FREEZE_CONFLICTING_ORDERS",
+  "error_message": "Conflicting judicial orders recorded on account restriction dossier or statutory sanctions ambiguity.",
+  "payment_info": {
+    "payment_id": "PMT-2026-ST03-002",
+    "uetr": "UETR-ST03-NEG-0002-A2",
+    "amount": 28000.00,
+    "currency": "USD",
+    "clearing_rail": "FEDWIRE",
+    "value_date": "2026-10-08",
+    "debtor_name": "Columbia Commercial Corp",
+    "debtor_account": "US44COLUMBIA123456",
+    "debtor_agent_bic": "CHASUS33XXX",
+    "creditor_name": "Metro Properties Holding LLC",
+    "creditor_account": "33445566",
+    "creditor_agent_bic": "CHASUS33XXX",
+    "remittance_info": "COMMERCIAL LEASE PAYMENT"
+  },
+  "bank_supplied_evidence": {
+    "conflicting_legal_orders": true,
+    "account_number": "33445566",
+    "core_account_restriction_flag": {
+      "account_number": "33445566",
+      "restriction_type": "POST_NO_CREDITS",
+      "is_credit_prohibited": true
+    },
+    "legal_freeze_dossier": {
+      "dossier_id": "DOS-2026-NY-CONFLICT",
+      "account_number": "33445566",
+      "case_caption": "Competing State vs Federal Garnishments",
+      "is_conflicting_order": true
+    },
+    "inward_payment_record": {
+      "payment_id": "PMT-2026-ST03-002",
+      "uetr": "UETR-ST03-NEG-0002-A2",
+      "amount": 28000.00,
+      "currency": "USD"
+    },
+    "suspense_ledger_matrix": {
+      "default_suspense_gl": "GL-2180-LEGAL-SUSPENSE-ESCROW"
+    }
+  },
+  "external_authoritative_evidence": {},
+  "derived_evidence": {
+    "investigation_status": "CONFLICTING_LEGAL_ORDERS_ROUTE_TO_LEGAL"
+  },
+  "evidence_provenance": "SYNTHETIC_TEST_FIXTURE",
+  "test_status": "TEST_ONLY"
+}

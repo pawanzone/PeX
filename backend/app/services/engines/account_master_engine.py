@@ -17,13 +17,22 @@ import uuid
 import re
 from typing import Dict, List, Any, Optional, Tuple
 from app.ports.account_master_port import AccountMasterPort
+from app.ports.legal_registry_port import LegalRegistryPort
 from app.adapters.reference.reference_account_master_adapter import InMemoryAccountMasterAdapter
-from app.schemas.contracts.policy_schemas import W1PolicyMatchingThresholds
+from app.adapters.reference.reference_legal_registry_adapter import InMemoryLegalRegistryAdapter
+from app.schemas.contracts.policy_schemas import W1PolicyMatchingThresholds, W2PolicyThresholds
 from app.schemas.contracts.wave1_schemas import (
     AccountMasterRecord,
     BeneficiaryProfileRecord,
     PayeeVerificationResult,
     PayeeMatchStatus,
+)
+from app.schemas.contracts.wave2_schemas import (
+    AccountClosedRecord,
+    AccountRestrictionScope,
+    AccountRestrictionType,
+    LegalFreezeDossierRecord,
+    RolloverMandateRecord,
 )
 from app.schemas.resolution_contract import (
     ResolutionStatus,
@@ -34,10 +43,15 @@ from app.schemas.resolution_contract import (
 
 
 class AccountMasterEngine:
-    """Capability engine for account master, entity directory, and Verification of Payee resolution."""
+    """Capability engine for account master, entity directory, Verification of Payee, and account restriction resolution."""
 
-    def __init__(self, account_port: Optional[AccountMasterPort] = None):
+    def __init__(
+        self,
+        account_port: Optional[AccountMasterPort] = None,
+        legal_port: Optional[LegalRegistryPort] = None
+    ):
         self.account_port = account_port or InMemoryAccountMasterAdapter()
+        self.legal_port = legal_port or InMemoryLegalRegistryAdapter()
 
     # ==========================================================================
     # 1. DQ-03: MISSING BENEFICIARY DATA
@@ -220,6 +234,281 @@ class AccountMasterEngine:
 
         return ResolutionStatus.RESOLUTION_DETERMINED, ResolutionUniqueness.RESOLUTION_UNIQUE, candidate, diff_log, None
 
+    # ==========================================================================
+    # 4. ST-02: ACCOUNT CLOSED (PAT-E / PAT-A)
+    # ==========================================================================
+    def resolve_st02_account_closed(
+        self,
+        account_number: str,
+        uetr: str,
+        payment_id: str,
+        amount: float,
+        currency: str,
+        clearing_rail: str = "SWIFT_CBPR+",
+        policy_thresholds: Optional[W2PolicyThresholds] = None,
+        evidence_context: Optional[Dict[str, Any]] = None
+    ) -> Tuple[ResolutionStatus, ResolutionUniqueness, Optional[ResolutionCandidate], List[str], Optional[str]]:
+        """Authoritative Core DDA Closed Account Evaluation & Governed Return Packaging (PAT-E / PAT-A).
+
+        Invariants:
+        - 0% autonomous synthesis of replacement accounts.
+        - Governed Return to Sender (AC04) is default candidate resolution.
+        - Rollover permitted only with authenticated mandate on file and explicit policy enablement.
+        """
+        diff_log: List[str] = []
+        ctx = evidence_context or {}
+        policy = policy_thresholds or W2PolicyThresholds()
+
+        # 1. Check for contradictory or ambiguous signals in evidence
+        if ctx.get("contradictory_account_status", False) or ctx.get("auxiliary_directory_active_conflict", False):
+            diff_log.append("Contradictory account status signals between Core DDA and auxiliary directory. PeX fails closed to HITL.")
+            return ResolutionStatus.RESOLUTION_NOT_DETERMINED, ResolutionUniqueness.RESOLUTION_AMBIGUOUS, None, diff_log, "Contradictory account status records."
+
+        # 2. Query Core DDA Master
+        raw_status = None
+        if "core_dda_status" in ctx:
+            raw_status = str(ctx["core_dda_status"]).upper() if ctx["core_dda_status"] else None
+        elif "account_status" in ctx:
+            raw_status = str(ctx["account_status"]).upper() if ctx["account_status"] else None
+        elif "core_dda_account_status" in ctx:
+            c_dda = ctx["core_dda_account_status"]
+            if isinstance(c_dda, dict):
+                raw_status = str(c_dda.get("account_status", "")).upper() if c_dda.get("account_status") else None
+            elif c_dda is not None:
+                raw_status = str(c_dda).upper()
+
+        if not raw_status and "account_status" not in ctx:
+            acct_rec = self.account_port.get_account_master(account_number)
+            if acct_rec:
+                raw_status = acct_rec.account_status.upper()
+
+        if not raw_status:
+            diff_log.append(f"Account '{account_number}' not found in Core DDA Account Master.")
+            return ResolutionStatus.RESOLUTION_NOT_DETERMINED, ResolutionUniqueness.RESOLUTION_UNIQUE, None, diff_log, "Account not found in Core DDA."
+
+        # Verify closed status
+        if raw_status not in ["CLOSED", "TERMINATED"]:
+            diff_log.append(f"Account '{account_number}' is in status '{raw_status}', not CLOSED/TERMINATED. Cannot process ST-02.")
+            return ResolutionStatus.RESOLUTION_NOT_DETERMINED, ResolutionUniqueness.RESOLUTION_UNIQUE, None, diff_log, f"Account status '{raw_status}' is not CLOSED."
+
+        diff_log.append(f"Authoritative closed status confirmed for account '{account_number}' in Core DDA.")
+
+        # 3. Strict Replacement Account Prohibition: AI/PeX cannot autonomously synthesize alternate accounts
+        if ctx.get("autonomous_replacement_attempt", False) or ctx.get("unauthorized_ai_account_substitution", False):
+            diff_log.append("Autonomous replacement account synthesis detected without mandate. Strictly prohibited under W2-AD-02.")
+            return ResolutionStatus.RESOLUTION_NOT_DETERMINED, ResolutionUniqueness.RESOLUTION_UNIQUE, None, diff_log, "Autonomous replacement account synthesis strictly prohibited."
+
+        # 4. Check for Exceptional Corporate Rollover Mandate
+        mandate = None
+        if "rollover_mandate" in ctx:
+            raw_m = ctx["rollover_mandate"]
+            if isinstance(raw_m, dict):
+                merged_m = {
+                    "debtor_or_creditor_entity_id": "CLIENT_ENTITY",
+                    **raw_m
+                }
+                mandate = RolloverMandateRecord(**merged_m)
+            elif isinstance(raw_m, RolloverMandateRecord):
+                mandate = raw_m
+        if not mandate and "rollover_mandate" not in ctx:
+            mandate = self.legal_port.get_rollover_mandate(account_number)
+
+        if mandate:
+            if policy.require_dual_auth_for_rollover and not mandate.dual_authorization_verified:
+                diff_log.append("Corporate rollover mandate found, but Maker-Checker dual authorization pending. Route to HITL.")
+                return ResolutionStatus.RESOLUTION_NOT_DETERMINED, ResolutionUniqueness.RESOLUTION_UNIQUE, None, diff_log, "Rollover mandate requires dual authorization."
+
+            if policy.allow_mandate_rollover:
+                diff_log.append(f"Authenticated corporate rollover mandate verified ({mandate.mandate_id}). Successor account: {mandate.successor_account_number}.")
+                repaired_dict = {
+                    "action": "ROLLOVER_TO_SUCCESSOR_ACCOUNT",
+                    "closed_account_number": account_number,
+                    "successor_account_number": mandate.successor_account_number,
+                    "mandate_id": mandate.mandate_id,
+                    "authorized_signatory": mandate.authorized_signatory
+                }
+                candidate = ResolutionCandidate(
+                    candidate_id=f"CAND-ST02-ROLLOVER-{uuid.uuid4().hex[:8]}",
+                    repaired_payload=json.dumps(repaired_dict),
+                    repaired_structured=repaired_dict,
+                    diff_summary="; ".join(diff_log),
+                    derivation_method="PAT_E_GOVERNED_CORPORATE_ROLLOVER_MANDATE",
+                    is_lossless=True,
+                    fields_reordered=[]
+                )
+                return ResolutionStatus.RESOLUTION_DETERMINED, ResolutionUniqueness.RESOLUTION_UNIQUE, candidate, diff_log, None
+
+        # 5. Default Candidate Resolution: Governed Return to Sender (AC04)
+        if amount > policy.max_closed_account_auto_return_amount or ctx.get("return_amount_exceeds_risk_policy", False):
+            diff_log.append(f"Return amount (${amount:,.2f}) exceeds max auto-return policy ceiling (${policy.max_closed_account_auto_return_amount:,.2f}). Requires Risk Officer approval.")
+            return ResolutionStatus.RESOLUTION_NOT_DETERMINED, ResolutionUniqueness.RESOLUTION_UNIQUE, None, diff_log, f"Amount exceeds W2-BPD-02 return threshold: {amount} > {policy.max_closed_account_auto_return_amount}"
+
+        from app.services.engines.settlement_reconciliation_engine import settlement_reconciliation_engine
+        ret_pkg = settlement_reconciliation_engine.compile_return_package(
+            uetr=uetr,
+            original_payment_id=payment_id,
+            amount=amount,
+            currency=currency,
+            return_reason_code="AC04",
+            clearing_rail=clearing_rail,
+            narrative="Account closed / terminated in Core DDA."
+        )
+
+        diff_log.append(f"Compiled compliant settlement return package {ret_pkg.return_id} (Reason: AC04, Rail: {clearing_rail}).")
+        candidate = ResolutionCandidate(
+            candidate_id=f"CAND-ST02-RETURN-{uuid.uuid4().hex[:8]}",
+            repaired_payload=json.dumps(ret_pkg.model_dump(mode="json")),
+            repaired_structured=ret_pkg.model_dump(mode="json"),
+            diff_summary="; ".join(diff_log),
+            derivation_method="PAT_E_LEDGER_MATCHING_AND_RETURN_PACKAGING",
+            is_lossless=True,
+            fields_reordered=[]
+        )
+        return ResolutionStatus.RESOLUTION_DETERMINED, ResolutionUniqueness.RESOLUTION_UNIQUE, candidate, diff_log, None
+
+    # ==========================================================================
+    # 5. ST-03: BENEFICIARY ACCOUNT FROZEN (PAT-E / PAT-D / PAT-A)
+    # ==========================================================================
+    def resolve_st03_account_frozen(
+        self,
+        account_number: str,
+        uetr: str,
+        payment_id: str,
+        amount: float,
+        currency: str,
+        clearing_rail: str = "SWIFT_CBPR+",
+        policy_thresholds: Optional[W2PolicyThresholds] = None,
+        evidence_context: Optional[Dict[str, Any]] = None
+    ) -> Tuple[ResolutionStatus, ResolutionUniqueness, Optional[ResolutionCandidate], List[str], Optional[str]]:
+        """Authoritative Account Restriction Scope & Legal Freeze Evaluation (PAT-E / PAT-D / PAT-A).
+
+        Invariants:
+        - 0% autonomous synthesis of replacement accounts.
+        - Statutory sanctions blocks strictly diverted to CO-01 (No Return).
+        - Credit restrictions (PNC / Total Freeze) resolved via Return or Legal Suspense Booking under W2-BPD-03.
+        """
+        diff_log: List[str] = []
+        ctx = evidence_context or {}
+        policy = policy_thresholds or W2PolicyThresholds()
+
+        # 1. Retrieve Account Restriction Scope
+        scope = None
+        if "account_restriction_scope" in ctx:
+            raw_s = ctx["account_restriction_scope"]
+            if raw_s is None:
+                scope = None
+            elif isinstance(raw_s, dict):
+                scope = AccountRestrictionScope(**raw_s)
+            elif isinstance(raw_s, AccountRestrictionScope):
+                scope = raw_s
+        elif "core_account_restriction_flag" in ctx:
+            raw_s = ctx["core_account_restriction_flag"]
+            if isinstance(raw_s, dict):
+                merged_s = {
+                    "account_number": account_number,
+                    "account_title": "SUPPLIED_RESTRICTION",
+                    "restriction_reference_id": "REF-CTX-01",
+                    "issuing_authority": "BANK_CORE",
+                    **raw_s
+                }
+                scope = AccountRestrictionScope(**merged_s)
+        if not scope and "account_restriction_scope" not in ctx:
+            scope = self.legal_port.get_restriction_scope(account_number)
+
+        if not scope:
+            diff_log.append(f"No active restriction scope record found for account '{account_number}' in Legal Registry SPI.")
+            return ResolutionStatus.RESOLUTION_NOT_DETERMINED, ResolutionUniqueness.RESOLUTION_UNIQUE, None, diff_log, "Missing account restriction scope record."
+
+        # 2. Strict Sanctions Boundary Verification: ST-03 != CO-01
+        if scope.statutory_sanctions_hit or scope.restriction_type == AccountRestrictionType.STATUTORY_SANCTIONS_BLOCK or ctx.get("is_statutory_sanctions") or ctx.get("statutory_asset_freeze_detected"):
+            diff_log.append("Account restriction is a STATUTORY_SANCTIONS_BLOCK (OFAC/EU embargo). Funds must be held under CO-01; returns strictly prohibited.")
+            return ResolutionStatus.RESOLUTION_NOT_DETERMINED, ResolutionUniqueness.RESOLUTION_UNIQUE, None, diff_log, "Statutory sanctions block must be governed under CO-01."
+
+        # 3. Check Credit Prohibition Scope
+        if not scope.is_credit_prohibited and scope.restriction_type == AccountRestrictionType.DEBIT_ONLY:
+            diff_log.append(f"Account '{account_number}' restriction is DEBIT_ONLY; credit postings are permitted. ST-03 exception does not apply.")
+            return ResolutionStatus.RESOLUTION_NOT_DETERMINED, ResolutionUniqueness.RESOLUTION_UNIQUE, None, diff_log, "Account restriction permits credit posting."
+
+        diff_log.append(f"Authoritative restriction confirmed: {scope.restriction_type.value} (issuing authority: {scope.issuing_authority}). Credit posting is prohibited.")
+
+        # Check for autonomous replacement attempt
+        if ctx.get("autonomous_replacement_attempt", False):
+            diff_log.append("Autonomous replacement account synthesis detected without mandate. Strictly prohibited under W2-AD-02.")
+            return ResolutionStatus.RESOLUTION_NOT_DETERMINED, ResolutionUniqueness.RESOLUTION_UNIQUE, None, diff_log, "Autonomous replacement account synthesis strictly prohibited."
+
+        # 4. Evaluate Legal Freeze Dossier via ComplianceDossierEngine (PAT-D)
+        from app.services.engines.compliance_dossier_engine import compliance_dossier_engine
+        is_valid_dossier, dossier, dossier_diffs, dossier_err = compliance_dossier_engine.evaluate_legal_freeze_dossier(
+            account_number=account_number,
+            evidence_context=ctx
+        )
+        diff_log.extend(dossier_diffs)
+
+        if not is_valid_dossier:
+            diff_log.append(f"Legal freeze dossier validation failed: {dossier_err}")
+            return ResolutionStatus.RESOLUTION_NOT_DETERMINED, ResolutionUniqueness.RESOLUTION_AMBIGUOUS, None, diff_log, dossier_err
+
+        # 5. Determine Governed Disposition Pathway under W2-BPD-03
+        permitted_disp = dossier.permitted_disposition if dossier else "RETURN_TO_ORDERING_INSTITUTION"
+        if ctx.get("requested_disposition"):
+            permitted_disp = ctx["requested_disposition"]
+
+        from app.services.engines.settlement_reconciliation_engine import settlement_reconciliation_engine
+
+        if permitted_disp == "LEGAL_SUSPENSE_ESCROW" or ctx.get("book_to_legal_suspense", False):
+            # Branch B: Internal Legal Suspense Booking
+            if not policy.allow_legal_suspense_booking or ctx.get("policy_blocks_suspense", False):
+                diff_log.append("Bank policy prohibits automated legal suspense booking. Route to Operations Manager.")
+                return ResolutionStatus.RESOLUTION_NOT_DETERMINED, ResolutionUniqueness.RESOLUTION_UNIQUE, None, diff_log, "Legal suspense booking disabled by policy."
+
+            suspense_rec = settlement_reconciliation_engine.compile_legal_suspense_booking(
+                uetr=uetr,
+                amount=amount,
+                currency=currency,
+                suspense_gl_account="GL-2180-LEGAL-SUSPENSE-ESCROW",
+                escrow_reference_case=dossier.case_caption if dossier else f"LEGAL-ESCROW-{account_number}"
+            )
+            diff_log.append(f"Booked balanced legal escrow journal break {suspense_rec.break_id} into GL-2180.")
+            candidate = ResolutionCandidate(
+                candidate_id=f"CAND-ST03-SUSPENSE-{uuid.uuid4().hex[:8]}",
+                repaired_payload=json.dumps(suspense_rec.model_dump(mode="json")),
+                repaired_structured=suspense_rec.model_dump(mode="json"),
+                diff_summary="; ".join(diff_log),
+                derivation_method="PAT_E_LEGAL_SUSPENSE_ESCROW_BOOKING",
+                is_lossless=True,
+                fields_reordered=[]
+            )
+            return ResolutionStatus.RESOLUTION_DETERMINED, ResolutionUniqueness.RESOLUTION_UNIQUE, candidate, diff_log, None
+
+        else:
+            # Branch A (Default): Governed Return Package (PNC / FR01)
+            if amount > policy.max_frozen_account_auto_return_amount:
+                diff_log.append(f"Return amount (${amount:,.2f}) exceeds max auto-return policy ceiling (${policy.max_frozen_account_auto_return_amount:,.2f}). Route to Risk Officer.")
+                return ResolutionStatus.RESOLUTION_NOT_DETERMINED, ResolutionUniqueness.RESOLUTION_UNIQUE, None, diff_log, f"Amount exceeds W2-BPD-03 return threshold: {amount} > {policy.max_frozen_account_auto_return_amount}"
+
+            return_code = "PNC" if scope.restriction_type == AccountRestrictionType.POST_NO_CREDITS else "FR01"
+            ret_pkg = settlement_reconciliation_engine.compile_return_package(
+                uetr=uetr,
+                original_payment_id=payment_id,
+                amount=amount,
+                currency=currency,
+                return_reason_code=return_code,
+                clearing_rail=clearing_rail,
+                narrative=f"Account subject to active credit restriction ({scope.restriction_type.value})."
+            )
+            diff_log.append(f"Compiled compliant settlement return package {ret_pkg.return_id} (Reason: {return_code}, Rail: {clearing_rail}).")
+            candidate = ResolutionCandidate(
+                candidate_id=f"CAND-ST03-RETURN-{uuid.uuid4().hex[:8]}",
+                repaired_payload=json.dumps(ret_pkg.model_dump(mode="json")),
+                repaired_structured=ret_pkg.model_dump(mode="json"),
+                diff_summary="; ".join(diff_log),
+                derivation_method="PAT_E_LEDGER_MATCHING_AND_RETURN_PACKAGING",
+                is_lossless=True,
+                fields_reordered=[]
+            )
+            return ResolutionStatus.RESOLUTION_DETERMINED, ResolutionUniqueness.RESOLUTION_UNIQUE, candidate, diff_log, None
+
 
 # Global singleton
 account_master_engine = AccountMasterEngine()
+

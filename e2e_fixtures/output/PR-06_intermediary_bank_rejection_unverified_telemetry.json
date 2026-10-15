@@ -1,0 +1,52 @@
+{
+  "exception_id": "PEX-E2E-PR06-NEG",
+  "detected_profile_id": "PR-06",
+  "domain": "PROCESSING",
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+    "INBOUND_PAYMENT_TELEMETRY",
+    "IS_TELEMETRY_ONLY",
+    "INWARD_REJECTION_ADVICE",
+    "OUTBOUND_PAYMENT_RECORD",
+    "CORRESPONDENT_SSI_DIRECTORY",
+    "RAIL_CUTOFF_SCHEDULE",
+    "INVESTIGATION_STATUS"
+  ],
+  "evidence_missing": [],
+  "evidence_contradictions": [],
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "resolution_recommendation": null,
+  "resolution_basis": "Rejection state based solely on raw network telemetry (socket/TCP timeout). Telemetry is not authoritative rejection advice.",
+  "repaired_fields": [],
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "stp_eligible": false,
+  "stp_decision_reason": "Deterministic resolution could not be derived.; Deterministic validation / checksum failed.",
+  "predicate_breakdown": {
+    "e_suff": true,
+    "r_det": false,
+    "r_uniq": true,
+    "v_det": false,
+    "v_auth": true,
+    "p_bank": true,
+    "c_comp": true,
+    "x_pre": true,
+    "stp_formula_result": false
+  },
+  "ai_confidence_score": 0.5,
+  "hitl_required": true,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "execution_owner": "BANK",
+  "audit_event_id": "AUD-D05642",
+  "audit_chain_block_hash": "5a95802e77a2b87e372286c705de107efee1844d150e2ec6f36671ef6e0d3b94",
+  "processing_latency_ms": 0.51,
+  "processed_at": "2026-10-15T19:23:46.212974Z",
+  "warnings": [],
+  "errors": [
+    "Deterministic resolution could not be derived.",
+    "Deterministic validation / checksum failed."
+  ]
+}

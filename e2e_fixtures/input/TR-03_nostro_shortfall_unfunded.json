@@ -1,0 +1,41 @@
+{
+  "exception_id": "PEX-E2E-TR03-UNFUNDED",
+  "profile_id": "TR-03",
+  "domain": "CLIENT_TREASURY",
+  "error_code": "ERR_NOSTRO_SHORTFALL",
+  "error_message": "Nostro position severely impaired without secondary funding facility.",
+  "payment_info": {
+    "payment_id": "PMT-2026-TR03-002",
+    "uetr": "UETR-TR03-UNFUNDED-0002-B1",
+    "amount": 750000.00,
+    "currency": "EUR",
+    "clearing_rail": "TARGET2",
+    "value_date": "2026-10-08",
+    "debtor_name": "Mega Energy Corp",
+    "debtor_account": "ACCT-CORP-USD-001",
+    "debtor_agent_bic": "CHASUS33XXX",
+    "creditor_name": "Euro Power Grid",
+    "creditor_account": "FR7630004000019999999999999",
+    "creditor_agent_bic": "BNPAFRPPXXX",
+    "remittance_info": "MAJOR ENERGY GRID SETTLEMENT"
+  },
+  "bank_supplied_evidence": {
+    "nostro_bic": "BNPAFRPPXXX",
+    "nostro_position_statement": {
+      "nostro_bic": "BNPAFRPPXXX",
+      "currency": "EUR",
+      "available_balance": 10000.00,
+      "ledger_balance": 10000.00,
+      "minimum_operating_target": 200000.00,
+      "is_authoritative": true,
+      "authority_source": "TREASURY_MANAGEMENT_SYSTEM"
+    },
+    "pending_correspondent_credits": []
+  },
+  "external_authoritative_evidence": {},
+  "derived_evidence": {
+    "shortfall_detected": true
+  },
+  "evidence_provenance": "SYNTHETIC_TEST_FIXTURE",
+  "test_status": "TEST_ONLY"
+}

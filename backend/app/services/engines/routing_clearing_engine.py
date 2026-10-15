@@ -283,6 +283,64 @@ class RoutingClearingEngine:
 
         return ResolutionStatus.RESOLUTION_DETERMINED, ResolutionUniqueness.RESOLUTION_UNIQUE, candidate, diff_log, None
 
+    # ==========================================================================
+    # 5. PR-06 SUPPORTING: ALTERNATE CORRESPONDENT HOP RESOLUTION (PAT-A)
+    # ==========================================================================
+    def resolve_alternate_correspondent_hop(
+        self,
+        debtor_agent_bic: str,
+        creditor_agent_bic: str,
+        currency: str,
+        clearing_rail: str,
+        rejected_intermediary_bic: str,
+        evidence_context: Optional[Dict[str, Any]] = None
+    ) -> Tuple[bool, Optional[str], List[str], Optional[str]]:
+        """Queries clearing directory and SSI records to find a viable, reachable alternate intermediary hop.
+
+        Returns:
+            Tuple[is_viable, alternate_bic, diff_log, error_reason]
+        """
+        diff_log: List[str] = []
+        ctx = evidence_context or {}
+
+        # 1. Check for ambiguous competing routes
+        if ctx.get("ambiguous_routing_paths", False) or ctx.get("multiple_competing_alternate_routes", False):
+            diff_log.append("Multiple competing alternate correspondent hops available. Disambiguation required in HITL.")
+            return False, None, diff_log, "Ambiguous alternate correspondent routes."
+
+        # 2. Check if verified alternate BIC is supplied in context
+        if ctx.get("verified_alternate_intermediary_bic"):
+            alt_bic = ctx["verified_alternate_intermediary_bic"]
+            diff_log.append(f"Using supplied verified alternate correspondent BIC: {alt_bic}.")
+            return True, alt_bic, diff_log, None
+
+        # 3. Query routing directory port
+        route_rec = self.routing_port.resolve_route(
+            debtor_agent_bic=debtor_agent_bic,
+            creditor_agent_bic=creditor_agent_bic,
+            currency=currency,
+            clearing_rail=clearing_rail
+        )
+
+        if not route_rec or not route_rec.is_reachable:
+            diff_log.append(f"No reachable clearing route found between {debtor_agent_bic} and {creditor_agent_bic}.")
+            return False, None, diff_log, "No reachable routing path in clearing directory."
+
+        # Verify candidate intermediary hop is different from rejected one
+        cand_bic = route_rec.intermediary_agent_bic
+        if not cand_bic or cand_bic == rejected_intermediary_bic:
+            # Check secondary SSI
+            ssi = self.routing_port.get_ssi(creditor_agent_bic, currency)
+            if ssi and ssi.intermediary_bic and ssi.intermediary_bic != rejected_intermediary_bic:
+                cand_bic = ssi.intermediary_bic
+
+        if not cand_bic or cand_bic == rejected_intermediary_bic:
+            diff_log.append(f"No distinct alternate intermediary hop available (only rejected {rejected_intermediary_bic} listed).")
+            return False, None, diff_log, "No distinct alternate intermediary available."
+
+        diff_log.append(f"Resolved viable alternate intermediary BIC '{cand_bic}' via {clearing_rail}.")
+        return True, cand_bic, diff_log, None
+
 
 # Global singleton
 routing_clearing_engine = RoutingClearingEngine()

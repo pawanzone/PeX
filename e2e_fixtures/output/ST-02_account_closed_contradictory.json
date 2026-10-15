@@ -1,0 +1,53 @@
+{
+  "exception_id": "PEX-E2E-ST02-NEG",
+  "detected_profile_id": "ST-02",
+  "domain": "SETTLEMENT_RETURNS",
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+    "INBOUND_PAYMENT_TELEMETRY",
+    "CONTRADICTORY_ACCOUNT_STATUS",
+    "AUTONOMOUS_REPLACEMENT_ATTEMPT",
+    "CORE_DDA_ACCOUNT_STATUS",
+    "INWARD_PAYMENT_RECORD",
+    "CLEARING_RETURN_SCHEDULE",
+    "INVESTIGATION_STATUS"
+  ],
+  "evidence_missing": [],
+  "evidence_contradictions": [],
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "resolution_recommendation": null,
+  "resolution_basis": "Contradictory account status signals between Core DDA and auxiliary directory. PeX fails closed to HITL.",
+  "repaired_fields": [],
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "stp_eligible": false,
+  "stp_decision_reason": "Deterministic resolution could not be derived.; Resolution is ambiguous with multiple candidate matches.; Deterministic validation / checksum failed.",
+  "predicate_breakdown": {
+    "e_suff": true,
+    "r_det": false,
+    "r_uniq": false,
+    "v_det": false,
+    "v_auth": true,
+    "p_bank": true,
+    "c_comp": true,
+    "x_pre": true,
+    "stp_formula_result": false
+  },
+  "ai_confidence_score": 0.5,
+  "hitl_required": true,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "execution_owner": "BANK",
+  "audit_event_id": "AUD-630133",
+  "audit_chain_block_hash": "6b81f5ae48aa0c737ccb4a5b95b96e8d47f0b6c65645bb21936c9f18d04b2fbc",
+  "processing_latency_ms": 0.58,
+  "processed_at": "2026-10-15T19:23:46.567564Z",
+  "warnings": [],
+  "errors": [
+    "Deterministic resolution could not be derived.",
+    "Resolution is ambiguous with multiple candidate matches.",
+    "Deterministic validation / checksum failed."
+  ]
+}
