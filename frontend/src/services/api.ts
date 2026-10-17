@@ -4,32 +4,110 @@ import {
   DecisionRecommendation,
   AuditEvent,
   AnalyticsSummary,
+  SystemInfo,
+  CasePage,
+  SummaryCounts,
+  BatchRecord,
 } from "../types";
+import { apiFetch, apiDownload, setToken, ApiError } from "./http";
 
-const API_BASE = "/api";
+export { ApiError } from "./http";
+
+
+// ---------------------------------------------------------------- auth
 
 export async function fetchPersonas(): Promise<UserPersona[]> {
-  const res = await fetch(`${API_BASE}/auth/personas`);
-  return res.json();
+  return apiFetch<UserPersona[]>("/auth/personas");
 }
 
+/** Demo persona login. Stores the returned token so every later request is authenticated. */
 export async function loginPersona(user_id: string): Promise<{ access_token: string; user: UserPersona }> {
-  const res = await fetch(`${API_BASE}/auth/login`, {
+  const res = await apiFetch<{ access_token: string; user: UserPersona }>("/auth/login", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ user_id }),
+    json: { user_id },
   });
-  return res.json();
+  if (res?.access_token) setToken(res.access_token);
+  return res;
 }
+
+// ---------------------------------------------------------------- system
+
+export async function fetchSystemInfo(): Promise<SystemInfo> {
+  return apiFetch<SystemInfo>("/system/info");
+}
+
+// ---------------------------------------------------------------- analytics
 
 export async function fetchAnalyticsSummary(): Promise<AnalyticsSummary> {
-  const res = await fetch(`${API_BASE}/analytics/summary`);
-  return res.json();
+  return apiFetch<AnalyticsSummary>("/analytics/summary");
 }
 
 export async function fetchVelocity(): Promise<Array<{ day: string; opened: number; resolved: number }>> {
-  const res = await fetch(`${API_BASE}/analytics/velocity`);
-  return res.json();
+  return apiFetch("/analytics/velocity");
+}
+
+export async function fetchSummaryCounts(): Promise<SummaryCounts> {
+  try {
+    return await apiFetch<SummaryCounts>("/summary/counts");
+  } catch (e) {
+    if (!(e instanceof ApiError) || !e.unavailable) throw e;
+    // Legacy backend without /summary/counts: derive from the unpaged list (small demo data only).
+    const all = await fetchCases();
+    const tally = (f: (c: PeXCase) => string) => all.reduce<Record<string, number>>((m, c) => { const k = f(c); m[k] = (m[k] || 0) + 1; return m; }, {});
+    const st = (c: PeXCase) => String(c.status).replace("LifecycleStage.", "");
+    return {
+      total: all.length,
+      by_status: tally(st),
+      by_queue: tally((c) => c.queue),
+      by_profile: tally((c) => String(c.profile)),
+      by_rail: tally((c) => c.payment_rail),
+      actionable_repair: all.filter((c) => c.queue === "Repair" && !["SETTLED", "REJECTED", "APPROVED", "DISPATCHED", "HANDED_TO_BANK"].includes(st(c))).length,
+      pending_approvals_all: all.filter((c) => ["PENDING_APPROVAL", "AWAITING_SECOND_APPROVAL"].includes(st(c))).length,
+    };
+  }
+}
+
+// ---------------------------------------------------------------- cases
+
+export interface CaseQuery {
+  limit?: number;
+  offset?: number;
+  queue?: string;
+  status?: string;
+  profile?: string;
+  rail?: string;
+  currency?: string;
+  q?: string;
+  sort?: string;
+  order?: "asc" | "desc";
+}
+
+/**
+ * Server-side paged case list. Falls back to the legacy unpaged /cases endpoint (filtered and
+ * sliced in the browser) if /cases/page is not available on this backend build.
+ */
+export async function fetchCasesPage(params: CaseQuery = {}): Promise<CasePage> {
+  const limit = params.limit ?? 50;
+  const offset = params.offset ?? 0;
+  try {
+    return await apiFetch<CasePage>("/cases/page", {
+      query: { ...params, limit, offset },
+    });
+  } catch (e) {
+    if (!(e instanceof ApiError) || !e.unavailable) throw e;
+    const all = await fetchCases({
+      queue: params.queue,
+      status: params.status,
+      profile: params.profile,
+      search: params.q,
+    });
+    const filtered = all.filter((c) => {
+      if (params.currency && params.currency !== "All" && c.currency !== params.currency) return false;
+      if (params.rail && params.rail !== "All" && c.payment_rail !== params.rail) return false;
+      return true;
+    });
+    return { items: filtered.slice(offset, offset + limit), total: filtered.length, limit, offset };
+  }
 }
 
 export async function fetchCases(params?: {
@@ -38,14 +116,7 @@ export async function fetchCases(params?: {
   profile?: string;
   search?: string;
 }): Promise<PeXCase[]> {
-  const query = new URLSearchParams();
-  if (params?.queue) query.set("queue", params.queue);
-  if (params?.status) query.set("status", params.status);
-  if (params?.profile) query.set("profile", params.profile);
-  if (params?.search) query.set("search", params.search);
-
-  const res = await fetch(`${API_BASE}/cases?${query.toString()}`);
-  return res.json();
+  return apiFetch<PeXCase[]>("/cases", { query: params });
 }
 
 export async function fetchCaseDetail(case_id: string): Promise<{
@@ -53,8 +124,7 @@ export async function fetchCaseDetail(case_id: string): Promise<{
   recommendation: DecisionRecommendation | null;
   approvals: any[];
 }> {
-  const res = await fetch(`${API_BASE}/cases/${case_id}`);
-  return res.json();
+  return apiFetch(`/cases/${encodeURIComponent(case_id)}`);
 }
 
 export async function runInvestigation(case_id: string): Promise<{
@@ -63,105 +133,93 @@ export async function runInvestigation(case_id: string): Promise<{
   recommendation: DecisionRecommendation;
   governance_gate: any;
 }> {
-  const res = await fetch(`${API_BASE}/cases/${case_id}/investigate`, {
-    method: "POST",
-  });
-  return res.json();
+  return apiFetch(`/cases/${encodeURIComponent(case_id)}/investigate`, { method: "POST" });
 }
 
+/** Token argument kept for source compatibility; the bearer token is attached centrally. */
 export async function submitApproval(
   case_id: string,
   action: string,
   comments: string,
-  token?: string
+  _token?: string
 ): Promise<any> {
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
-  if (token) headers["Authorization"] = `Bearer ${token}`;
-
-  const res = await fetch(`${API_BASE}/approvals/submit`, {
-    method: "POST",
-    headers,
-    body: JSON.stringify({ case_id, action, comments }),
-  });
-  return res.json();
+  return apiFetch("/approvals/submit", { method: "POST", json: { case_id, action, comments }, tolerant: true });
 }
 
-export async function executeAction(case_id: string, token?: string, actor_id?: string): Promise<any> {
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
-  const res = await fetch(`${API_BASE}/actions/execute`, {
-    method: "POST",
-    headers,
-    body: JSON.stringify({ case_id, actor_id }),
-  });
-  return res.json();
+export async function executeAction(case_id: string, _token?: string, actor_id?: string): Promise<any> {
+  return apiFetch("/actions/execute", { method: "POST", json: { case_id, actor_id }, tolerant: true });
 }
 
 export async function initiatePayment(payload: any): Promise<any> {
-  const res = await fetch(`${API_BASE}/cases/initiate`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-  return res.json();
+  return apiFetch("/cases/initiate", { method: "POST", json: payload });
 }
 
+// ---------------------------------------------------------------- audit / governance
+
 export async function fetchAuditStream(): Promise<AuditEvent[]> {
-  const res = await fetch(`${API_BASE}/audit/stream?limit=50`);
-  return res.json();
+  return apiFetch("/audit/stream", { query: { limit: 50 } });
 }
 
 export async function fetchGovernanceControls(): Promise<any> {
-  const res = await fetch(`${API_BASE}/governance/controls`);
-  return res.json();
+  return apiFetch("/governance/controls");
 }
 
 export async function verifyAuditChain(): Promise<any> {
-  const res = await fetch(`${API_BASE}/governance/audit-chain/verify`);
-  return res.json();
+  return apiFetch("/governance/audit-chain/verify");
 }
 
 export async function fetchAdapters(): Promise<any[]> {
-  const res = await fetch(`${API_BASE}/adapters/status`);
-  return res.json();
+  return apiFetch("/adapters/status");
 }
 
 export async function testAdapter(adapter_id: string): Promise<any> {
-  const res = await fetch(`${API_BASE}/adapters/test`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ adapter_id }),
-  });
-  return res.json();
+  return apiFetch("/adapters/test", { method: "POST", json: { adapter_id } });
 }
 
 export async function fetchSops(): Promise<any[]> {
-  const res = await fetch(`${API_BASE}/copilot/sops`);
-  return res.json();
+  return apiFetch("/copilot/sops");
 }
 
 export async function sendCopilotChat(message: string, case_id?: string): Promise<any> {
-  const res = await fetch(`${API_BASE}/copilot/chat`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message, case_id }),
-  });
-  return res.json();
+  return apiFetch("/copilot/chat", { method: "POST", json: { message, case_id } });
 }
 
 export async function fetchOntologyPipeline(): Promise<any[]> {
-  const res = await fetch(`${API_BASE}/ontology/pipeline`);
-  return res.json();
+  return apiFetch("/ontology/pipeline");
 }
 
 export async function fetchOntologyEntities(): Promise<any[]> {
-  const res = await fetch(`${API_BASE}/ontology/entities`);
-  return res.json();
+  return apiFetch("/ontology/entities");
 }
 
 export async function inspectCaseOntology(case_id: string): Promise<any> {
-  const res = await fetch(`${API_BASE}/ontology/inspect/${case_id}`);
-  return res.json();
+  return apiFetch(`/ontology/inspect/${encodeURIComponent(case_id)}`);
+}
+
+// ---------------------------------------------------------------- batches
+
+export async function uploadBatch(file: File): Promise<{ batch_id: string; status: string }> {
+  const fd = new FormData();
+  fd.append("file", file);
+  return apiFetch("/batch/upload", { method: "POST", body: fd });
+}
+
+export async function fetchBatches(): Promise<BatchRecord[]> {
+  const res = await apiFetch<any>("/batch");
+  return Array.isArray(res) ? res : res?.items ?? [];
+}
+
+export async function fetchBatch(batch_id: string): Promise<BatchRecord> {
+  return apiFetch(`/batch/${encodeURIComponent(batch_id)}`);
+}
+
+export async function generateBatch(count: number, rails: string[], seed = 1): Promise<{ batch_id: string }> {
+  return apiFetch("/batch/generate", {
+    method: "POST",
+    query: { count, seed, rails: rails.join(",") },
+  });
+}
+
+export function downloadBatchResults(batch_id: string): Promise<void> {
+  return apiDownload(`/batch/${encodeURIComponent(batch_id)}/results`, `${batch_id}.results.jsonl`);
 }

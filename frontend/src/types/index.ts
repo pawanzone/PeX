@@ -26,6 +26,7 @@ export interface UserPersona {
 export type LifecycleStage =
   | "INGESTED"
   | "CANONICALIZED"
+  | "VALIDATED"
   | "INVESTIGATING"
   | "RECOMMENDED"
   | "PENDING_APPROVAL"
@@ -35,8 +36,12 @@ export type LifecycleStage =
   | "REJECTED"
   | "ESCALATED"
   | "DISPATCHED"
+  | "HANDED_TO_BANK"
+  | "EXECUTED_CONFIRMED"
   | "SETTLED"
-  | "FAILED";
+  | "FAILED"
+  | "STATUS_UNKNOWN"
+  | "SHADOW_RECORDED";
 
 export type ExceptionDomain =
   | "DATA_QUALITY"
@@ -164,6 +169,9 @@ export interface PeXCase {
     summary: string;
   }>;
   settled_at?: string;
+  maker_id?: string;
+  dispatch_status?: string;
+  bank_ack_reference?: string;
 }
 
 export interface ProposedFieldChange {
@@ -236,6 +244,10 @@ export interface DecisionRecommendation {
   ambiguity_detected?: boolean;
   ambiguity_message?: string;
   model_identifier: string;
+  model_version?: string;
+  prompt_version?: string;
+  llm_status?: string;
+  llm_disagreement?: boolean;
   prompt_tokens: number;
   completion_tokens: number;
   generated_at: string;
@@ -290,4 +302,53 @@ export interface AnalyticsSummary {
   queue_distribution: Record<string, number>;
   processing_date: string;
   telemetry_status: string;
+  measured?: boolean;
+}
+
+export type OperationMode = "SHADOW" | "ASSISTED" | "LIVE";
+
+export interface SystemInfo {
+  version: string;
+  operation_mode: OperationMode;
+  bank_comm: string;
+  demo: boolean;
+  llm: { enabled: boolean; model?: string; reachable?: boolean | null };
+}
+
+export interface CasePage {
+  items: PeXCase[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export interface SummaryCounts {
+  total: number;
+  by_status: Record<string, number>;
+  by_queue: Record<string, number>;
+  by_profile: Record<string, number>;
+  by_rail: Record<string, number>;
+  actionable_repair: number;
+  pending_approvals_all: number;
+}
+
+export type BatchStatus = "QUEUED" | "PROCESSING" | "COMPLETED" | "FAILED";
+
+export interface BatchRecord {
+  batch_id: string;
+  filename?: string;
+  status: BatchStatus;
+  total: number;
+  processed: number;
+  failed: number;
+  duplicates: number;
+  started_at?: string;
+  finished_at?: string;
+  records_per_sec?: number;
+  summary?: {
+    stp_eligible?: number;
+    by_status?: Record<string, number>;
+    by_queue?: Record<string, number>;
+    [k: string]: any;
+  };
 }

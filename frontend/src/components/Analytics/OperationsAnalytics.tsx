@@ -1,105 +1,90 @@
 import React from "react";
-import { AnalyticsSummary } from "../../types";
-import { BarChart3, TrendingUp, ShieldAlert, Award, Clock } from "lucide-react";
+import { AnalyticsSummary, SummaryCounts } from "../../types";
+import { NotMeasured, MeasuredValue } from "../common/NotMeasured";
+import { statusMeta } from "../../lib/statusMeta";
 
 interface Props {
   analytics: AnalyticsSummary | null;
+  counts?: SummaryCounts | null;
 }
 
-export const OperationsAnalytics: React.FC<Props> = ({ analytics }) => {
+const BAR_COLORS = ["bg-sky-500", "bg-amber-500", "bg-purple-500", "bg-indigo-500", "bg-emerald-500", "bg-slate-400"];
+
+const Distribution: React.FC<{ title: string; data?: Record<string, number>; labelFor?: (k: string) => string }> = ({ title, data, labelFor }) => {
+  const entries = Object.entries(data ?? {}).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]).slice(0, 8);
+  const total = entries.reduce((a, [, v]) => a + v, 0);
+  return (
+    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+      <h3 className="text-sm font-bold text-slate-900 tracking-tight">{title}</h3>
+      {entries.length === 0 ? (
+        <p className="text-xs text-slate-400">No data yet.</p>
+      ) : (
+        <div className="space-y-3 text-xs">
+          {entries.map(([k, v], i) => (
+            <div key={k}>
+              <div className="flex items-center justify-between mb-1">
+                <span>{labelFor ? labelFor(k) : k.replace(/_/g, " ")}</span>
+                <span className="font-mono font-bold text-slate-700">{v.toLocaleString()} <span className="text-slate-400 font-normal">({Math.round((v / total) * 100)}%)</span></span>
+              </div>
+              <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                <div className={`${BAR_COLORS[i % BAR_COLORS.length]} h-2 rounded-full`} style={{ width: `${(v / total) * 100}%` }} />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export const OperationsAnalytics: React.FC<Props> = ({ analytics, counts }) => {
+  const total = counts?.total ?? analytics?.total_cases;
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Operations Analytics &amp; KPIs</h1>
-        <p className="text-xs text-slate-500 mt-1">Cross-institutional exception metrics, repair velocity, and compliance telemetry</p>
+        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Operations Analytics</h1>
+        <p className="text-xs text-slate-500 mt-1">Counts come from the case store. Outcome metrics stay "Not measured" until real bank outcomes are connected.</p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-2">
-          <span className="text-xs font-semibold text-slate-500 uppercase font-mono">TOTAL REPAIR VOLUME</span>
-          <div className="text-3xl font-bold text-slate-900">{analytics?.total_cases || 18}</div>
-          <p className="text-[11px] text-emerald-600 font-medium">94.2% straight-through repair eligible</p>
+          <span className="text-xs font-semibold text-slate-500 uppercase font-mono">Total cases</span>
+          <div className="text-3xl font-bold text-slate-900">{total !== undefined ? total.toLocaleString() : "n/a"}</div>
+          <p className="text-[11px] text-slate-400">Counted from the case store</p>
         </div>
-
         <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-2">
-          <span className="text-xs font-semibold text-slate-500 uppercase font-mono">SETTLED VALUE</span>
-          <div className="text-3xl font-bold text-emerald-600">$1,482,000.00</div>
-          <p className="text-[11px] text-slate-400">Zero settlement fails on simulated ledger</p>
+          <span className="text-xs font-semibold text-slate-500 uppercase font-mono">STP rate</span>
+          <div className="text-3xl font-bold"><MeasuredValue measured={analytics?.measured} value={`${analytics?.resolution_rate ?? 0}%`} className="text-slate-900" /></div>
+          <p className="text-[11px] text-slate-400">Share resolved without manual touch</p>
         </div>
-
         <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-2">
-          <span className="text-xs font-semibold text-slate-500 uppercase font-mono">AVG HUMAN TIME IN LOOP</span>
-          <div className="text-3xl font-bold text-sky-600">42s</div>
-          <p className="text-[11px] text-slate-400">Down from 18 mins manual bank query</p>
+          <span className="text-xs font-semibold text-slate-500 uppercase font-mono">Avg resolution time</span>
+          <div className="text-3xl font-bold"><NotMeasured /></div>
+          <p className="text-[11px] text-slate-400">Needs bank-confirmed outcomes</p>
+        </div>
+        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-2">
+          <span className="text-xs font-semibold text-slate-500 uppercase font-mono">Estimated savings</span>
+          <div className="text-3xl font-bold"><NotMeasured /></div>
+          <p className="text-[11px] text-slate-400">Needs client cost baseline</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-          <h3 className="text-sm font-bold text-slate-900 tracking-tight">Exception Profile Volume Breakdown</h3>
-          <div className="space-y-3 text-xs">
-            <div className="flex items-center justify-between">
-              <span>Beneficiary IBAN Checksum (MOD-97)</span>
-              <span className="font-mono font-bold text-sky-600">55%</span>
-            </div>
-            <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
-              <div className="bg-sky-500 h-2 rounded-full" style={{ width: "55%" }}></div>
-            </div>
+        <Distribution title="Cases by exception type" data={counts?.by_profile} />
+        <Distribution title="Cases by state" data={counts?.by_status} labelFor={(k) => statusMeta(k).label} />
+        <Distribution title="Cases by queue" data={counts?.by_queue} />
+        <Distribution title="Cases by rail" data={counts?.by_rail} />
+      </div>
 
-            <div className="flex items-center justify-between">
-              <span>Sanctions Screening Entity Review</span>
-              <span className="font-mono font-bold text-amber-600">22%</span>
-            </div>
-            <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
-              <div className="bg-amber-500 h-2 rounded-full" style={{ width: "22%" }}></div>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <span>Duplicate Instruction Suspected</span>
-              <span className="font-mono font-bold text-purple-600">15%</span>
-            </div>
-            <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
-              <div className="bg-purple-500 h-2 rounded-full" style={{ width: "15%" }}></div>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <span>Invalid Routing BIC / Clearing Code</span>
-              <span className="font-mono font-bold text-indigo-600">8%</span>
-            </div>
-            <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
-              <div className="bg-indigo-500 h-2 rounded-full" style={{ width: "8%" }}></div>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-          <h3 className="text-sm font-bold text-slate-900 tracking-tight">Compliance &amp; Governance Posture</h3>
-          <div className="space-y-3 text-xs text-slate-600">
-            <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
-              <div>
-                <strong className="text-slate-800 block">Maker-Checker Segregation</strong>
-                <span>100% enforced on all payment repairs</span>
-              </div>
-              <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-mono text-[10px] font-bold">ACTIVE</span>
-            </div>
-
-            <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
-              <div>
-                <strong className="text-slate-800 block">Dual Authorization (&gt;= $250k)</strong>
-                <span>Zero single-approver high value releases</span>
-              </div>
-              <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-mono text-[10px] font-bold">ACTIVE</span>
-            </div>
-
-            <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
-              <div>
-                <strong className="text-slate-800 block">Zero PII Leakage Shield</strong>
-                <span>Isolated Token Vault with TOK-* substitution</span>
-              </div>
-              <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-mono text-[10px] font-bold">ACTIVE</span>
-            </div>
-          </div>
-        </div>
+      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+        <h3 className="text-sm font-bold text-slate-900 tracking-tight">Control design</h3>
+        <p className="text-xs text-slate-500">Controls PeX is designed to apply. Enforcement evidence is in Controls &amp; Governance and the audit chain.</p>
+        <ul className="text-xs text-slate-600 space-y-1.5 list-disc pl-5">
+          <li>Maker-checker: the creator of a case cannot approve it.</li>
+          <li>Dual authorisation above the configured amount threshold.</li>
+          <li>Party data is tokenised before any language model sees a case.</li>
+          <li>PeX never executes or settles payments. The bank does.</li>
+        </ul>
       </div>
     </div>
   );

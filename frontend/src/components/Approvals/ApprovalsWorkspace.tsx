@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { PeXCase, UserPersona, DecisionRecommendation } from "../../types";
+import { PeXCase, UserPersona, DecisionRecommendation, SystemInfo, CasePage } from "../../types";
 import {
   fetchCaseDetail,
+  fetchCasesPage,
   runInvestigation,
   submitApproval,
   executeAction,
@@ -20,22 +21,50 @@ import {
   Scale,
   Send,
 } from "lucide-react";
+import { StatusBadge } from "../common/StatusBadge";
+import { Pagination } from "../common/Pagination";
+import { EmptyState, ErrorState, LoadingState } from "../common/States";
+import { CaseJourney } from "../common/CaseJourney";
+import { SimText } from "../common/SimulatedChip";
+import { statusMeta, slaTone, TONE_CLASSES, isBankConfirmed, isHandedToBank } from "../../lib/statusMeta";
 
 interface Props {
-  cases: PeXCase[];
   selectedCaseId: string | null;
   onSelectCase: (caseId: string) => void;
   currentPersona: UserPersona | null;
   onRefreshCases: () => void;
+  systemInfo?: SystemInfo | null;
+}
+
+const PAGE_SIZE = 25;
+const APPROVABLE = ["PENDING_APPROVAL", "AWAITING_SECOND_APPROVAL"];
+
+/** Returns a human reason why this persona cannot act on the case, or null if they can. */
+function approvalBlockReason(c: PeXCase, p: UserPersona | null): string | null {
+  const status = String(c.status);
+  if (!p) return "Sign in as a persona to act on this case";
+  if (!APPROVABLE.includes(status)) return `No approval is pending (state: ${statusMeta(status).label})`;
+  if (c.maker_id && c.maker_id === p.user_id) return "You created this case (maker-checker)";
+  const prior = (c.approval_history ?? []).some((a) => a.approver_id === p.user_id && /APPROVE/i.test(a.action));
+  if (prior) return "You already approved this case; a different approver must give the second approval";
+  if (p.max_approval_amount && c.amount > p.max_approval_amount) return `Amount exceeds your approval limit of ${c.currency} ${p.max_approval_amount.toLocaleString()}`;
+  return null;
 }
 
 export const ApprovalsWorkspace: React.FC<Props> = ({
-  cases,
   selectedCaseId,
   onSelectCase,
   currentPersona,
   onRefreshCases,
+  systemInfo,
 }) => {
+  const [page, setPage] = useState<CasePage | null>(null);
+  const [listOffset, setListOffset] = useState(0);
+  const [listFilter, setListFilter] = useState<"pending" | "all">("pending");
+  const [listError, setListError] = useState<string | null>(null);
+  const [listLoading, setListLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [tick, setTick] = useState(0);
   const [activeCase, setActiveCase] = useState<PeXCase | null>(null);
   const [recommendation, setRecommendation] = useState<DecisionRecommendation | null>(null);
   const [approvals, setApprovals] = useState<any[]>([]);
@@ -43,9 +72,37 @@ export const ApprovalsWorkspace: React.FC<Props> = ({
   const [actionLoading, setActionLoading] = useState(false);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
-  const [comments, setComments] = useState("Validated against beneficiary standing instructions and MOD-97 check digits.");
+  const [comments, setComments] = useState("");
 
-  const currentId = selectedCaseId || cases[0]?.case_id;
+  const currentId = selectedCaseId || page?.items[0]?.case_id;
+
+  const loadList = async () => {
+    setListLoading(true);
+    try {
+      const r = await fetchCasesPage({
+        limit: PAGE_SIZE,
+        offset: listOffset,
+        status: listFilter === "pending" ? "PENDING_APPROVAL" : undefined,
+        sort: "sla_due_at",
+        order: "asc",
+      });
+      setPage(r);
+      setListError(null);
+    } catch (e: any) {
+      setListError(e?.message || "Could not load the queue");
+    } finally {
+      setListLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadList();
+  }, [listOffset, listFilter, tick]);
+
+  const refreshAll = () => {
+    setTick((t) => t + 1);
+    onRefreshCases();
+  };
 
   useEffect(() => {
     if (currentId) {
@@ -57,6 +114,7 @@ export const ApprovalsWorkspace: React.FC<Props> = ({
     setLoading(true);
     setActionMessage(null);
     setActionError(null);
+    setLoadError(null);
     try {
       const data = await fetchCaseDetail(caseId);
       setActiveCase(data.case);
@@ -69,7 +127,7 @@ export const ApprovalsWorkspace: React.FC<Props> = ({
         setRecommendation(inv.recommendation);
       }
     } catch (err: any) {
-      console.error(err);
+      setLoadError(err?.message || "Could not load this case");
     } finally {
       setLoading(false);
     }
@@ -85,10 +143,10 @@ export const ApprovalsWorkspace: React.FC<Props> = ({
       const res = await submitApproval(activeCase.case_id, actionType, comments, token);
       if (res.success) {
         setActionMessage(res.message);
-        onRefreshCases();
+        refreshAll();
         loadCase(activeCase.case_id);
       } else {
-        setActionError(res.detail || res.message || "Approval failed.");
+        setActionError(typeof res.detail === "string" ? res.detail : res.message || "Approval failed.");
       }
     } catch (err: any) {
       setActionError(err.message || "Server error during approval submission.");
@@ -105,11 +163,16 @@ export const ApprovalsWorkspace: React.FC<Props> = ({
     try {
       const res = await executeAction(activeCase.case_id);
       if (res.success) {
-        setActionMessage(`Dispatched & Settled! Delivery Receipt: ${res.delivery_receipt?.bank_ack_reference}`);
-        onRefreshCases();
+        const ref = res.delivery_receipt?.bank_ack_reference || res.bank_ack_reference;
+        setActionMessage(
+          systemInfo?.operation_mode === "SHADOW"
+            ? "Shadow mode: dispatch suppressed. Nothing was sent to the bank."
+            : `Handed to bank${ref ? ` (ref ${ref})` : ""}. Awaiting bank confirmation; the case is not settled until the bank confirms.`
+        );
+        refreshAll();
         loadCase(activeCase.case_id);
       } else {
-        setActionError(res.detail || res.message || "Dispatch execution failed.");
+        setActionError(typeof res.detail === "string" ? res.detail : res.message || "Dispatch failed.");
       }
     } catch (err: any) {
       setActionError(err.message || "Server error during action execution.");
@@ -125,52 +188,71 @@ export const ApprovalsWorkspace: React.FC<Props> = ({
         <div className="p-4 border-b border-slate-100 flex items-center justify-between">
           <div>
             <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 font-mono">APPROVALS QUEUE</h2>
-            <p className="text-[11px] text-slate-400">{cases.length} exceptions under governance</p>
+            <p className="text-[11px] text-slate-400">{page ? `${page.total.toLocaleString()} ${listFilter === "pending" ? "awaiting approval" : "cases"}` : "Loading..."}</p>
           </div>
           <button
-            onClick={() => onRefreshCases()}
+            onClick={refreshAll}
             className="p-1.5 hover:bg-slate-100 rounded-md text-slate-500 transition-colors"
             title="Refresh queue"
           >
-            <RefreshCw className="w-3.5 h-3.5" />
+            <RefreshCw className={`w-3.5 h-3.5 ${listLoading ? "animate-spin" : ""}`} />
           </button>
+        </div>
+        <div className="flex border-b border-slate-100 text-[11px] font-semibold">
+          {(["pending", "all"] as const).map((f) => (
+            <button
+              key={f}
+              onClick={() => { setListFilter(f); setListOffset(0); }}
+              className={`flex-1 py-2 ${listFilter === f ? "text-sky-700 border-b-2 border-sky-600 bg-sky-50/50" : "text-slate-500 hover:bg-slate-50"}`}
+            >
+              {f === "pending" ? "Needs approval" : "All cases"}
+            </button>
+          ))}
         </div>
 
         <div className="flex-1 overflow-y-auto divide-y divide-slate-100">
-          {cases.map((c) => {
-            const isSelected = (activeCase?.case_id || currentId) === c.case_id;
-            return (
-              <div
-                key={c.case_id}
-                onClick={() => {
-                  onSelectCase(c.case_id);
-                  loadCase(c.case_id);
-                }}
-                className={`p-3.5 cursor-pointer transition-all ${
-                  isSelected ? "bg-sky-50/80 border-l-4 border-sky-600" : "hover:bg-slate-50"
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs font-bold text-slate-900">{c.case_id}</span>
-                  <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded font-semibold ${
-                    c.status === "SETTLED" ? "bg-emerald-100 text-emerald-700" :
-                    c.status === "APPROVED" ? "bg-blue-100 text-blue-700" :
-                    c.status === "AWAITING_SECOND_APPROVAL" ? "bg-purple-100 text-purple-700" : "bg-amber-100 text-amber-700"
-                  }`}>
-                    {c.status}
-                  </span>
+          {listError ? (
+            <ErrorState message={listError} onRetry={loadList} />
+          ) : !page ? (
+            <LoadingState />
+          ) : page.items.length === 0 ? (
+            <EmptyState title="Nothing to approve" hint="No cases are waiting for approval right now." />
+          ) : (
+            page.items.map((c) => {
+              const isSelected = (activeCase?.case_id || currentId) === c.case_id;
+              const sla = slaTone(c.sla_due_at);
+              return (
+                <div
+                  key={c.case_id}
+                  onClick={() => {
+                    onSelectCase(c.case_id);
+                    loadCase(c.case_id);
+                  }}
+                  className={`p-3.5 cursor-pointer transition-all ${
+                    isSelected ? "bg-sky-50/80 border-l-4 border-sky-600" : "hover:bg-slate-50"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-xs font-bold text-slate-900">{c.case_id}</span>
+                    <StatusBadge status={c.status} short />
+                  </div>
+                  <div className="text-xs font-medium text-slate-700 mt-1 truncate">{c.creditor_party?.party_name}</div>
+                  <div className="flex items-center justify-between text-[11px] text-slate-500 mt-2">
+                    <span className="font-mono font-semibold text-slate-800">
+                      {c.currency} {c.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    </span>
+                    <span className={`text-[10px] font-mono ${TONE_CLASSES[sla.tone].text}`}>{sla.label}</span>
+                  </div>
                 </div>
-                <div className="text-xs font-medium text-slate-700 mt-1 truncate">{c.creditor_party?.party_name}</div>
-                <div className="flex items-center justify-between text-[11px] text-slate-500 mt-2">
-                  <span className="font-mono font-semibold text-slate-800">
-                    {c.currency} {c.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                  </span>
-                  <span className="text-[10px] font-mono text-slate-400">{c.queue}</span>
-                </div>
-              </div>
-            );
-          })}
+              );
+            })
+          )}
         </div>
+        {page && page.total > PAGE_SIZE && (
+          <div className="border-t border-slate-100">
+            <Pagination total={page.total} limit={PAGE_SIZE} offset={listOffset} onChange={setListOffset} compact />
+          </div>
+        )}
       </div>
 
       {/* Right Detail Pane */}
@@ -178,8 +260,10 @@ export const ApprovalsWorkspace: React.FC<Props> = ({
         {loading ? (
           <div className="h-full flex items-center justify-center space-x-2 text-slate-500 text-xs font-medium">
             <RefreshCw className="w-5 h-5 animate-spin text-sky-600" />
-            <span>Assembling Tokenized Context &amp; Running AI Reasoner...</span>
+            <span>Loading case and recommendation...</span>
           </div>
+        ) : loadError ? (
+          <ErrorState message={loadError} onRetry={() => currentId && loadCase(currentId)} />
         ) : activeCase ? (
           <div className="max-w-5xl mx-auto space-y-6">
             {/* Header Card */}
@@ -207,8 +291,9 @@ export const ApprovalsWorkspace: React.FC<Props> = ({
                   <div className="text-2xl font-bold font-mono text-slate-900">
                     {activeCase.currency} {activeCase.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                   </div>
-                  <div className="text-[11px] text-slate-500">
-                    SLA Due in: <strong className="text-amber-600 font-mono">1h 45m</strong>
+                  <div className="text-[11px] text-slate-500 flex items-center justify-end space-x-2">
+                    <StatusBadge status={activeCase.status} />
+                    <strong className={`font-mono ${TONE_CLASSES[slaTone(activeCase.sla_due_at).tone].text}`}>{slaTone(activeCase.sla_due_at).label}</strong>
                   </div>
                 </div>
               </div>
@@ -217,7 +302,7 @@ export const ApprovalsWorkspace: React.FC<Props> = ({
               <div className="p-3.5 bg-amber-50/80 border border-amber-200 rounded-xl text-xs text-amber-900 flex items-start space-x-2.5">
                 <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                 <div>
-                  <strong className="font-semibold">Exception Detected:</strong> {activeCase.reason}
+                  <strong className="font-semibold">Exception detected:</strong> <SimText text={activeCase.reason} />
                 </div>
               </div>
             </div>
@@ -230,11 +315,11 @@ export const ApprovalsWorkspace: React.FC<Props> = ({
                     <Sparkles className="w-5 h-5 text-sky-400" />
                     <div>
                       <h3 className="text-sm font-bold tracking-tight">Governed AI Recommendation: {recommendation.action_type}</h3>
-                      <p className="text-[11px] text-sky-200">Grounded in ISO 20022 canonical rules &amp; beneficiary master directory</p>
+                      <p className="text-[11px] text-sky-200">Advisory only. Deterministic controls validate; a human decides.</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-2 bg-sky-800/80 px-3 py-1.5 rounded-xl border border-sky-700">
-                    <span className="text-xs text-sky-200">AI Confidence:</span>
+                    <span className="text-xs text-sky-200">Model confidence:</span>
                     <span className="text-sm font-bold font-mono text-emerald-400">
                       {(recommendation.confidence_score * 100).toFixed(1)}%
                     </span>
@@ -258,15 +343,14 @@ export const ApprovalsWorkspace: React.FC<Props> = ({
                         {recommendation.proposed_changes.map((diff, idx) => (
                           <div key={idx} className="p-4 bg-white grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
                             <div className="p-3 bg-red-50/70 border border-red-200 rounded-lg">
-                              <span className="text-[10px] font-bold text-red-700 uppercase font-mono block mb-1">ORIGINAL VALUE (CORRUPTED)</span>
+                              <span className="text-[10px] font-bold text-red-700 uppercase font-mono block mb-1">ORIGINAL VALUE</span>
                               <div className="font-mono text-xs font-bold text-red-900">{diff.original_value_masked}</div>
                               <span className="text-[10px] text-red-600 block mt-1">Field: {diff.field_path}</span>
                             </div>
 
                             <div className="p-3 bg-emerald-50/70 border border-emerald-200 rounded-lg relative">
                               <span className="text-[10px] font-bold text-emerald-700 uppercase font-mono block mb-1 flex items-center justify-between">
-                                <span>PROPOSED REPAIR (CORRECTED)</span>
-                                <span className="text-[10px] bg-emerald-200 text-emerald-800 px-1.5 py-0.5 rounded font-mono">MOD-97 PASS</span>
+                                <span>PROPOSED REPAIR (PENDING APPROVAL)</span>
                               </span>
                               <div className="font-mono text-xs font-bold text-emerald-900">{diff.proposed_value_masked}</div>
                               <span className="text-[10px] text-emerald-700 block mt-1">{diff.justification}</span>
@@ -331,75 +415,113 @@ export const ApprovalsWorkspace: React.FC<Props> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">DECISION JUSTIFICATION / AUDIT NOTES</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">DECISION NOTES (AUDIT TRAIL)</label>
                 <input
                   type="text"
+                  placeholder="Reason for your decision (recorded in the audit trail)"
                   value={comments}
                   onChange={(e) => setComments(e.target.value)}
                   className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-800 font-medium"
                 />
               </div>
 
-              <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-                {activeCase.status === "APPROVED" ? (
-                  <button
-                    onClick={handleExecuteDispatch}
-                    disabled={actionLoading}
-                    className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs flex items-center justify-center space-x-2 transition-all shadow-md shadow-emerald-600/20"
-                  >
-                    {actionLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                    <span>Execute Governed Dispatch &amp; Settle Against Banking Rails &rarr;</span>
-                  </button>
-                ) : activeCase.status === "SETTLED" ? (
-                  <div className="w-full py-3 bg-slate-100 border border-slate-200 text-slate-600 rounded-xl font-bold text-xs text-center flex items-center justify-center space-x-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                    <span>Case Fully Settled &amp; Reconciled in External Ledger</span>
-                  </div>
-                ) : (
-                  <>
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => handleApprovalAction("APPROVE")}
-                        disabled={actionLoading}
-                        className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold flex items-center space-x-1.5 transition-all shadow-sm"
-                      >
-                        <CheckCircle2 className="w-4 h-4" />
-                        <span>Approve Repair</span>
-                      </button>
-
-                      <button
-                        onClick={() => handleApprovalAction("MODIFY")}
-                        disabled={actionLoading}
-                        className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold transition-all"
-                      >
-                        Modify Values
-                      </button>
-
-                      <button
-                        onClick={() => handleApprovalAction("REJECT")}
-                        disabled={actionLoading}
-                        className="px-4 py-2.5 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg text-xs font-semibold transition-all"
-                      >
-                        Reject
-                      </button>
-                    </div>
-
-                    <button
-                      onClick={() => handleApprovalAction("ESCALATE")}
-                      disabled={actionLoading}
-                      className="px-4 py-2.5 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-lg text-xs font-semibold transition-all"
-                    >
-                      Escalate to Tier 2
-                    </button>
-                  </>
-                )}
-              </div>
+              <ActionBar
+                c={activeCase}
+                persona={currentPersona}
+                mode={systemInfo?.operation_mode}
+                busy={actionLoading}
+                onApproval={handleApprovalAction}
+                onDispatch={handleExecuteDispatch}
+              />
             </div>
+
+            <CaseJourney c={activeCase} />
           </div>
         ) : (
-          <div className="text-center text-xs text-slate-400 py-12">Select an exception case from the queue to investigate.</div>
+          <EmptyState title="No case selected" hint="Select an exception case from the queue to review it." />
         )}
       </div>
+    </div>
+  );
+};
+
+
+const ActionBar: React.FC<{
+  c: PeXCase;
+  persona: UserPersona | null;
+  mode?: string;
+  busy: boolean;
+  onApproval: (a: string) => void;
+  onDispatch: () => void;
+}> = ({ c, persona, mode, busy, onApproval, onDispatch }) => {
+  const status = String(c.status);
+  const blocked = approvalBlockReason(c, persona);
+  const Reason: React.FC<{ text: string }> = ({ text }) => (
+    <div className="w-full text-[11px] text-slate-500 flex items-center space-x-1.5">
+      <Lock className="w-3 h-3" />
+      <span>{text}</span>
+    </div>
+  );
+
+  if (status === "APPROVED") {
+    const shadow = mode === "SHADOW";
+    return (
+      <div className="space-y-2">
+        <button
+          onClick={onDispatch}
+          disabled={busy || shadow}
+          title={shadow ? "Mode is SHADOW: dispatch suppressed" : undefined}
+          className="w-full py-3 bg-sky-700 hover:bg-sky-800 disabled:bg-slate-200 disabled:text-slate-500 text-white rounded-xl font-bold text-xs flex items-center justify-center space-x-2 transition-all"
+        >
+          {busy ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+          <span>Hand to bank adapter</span>
+        </button>
+        {shadow ? <Reason text="Mode is SHADOW: dispatch suppressed" /> : <Reason text="The bank executes and confirms. PeX does not settle payments." />}
+      </div>
+    );
+  }
+  if (isHandedToBank(status)) {
+    return (
+      <div className="w-full py-3 px-4 bg-blue-50 border border-blue-200 text-blue-800 rounded-xl text-xs text-center">
+        <strong>Handed to bank, awaiting confirmation.</strong>
+        {c.bank_ack_reference && <span className="font-mono ml-2">ref {c.bank_ack_reference}</span>}
+        <div className="text-[11px] text-blue-700 mt-0.5">Do not resend. Only a bank confirmation moves this case forward.</div>
+      </div>
+    );
+  }
+  if (isBankConfirmed(status)) {
+    return (
+      <div className="w-full py-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl font-bold text-xs text-center flex items-center justify-center space-x-2">
+        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+        <span>{statusMeta(status).label}</span>
+        {c.bank_ack_reference && <span className="font-mono font-normal">ref {c.bank_ack_reference}</span>}
+      </div>
+    );
+  }
+  const terminalOther = ["REJECTED", "FAILED", "STATUS_UNKNOWN", "SHADOW_RECORDED", "ESCALATED", "RETURNED_FOR_REWORK"].includes(status);
+  if (terminalOther && blocked) {
+    return <Reason text={`${statusMeta(status).label}. ${statusMeta(status).description}`} />;
+  }
+  const dis = busy || !!blocked;
+  const base = "px-4 py-2.5 rounded-lg text-xs font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed";
+  return (
+    <div className="w-full space-y-2">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center space-x-2">
+          <button onClick={() => onApproval("APPROVE")} disabled={dis} title={blocked ?? undefined}
+            className={`${base} px-5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center space-x-1.5`}>
+            <CheckCircle2 className="w-4 h-4" />
+            <span>Approve</span>
+          </button>
+          <button onClick={() => onApproval("MODIFY")} disabled={dis} title={blocked ?? undefined}
+            className={`${base} bg-slate-100 hover:bg-slate-200 text-slate-700`}>Modify values</button>
+          <button onClick={() => onApproval("REJECT")} disabled={dis} title={blocked ?? undefined}
+            className={`${base} bg-red-50 hover:bg-red-100 text-red-700`}>Reject</button>
+        </div>
+        <button onClick={() => onApproval("ESCALATE")} disabled={dis} title={blocked ?? undefined}
+          className={`${base} bg-purple-50 hover:bg-purple-100 text-purple-700`}>Escalate to Tier 2</button>
+      </div>
+      {blocked && <Reason text={blocked} />}
     </div>
   );
 };

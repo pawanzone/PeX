@@ -1,4 +1,8 @@
 import React from "react";
+import { StatusBadge } from "../common/StatusBadge";
+import { NotMeasured, MeasuredValue } from "../common/NotMeasured";
+import { EmptyState } from "../common/States";
+import { isTerminal } from "../../lib/statusMeta";
 import { AnalyticsSummary, PeXCase } from "../../types";
 import {
   AlertTriangle,
@@ -25,7 +29,10 @@ export const CommandCenter: React.FC<Props> = ({
   onNavigateTab,
   onSelectCase,
 }) => {
-  const atRiskCases = cases.filter((c) => c.status !== "SETTLED" && c.status !== "REJECTED").slice(0, 5);
+  const atRiskCases = cases.filter((c) => !isTerminal(c.status)).slice(0, 5);
+  const q = analytics?.queue_distribution ?? {};
+  const qMax = Math.max(1, q.Repair || 0, q.Compliance || 0, q.Investigation || 0);
+  const pct = (n?: number) => `${Math.round(((n || 0) / qMax) * 100)}%`;
 
   return (
     <div className="p-8 space-y-8 max-w-7xl mx-auto">
@@ -36,10 +43,10 @@ export const CommandCenter: React.FC<Props> = ({
         </div>
         <div className="flex items-center space-x-3 text-xs">
           <div className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg shadow-sm">
-            <span className="text-slate-400 font-mono">TENANT:</span> <span className="font-semibold text-slate-800">GLOBAL TIER-1</span>
+            <span className="text-slate-400 font-mono">TENANT:</span> <span className="font-semibold text-slate-800">DEMO TENANT</span>
           </div>
           <div className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg shadow-sm">
-            <span className="text-slate-400 font-mono">CYCLE DATE:</span> <span className="font-semibold text-slate-800">{analytics?.processing_date || "2026-08-24"}</span>
+            <span className="text-slate-400 font-mono">CYCLE DATE:</span> <span className="font-semibold text-slate-800">{analytics?.processing_date || "n/a"}</span>
           </div>
         </div>
       </div>
@@ -61,9 +68,9 @@ export const CommandCenter: React.FC<Props> = ({
             <span className="p-1.5 bg-red-50 text-red-600 rounded-md"><AlertTriangle className="w-4 h-4" /></span>
           </div>
           <div className="mt-3 text-3xl font-bold text-red-600">
-            ${(analytics?.at_risk_value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            {(analytics?.at_risk_value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
-          <div className="mt-1 text-[11px] text-red-500/80">Open value requiring operational attention</div>
+          <div className="mt-1 text-[11px] text-red-500/80">Open value, all currencies, not converted</div>
         </div>
 
         <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden">
@@ -71,10 +78,14 @@ export const CommandCenter: React.FC<Props> = ({
             <span className="text-xs font-semibold text-slate-500 uppercase font-mono">RESOLUTION RATE</span>
             <span className="p-1.5 bg-emerald-50 text-emerald-600 rounded-md"><CheckCircle2 className="w-4 h-4" /></span>
           </div>
-          <div className="mt-3 text-3xl font-bold text-emerald-600">{analytics?.resolution_rate || 0}%</div>
-          <div className="mt-2 w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-            <div className="bg-emerald-500 h-1.5 rounded-full" style={{ width: `${analytics?.resolution_rate || 0}%` }}></div>
+          <div className="mt-3 text-3xl font-bold text-emerald-600">
+            <MeasuredValue measured={analytics?.measured} value={`${analytics?.resolution_rate || 0}%`} />
           </div>
+          {analytics?.measured && (
+            <div className="mt-2 w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+              <div className="bg-emerald-500 h-1.5 rounded-full" style={{ width: `${analytics?.resolution_rate || 0}%` }}></div>
+            </div>
+          )}
         </div>
 
         <div className="bg-white p-5 rounded-xl border border-amber-200/80 shadow-sm relative overflow-hidden bg-gradient-to-br from-white to-amber-50/20">
@@ -98,7 +109,7 @@ export const CommandCenter: React.FC<Props> = ({
                 <span className="font-mono font-bold text-sky-600">{analytics?.queue_distribution?.Repair || 0}</span>
               </div>
               <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
-                <div className="bg-sky-500 h-2 rounded-full" style={{ width: "65%" }}></div>
+                <div className="bg-sky-500 h-2 rounded-full" style={{ width: pct(q.Repair) }}></div>
               </div>
             </div>
 
@@ -108,7 +119,7 @@ export const CommandCenter: React.FC<Props> = ({
                 <span className="font-mono font-bold text-amber-600">{analytics?.queue_distribution?.Compliance || 0}</span>
               </div>
               <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
-                <div className="bg-amber-500 h-2 rounded-full" style={{ width: "30%" }}></div>
+                <div className="bg-amber-500 h-2 rounded-full" style={{ width: pct(q.Compliance) }}></div>
               </div>
             </div>
 
@@ -118,7 +129,7 @@ export const CommandCenter: React.FC<Props> = ({
                 <span className="font-mono font-bold text-purple-600">{analytics?.queue_distribution?.Investigation || 0}</span>
               </div>
               <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
-                <div className="bg-purple-500 h-2 rounded-full" style={{ width: "25%" }}></div>
+                <div className="bg-purple-500 h-2 rounded-full" style={{ width: pct(q.Investigation) }}></div>
               </div>
             </div>
           </div>
@@ -137,6 +148,7 @@ export const CommandCenter: React.FC<Props> = ({
         <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold text-slate-900 tracking-tight">SLA Resolution Velocity (24h)</h3>
+            {!analytics?.measured && <span title="Demo data, not computed from bank outcomes" className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 cursor-help">DEMO DATA</span>}
             <div className="flex items-center space-x-4 text-xs">
               <span className="flex items-center space-x-1.5 text-sky-600 font-medium">
                 <span className="w-2.5 h-2.5 rounded-sm bg-sky-500"></span>
@@ -170,8 +182,8 @@ export const CommandCenter: React.FC<Props> = ({
           </div>
 
           <div className="flex items-center justify-between text-xs text-slate-500 pt-1">
-            <span>Peak throughput: <strong className="text-slate-800">12 items / hr</strong></span>
-            <span>Target Auto-Repair SLA: <strong className="text-emerald-600">&lt; 15 mins</strong></span>
+            <span>Peak throughput: <NotMeasured /></span>
+            <span>Auto-repair SLA target: <NotMeasured /></span>
           </div>
         </div>
       </div>
@@ -201,7 +213,7 @@ export const CommandCenter: React.FC<Props> = ({
                 <th className="px-4 py-3">Exception Reason</th>
                 <th className="px-4 py-3">Amount</th>
                 <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">AI Confidence</th>
+                <th className="px-4 py-3">Model confidence</th>
                 <th className="px-5 py-3 text-right">Action</th>
               </tr>
             </thead>
@@ -215,12 +227,10 @@ export const CommandCenter: React.FC<Props> = ({
                     {c.currency} {c.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                   </td>
                   <td className="px-4 py-3.5">
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold font-mono bg-amber-50 text-amber-700 border border-amber-200">
-                      {c.status}
-                    </span>
+                    <StatusBadge status={c.status} />
                   </td>
-                  <td className="px-4 py-3.5 font-mono text-emerald-600 font-semibold">
-                    {c.ai_confidence ? `${(c.ai_confidence * 100).toFixed(0)}%` : "96%"}
+                  <td className="px-4 py-3.5 font-mono text-slate-700 font-semibold">
+                    {c.ai_confidence ? `${(c.ai_confidence * 100).toFixed(0)}%` : "n/a"}
                   </td>
                   <td className="px-5 py-3.5 text-right">
                     <button
@@ -237,6 +247,7 @@ export const CommandCenter: React.FC<Props> = ({
               ))}
             </tbody>
           </table>
+          {atRiskCases.length === 0 && <EmptyState title="No open cases" hint="Generate a demo batch to populate the queues." />}
         </div>
       </div>
     </div>

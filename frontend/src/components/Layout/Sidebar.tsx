@@ -11,6 +11,7 @@ import {
   GitFork,
   BotMessageSquare,
   Workflow,
+  Layers,
 } from "lucide-react";
 
 export type NavTab =
@@ -18,6 +19,7 @@ export type NavTab =
   | "architecture"
   | "intake"
   | "worklist"
+  | "batches"
   | "approvals"
   | "investigations"
   | "analytics"
@@ -32,6 +34,7 @@ export interface NavItem {
   icon: any;
   badge?: number;
   badgeText?: string;
+  badgeTitle?: string;
 }
 
 export interface NavSection {
@@ -43,12 +46,18 @@ interface Props {
   currentTab: NavTab;
   onTabChange: (tab: NavTab) => void;
   pendingApprovalsCount?: number;
+  myDeskCount?: number;
+  repairCount?: number;
+  investigationsCount?: number;
 }
 
 export const Sidebar: React.FC<Props> = ({
   currentTab,
   onTabChange,
   pendingApprovalsCount = 0,
+  myDeskCount,
+  repairCount = 0,
+  investigationsCount = 0,
 }) => {
   const navSections: NavSection[] = [
     {
@@ -62,9 +71,10 @@ export const Sidebar: React.FC<Props> = ({
       title: "EXCEPTION OPERATIONS",
       items: [
         { id: "intake" as NavTab, label: "Payment Intake", icon: PlusCircle },
-        { id: "worklist" as NavTab, label: "Exception Worklist", icon: ListOrdered },
-        { id: "approvals" as NavTab, label: "Role Approvals", icon: CheckCircle2, badge: pendingApprovalsCount },
-        { id: "investigations" as NavTab, label: "Investigations Hub", icon: Activity },
+        { id: "batches" as NavTab, label: "Batches", icon: Layers },
+        { id: "worklist" as NavTab, label: "Exception Worklist", icon: ListOrdered, badge: repairCount, badgeTitle: "Cases needing repair" },
+        { id: "approvals" as NavTab, label: "Role Approvals", icon: CheckCircle2, badge: pendingApprovalsCount, badgeTitle: myDeskCount !== undefined ? `${pendingApprovalsCount} pending approval in total, ${myDeskCount} on my desk` : "Pending approvals" },
+        { id: "investigations" as NavTab, label: "Investigations Hub", icon: Activity, badge: investigationsCount, badgeTitle: "Cases in the investigation queue" },
       ],
     },
     {
@@ -130,7 +140,7 @@ export const Sidebar: React.FC<Props> = ({
                       </span>
                     )}
                     {item.badge !== undefined && item.badge > 0 && (
-                      <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold font-mono ${
+                      <span title={item.badgeTitle} className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold font-mono ${
                         isActive ? "bg-white text-sky-600" : "bg-sky-500/20 text-sky-400"
                       }`}>
                         {item.badge}
@@ -145,10 +155,10 @@ export const Sidebar: React.FC<Props> = ({
       </div>
 
       <div className="p-3 border-t border-slate-800 text-[11px] text-slate-400 flex items-center justify-between">
-        <span>ISO 20022 / CBPR+</span>
-        <span className="text-emerald-400 font-mono flex items-center space-x-1">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span>ONLINE</span>
+        <span>ISO 20022</span>
+        <span className="text-amber-300 font-mono flex items-center space-x-1">
+          <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+          <span>DEMO</span>
         </span>
       </div>
     </aside>
