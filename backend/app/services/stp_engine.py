@@ -46,6 +46,17 @@ from app.config import settings
 from app.services.state_machine import transition_case
 from app.services.e2e_runner import e2e_runner
 
+
+def _handoff_transition(case, to_state, actor, reason, dispatch_status=None):
+    """Walk the legal path RECOMMENDED/PENDING_APPROVAL -> APPROVED -> handoff target."""
+    from app.services.state_machine import normalize_status
+    cur = normalize_status(case.get("status") if isinstance(case, dict) else getattr(case, "status", None))
+    if cur not in ("APPROVED",) and normalize_status(to_state) in ("DISPATCHED", "SHADOW_RECORDED"):
+        if cur in ("RECOMMENDED", "PENDING_APPROVAL", "AWAITING_SECOND_APPROVAL"):
+            transition_case(case=case, to_state="APPROVED", actor=actor, reason=reason)
+    return transition_case(case=case, to_state=to_state, actor=actor, reason=reason, dispatch_status=dispatch_status)
+
+
 class STPEngine:
     """Evaluates STP eligibility, executes autonomous zero-touch repairs, and handles 1-click batch releases."""
 
@@ -332,7 +343,7 @@ class STPEngine:
         if not eval_item.eligible:
             raise ValueError(f"Case {case_id} does not qualify for STP: {eval_item.reason}")
 
-        from app.services.outbound_port import resolve_handoff_state
+        from app.services.outbound_port import resolve_handoff_state, operation_mode
         _ts, _why = resolve_handoff_state("SYS-AUTONOMOUS-STP", policy_approved=True)
         if _ts is None:
             raise ValueError(f"Autonomous STP refused for {case_id}: {_why} Use the supervised 1-click fast-lane release.")
@@ -372,6 +383,7 @@ class STPEngine:
 
             # 3. Create Idempotent Action
             target_state = _ts
+            op_mode = operation_mode()
 
             action_id = f"ACT-STP-{uuid.uuid4().hex[:6].upper()}"
             idempotency_key = f"IDEMP-STP-{case_id}-{uuid.uuid4().hex[:4]}"
@@ -410,7 +422,7 @@ class STPEngine:
             # 4. Update Case strictly via transition_case
             db_case = db.query(CaseModel).filter(CaseModel.case_id == case_id).first()
             if db_case:
-                transition_case(
+                _handoff_transition(
                     case=db_case,
                     to_state=target_state,
                     actor="Autonomous STP Reasoner",
@@ -435,7 +447,7 @@ class STPEngine:
                 })
                 db_case.approval_history = ah
 
-            transition_case(
+            _handoff_transition(
                 case=case,
                 to_state=target_state,
                 actor="Autonomous STP Reasoner",
@@ -532,11 +544,12 @@ class STPEngine:
                 )
                 db.add(appr)
 
-                from app.services.outbound_port import resolve_handoff_state
+                from app.services.outbound_port import resolve_handoff_state, operation_mode
                 target_state, _why = resolve_handoff_state(payload.approver_id)
                 if target_state is None:
                     failed_count += 1
                     continue
+                op_mode = operation_mode()
 
                 # 3. Governed Action
                 action_id = f"ACT-BATCH-{uuid.uuid4().hex[:6].upper()}"
@@ -577,7 +590,7 @@ class STPEngine:
                 # 4. Update Case strictly via transition_case
                 db_case = db.query(CaseModel).filter(CaseModel.case_id == cid).first()
                 if db_case:
-                    transition_case(
+                    _handoff_transition(
                         case=db_case,
                         to_state=target_state,
                         actor=payload.approver_name,
@@ -601,7 +614,7 @@ class STPEngine:
                     })
                     db_case.approval_history = ah
 
-                transition_case(
+                _handoff_transition(
                     case=case,
                     to_state=target_state,
                     actor=payload.approver_name,
@@ -1005,7 +1018,7 @@ class STPEngine:
                     db.add(db_case)
                 else:
                     # Reset existing case to open RECOMMENDED status
-                    transition_case(db_case, to_state=LifecycleStage.RECOMMENDED, actor="STPSeedEngine", reason="Reset case to open RECOMMENDED status")
+                    transition_case(db_case, to_state=LifecycleStage.RECOMMENDED, actor="STPSeedEngine", reason="Reset case to open RECOMMENDED status", system_reset=True)
                     db_case.settled_at = None
                     db_case.amount = s["amount"]
                     db_case.ai_confidence = s["confidence"]

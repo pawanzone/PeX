@@ -23,7 +23,7 @@ class BankRiskThresholds(BaseModel):
     - Previous API batch fast-lane ceiling: $25,000.0
     - Previous A_limit evaluation: $100,000.0
     """
-    max_stp_amount: float = 100000.0                 # Unified STP threshold ($100k)
+    max_stp_amount: float = Field(default_factory=lambda: __import__('app.config', fromlist=['settings']).settings.STP_MAX_AMOUNT)  # Unified STP threshold (settings.STP_MAX_AMOUNT, default $10k)
     max_autonomous_stp_amount: float = 100000.0      # Unified autonomous ceiling (was $10k)
     max_batch_fast_lane_amount: float = 100000.0     # Unified batch release ceiling (was $25k)
     dual_auth_mandatory_threshold: float = 250000.0  # Amounts >= $250k require 2-level Maker-Checker

@@ -593,9 +593,16 @@ class FileWatcherService:
         # 5. Workflow Routing & Status Assignment
         op_mode = getattr(settings, "PEX_OPERATION_MODE", "SHADOW").upper()
         if output.stp_eligible:
-            target_status = LifecycleStage.SHADOW_RECORDED.value if op_mode == "SHADOW" else LifecycleStage.HANDED_TO_BANK.value
+            from app.services.outbound_port import resolve_handoff_state
+            _hs, _why = resolve_handoff_state("SYS-AUTONOMOUS-STP", policy_approved=True, mode=op_mode)
             target_queue = "STP Fast-Lane"
-            target_reason = f"Autonomous STP qualified ({output.stp_decision_reason}). Handed off to {target_status}."
+            if _hs is None:
+                # ASSISTED: eligible, but a named human must release it (1-click fast lane).
+                target_status = LifecycleStage.RECOMMENDED.value
+                target_reason = f"STP qualified ({output.stp_decision_reason}). Held in Fast-Lane for human 1-click release ({_why})"
+            else:
+                target_status = _hs
+                target_reason = f"Autonomous STP qualified ({output.stp_decision_reason}). {_why}"
         else:
             if e2e_input.domain == "COMPLIANCE" or "CO" in profile_code or profile_code in ["KYC_EXPIRED", "SANCTIONS_SUSPECTED", "TR-01"]:
                 target_queue = "Compliance"
@@ -682,14 +689,19 @@ class FileWatcherService:
             "guided_questions": []
         }
 
-        # Transition strictly via transition_case
-        transition_case(
-            case=case_dict,
-            to_state=target_status,
-            actor="FolderInputWatcher",
-            reason=target_reason,
-            dispatch_status="AWAITING_BANK_ACK" if target_status == LifecycleStage.HANDED_TO_BANK.value else None
-        )
+        # Transition strictly via transition_case, walking the legal path to the target state.
+        _path = {
+            "SHADOW_RECORDED": ["RECOMMENDED", "SHADOW_RECORDED"],
+            "DISPATCHED": ["RECOMMENDED", "APPROVED", "DISPATCHED"],
+        }.get(target_status, [target_status])
+        for _step in _path:
+            transition_case(
+                case=case_dict,
+                to_state=_step,
+                actor="FolderInputWatcher",
+                reason=target_reason,
+                dispatch_status="AWAITING_BANK_ACK" if _step == "DISPATCHED" else None
+            )
         final_status = case_dict["status"]
 
         # Save case
@@ -811,7 +823,20 @@ class FileWatcherService:
         if not self.input_dir.exists():
             return results
 
+        # Large / streaming-format files (.jsonl, .ndjson, .json.gz, big .json) go to the batch pipeline.
+        try:
+            from app.services.batch_pipeline import get_pipeline, is_stream_candidate
+            _pl = get_pipeline()
+            if _pl.inbox.resolve() == self.input_dir.resolve():
+                _pl.scan_inbox()
+        except Exception as e:
+            logger.error(f"[PeX Watcher] Batch pipeline scan error: {e}")
+            is_stream_candidate = lambda p: False  # noqa: E731
+            _pl = None
+
         for file_path in sorted(self.input_dir.glob("*.json")):
+            if _pl is not None and (_pl.claims(file_path.name) or is_stream_candidate(file_path)):
+                continue
             if not self._is_file_ready(file_path):
                 continue
 

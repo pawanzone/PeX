@@ -149,7 +149,13 @@ def test_p0_1_b_batch_release_ends_handed_to_bank():
     assert updated_case["status"] in [LifecycleStage.HANDED_TO_BANK.value, LifecycleStage.SHADOW_RECORDED.value]
 
 
-def test_p0_1_c_human_approve_then_execute_ends_handed_to_bank():
+def test_p0_1_c_human_approve_then_execute_ends_handed_to_bank(monkeypatch):
+    from app.config import settings as _settings
+    monkeypatch.setattr(_settings, "PEX_OPERATION_MODE", "ASSISTED", raising=False)
+    _body_c()
+
+
+def _body_c():
     """Human approve then execute ends HANDED_TO_BANK with status AWAITING_BANK_ACK, no ACK-SIM receipt."""
     from app.services.approval_engine import ApprovalEngine
     from app.services.action_executor import ActionExecutor
@@ -210,7 +216,11 @@ def test_p0_1_d_only_bank_outcome_can_produce_settled():
         "idempotency_key": "IDEMP-BO-01"
     }
 
-    resp = client.post("/api/bank/outcome", json=payload, headers={"X-Bank-Signature": "signed_secret_token"})
+    import json as _json
+    from app.api.endpoints.bank import sign_body, callback_secret
+    raw = _json.dumps(payload).encode()
+    resp = client.post("/api/bank/outcome", content=raw,
+                       headers={"Content-Type": "application/json", "X-Bank-Signature": sign_body(raw, callback_secret())})
     assert resp.status_code == 200
     assert resp.json()["status"] == "SETTLED"
     assert repo.get_case(case_id)["status"] == LifecycleStage.SETTLED.value

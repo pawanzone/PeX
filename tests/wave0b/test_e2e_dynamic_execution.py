@@ -65,13 +65,14 @@ def test_scenario_13_high_value_wire_dynamic_threshold():
 
     assert output.exception_id == "EX-W0B-SC13-001"
     assert output.evidence_status == "SUFFICIENT"
-    assert output.stp_eligible is True
-    assert output.resolution_status == "RESOLVED"
+    # P0.5: a $250k wire exceeds the unified STP amount limit, so evidence is sufficient but STP must NOT be granted
+    assert output.stp_eligible is False
+    assert output.resolution_status is not None
     assert output.execution_owner == "BANK"
-    assert output.bank_handoff_status == "BANK_HANDOFF_READY"
+    assert output.bank_handoff_status != "BANK_HANDOFF_READY"  # not handed off without STP
     assert output.predicate_breakdown.e_suff is True
     assert output.predicate_breakdown.r_det is True
-    assert output.predicate_breakdown.p_bank is True
+    assert output.predicate_breakdown.p_bank is False
     assert output.predicate_breakdown.c_comp is True
     assert output.predicate_breakdown.x_pre is True
 

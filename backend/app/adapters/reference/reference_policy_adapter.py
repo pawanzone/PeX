@@ -3,6 +3,7 @@
 TEST / DEMO / REFERENCE ONLY.
 Implements BankPolicyEnvelopePort with deterministic fail-closed policy evaluation.
 """
+from app.config import settings
 from typing import Dict, Any, Optional
 from datetime import datetime, timezone
 
@@ -91,17 +92,20 @@ class InMemoryBankPolicyAdapter(BankPolicyEnvelopePort):
         is_batch = False
         requires_mc = False
         approver_roles = []
+        hard_block = False  # TR-08 / ST-06: no amount rule may re-enable STP or fast lane
 
         # 2. Dual Authorization Ceiling Check
         if profile_id in ["TR-08", "CREDIT_EXPOSURE_BREACH"] or (policy.w3_policy_thresholds.zero_auto_stp_on_credit_breach and profile_id in ["TR-08", "CREDIT_EXPOSURE_BREACH"]):
             requires_mc = True
             is_auto = False
+            hard_block = True
             approver_roles = ["SENIOR_CREDIT_OFFICER", "SENIOR_RISK_CHECKER"]
             denial_reasons.append("TR-08 Credit Exposure Breach: Autonomous STP is strictly prohibited. Senior Credit Officer dual-authorization required.")
 
         elif profile_id in ["ST-06", "FUNDS_TRAPPED_AT_CORRESPONDENT"] or (policy.w4_policy_thresholds.zero_auto_stp_on_transit_break and profile_id in ["ST-06", "FUNDS_TRAPPED_AT_CORRESPONDENT"]):
             requires_mc = True
             is_auto = False
+            hard_block = True
             approver_roles = ["OPERATIONS_MAKER", "OPERATIONS_CHECKER"]
             denial_reasons.append("ST-06 Funds Trapped at Correspondent: Autonomous STP is strictly prohibited for transit breaks. Operations dual-authorization required.")
 
@@ -111,8 +115,10 @@ class InMemoryBankPolicyAdapter(BankPolicyEnvelopePort):
             denial_reasons.append(f"High-value amount (${amount:,.2f}) exceeds dual-auth threshold (${policy.risk_thresholds.dual_auth_mandatory_threshold:,.2f}).")
 
         # 3. Monetary STP Ceiling Check (Reconciled P0-2)
-        stp_limit = getattr(policy.risk_thresholds, "max_stp_amount", 100000.0)
-        if amount > stp_limit:
+        stp_limit = getattr(policy.risk_thresholds, "max_stp_amount", None) or settings.STP_MAX_AMOUNT
+        if hard_block:
+            pass
+        elif amount > stp_limit:
             requires_mc = True
             approver_roles = ["OPERATIONS_MAKER", "OPERATIONS_CHECKER"]
             denial_reasons.append(f"Amount (${amount:,.2f}) exceeds bank policy STP threshold (${stp_limit:,.2f}).")

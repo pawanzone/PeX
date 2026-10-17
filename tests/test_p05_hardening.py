@@ -86,7 +86,7 @@ def test_callback_requires_valid_signature():
 def test_signed_callback_settles_and_is_idempotent():
     _seed_dispatched("CASE-P05-OK")
     p = {"case_id": "CASE-P05-OK", "outcome": "SETTLED", "bank_reference": "B2",
-         "clearing_system": "FEDWIRE", "idempotency_key": "IDEM-P05-OK"}
+         "clearing_system": "FEDWIRE", "idempotency_key": "IDEM-P05-" + __import__("uuid").uuid4().hex}
     r = _post_outcome(p)
     assert r.status_code == 200, r.text
     assert normalize_status(repo.get_case("CASE-P05-OK")["status"]) == "SETTLED"

@@ -95,8 +95,8 @@ def transition_case(
 
     if to_s in BANK_SIGNAL_ONLY and not is_bank_signal:
         raise IllegalTransition(
-            f"Transition to {to_s} is prohibited: it may be set ONLY by an authenticated inbound bank "
-            f"signal (/api/bank/outcome). Actor: {actor}."
+            f"Transition to {to_s} is prohibited: it may be set ONLY by an inbound bank-signal handler (authenticated inbound bank "
+            f"signal on /api/bank/outcome). Actor: {actor}."
         )
     if is_bank_signal and to_s not in BANK_SIGNAL_TARGETS:
         raise IllegalTransition(f"A bank signal may only produce {sorted(BANK_SIGNAL_TARGETS)}, not {to_s}.")

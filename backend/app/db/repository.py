@@ -529,6 +529,93 @@ class PeXDBRepository:
         finally:
             db.close()
 
+    # ------------------------------------------------------------------
+    # SQL-backed paging / aggregates (scale-safe, independent of the cache)
+    # ------------------------------------------------------------------
+    _ACTIONABLE_REPAIR = ("INGESTED", "CANONICALIZED", "VALIDATED", "INVESTIGATING", "RECOMMENDED",
+                          "RETURNED_FOR_REWORK", "APPROVED", "FAILED")
+    _PENDING_APPROVAL = ("PENDING_APPROVAL", "AWAITING_SECOND_APPROVAL")
+
+    @staticmethod
+    def _norm_status(v: Any) -> str:
+        return str(v or "").replace("LifecycleStage.", "")
+
+    def page_cases(self, limit: int = 50, offset: int = 0, queue: Optional[str] = None, status: Optional[str] = None,
+                   profile: Optional[str] = None, rail: Optional[str] = None, currency: Optional[str] = None,
+                   q: Optional[str] = None, sort: str = "created_at", order: str = "desc") -> Dict[str, Any]:
+        from sqlalchemy import String, cast, asc
+        sortable = {"created_at": CaseModel.created_at, "amount": CaseModel.amount, "profile": CaseModel.profile,
+                    "status": CaseModel.status, "queue": CaseModel.queue, "severity": CaseModel.severity,
+                    "priority": CaseModel.priority, "case_id": CaseModel.case_id, "sla_due_at": CaseModel.sla_due_at}
+        col = sortable.get(sort, CaseModel.created_at)
+        limit = max(1, min(int(limit), 500))
+        offset = max(0, int(offset))
+        db: Session = SessionLocal()
+        try:
+            qry = db.query(CaseModel)
+            def _f(c, v):
+                return c == v
+            if queue and queue != "All":
+                qry = qry.filter(CaseModel.queue == queue)
+            if status and status != "All":
+                qry = qry.filter(or_(CaseModel.status == status, CaseModel.status == f"LifecycleStage.{status}"))
+            if profile and profile != "All":
+                qry = qry.filter(CaseModel.profile == profile)
+            if rail and rail != "All":
+                qry = qry.filter(CaseModel.payment_rail == rail)
+            if currency and currency != "All":
+                qry = qry.filter(CaseModel.currency == currency)
+            if q:
+                like = f"%{q.strip()}%"
+                qry = qry.filter(or_(CaseModel.case_id.ilike(like), CaseModel.payment_ref.ilike(like),
+                                     CaseModel.uetr.ilike(like), CaseModel.profile.ilike(like),
+                                     cast(CaseModel.creditor_party, String).ilike(like)))
+            total = qry.count()
+            qry = qry.order_by(desc(col) if str(order).lower() != "asc" else asc(col), CaseModel.case_id)
+            rows = qry.offset(offset).limit(limit).all()
+            items = []
+            for c in rows:
+                cp = c.creditor_party or {}
+                items.append({
+                    "case_id": c.case_id, "payment_ref": c.payment_ref, "uetr": c.uetr, "profile": c.profile,
+                    "domain": c.domain, "secondary_profiles": c.secondary_profiles or [], "error_code": c.error_code,
+                    "reason": c.reason, "amount": c.amount, "currency": c.currency, "payment_rail": c.payment_rail,
+                    "counterparty": cp.get("party_name") if isinstance(cp, dict) else None,
+                    "queue": c.queue, "status": self._norm_status(c.status), "severity": c.severity,
+                    "priority": c.priority, "sla_due_at": c.sla_due_at, "dual_auth_required": c.dual_auth_required,
+                    "ai_confidence": c.ai_confidence, "created_at": c.created_at,
+                    "dispatch_status": getattr(c, "dispatch_status", None),
+                })
+            return {"items": items, "total": total, "limit": limit, "offset": offset}
+        finally:
+            db.close()
+
+    def summary_counts(self) -> Dict[str, Any]:
+        from sqlalchemy import func
+        db: Session = SessionLocal()
+        try:
+            def grp(col):
+                return {str(k): int(n) for k, n in db.query(col, func.count()).group_by(col).all() if k is not None}
+            by_status_raw = grp(CaseModel.status)
+            by_status: Dict[str, int] = {}
+            for k, n in by_status_raw.items():
+                nk = self._norm_status(k)
+                by_status[nk] = by_status.get(nk, 0) + n
+            queue_status = db.query(CaseModel.queue, CaseModel.status, func.count()).group_by(CaseModel.queue, CaseModel.status).all()
+            actionable = sum(int(n) for qn, st, n in queue_status if qn == "Repair" and self._norm_status(st) in self._ACTIONABLE_REPAIR)
+            pending = sum(int(n) for qn, st, n in queue_status if self._norm_status(st) in self._PENDING_APPROVAL)
+            return {
+                "total": sum(by_status.values()),
+                "by_status": by_status,
+                "by_queue": grp(CaseModel.queue),
+                "by_profile": grp(CaseModel.profile),
+                "by_rail": grp(CaseModel.payment_rail),
+                "actionable_repair": actionable,
+                "pending_approvals_all": pending,
+            }
+        finally:
+            db.close()
+
     def save_approval(self, approval_record: Any):
         """Persists an approval record to database and caches."""
         case_id = approval_record.case_id
