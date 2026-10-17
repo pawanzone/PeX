@@ -1,0 +1,137 @@
+{
+  "batch_id": "BATCH-MIXED-001",
+  "staging_location": "e2e_fixtures/fixtures_staging/BATCH-MIXED-001.json",
+  "target_ingestion_path": "e2e_fixtures/input/BATCH-MIXED-001.json",
+  "expected_reconciliation_output": "e2e_fixtures/output/BATCH-MIXED-001.reconciliation.json",
+  "summary_metrics": {
+    "total_records": 8,
+    "expected_valid_records": 7,
+    "expected_invalid_records": 1,
+    "expected_processed_count": 6,
+    "expected_skipped_count": 1,
+    "expected_failed_count": 1,
+    "expected_stp_count": 2,
+    "expected_hitl_count": 4
+  },
+  "scenarios": [
+    {
+      "record_index": 0,
+      "exception_id": "PEX-STAGE4-REC01-STP",
+      "profile_id": "DQ-01",
+      "test_intent": "Authoritative repair with STP eligibility",
+      "input_state": "Inbound IBAN GB82WEST12345698765423 has invalid check digits (23 != 32).",
+      "evidence_provided": "Bank DDA verified account GB82WEST12345698765432 and NatWest sort code 608000.",
+      "determining_control": "E_SUFF=True, R_DET=True, V_DET=True, V_AUTH=True, P_BANK=True, C_COMP=True, X_PRE=True -> STP Formula Result = True",
+      "expected_disposition": "PROCESSED",
+      "expected_canonical_status": "SETTLED",
+      "expected_queue": "STP Fast-Lane",
+      "expected_stp_eligible": true,
+      "expected_execution_owner": "BANK",
+      "expected_repaired_fields": [
+        {
+          "field_path": "creditor_account.iban",
+          "repaired_value": "GB82WEST12345698765432"
+        }
+      ]
+    },
+    {
+      "record_index": 1,
+      "exception_id": "PEX-STAGE4-REC02-HITL-SANCTIONS",
+      "profile_id": "CO-01",
+      "test_intent": "Valid candidate requiring human approval (Sanctions block)",
+      "input_state": "Creditor party matches OFAC SDN watchlist entity.",
+      "evidence_provided": "OFAC SDN match confidence 0.96 under E.O. 14024.",
+      "determining_control": "C_COMP=False -> Compliance Gate Failure blocks autonomous STP",
+      "expected_disposition": "PROCESSED",
+      "expected_canonical_status": "PENDING_APPROVAL",
+      "expected_queue": "Compliance",
+      "expected_stp_eligible": false,
+      "expected_execution_owner": "BANK"
+    },
+    {
+      "record_index": 2,
+      "exception_id": "PEX-STAGE4-REC03-MISSING-EVIDENCE",
+      "profile_id": "DQ-01",
+      "test_intent": "Missing mandatory evidence fails closed",
+      "input_state": "Transposed IBAN without DDA or directory evidence feeds.",
+      "evidence_provided": "Empty bank_supplied_evidence and external_authoritative_evidence.",
+      "determining_control": "E_SUFF=False -> Evidence Sufficiency Failure forces manual review",
+      "expected_disposition": "PROCESSED",
+      "expected_canonical_status": "RECOMMENDED",
+      "expected_queue": "Repair",
+      "expected_stp_eligible": false,
+      "expected_execution_owner": "BANK"
+    },
+    {
+      "record_index": 3,
+      "exception_id": "PEX-STAGE4-REC04-CONFLICTING-EVIDENCE",
+      "profile_id": "DQ-01",
+      "test_intent": "Conflicting evidence blocks autonomous STP",
+      "input_state": "Core DDA reports GB82WEST12345698765432, while SSI directory reports GB29MIDL40051512345679.",
+      "evidence_provided": "contradictory_evidence_flag=True between DDA and SSI.",
+      "determining_control": "R_UNIQ=False -> Contradictory evidence detected, autonomous STP prohibited",
+      "expected_disposition": "PROCESSED",
+      "expected_canonical_status": "RECOMMENDED",
+      "expected_queue": "Repair",
+      "expected_stp_eligible": false,
+      "expected_execution_owner": "BANK"
+    },
+    {
+      "record_index": 4,
+      "exception_id": "PEX-STAGE4-REC05-INVALID-REPAIR",
+      "profile_id": "DQ-01",
+      "test_intent": "Invalid proposed repair rejected by syntax gate",
+      "input_state": "Proposed replacement IBAN in evidence (...5499) fails MOD-97 check digit math.",
+      "evidence_provided": "core_dda_account=GB82WEST12345698765499 (MOD-97 remainder != 1).",
+      "determining_control": "V_DET=False -> Deterministic validation failure prevents bad data propagation",
+      "expected_disposition": "PROCESSED",
+      "expected_canonical_status": "RECOMMENDED",
+      "expected_queue": "Repair",
+      "expected_stp_eligible": false,
+      "expected_execution_owner": "BANK"
+    },
+    {
+      "record_index": 5,
+      "exception_id": "PEX-STAGE4-REC06-COMPOUND",
+      "profile_id": "DQ-01",
+      "test_intent": "Multiple exceptions associated with one transaction",
+      "input_state": "Transposed IBAN combined with secondary profile DQ-09 (Beneficiary Name Mismatch).",
+      "evidence_provided": "DDA verified IBAN and CoP verified legal entity name.",
+      "determining_control": "Compound profile association: primary DQ-01 with secondary_profiles=['DQ-09']",
+      "expected_disposition": "PROCESSED",
+      "expected_canonical_status": "SETTLED",
+      "expected_queue": "STP Fast-Lane",
+      "expected_stp_eligible": true,
+      "expected_secondary_profiles": ["DQ-09"],
+      "expected_execution_owner": "BANK"
+    },
+    {
+      "record_index": 6,
+      "exception_id": "PEX-STAGE4-REC01-STP",
+      "profile_id": "DQ-01",
+      "test_intent": "Duplicate/replayed transaction within same batch",
+      "input_state": "Re-submission of record 0 within the same batch file.",
+      "evidence_provided": "Identical exception_id PEX-STAGE4-REC01-STP.",
+      "determining_control": "Intra-batch idempotency guard detects duplicate identifier",
+      "expected_disposition": "SKIPPED_DUPLICATE_IN_BATCH",
+      "expected_canonical_status": null,
+      "expected_stp_eligible": null,
+      "expected_execution_owner": "BANK",
+      "expected_notes": "Skipped without creating a duplicate case or overwriting record 0"
+    },
+    {
+      "record_index": 7,
+      "exception_id": "PEX-STAGE4-REC08-MALFORMED",
+      "profile_id": "DQ-01",
+      "test_intent": "One malformed record alongside valid records",
+      "input_state": "Record missing mandatory payment_info structure completely.",
+      "evidence_provided": "None.",
+      "determining_control": "Record-level Pydantic schema validation failure caught safely",
+      "expected_disposition": "FAILED_SCHEMA",
+      "expected_canonical_status": null,
+      "expected_stp_eligible": null,
+      "expected_execution_owner": "BANK",
+      "expected_notes": "Failure recorded in reconciliation and audit log; does not abort prior or subsequent records"
+    }
+  ]
+}

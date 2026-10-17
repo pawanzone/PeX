@@ -31,3 +31,14 @@ backups/
 .vscode/
 .DS_Store
 Thumbs.db
+
+# Runtime artifacts (watcher/batch output) and scratch databases
+e2e_fixtures/archive/
+e2e_fixtures/input_archive_pre_stage3/
+e2e_fixtures/output/*.output.json
+e2e_fixtures/output/*.reconciliation.json
+batch_io/
+*.db
+scratch/*.db
+test_isolated.db
+pex_demo.db

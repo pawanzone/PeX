@@ -56,10 +56,50 @@ class CanonicalE2EInput(BaseModel):
     bank_policy_overrides: Optional[Dict[str, Any]] = None
     processing_metadata: Dict[str, Any] = Field(default_factory=dict)
     
+    # Secondary profiles (if compound exception)
+    secondary_profile_ids: List[str] = Field(default_factory=list)
+
     # Provenance
     evidence_provenance: E2EProvenance = E2EProvenance.SYNTHETIC_TEST_FIXTURE
     test_status: str = "TEST_ONLY"
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class CanonicalE2EBatchInput(BaseModel):
+    """Universal Canonical Batch Input Schema for multi-transaction exception processing."""
+    batch_id: str
+    source_system: Optional[str] = "FILE_DROP"
+    records: List[CanonicalE2EInput] = Field(default_factory=list)
+    processing_metadata: Dict[str, Any] = Field(default_factory=dict)
+
+
+class BatchRecordDisposition(BaseModel):
+    """Per-record processing result within a batch."""
+    record_index: int
+    exception_id: Optional[str] = None
+    uetr: Optional[str] = None
+    status: str                                      # "PROCESSED", "SKIPPED_EXISTING_CASE", "SKIPPED_DUPLICATE_IN_BATCH", "FAILED_SCHEMA", "FAILED_PROCESSING"
+    canonical_stage: Optional[str] = None            # e.g., "SETTLED", "RECOMMENDED", "PENDING_APPROVAL"
+    stp_eligible: Optional[bool] = None
+    execution_owner: Optional[str] = "BANK"
+    output_file: Optional[str] = None
+    error_details: Optional[str] = None
+
+
+class BatchReconciliationReport(BaseModel):
+    """Formal file-level reconciliation artifact for batch ingestion."""
+    batch_id: str
+    source_file: str
+    file_content_hash: str
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    total_records: int
+    valid_records: int
+    invalid_records: int
+    processed_count: int
+    skipped_count: int
+    failed_count: int
+    outcomes_by_status: Dict[str, int] = Field(default_factory=dict)
+    records: List[BatchRecordDisposition] = Field(default_factory=list)
 
 
 class PredicateBreakdown(BaseModel):

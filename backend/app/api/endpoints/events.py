@@ -67,3 +67,22 @@ def ingest_bank_event(event: RawBankEvent):
         "exception": exception.model_dump() if hasattr(exception, "model_dump") else exception.dict(),
         "case": case_obj
     }
+
+@router.get("/watcher/status")
+def get_watcher_status():
+    """Returns runtime telemetry for the inbound file watcher background service."""
+    from app.services.file_watcher import file_watcher
+    return file_watcher.get_status()
+
+@router.post("/watcher/scan")
+def trigger_watcher_scan():
+    """Manually triggers a single scan pass over the configured input folder."""
+    from app.services.file_watcher import file_watcher
+    results = file_watcher.scan_once()
+    return {
+        "success": True,
+        "scanned": True,
+        "files_processed": len(results),
+        "results": results
+    }
+

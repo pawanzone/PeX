@@ -110,11 +110,18 @@ class InMemoryBankPolicyAdapter(BankPolicyEnvelopePort):
             approver_roles = ["OPERATIONS_MAKER", "SENIOR_RISK_CHECKER"]
             denial_reasons.append(f"High-value amount (${amount:,.2f}) exceeds dual-auth threshold (${policy.risk_thresholds.dual_auth_mandatory_threshold:,.2f}).")
 
-        # 3. Autonomous STP Threshold Check
+        # 3. Monetary STP Ceiling Check (Reconciled P0-2)
+        stp_limit = getattr(policy.risk_thresholds, "max_stp_amount", 100000.0)
+        if amount > stp_limit:
+            requires_mc = True
+            approver_roles = ["OPERATIONS_MAKER", "OPERATIONS_CHECKER"]
+            denial_reasons.append(f"Amount (${amount:,.2f}) exceeds bank policy STP threshold (${stp_limit:,.2f}).")
+
+        # 4. Autonomous STP Threshold Check
         elif amount <= policy.risk_thresholds.max_autonomous_stp_amount and profile_id in policy.auto_stp_enabled_profiles:
             is_auto = True
 
-        # 4. Batch Fast Lane Threshold Check
+        # 5. Batch Fast Lane Threshold Check
         elif amount <= policy.risk_thresholds.max_batch_fast_lane_amount:
             is_batch = True
             requires_mc = True

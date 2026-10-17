@@ -78,12 +78,20 @@ def build_rich_guided_recommendation(case_id: str, profile: ExceptionProfile, am
     if profile == ExceptionProfile.INVALID_IBAN:
         action_type = ActionType.REPAIR_IBAN
         conf_score = 0.96
-        rationale = "ISO 7064 MOD-97 algorithm resolved 2 transposed digits in the check sequence. Validated against Beneficiary Master Directory."
+        rationale = "ISO 7064 MOD-97 algorithm resolved 2 transposed digits in the check sequence. Validated against Beneficiary Master Directory [SIMULATED]."
+        
+        # P0-5 Reconciled Pair: original invalid (rem 49), repair valid (rem 1)
+        orig_clean = f"{creditor_country}82WEST12345698765423"
+        repair_clean = f"{creditor_country}82WEST12345698765432"
+        rearranged = repair_clean[4:] + repair_clean[:4]
+        num_str = "".join(ch if ch.isdigit() else str(ord(ch) - 55) for ch in rearranged)
+        rem = int(num_str) % 97
+
         proposed_changes = [ProposedFieldChange(
             field_path="creditor_account.iban",
-            original_value_masked=f"{creditor_country}82 WEST 1234 5698 7600 00",
-            proposed_value_masked=f"{creditor_country}82 WEST 1234 5698 76{case_idx:04d}",
-            justification="Beneficiary standing instructions match active counterparty record. MOD-97 checksum verified.",
+            original_value_masked=f"{creditor_country}82 WEST 1234 5698 7654 23",
+            proposed_value_masked=f"{creditor_country}82 WEST 1234 5698 7654 32",
+            justification=f"Beneficiary standing instructions match active counterparty record. MOD-97 checksum verified (remainder = {rem}).",
             validation_status="VALIDATED_MOD97_PASS"
         )]
         guided_questions = [
@@ -91,16 +99,16 @@ def build_rich_guided_recommendation(case_id: str, profile: ExceptionProfile, am
             GuidedQuestionItem(category="REGULATORY CHECK", question="Does the repaired IBAN pass MOD-97 math and match the counterparty's Standing Settlement Instructions (SSI)?", investigation_tip="Verify ISO 7064 mathematical remainder = 1 and Master Directory active profile status.")
         ]
         step_assessment = [
-            StepAssessmentItem(step_number=1, step_title="ISO 7064 MOD-97 Format Check", description="Mathematical remainder test", proof_detail="Raw MOD-97 remainder = 1 (Deterministic Pass)", badge_label="VALIDATED", is_passed=True),
-            StepAssessmentItem(step_number=2, step_title="Beneficiary Master Directory SSI", description="Standing settlement instruction cross-reference", proof_detail="Matched active profile in SSI Central Directory (Ref #SSI-9912)", badge_label="100% SSI MATCH", is_passed=True),
-            StepAssessmentItem(step_number=3, step_title="Confirmation of Payee (CoP)", description="Account name verification at receiving bank", proof_detail=f"Beneficiary name '{creditor_name}' matches destination account", badge_label="NAME MATCHED", is_passed=True),
+            StepAssessmentItem(step_number=1, step_title="ISO 7064 MOD-97 Format Check", description="Mathematical remainder test", proof_detail=f"Raw MOD-97 remainder = {rem} (Deterministic Pass)", badge_label="VALIDATED", is_passed=(rem == 1)),
+            StepAssessmentItem(step_number=2, step_title="Beneficiary Master Directory SSI [SIMULATED]", description="Standing settlement instruction cross-reference", proof_detail="Matched active profile in SSI Central Directory (Ref #SSI-9912) [SIMULATED]", badge_label="100% SSI MATCH", is_passed=True),
+            StepAssessmentItem(step_number=3, step_title="Confirmation of Payee (CoP) [SIMULATED]", description="Account name verification at receiving bank", proof_detail=f"Beneficiary name '{creditor_name}' matches destination account [SIMULATED]", badge_label="NAME MATCHED", is_passed=True),
             StepAssessmentItem(step_number=4, step_title="Clearing Rail & Currency Fit", description="SWIFT CBPR+ pacs.008 format check", proof_detail="Target bank BIC active and accepts pacs.008 ISO 20022 messages", badge_label="CBPR+ PASS", is_passed=True),
-            StepAssessmentItem(step_number=5, step_title="Behavioral Anomaly Guardrail", description="Mule account and velocity analysis", proof_detail="Zero velocity anomalies. Established 3.5yr counterparty relationship", badge_label="NO ANOMALIES", is_passed=True)
+            StepAssessmentItem(step_number=5, step_title="Behavioral Anomaly Guardrail [SIMULATED]", description="Mule account and velocity analysis", proof_detail="Zero velocity anomalies. Established 3.5yr counterparty relationship [SIMULATED]", badge_label="NO ANOMALIES", is_passed=True)
         ]
         hypothesis_ranking = [
-            HypothesisRankingItem(hypothesis_id="HYP-1", title="Alphanumeric transposition in check digit sequence", confidence=0.96, status="SELECTED"),
-            HypothesisRankingItem(hypothesis_id="HYP-2", title="Incompatible domestic routing scheme", confidence=0.03, status="ELIMINATED", elimination_reason="Bank routing identifier is valid and active on national clearing rail"),
-            HypothesisRankingItem(hypothesis_id="HYP-3", title="Counterparty account closure / de-registration", confidence=0.01, status="ELIMINATED", elimination_reason="Beneficiary master SSI registry (#SSI-9912) confirms active account status with good standing")
+            HypothesisRankingItem(hypothesis_id="HYP-1", title="Alphanumeric transposition in check digit sequence [SIMULATED]", confidence=0.96, status="SELECTED"),
+            HypothesisRankingItem(hypothesis_id="HYP-2", title="Incompatible domestic routing scheme [SIMULATED]", confidence=0.03, status="ELIMINATED", elimination_reason="Bank routing identifier is valid and active on national clearing rail"),
+            HypothesisRankingItem(hypothesis_id="HYP-3", title="Counterparty account closure / de-registration [SIMULATED]", confidence=0.01, status="ELIMINATED", elimination_reason="Beneficiary master SSI registry (#SSI-9912) confirms active account status with good standing")
         ]
 
     elif profile == ExceptionProfile.INVALID_BIC:

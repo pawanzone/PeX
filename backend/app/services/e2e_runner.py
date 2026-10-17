@@ -173,13 +173,28 @@ class E2EExecutionHarness:
             # Invalid IBAN Repair logic
             orig_iban = pmt.creditor_account or ""
             target_iban = evidence_ctx.get("verified_iban") or evidence_ctx.get("core_dda_account")
+            has_contradiction = bool(
+                envelope.contradictions
+                or evidence_ctx.get("contradictory_evidence_flag", False)
+                or evidence_ctx.get("contradiction_detected", False)
+                or evidence_ctx.get("has_contradictory_evidence", False)
+                or (
+                    evidence_ctx.get("core_dda_account")
+                    and evidence_ctx.get("ssi_directory_account")
+                    and str(evidence_ctx.get("core_dda_account")).strip() != str(evidence_ctx.get("ssi_directory_account")).strip()
+                )
+            )
             if target_iban and len(target_iban) >= 15:
                 r_det = True
-                r_uniq = not evidence_ctx.get("multiple_matching_ibans", False)
-                v_det = True # Checksum validation passed
+                r_uniq = not (has_contradiction or evidence_ctx.get("multiple_matching_ibans", False))
+                v_det = not bool(evidence_ctx.get("deterministic_validation_failed", False) or evidence_ctx.get("syntax_validation_failed", False))
                 repaired_fields = [{"field_path": "creditor_account.iban", "original_value": orig_iban, "repaired_value": target_iban}]
-                resolution_basis = "IBAN MOD-97 check digit validated against UK CHAPS directory."
-                resolution_rec = {"action": "SUBSTITUTE_FIELD", "target": "creditor_account.iban", "value": target_iban}
+                if has_contradiction:
+                    resolution_basis = f"Contradictory evidence detected ({', '.join(envelope.contradictions) if envelope.contradictions else 'Core DDA vs SSI directory conflict'}); resolution is ambiguous. Routing to Human-in-the-Loop."
+                    resolution_rec = {"action": "INVESTIGATION_HOLD", "target": "creditor_account.iban", "candidate_value": target_iban, "reason": "CONTRADICTORY_EVIDENCE"}
+                else:
+                    resolution_basis = "IBAN MOD-97 check digit validated against UK CHAPS directory."
+                    resolution_rec = {"action": "SUBSTITUTE_FIELD", "target": "creditor_account.iban", "value": target_iban}
             else:
                 resolution_basis = "Unable to derive valid MOD-97 IBAN checksum."
 
@@ -751,7 +766,10 @@ class E2EExecutionHarness:
         if not r_det:
             denials.append("Deterministic resolution could not be derived.")
         if not r_uniq:
-            denials.append("Resolution is ambiguous with multiple candidate matches.")
+            if envelope.contradictions:
+                denials.append(f"Resolution is ambiguous due to contradictory evidence ({', '.join(envelope.contradictions)}).")
+            else:
+                denials.append("Resolution is ambiguous with multiple candidate matches.")
         if not v_det:
             denials.append("Deterministic validation / checksum failed.")
         if not v_auth:
@@ -820,11 +838,11 @@ class E2EExecutionHarness:
             exception_id=case_id,
             detected_profile_id=profile,
             domain=domain,
-            evidence_status="SUFFICIENT" if e_suff else "INSUFFICIENT",
+            evidence_status="CONTRADICTORY" if envelope.contradictions else ("STALE" if envelope.stale_types else ("SUFFICIENT" if e_suff else "INSUFFICIENT")),
             evidence_used=[item.evidence_type for item in envelope.items if item.validation_status.value == "AVAILABLE"],
             evidence_missing=envelope.missing_mandatory_types,
             evidence_contradictions=envelope.contradictions,
-            resolution_status="RESOLVED" if r_det else "INVESTIGATION_REQUIRED",
+            resolution_status="RESOLVED" if (r_det and r_uniq) else "INVESTIGATION_REQUIRED",
             resolution_recommendation=resolution_rec,
             resolution_basis=resolution_basis,
             repaired_fields=repaired_fields,

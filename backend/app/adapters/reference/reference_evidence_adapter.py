@@ -53,6 +53,46 @@ class InMemoryEvidenceAdapter(EvidencePackagePort):
         )
 
         # 2. Extract external items if provided
+        # Canonical Contradiction Analysis:
+        # Check for package-level contradiction indicators and cross-source conflicts.
+        package_has_contradiction = False
+        contradiction_reasons: List[str] = []
+
+        # (a) Canonical boolean flags
+        canonical_contra_flags = [
+            "contradictory_evidence_flag",
+            "contradiction_detected",
+            "has_contradictory_evidence",
+            "contradictory_account_status",
+            "conflicting_legal_orders",
+            "auxiliary_directory_active_conflict",
+        ]
+        for c_flag in canonical_contra_flags:
+            if bool(ext.get(c_flag, False)):
+                package_has_contradiction = True
+                contradiction_reasons.append(f"Canonical flag {c_flag}=True")
+
+        # (b) Generic boolean pattern match: any boolean key with 'contradict' or 'conflict'
+        for k_ext, v_ext in ext.items():
+            k_lower = k_ext.lower()
+            if ("contradict" in k_lower or "conflict" in k_lower) and isinstance(v_ext, bool) and v_ext:
+                package_has_contradiction = True
+                flag_str = f"Pattern match {k_ext}=True"
+                if flag_str not in contradiction_reasons:
+                    contradiction_reasons.append(flag_str)
+
+        # (c) Authoritative cross-source account contradiction (Core DDA vs SSI Directory)
+        core_dda = ext.get("core_dda_account") or ext.get("verified_iban")
+        ssi_acct = ext.get("ssi_directory_account") or ext.get("ssi_account")
+        cross_source_acct_conflict = False
+        if isinstance(core_dda, str) and isinstance(ssi_acct, str):
+            c_clean = "".join(core_dda.split()).upper()
+            s_clean = "".join(ssi_acct.split()).upper()
+            if c_clean and s_clean and c_clean != s_clean:
+                cross_source_acct_conflict = True
+                package_has_contradiction = True
+                contradiction_reasons.append(f"Core DDA account ({core_dda}) contradicts SSI directory ({ssi_acct})")
+
         for k, v in ext.items():
             val_str = json.dumps(v, sort_keys=True, default=str) if isinstance(v, dict) else str(v)
             item_hash = hashlib.sha256(val_str.encode()).hexdigest()
@@ -61,10 +101,38 @@ class InMemoryEvidenceAdapter(EvidencePackagePort):
                     TrustTier.TIER_3_CLIENT_ERP if "ERP" in k or "INVOICE" in k else TrustTier.TIER_4_HISTORICAL_AI
                 )
             )
-            is_stale = ext.get(f"{k}_stale", False)
-            is_contra = ext.get(f"{k}_contradictory", False)
+            is_stale = bool(ext.get(f"{k}_stale", False))
+
+            # Determine if this item is in contradiction
+            is_contra = bool(
+                ext.get(f"{k}_contradictory", False)
+                or ext.get(f"{k}_conflict", False)
+                or ext.get(f"{k}_contradiction", False)
+            )
+
+            # Check dict payload for contradiction fields
+            if isinstance(v, dict):
+                if any(bool(v.get(ck, False)) for ck in ["is_contradictory", "contradiction_detected", "is_conflicting_order", "conflict"]):
+                    is_contra = True
+
+            # If cross-source conflict exists, mark participating account items
+            if cross_source_acct_conflict and k in ["core_dda_account", "verified_iban", "ssi_directory_account", "ssi_account"]:
+                is_contra = True
+
+            # If item itself is a contradiction flag with truthy value, mark it contradictory
+            if ("contradict" in k.lower() or "conflict" in k.lower()) and bool(v):
+                is_contra = True
+
+            # If package-level contradiction is present and item is an authoritative source involved in resolution
+            if package_has_contradiction and ("DDA" in k.upper() or "CORE" in k.upper() or "SSI" in k.upper() or "DIRECTORY" in k.upper()):
+                is_contra = True
+
             status = EvidenceValidationStatus.STALE if is_stale else (
                 EvidenceValidationStatus.CONTRADICTORY if is_contra else EvidenceValidationStatus.AVAILABLE
+            )
+
+            contra_detail = "; ".join(contradiction_reasons) if is_contra and contradiction_reasons else (
+                "Contradiction reported by source" if is_contra else None
             )
 
             items.append(
@@ -79,7 +147,7 @@ class InMemoryEvidenceAdapter(EvidencePackagePort):
                     raw_payload_masked=v if isinstance(v, dict) else {"value": str(v)},
                     is_authoritative=(tier in [TrustTier.TIER_1_CORE_RECORD, TrustTier.TIER_2_REGULATORY_SCHEME]),
                     is_contradictory=is_contra,
-                    contradiction_details="Contradiction reported by source" if is_contra else None
+                    contradiction_details=contra_detail
                 )
             )
 

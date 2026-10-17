@@ -20,6 +20,9 @@ class Settings(BaseModel):
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
     OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
     
+    # Operation Mode (Shadow, Assisted, Live)
+    PEX_OPERATION_MODE: str = os.getenv("PEX_OPERATION_MODE", "SHADOW")  # "SHADOW", "ASSISTED", "LIVE"
+    
     # Governance & Dual Authorization Threshold
     DUAL_AUTH_THRESHOLD: float = 250000.0  # USD equivalent
     
@@ -35,8 +38,17 @@ class Settings(BaseModel):
     DB_POOL_RECYCLE: int = int(os.getenv("DB_POOL_RECYCLE", "1800"))
     DB_ECHO: bool = os.getenv("DB_ECHO", "false").lower() == "true"
 
+    # Inbound File Watcher Configuration
+    INPUT_WATCH_DIR: Path = Path(os.getenv("PEX_INPUT_WATCH_DIR", str(BASE_DIR / "e2e_fixtures" / "input")))
+    OUTPUT_WATCH_DIR: Path = Path(os.getenv("PEX_OUTPUT_WATCH_DIR", str(BASE_DIR / "e2e_fixtures" / "output")))
+    ARCHIVE_WATCH_DIR: Path = Path(os.getenv("PEX_ARCHIVE_WATCH_DIR", str(BASE_DIR / "e2e_fixtures" / "archive")))
+    WATCHER_AUTO_ARCHIVE: bool = os.getenv("PEX_WATCHER_AUTO_ARCHIVE", "true").lower() == "true"
+    WATCHER_POLL_INTERVAL: float = float(os.getenv("PEX_WATCHER_POLL_INTERVAL", "1.0"))
+    WATCHER_ENABLED: bool = os.getenv("PEX_WATCHER_ENABLED", "true").lower() == "true"
+
     # Data Path
     DATA_DIR: Path = SYNTHETIC_DATA_DIR
 
 settings = Settings()
+
 

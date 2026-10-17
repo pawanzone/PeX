@@ -1,6 +1,8 @@
 """Persistent Relational Database Repository for PeX Enterprise Platform."""
 import logging
+import threading
 from typing import Dict, List, Any, Optional
+
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 from sqlalchemy import desc, or_
@@ -47,6 +49,8 @@ class PeXDBRepository:
         self._rules_cache: Dict[str, Dict[str, Any]] = {}
         self._icd_cache: Dict[str, Dict[str, Any]] = {}
         self._latest_hash: str = "0" * 64
+        self._audit_lock = threading.Lock()
+
 
     def load_all_data(self):
         """Initializes database tables and syncs in-memory caches from persistent DB."""
@@ -284,75 +288,76 @@ class PeXDBRepository:
         debtor_account = _extract_account_str(debtor_account)
         creditor_account = _extract_account_str(creditor_account)
                     
-        db: Session = SessionLocal()
-        try:
-            idx = db.query(AuditEventModel).count() + 1
-            latest_ev = db.query(AuditEventModel).order_by(desc(AuditEventModel.event_index)).first()
-            prev_hash = latest_ev.current_hash if latest_ev else ("0" * 64)
-            now_dt = datetime.utcnow()
-            timestamp_iso = now_dt.isoformat()
+        with self._audit_lock:
+            db: Session = SessionLocal()
+            try:
+                latest_ev = db.query(AuditEventModel).order_by(desc(AuditEventModel.event_index)).first()
+                idx = (latest_ev.event_index + 1) if latest_ev else 1
+                prev_hash = latest_ev.current_hash if latest_ev else ("0" * 64)
+                now_dt = datetime.utcnow()
+                timestamp_iso = now_dt.isoformat()
 
-            curr_hash = calculate_event_hash(
-                event_index=idx,
-                timestamp_iso=timestamp_iso,
-                case_id=case_id,
-                stage_name=stage_name,
-                actor_id=actor_id,
-                action_name=action_name,
-                details=details,
-                prev_hash=prev_hash,
-                amount=amount,
-                currency=currency,
-                debtor_account=debtor_account,
-                creditor_account=creditor_account
-            )
+                curr_hash = calculate_event_hash(
+                    event_index=idx,
+                    timestamp_iso=timestamp_iso,
+                    case_id=case_id,
+                    stage_name=stage_name,
+                    actor_id=actor_id,
+                    action_name=action_name,
+                    details=details,
+                    prev_hash=prev_hash,
+                    amount=amount,
+                    currency=currency,
+                    debtor_account=debtor_account,
+                    creditor_account=creditor_account
+                )
 
-            db_ev = AuditEventModel(
-                event_index=idx,
-                case_id=case_id,
-                correlation_id=correlation_id,
-                stage_name=stage_name,
-                actor_id=actor_id,
-                actor_role=actor_role,
-                action_name=action_name,
-                timestamp=timestamp_iso,
-                details=details,
-                control_tags=control_tags or [],
-                amount=amount,
-                currency=currency,
-                debtor_account=debtor_account,
-                creditor_account=creditor_account,
-                prev_hash=prev_hash,
-                current_hash=curr_hash
-            )
-            db.add(db_ev)
-            db.commit()
-            self._latest_hash = curr_hash
+                db_ev = AuditEventModel(
+                    event_index=idx,
+                    case_id=case_id,
+                    correlation_id=correlation_id,
+                    stage_name=stage_name,
+                    actor_id=actor_id,
+                    actor_role=actor_role,
+                    action_name=action_name,
+                    timestamp=timestamp_iso,
+                    details=details,
+                    control_tags=control_tags or [],
+                    amount=amount,
+                    currency=currency,
+                    debtor_account=debtor_account,
+                    creditor_account=creditor_account,
+                    prev_hash=prev_hash,
+                    current_hash=curr_hash
+                )
+                db.add(db_ev)
+                db.commit()
+                self._latest_hash = curr_hash
 
-            return AuditEvent(
-                event_index=idx,
-                timestamp=now_dt,
-                case_id=case_id,
-                correlation_id=correlation_id,
-                stage_name=stage_name,
-                actor_id=actor_id,
-                actor_role=actor_role,
-                action_name=action_name,
-                details=details,
-                control_tags=control_tags or [],
-                amount=amount,
-                currency=currency,
-                debtor_account=debtor_account,
-                creditor_account=creditor_account,
-                prev_hash=prev_hash,
-                current_hash=curr_hash
-            )
-        except Exception as e:
-            db.rollback()
-            print(f"[PeX DB Error] Failed to log audit event: {e}")
-            raise e
-        finally:
-            db.close()
+                return AuditEvent(
+                    event_index=idx,
+                    timestamp=now_dt,
+                    case_id=case_id,
+                    correlation_id=correlation_id,
+                    stage_name=stage_name,
+                    actor_id=actor_id,
+                    actor_role=actor_role,
+                    action_name=action_name,
+                    details=details,
+                    control_tags=control_tags or [],
+                    amount=amount,
+                    currency=currency,
+                    debtor_account=debtor_account,
+                    creditor_account=creditor_account,
+                    prev_hash=prev_hash,
+                    current_hash=curr_hash
+                )
+            except Exception as e:
+                db.rollback()
+                print(f"[PeX DB Error] Failed to log audit event: {e}")
+                raise e
+            finally:
+                db.close()
 
     def save_approval(self, approval_record: Any):
         """Persists an approval record to database and caches."""
@@ -498,43 +503,46 @@ class PeXDBRepository:
         control_tags: List[str]
     ):
         """Appends a new cryptographically chained event directly into the DB and updates chain head."""
-        db: Session = SessionLocal()
-        try:
-            count = db.query(AuditEventModel).count()
-            idx = count + 1
-            ts = datetime.utcnow().isoformat()
-            current_hash = calculate_event_hash(
-                event_index=idx,
-                timestamp_iso=ts,
-                case_id=case_id,
-                stage_name=stage_name,
-                actor_id=actor_id,
-                action_name=action_name,
-                details=details,
-                prev_hash=self._latest_hash
-            )
-            ev = AuditEventModel(
-                event_index=idx,
-                case_id=case_id,
-                correlation_id=correlation_id,
-                stage_name=stage_name,
-                actor_id=actor_id,
-                actor_role=actor_role,
-                action_name=action_name,
-                timestamp=ts,
-                details=details,
-                control_tags=control_tags or [],
-                prev_hash=self._latest_hash,
-                current_hash=current_hash
-            )
-            db.add(ev)
-            db.commit()
-            self._latest_hash = current_hash
-        except Exception as e:
-            db.rollback()
-            print(f"[PeX DB Error] Failed to append audit event for {case_id}: {e}")
-        finally:
-            db.close()
+        with self._audit_lock:
+            db: Session = SessionLocal()
+            try:
+                latest_ev = db.query(AuditEventModel).order_by(desc(AuditEventModel.event_index)).first()
+                idx = (latest_ev.event_index + 1) if latest_ev else 1
+                prev_hash = latest_ev.current_hash if latest_ev else ("0" * 64)
+                ts = datetime.utcnow().isoformat()
+
+                current_hash = calculate_event_hash(
+                    event_index=idx,
+                    timestamp_iso=ts,
+                    case_id=case_id,
+                    stage_name=stage_name,
+                    actor_id=actor_id,
+                    action_name=action_name,
+                    details=details,
+                    prev_hash=prev_hash
+                )
+                ev = AuditEventModel(
+                    event_index=idx,
+                    case_id=case_id,
+                    correlation_id=correlation_id,
+                    stage_name=stage_name,
+                    actor_id=actor_id,
+                    actor_role=actor_role,
+                    action_name=action_name,
+                    timestamp=ts,
+                    details=details,
+                    control_tags=control_tags or [],
+                    prev_hash=prev_hash,
+                    current_hash=current_hash
+                )
+                db.add(ev)
+                db.commit()
+                self._latest_hash = current_hash
+            except Exception as e:
+                db.rollback()
+                print(f"[PeX DB Error] Failed to append audit event for {case_id}: {e}")
+            finally:
+                db.close()
 
     def _case_to_dict(self, c: CaseModel) -> Dict[str, Any]:
         return {

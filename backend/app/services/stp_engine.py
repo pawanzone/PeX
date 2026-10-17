@@ -41,7 +41,10 @@ from app.ports import (
     HealthReadinessPort,
 )
 from app.schemas.policy_contract import STPEligibilityDecision
-from app.schemas.contracts.e2e_schemas import PredicateBreakdown
+from app.schemas.contracts.e2e_schemas import PredicateBreakdown, CanonicalE2EInput, E2EPaymentInfo
+from app.config import settings
+from app.services.state_machine import transition_case
+from app.services.e2e_runner import e2e_runner
 
 class STPEngine:
     """Evaluates STP eligibility, executes autonomous zero-touch repairs, and handles 1-click batch releases."""
@@ -207,78 +210,97 @@ class STPEngine:
                 uetr=uetr, urgency=urgency
             )
 
-        # 2. MATCH AGAINST DYNAMIC DB RULES
-        if active_rules is None:
-            active_rules = repo.get_policy_rules(status="ACTIVE")
-
-        for rule in active_rules:
-            if rule.get("category") == "STP_FAST_LANE" and rule.get("status") == "ACTIVE":
-                if rule_engine.evaluate_rule(rule, case):
-                    actions = rule.get("actions", {})
-                    is_auto = actions.get("autonomous_mode", False) or amount <= 10000.0 and confidence >= 0.98
-                    mode = STPMode.AUTONOMOUS if is_auto else STPMode.ONE_CLICK_BATCH
-                    return STPEligibilityItem(
-                        case_id=case_id, payment_id=payment_id, amount=amount, currency=currency,
-                        domain=domain, profile=profile, ai_confidence=confidence, eligible=True,
-                        mode=mode,
-                        reason=f"Matched Active Policy Rule: {rule.get('name')}",
-                        matching_rule_id=rule.get("rule_id"),
-                        matching_rule_name=rule.get("name"),
-                        proposed_repair_summary=proposed_summary,
-                        debtor_name=debtor_name, creditor_name=creditor_name,
-                        debtor_agent_bic=debtor_bic, creditor_agent_bic=creditor_bic,
-                        clearing_rail=clearing_rail, original_field=orig_field,
-                        original_value=orig_val, proposed_value=prop_val,
-                        field_justification=field_justif, sanctions_status=sanctions_status,
-                        uetr=uetr, urgency=urgency
-                    )
-
-        # 3. BASELINE INSTITUTIONAL STP HEURISTICS
-        # Mode A: Autonomous Zero-Touch STP (<=$10k, >=98% conf, pure syntax)
-        if amount <= 10000.0 and confidence >= 0.98 and domain in ["DATA_QUALITY", "FORMAT_SYNTAX"]:
-            return STPEligibilityItem(
-                case_id=case_id, payment_id=payment_id, amount=amount, currency=currency,
-                domain=domain, profile=profile, ai_confidence=confidence, eligible=True,
-                mode=STPMode.AUTONOMOUS,
-                reason="Qualifies for Autonomous Zero-Touch STP (<= $10k, >= 98% confidence, Data Quality domain).",
-                proposed_repair_summary=proposed_summary,
-                debtor_name=debtor_name, creditor_name=creditor_name,
-                debtor_agent_bic=debtor_bic, creditor_agent_bic=creditor_bic,
-                clearing_rail=clearing_rail, original_field=orig_field,
-                original_value=orig_val, proposed_value=prop_val,
-                field_justification=field_justif, sanctions_status=sanctions_status,
-                uetr=uetr, urgency=urgency
-            )
-
-        # Mode B: 1-Click Supervised Fast-Lane Batch (<=$25k, >=90% conf)
-        if amount <= 25000.0 and confidence >= 0.90 and domain in ["DATA_QUALITY", "FORMAT_SYNTAX", "PROCESSING", "ACCOUNT_DIRECTORY"]:
-            return STPEligibilityItem(
-                case_id=case_id, payment_id=payment_id, amount=amount, currency=currency,
-                domain=domain, profile=profile, ai_confidence=confidence, eligible=True,
-                mode=STPMode.ONE_CLICK_BATCH,
-                reason="Qualifies for 1-Click Fast-Lane Batch Settlement (<= $25k, >= 90% confidence).",
-                proposed_repair_summary=proposed_summary,
-                debtor_name=debtor_name, creditor_name=creditor_name,
-                debtor_agent_bic=debtor_bic, creditor_agent_bic=creditor_bic,
-                clearing_rail=clearing_rail, original_field=orig_field,
-                original_value=orig_val, proposed_value=prop_val,
-                field_justification=field_justif, sanctions_status=sanctions_status,
-                uetr=uetr, urgency=urgency
-            )
-
-        return STPEligibilityItem(
-            case_id=case_id, payment_id=payment_id, amount=amount, currency=currency,
-            domain=domain, profile=profile, ai_confidence=confidence, eligible=False,
-            mode=STPMode.MANUAL_GATED,
-            reason="Standard HITL review required (amount or confidence below fast-lane policy thresholds).",
-            proposed_repair_summary=proposed_summary,
-            debtor_name=debtor_name, creditor_name=creditor_name,
-            debtor_agent_bic=debtor_bic, creditor_agent_bic=creditor_bic,
-            clearing_rail=clearing_rail, original_field=orig_field,
-            original_value=orig_val, proposed_value=prop_val,
-            field_justification=field_justif, sanctions_status=sanctions_status,
-            uetr=uetr, urgency=urgency
+        # 2. CANONICAL 8-PREDICATE EVALUATION GATE (Reconciled P0-2)
+        # /api/stp/eligible and /api/stp/batch-release call the same 8-predicate evaluation as e2e_runner
+        pmt_info = E2EPaymentInfo(
+            payment_id=payment_id or f"PMT-{case_id}",
+            uetr=uetr,
+            amount=amount,
+            currency=currency,
+            clearing_rail=clearing_rail,
+            debtor_name=debtor_name,
+            debtor_agent_bic=debtor_bic,
+            creditor_name=creditor_name,
+            creditor_account=case.get("creditor_account", {}).get("account_number") if isinstance(case.get("creditor_account"), dict) else (case.get("creditor_account") or "GB82WEST12345698765423"),
+            creditor_agent_bic=creditor_bic,
+            remittance_info=case.get("payment_ref") or f"REF-{case_id}"
         )
+        bank_ev = case.get("bank_supplied_evidence") or case.get("evidence", {}).get("bank_supplied", {})
+        ext_ev = dict(case.get("external_authoritative_evidence") or {})
+        if not ext_ev.get("routing_directory") and case.get("routing_directory"):
+            ext_ev["routing_directory"] = case.get("routing_directory")
+        derived_ev = case.get("derived_evidence") or {}
+        hist_ev = case.get("historical_evidence") or {}
+
+        prof_code = profile
+        if prof_code == "INVALID_IBAN":
+            prof_code = "DQ-01"
+        elif prof_code == "INVALID_BIC":
+            prof_code = "DQ-02"
+        elif prof_code == "MISSING_BENEFICIARY_DATA":
+            prof_code = "DQ-03"
+        elif prof_code == "MISSING_REMITTANCE_INFO":
+            prof_code = "DQ-04"
+        elif prof_code == "INVALID_ACCOUNT_NUMBER":
+            prof_code = "DQ-07"
+        elif prof_code == "INVALID_ROUTING_CODE":
+            prof_code = "DQ-08"
+        elif prof_code == "BENEFICIARY_NAME_MISMATCH":
+            prof_code = "DQ-09"
+        elif prof_code == "DUPLICATE_PAYMENT":
+            prof_code = "PR-01"
+        elif prof_code == "ROUTING_FAILURE":
+            prof_code = "PR-02"
+
+        e2e_input = CanonicalE2EInput(
+            exception_id=case_id,
+            profile_id=prof_code,
+            domain=domain or "DATA_QUALITY",
+            payment_info=pmt_info,
+            bank_supplied_evidence=bank_ev,
+            external_authoritative_evidence=ext_ev,
+            derived_evidence=derived_ev,
+            historical_evidence=hist_ev
+        )
+
+        try:
+            output = e2e_runner.process_input(e2e_input)
+            stp_ok = output.stp_eligible
+            stp_reason = output.stp_decision_reason
+            if output.resolution_basis and not proposed_summary:
+                proposed_summary = output.resolution_basis
+        except Exception as e:
+            stp_ok = False
+            stp_reason = f"8-predicate evaluation failed: {e}"
+
+        if stp_ok:
+            return STPEligibilityItem(
+                case_id=case_id, payment_id=payment_id, amount=amount, currency=currency,
+                domain=domain, profile=profile, ai_confidence=confidence, eligible=True,
+                mode=STPMode.AUTONOMOUS if amount <= 100000.0 else STPMode.ONE_CLICK_BATCH,
+                reason=stp_reason or "All 8 canonical predicates satisfied (E_suff ∧ R_det ∧ R_uniq ∧ V_det ∧ V_auth ∧ P_bank ∧ C_comp ∧ X_pre).",
+                proposed_repair_summary=proposed_summary,
+                debtor_name=debtor_name, creditor_name=creditor_name,
+                debtor_agent_bic=debtor_bic, creditor_agent_bic=creditor_bic,
+                clearing_rail=clearing_rail, original_field=orig_field,
+                original_value=orig_val, proposed_value=prop_val,
+                field_justification=field_justif, sanctions_status=sanctions_status,
+                uetr=uetr, urgency=urgency
+            )
+        else:
+            return STPEligibilityItem(
+                case_id=case_id, payment_id=payment_id, amount=amount, currency=currency,
+                domain=domain, profile=profile, ai_confidence=confidence, eligible=False,
+                mode=STPMode.MANUAL_GATED,
+                reason=stp_reason or "Disqualified by canonical 8-predicate evaluation.",
+                proposed_repair_summary=proposed_summary,
+                debtor_name=debtor_name, creditor_name=creditor_name,
+                debtor_agent_bic=debtor_bic, creditor_agent_bic=creditor_bic,
+                clearing_rail=clearing_rail, original_field=orig_field,
+                original_value=orig_val, proposed_value=prop_val,
+                field_justification=field_justif, sanctions_status=sanctions_status,
+                uetr=uetr, urgency=urgency
+            )
 
     def get_eligible_cases(self) -> List[STPEligibilityItem]:
         """Returns all live open cases that currently qualify for STP / Fast-Lane."""
@@ -342,6 +364,9 @@ class STPEngine:
             db.add(appr)
 
             # 3. Create Idempotent Action
+            op_mode = getattr(settings, "PEX_OPERATION_MODE", "SHADOW").upper()
+            target_state = LifecycleStage.SHADOW_RECORDED.value if op_mode == "SHADOW" else LifecycleStage.HANDED_TO_BANK.value
+
             action_id = f"ACT-STP-{uuid.uuid4().hex[:6].upper()}"
             idempotency_key = f"IDEMP-STP-{case_id}-{uuid.uuid4().hex[:4]}"
             act = GovernedActionModel(
@@ -357,9 +382,9 @@ class STPEngine:
                     "currency": case.get("currency"),
                     "repaired_fields": approved_changes
                 },
-                status="SETTLED",
+                status="DISPATCHED",
                 dispatched_at=now,
-                settled_at=now
+                settled_at=None
             )
             db.add(act)
 
@@ -370,31 +395,22 @@ class STPEngine:
                 action_id=action_id,
                 case_id=case_id,
                 bank_ack_reference=f"ACK-STP-{case_id.replace('PEX-', '')}-{uuid.uuid4().hex[:6].upper()}",
-                status="SETTLED_STP_AUTONOMOUS",
+                status="AWAITING_BANK_ACK",
                 timestamp=now,
-                details={"mode": "ZERO_TOUCH_STP", "execution_time_ms": 14}
+                details={"mode": "ZERO_TOUCH_STP", "operation_mode": op_mode}
             )
             db.add(rcpt)
 
-            # 4. Update Case
+            # 4. Update Case strictly via transition_case
             db_case = db.query(CaseModel).filter(CaseModel.case_id == case_id).first()
             if db_case:
-                db_case.status = LifecycleStage.SETTLED.value
-                db_case.settled_at = now_iso
-                
-                # Append to timeline
-                tl = list(db_case.audit_timeline or [])
-                tl.append({
-                    "step_index": len(tl) + 1,
-                    "timestamp": now_iso,
-                    "actor_name": "Autonomous STP Reasoner",
-                    "actor_role": "SYSTEM_AUTONOMOUS",
-                    "badge_color": "emerald",
-                    "action_title": "Autonomous STP Settlement Dispatched",
-                    "icon": "⚡",
-                    "summary": f"Zero-touch repair and settlement executed in 14ms ({eval_item.reason})."
-                })
-                db_case.audit_timeline = tl
+                transition_case(
+                    case=db_case,
+                    to_state=target_state,
+                    actor="Autonomous STP Reasoner",
+                    reason=f"Zero-touch repair and handoff executed ({eval_item.reason}).",
+                    dispatch_status="AWAITING_BANK_ACK" if target_state == LifecycleStage.HANDED_TO_BANK.value else None
+                )
                 
                 # Append to approval history
                 ah = list(db_case.approval_history or [])
@@ -406,12 +422,21 @@ class STPEngine:
                     "approver_name": "Autonomous STP Reasoner",
                     "approver_role": "ADMIN",
                     "action": "APPROVE",
-                    "comments": f"Zero-touch STP execution via {eval_item.matching_rule_name or 'STP Heuristic'}",
+                    "comments": f"Zero-touch STP execution via {eval_item.matching_rule_name or '8-Predicate Engine'}",
                     "approved_changes": approved_changes,
                     "step_number": 1,
                     "created_at": now_iso
                 })
                 db_case.approval_history = ah
+
+            transition_case(
+                case=case,
+                to_state=target_state,
+                actor="Autonomous STP Reasoner",
+                reason=f"Zero-touch repair and handoff executed ({eval_item.reason}).",
+                dispatch_status="AWAITING_BANK_ACK" if target_state == LifecycleStage.HANDED_TO_BANK.value else None
+            )
+            repo.save_case(case)
 
             db.commit()
 
@@ -419,24 +444,24 @@ class STPEngine:
             repo.log_audit_event(
                 case_id=case_id,
                 correlation_id=case.get("uetr", f"UETR-{case_id}"),
-                stage_name="SETTLED",
+                stage_name="HANDOFF",
                 actor_id="SYS-AUTONOMOUS-STP",
                 actor_role="SYSTEM_AUTONOMOUS",
-                action_name="Autonomous STP Settlement Release",
-                details=f"Case {case_id} (${case.get('amount'):,.2f}) auto-repaired and settled with zero human latency.",
-                control_tags=["STP_AUTONOMOUS", "ZERO_TOUCH", "ISO20022_DISPATCH"]
+                action_name="Autonomous STP Handoff",
+                details=f"Case {case_id} (${case.get('amount'):,.2f}) auto-repaired and handed off ({target_state}).",
+                control_tags=["STP_AUTONOMOUS", "ZERO_TOUCH", f"MODE_{op_mode}"]
             )
 
             # Sync in-memory cache
             repo.sync_from_db()
             return {
                 "case_id": case_id,
-                "status": "SETTLED",
+                "status": target_state,
                 "mode": "AUTONOMOUS",
                 "action_id": action_id,
                 "receipt_id": receipt_id,
-                "settled_at": now_iso,
-                "message": f"Case {case_id} autonomously settled in 14ms via Governed STP."
+                "settled_at": None,
+                "message": f"Case {case_id} autonomously repaired and handed off ({target_state}) via Governed STP."
             }
         except Exception as e:
             db.rollback()
@@ -501,6 +526,9 @@ class STPEngine:
                 )
                 db.add(appr)
 
+                op_mode = getattr(settings, "PEX_OPERATION_MODE", "SHADOW").upper()
+                target_state = LifecycleStage.SHADOW_RECORDED.value if op_mode == "SHADOW" else LifecycleStage.HANDED_TO_BANK.value
+
                 # 3. Governed Action
                 action_id = f"ACT-BATCH-{uuid.uuid4().hex[:6].upper()}"
                 idempotency_key = f"IDEMP-BATCH-{cid}-{uuid.uuid4().hex[:4]}"
@@ -518,9 +546,9 @@ class STPEngine:
                         "batch_id": batch_id,
                         "repaired_fields": approved_changes
                     },
-                    status="SETTLED",
+                    status="DISPATCHED",
                     dispatched_at=now,
-                    settled_at=now
+                    settled_at=None
                 )
                 db.add(act)
 
@@ -531,30 +559,22 @@ class STPEngine:
                     action_id=action_id,
                     case_id=cid,
                     bank_ack_reference=f"ACK-BATCH-{cid.replace('PEX-', '')}-{uuid.uuid4().hex[:6].upper()}",
-                    status="SETTLED_STP_BATCH",
+                    status="AWAITING_BANK_ACK",
                     timestamp=now,
-                    details={"batch_id": batch_id, "approver": payload.approver_name}
+                    details={"batch_id": batch_id, "approver": payload.approver_name, "operation_mode": op_mode}
                 )
                 db.add(rcpt)
 
-                # 4. Update Case
+                # 4. Update Case strictly via transition_case
                 db_case = db.query(CaseModel).filter(CaseModel.case_id == cid).first()
                 if db_case:
-                    db_case.status = LifecycleStage.SETTLED.value
-                    db_case.settled_at = now_iso
-
-                    tl = list(db_case.audit_timeline or [])
-                    tl.append({
-                        "step_index": len(tl) + 1,
-                        "timestamp": now_iso,
-                        "actor_name": payload.approver_name,
-                        "actor_role": payload.approver_role,
-                        "badge_color": "emerald",
-                        "action_title": "1-Click Fast-Lane Batch Released",
-                        "icon": "⚡",
-                        "summary": f"Supervised batch settlement release authorized ({batch_id})."
-                    })
-                    db_case.audit_timeline = tl
+                    transition_case(
+                        case=db_case,
+                        to_state=target_state,
+                        actor=payload.approver_name,
+                        reason=f"Supervised batch release authorized ({batch_id}) by {payload.approver_name}.",
+                        dispatch_status="AWAITING_BANK_ACK" if target_state == LifecycleStage.HANDED_TO_BANK.value else None
+                    )
 
                     ah = list(db_case.approval_history or [])
                     ah.append({
@@ -572,16 +592,25 @@ class STPEngine:
                     })
                     db_case.approval_history = ah
 
+                transition_case(
+                    case=case,
+                    to_state=target_state,
+                    actor=payload.approver_name,
+                    reason=f"Supervised batch release authorized ({batch_id}) by {payload.approver_name}.",
+                    dispatch_status="AWAITING_BANK_ACK" if target_state == LifecycleStage.HANDED_TO_BANK.value else None
+                )
+                repo.save_case(case)
+
                 # 5. Append Cryptographic Audit Event
                 repo.log_audit_event(
                     case_id=cid,
                     correlation_id=case.get("uetr", f"UETR-{cid}"),
-                    stage_name="SETTLED",
+                    stage_name="HANDOFF",
                     actor_id=payload.approver_id,
                     actor_role=payload.approver_role,
-                    action_name="Fast-Lane Batch Release",
-                    details=f"Case {cid} (${amt:,.2f}) released in batch {batch_id} by {payload.approver_name}.",
-                    control_tags=["STP_BATCH", "FAST_LANE", "HITL_SUPERVISED"]
+                    action_name="Fast-Lane Batch Handoff",
+                    details=f"Case {cid} (${amt:,.2f}) released in batch {batch_id} by {payload.approver_name} ({target_state}).",
+                    control_tags=["STP_BATCH", "FAST_LANE", "HITL_SUPERVISED", f"MODE_{op_mode}"]
                 )
 
                 settled_list.append(
@@ -592,7 +621,7 @@ class STPEngine:
                         currency=ccy,
                         action_id=action_id,
                         receipt_id=receipt_id,
-                        status="SETTLED"
+                        status=target_state
                     )
                 )
                 processed_count += 1
@@ -967,7 +996,7 @@ class STPEngine:
                     db.add(db_case)
                 else:
                     # Reset existing case to open RECOMMENDED status
-                    db_case.status = "RECOMMENDED"
+                    transition_case(db_case, to_state=LifecycleStage.RECOMMENDED, actor="STPSeedEngine", reason="Reset case to open RECOMMENDED status")
                     db_case.settled_at = None
                     db_case.amount = s["amount"]
                     db_case.ai_confidence = s["confidence"]

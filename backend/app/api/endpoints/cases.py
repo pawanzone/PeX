@@ -18,6 +18,7 @@ from app.schemas.canonical import (
 )
 from app.core.tokenization import token_vault
 from app.core.security import get_persona
+from app.services.state_machine import transition_case
 
 router = APIRouter()
 
@@ -209,8 +210,14 @@ def submit_to_checker(case_id: str, analyst_id: str = "OP-9012", notes: Optional
     
     submission_note = notes.strip() if (notes and notes.strip()) else f"Maker ({actor_name}) reviewed AI repair and submitted case to Approvals Desk for Checker authorization."
     
-    case["status"] = LifecycleStage.PENDING_APPROVAL.value
+    case["maker_id"] = analyst_id or "OP-9012"
     case["maker_notes"] = submission_note
+    transition_case(
+        case=case,
+        to_state=LifecycleStage.PENDING_APPROVAL,
+        actor=f"{actor_name} ({actor_role_str})",
+        reason=submission_note
+    )
     if "audit_timeline" not in case:
         case["audit_timeline"] = []
     case["audit_timeline"].append({

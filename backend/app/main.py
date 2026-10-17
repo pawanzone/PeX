@@ -10,6 +10,8 @@ from app.config import settings
 from app.api.router import api_router
 from app.services.data_loader import repo
 from app.services.audit_service import audit_service
+from app.services.file_watcher import file_watcher
+
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -46,7 +48,19 @@ def startup_db_client():
             details="PeX Enterprise Platform initialized with persistent relational database, isolated token vault, and deterministic model gateway.",
             control_tags=["Genesis block created", "Token vault isolated", "RBAC initialized", "DB persistent"]
         )
+
+    # Start Inbound File Watcher if enabled
+    if getattr(settings, "WATCHER_ENABLED", True):
+        file_watcher.start(initial_scan_baseline=True)
+        print(f"[PeX Watcher] Inbound file monitoring active on {file_watcher.input_dir}")
+
     print("PeX Enterprise Platform Startup Complete!")
+
+@app.on_event("shutdown")
+def shutdown_services():
+    print("Shutting down PeX services...")
+    file_watcher.stop()
+    print("PeX Inbound File Monitoring stopped cleanly.")
 
 # Mount API routes
 app.include_router(api_router, prefix=settings.API_V1_STR)
@@ -61,8 +75,10 @@ def health_check():
         "database": db_info,
         "cases_count": len(repo.cases),
         "audit_events_count": len(repo.audit_log),
-        "latest_audit_hash": repo.latest_chain_hash
+        "latest_audit_hash": repo.latest_chain_hash,
+        "file_watcher": file_watcher.get_status()
     }
+
 
 
 # Mount Frontend Static Build if available

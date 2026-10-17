@@ -122,11 +122,23 @@ def check_can_approve(
     amount: float,
     queue: str,
     user_id: Optional[str] = None,
-    persona: Optional[UserPersona] = None
+    persona: Optional[UserPersona] = None,
+    maker_id: Optional[str] = None
 ) -> Tuple[bool, str]:
     if role == UserRole.OPERATOR:
         return False, "Operators cannot approve repairs (Maker-Checker policy violation)."
     
+    # Enforce Segregation of Duties (Maker != Approver)
+    if user_id and maker_id:
+        if user_id == maker_id:
+            return False, f"Segregation of Duties violation: Approver ({user_id}) cannot approve their own case (Maker-Checker policy violation)."
+        maker_persona = get_persona(maker_id)
+        approver_persona = persona or get_persona(user_id)
+        if maker_persona and approver_persona:
+            if (maker_persona.email and approver_persona.email and maker_persona.email == approver_persona.email) or \
+               (maker_persona.name and approver_persona.name and maker_persona.name.strip().lower() == approver_persona.name.strip().lower()):
+                return False, f"Segregation of Duties violation: Approver ({approver_persona.name}) cannot approve own case created under Maker identity ({maker_persona.name})."
+
     if queue == "Compliance" and role not in [UserRole.COMPLIANCE_APPROVER, UserRole.ADMIN, UserRole.RISK_APPROVER]:
         return False, "Only Compliance & Risk Approvers can clear Compliance queue exceptions."
 
@@ -139,4 +151,5 @@ def check_can_approve(
         return False, f"Approval limit exceeded: Transaction amount (${amount:,.2f}) exceeds {role.value}'s maximum authorized approval limit (${max_limit:,.2f}). Escalation required."
         
     return True, "Authorized"
+
 

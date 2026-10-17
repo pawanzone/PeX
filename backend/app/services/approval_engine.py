@@ -8,6 +8,7 @@ from app.schemas.canonical import LifecycleStage
 from app.core.security import check_can_approve, get_persona
 from app.services.data_loader import repo
 from app.services.rule_engine import rule_engine
+from app.services.state_machine import transition_case
 from app.config import settings
 
 class ApprovalEngine:
@@ -29,7 +30,8 @@ class ApprovalEngine:
             amount=case.get("amount", 0.0),
             queue=case.get("queue", "Repair"),
             user_id=approver.user_id,
-            persona=approver
+            persona=approver,
+            maker_id=case.get("maker_id")
         )
         if not can_approve:
             return False, reason, None, case.get("status")
@@ -110,7 +112,12 @@ class ApprovalEngine:
 
         repo.save_approval(record)
 
-        case["status"] = next_stage.value if hasattr(next_stage, "value") else str(next_stage)
+        transition_case(
+            case=case,
+            to_state=next_stage,
+            actor=f"{approver.name} ({approver.role.value if hasattr(approver.role, 'value') else approver.role})",
+            reason=f"Approval action {submission.action.value if hasattr(submission.action, 'value') else submission.action} executed (Step {step_no})."
+        )
         case["expedite_ping"] = None
         if "approval_history" not in case:
             case["approval_history"] = []

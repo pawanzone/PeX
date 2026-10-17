@@ -108,3 +108,7 @@ class DecisionRecommendation(BaseModel):
     prompt_tokens: int = 0
     completion_tokens: int = 0
     generated_at: datetime = Field(default_factory=datetime.utcnow)
+
+    @property
+    def step_assessment(self) -> List[StepAssessmentItem]:
+        return self.step_by_step_assessment

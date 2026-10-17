@@ -86,17 +86,7 @@ def seed_initial_data(db: Session, force_reseed: bool = False):
         print(f"[PeX DB] Persistent database contains {case_count} cases. Skipping seed.")
         return
 
-    # Clean dependent tables for fresh seed
-    db.query(ApprovalRecordModel).delete()
-    db.query(AuditEventModel).delete()
-    db.query(CaseModel).delete()
-    db.query(RecommendationModel).delete()
-    db.query(GovernedActionModel).delete()
-    db.query(DeliveryReceiptModel).delete()
-    db.query(TokenVaultModel).delete()
-    db.commit()
-
-    # Import data_loader to generate benchmark fixtures
+    # Import data_loader FIRST before clearing tables so any lazy-load triggers against non-empty state
     from app.services.data_loader import (
         all_profiles,
         counterparties,
@@ -109,6 +99,16 @@ def seed_initial_data(db: Session, force_reseed: bool = False):
     )
     from app.core.hashing import calculate_event_hash
     from datetime import timedelta
+
+    # Clean dependent tables for fresh seed
+    db.query(ApprovalRecordModel).delete()
+    db.query(AuditEventModel).delete()
+    db.query(CaseModel).delete()
+    db.query(RecommendationModel).delete()
+    db.query(GovernedActionModel).delete()
+    db.query(DeliveryReceiptModel).delete()
+    db.query(TokenVaultModel).delete()
+    db.commit()
 
     print("[PeX DB] Fresh database detected. Seeding 82 curated benchmark cases and audit hash chains...")
 
@@ -194,7 +194,7 @@ def seed_initial_data(db: Session, force_reseed: bool = False):
                 stage_name="INGESTION",
                 actor_id="SYS-INGEST",
                 action_name="INGEST_EXCEPTION",
-                details=f"Payment exception {case_id} ({profile.value}) ingested across {domain.value} domain.",
+                details=f"[DEMO_ONLY] Payment exception {case_id} ({profile.value}) ingested across {domain.value} domain.",
                 prev_hash=latest_hash
             )
             ev1 = AuditEventModel(
@@ -206,8 +206,8 @@ def seed_initial_data(db: Session, force_reseed: bool = False):
                 actor_role="SYSTEM",
                 action_name="INGEST_EXCEPTION",
                 timestamp=ts_ingest,
-                details=f"Payment exception {case_id} ({profile.value}) ingested across {domain.value} domain.",
-                control_tags=["Schema valid", "Token vault isolated", f"BIAN {domain.value}"],
+                details=f"[DEMO_ONLY] Payment exception {case_id} ({profile.value}) ingested across {domain.value} domain.",
+                control_tags=["Schema valid", "Token vault isolated", f"BIAN {domain.value}", "DEMO_ONLY"],
                 prev_hash=latest_hash,
                 current_hash=ingest_curr_hash
             )
@@ -238,7 +238,7 @@ def seed_initial_data(db: Session, force_reseed: bool = False):
                     stage_name="ANALYST_REPAIR",
                     actor_id="OP-9012",
                     action_name="RUN_AI_REPAIR",
-                    details=f"Analyst Priya Nair triggered AI reasoner for {profile.value}.",
+                    details=f"[DEMO_ONLY] Analyst Priya Nair triggered AI reasoner for {profile.value}.",
                     prev_hash=latest_hash
                 )
                 ev2 = AuditEventModel(
@@ -250,8 +250,8 @@ def seed_initial_data(db: Session, force_reseed: bool = False):
                     actor_role="OPERATOR",
                     action_name="RUN_AI_REPAIR",
                     timestamp=ts_ai,
-                    details=f"Analyst Priya Nair triggered AI reasoner for {profile.value}.",
-                    control_tags=["Evidence grounded", "SOP aligned", "Maker review complete"],
+                    details=f"[DEMO_ONLY] Analyst Priya Nair triggered AI reasoner for {profile.value}.",
+                    control_tags=["Evidence grounded", "SOP aligned", "Maker review complete", "DEMO_ONLY"],
                     prev_hash=latest_hash,
                     current_hash=ai_curr_hash
                 )
@@ -382,7 +382,7 @@ def seed_initial_data(db: Session, force_reseed: bool = False):
                 domain=domain.value,
                 secondary_profiles=[],
                 error_code=f"ERR_{prefix}_{i:03d}",
-                reason=f"Exception in {domain.value} domain: {profile.value.replace('_', ' ').title()}.",
+                reason=f"[DEMO_ONLY] Exception in {domain.value} domain: {profile.value.replace('_', ' ').title()}.",
                 amount=round(amount, 2),
                 currency=cp_ccy,
                 payment_rail="SWIFT_CBPR+" if cp_ccy != "USD" else "FEDWIRE_ISO20022",
