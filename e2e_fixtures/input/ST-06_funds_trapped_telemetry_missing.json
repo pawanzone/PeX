@@ -1,0 +1,32 @@
+{
+  "exception_id": "PEX-E2E-ST06-TELMISS",
+  "profile_id": "ST-06",
+  "domain": "SETTLEMENT_RETURNS",
+  "error_code": "ERR_FUNDS_TRAPPED_AT_CORRESPONDENT",
+  "error_message": "Payment status unknown; correspondent transit hop telemetry missing or unconfirmed.",
+  "payment_info": {
+    "payment_id": "PMT-2026-ST06-002",
+    "uetr": "UETR-ST06-MISSING-TEL",
+    "amount": 95000.00,
+    "currency": "EUR",
+    "clearing_rail": "TARGET2",
+    "value_date": "2026-10-15",
+    "debtor_name": "European Exports SAS",
+    "debtor_account": "ACCT-ST06-7788",
+    "debtor_agent_bic": "BNPAFRPPXXX",
+    "creditor_name": "Deutsche Industrie GmbH",
+    "creditor_account": "DE89370400440532013000",
+    "creditor_agent_bic": "DBEUMM21XXX",
+    "remittance_info": "INTERCOMPANY SETTLEMENT ST-06 MISSING"
+  },
+  "bank_supplied_evidence": {
+    "intermediary_bic": "DEUTDEDDXXX",
+    "tracker_hop_record_stale": true
+  },
+  "external_authoritative_evidence": {},
+  "derived_evidence": {
+    "resolution_action": "TRANSIT_INVESTIGATION_REQUIRED"
+  },
+  "evidence_provenance": "SYNTHETIC_TEST_FIXTURE",
+  "test_status": "TEST_ONLY"
+}

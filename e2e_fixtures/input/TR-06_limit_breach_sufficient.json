@@ -1,0 +1,53 @@
+{
+  "exception_id": "PEX-E2E-TR06-SUFF",
+  "profile_id": "TR-06",
+  "domain": "CLIENT_TREASURY",
+  "error_code": "ERR_LIMIT_BREACH",
+  "error_message": "Daily account operational limit temporarily breached; reset pacing schedule derived.",
+  "payment_info": {
+    "payment_id": "PMT-2026-TR06-001",
+    "uetr": "UETR-TR06-SUFF-0001-A1",
+    "amount": 9000.00,
+    "currency": "USD",
+    "clearing_rail": "FEDWIRE",
+    "value_date": "2026-10-08",
+    "debtor_name": "Apex Commercial Holdings",
+    "debtor_account": "ACCT-CORP-USD-001",
+    "debtor_agent_bic": "CHASUS33XXX",
+    "creditor_name": "Titan Metals LLC",
+    "creditor_account": "77889900",
+    "creditor_agent_bic": "BNPAFRPPXXX",
+    "remittance_info": "METALS PROCUREMENT"
+  },
+  "bank_supplied_evidence": {
+    "limit_id": "LIM-DAILY-CORP-01",
+    "client_id": "CLI-CORP-001",
+    "limit_utilization_record": {
+      "limit_id": "LIM-DAILY-CORP-01",
+      "limit_type": "DAILY_ACCOUNT_LIMIT",
+      "limit_cap": 1000000.00,
+      "current_utilization": 850000.00,
+      "currency": "USD",
+      "is_breached": false,
+      "is_authoritative": true,
+      "authority_source": "BANK_LIMIT_ENGINE"
+    },
+    "client_limit_agreement": {
+      "client_id": "CLI-CORP-001",
+      "account_number": "ACCT-CORP-USD-001",
+      "approved_overdraft_facility": 200000.00,
+      "preauthorized_waiver_cap": 100000.00,
+      "waiver_requires_dual_auth": true
+    },
+    "operational_reset_schedule": {
+      "limit_id": "LIM-DAILY-CORP-01",
+      "reset_interval": "DAILY_MIDNIGHT_UTC"
+    }
+  },
+  "external_authoritative_evidence": {},
+  "derived_evidence": {
+    "resolution_action": "LIMIT_HEADROOM_CONFIRMED_RELEASE"
+  },
+  "evidence_provenance": "SYNTHETIC_TEST_FIXTURE",
+  "test_status": "TEST_ONLY"
+}

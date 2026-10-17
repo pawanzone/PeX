@@ -1,0 +1,48 @@
+{
+  "exception_id": "PEX-E2E-TR07-SUFF",
+  "profile_id": "TR-07",
+  "domain": "CLIENT_TREASURY",
+  "error_code": "ERR_LIQUIDITY_CONSTRAINT",
+  "error_message": "Clearing channel liquidity reserve verified with sufficient headroom above minimum buffer target.",
+  "payment_info": {
+    "payment_id": "PMT-2026-TR07-001",
+    "uetr": "UETR-TR07-SUFF-0001-A1",
+    "amount": 9500.00,
+    "currency": "USD",
+    "clearing_rail": "FEDWIRE",
+    "value_date": "2026-10-08",
+    "debtor_name": "Apex Commercial Holdings",
+    "debtor_account": "ACCT-CORP-USD-001",
+    "debtor_agent_bic": "CHASUS33XXX",
+    "creditor_name": "East Coast Logistics",
+    "creditor_account": "22334455",
+    "creditor_agent_bic": "BNPAFRPPXXX",
+    "remittance_info": "FREIGHT CLEARING SETTLEMENT"
+  },
+  "bank_supplied_evidence": {
+    "clearing_context": "FEDWIRE",
+    "clearing_liquidity_reserve": {
+      "clearing_context": "FEDWIRE",
+      "currency": "USD",
+      "current_available_liquidity": 50000000.00,
+      "minimum_buffer_target": 10000000.00,
+      "headroom": 40000000.00,
+      "is_constrained": false,
+      "is_authoritative": true,
+      "authority_source": "LIQUIDITY_MANAGEMENT_SYSTEM"
+    },
+    "settlement_queue_status": {
+      "queue_id": "Q-FEDWIRE-USD",
+      "clearing_context": "FEDWIRE",
+      "active_queue_depth": 5,
+      "priority_tier": "STANDARD",
+      "estimated_release_delay_seconds": 30.0
+    }
+  },
+  "external_authoritative_evidence": {},
+  "derived_evidence": {
+    "resolution_action": "LIQUIDITY_BUFFER_VERIFIED_RELEASE"
+  },
+  "evidence_provenance": "SYNTHETIC_TEST_FIXTURE",
+  "test_status": "TEST_ONLY"
+}

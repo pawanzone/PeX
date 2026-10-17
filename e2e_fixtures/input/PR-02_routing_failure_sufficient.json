@@ -1,0 +1,38 @@
+{
+  "exception_id": "PEX-E2E-PR02-SUFF",
+  "profile_id": "PR-02",
+  "domain": "PROCESSING",
+  "error_code": "ERR_CORRIDOR_ROUTING_FAILURE",
+  "error_message": "Clearing rail path between debtor agent and creditor agent is broken or requires intermediary correspondent hop.",
+  "payment_info": {
+    "payment_id": "PMT-2026-PR02-001",
+    "uetr": "UETR-PR02-SUFF-0001-A1",
+    "amount": 7500.00,
+    "currency": "USD",
+    "clearing_rail": "FEDWIRE",
+    "value_date": "2026-10-08",
+    "debtor_name": "Apex Global Treasury (France)",
+    "debtor_account": "FR7630006000011234567890189",
+    "debtor_agent_bic": "BNPAFRPPXXX",
+    "creditor_name": "Pacific Rim Trading Corp",
+    "creditor_account": "99887766",
+    "creditor_agent_bic": "CHASUS33XXX",
+    "remittance_info": "CONTAINER SHIPMENT FREIGHT"
+  },
+  "bank_supplied_evidence": {
+    "routing_directory_authority": {
+      "bic": "CHASUS33XXX",
+      "aba_member_id": "021000021",
+      "rail": "FEDWIRE",
+      "status": "ACTIVE"
+    },
+    "bank_designated_ssi": {
+      "settlement_account": "FED-021000021-MAIN",
+      "clearing_rail": "FEDWIRE"
+    }
+  },
+  "external_authoritative_evidence": {},
+  "derived_evidence": {},
+  "evidence_provenance": "SYNTHETIC_TEST_FIXTURE",
+  "test_status": "TEST_ONLY"
+}

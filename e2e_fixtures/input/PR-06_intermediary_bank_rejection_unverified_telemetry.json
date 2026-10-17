@@ -1,0 +1,57 @@
+{
+  "exception_id": "PEX-E2E-PR06-NEG",
+  "profile_id": "PR-06",
+  "domain": "PROCESSING",
+  "error_code": "ERR_INTERMEDIARY_TELEMETRY_UNVERIFIED",
+  "error_message": "Network socket timeout recorded at gateway; sovereign intermediary rejection state unverified.",
+  "payment_info": {
+    "payment_id": "PMT-2026-PR06-002",
+    "uetr": "UETR-PR06-NEG-0002-A2",
+    "amount": 18500.00,
+    "currency": "USD",
+    "clearing_rail": "SWIFT_CBPR+",
+    "value_date": "2026-10-08",
+    "debtor_name": "Apex Global Treasury",
+    "debtor_account": "US11APEX9988770001",
+    "debtor_agent_bic": "CHASUS33XXX",
+    "creditor_name": "Atlas Marine Logistics",
+    "creditor_account": "99887766",
+    "creditor_agent_bic": "DEUTDEDDXXX",
+    "remittance_info": "SUPPLIER PAYMENT REF 8813"
+  },
+  "bank_supplied_evidence": {
+    "is_telemetry_only": true,
+    "inward_rejection_advice": {
+      "rejection_reference": "TEL-2026-PR06-999",
+      "original_uetr": "UETR-PR06-NEG-0002-A2",
+      "original_payment_id": "PMT-2026-PR06-002",
+      "rejecting_institution_bic": "CHASUS33XXX",
+      "rejection_code": "SOCKET_TIMEOUT",
+      "rejection_category": "SOCKET_ERROR_TELEMETRY",
+      "narrative_text": "TCP RST received during transmission handoff",
+      "is_telemetry_only": true
+    },
+    "outbound_payment_record": {
+      "payment_id": "PMT-2026-PR06-002",
+      "uetr": "UETR-PR06-NEG-0002-A2",
+      "amount": 18500.00,
+      "currency": "USD"
+    },
+    "correspondent_ssi_directory": {
+      "counterparty_bic": "DEUTDEDDXXX",
+      "currency": "USD"
+    },
+    "rail_cutoff_schedule": {
+      "rail_code": "SWIFT_CBPR+",
+      "currency": "USD",
+      "cutoff_utc": "23:59",
+      "is_open": true
+    }
+  },
+  "external_authoritative_evidence": {},
+  "derived_evidence": {
+    "investigation_status": "TELEMETRY_UNVERIFIED_FAIL_CLOSED"
+  },
+  "evidence_provenance": "SYNTHETIC_TEST_FIXTURE",
+  "test_status": "TEST_ONLY"
+}
