@@ -1,0 +1,45 @@
+{
+  "exception_id": "PEX-EUR-INST-PR07-WITHIN-WINDOW",
+  "tenant_id": "DEFAULT_BANK",
+  "profile_id": "PR-07",
+  "domain": "PROCESSING",
+  "error_code": "ERR_NETWORK_TIMEOUT",
+  "error_message": "SCT Inst pacs.008 sent, no pacs.002 received.",
+  "payment_info": {
+    "payment_id": "PMT-EUR-0013",
+    "uetr": "e31f0b44-0746-4814-a9f7-d734250e0c17",
+    "amount": 1800.0,
+    "currency": "EUR",
+    "clearing_rail": "SEPA_INST",
+    "value_date": "2026-10-20",
+    "debtor_name": "Rheinland Maschinenbau Treasury GmbH",
+    "debtor_account": "DE61500105172448452630",
+    "debtor_agent_bic": "INGDDEFFXXX",
+    "creditor_name": "Delta Kaas BV",
+    "creditor_account": "NL90RABO7658280258",
+    "creditor_agent_bic": "RABONL2UXXX",
+    "remittance_info": "INV-2026-00013"
+  },
+  "bank_supplied_evidence": {
+    "gateway_socket_state": {
+      "gateway_id": "GW-SEPA-INST-01",
+      "status": "HEALTHY",
+      "connected": true
+    },
+    "idempotency_ledger_lock": {
+      "lock_status": "ACQUIRED",
+      "lock_key": "IDEMP-inst_pr07_within_window"
+    },
+    "retry_budget_record": {
+      "max_retries": 3,
+      "retries_exhausted": 0,
+      "can_retry": true
+    },
+    "scheme_elapsed_ms": 3100
+  },
+  "external_authoritative_evidence": {},
+  "derived_evidence": {},
+  "historical_evidence": {},
+  "evidence_provenance": "NON_PRODUCTION_DEMO",
+  "test_status": "TEST_ONLY"
+}

@@ -26,7 +26,7 @@ from app.schemas.resolution_contract import (
 # ISO 3166-1 alpha-2 standard country code sample registry
 VALID_ISO_COUNTRIES = {
     "US", "GB", "DE", "FR", "JP", "SG", "CH", "CA", "AU", "NL",
-    "IT", "ES", "SE", "NO", "DK", "BE", "AT", "IE", "PL", "BR"
+    "IT", "ES", "SE", "NO", "DK", "BE", "AT", "IE", "PL", "BR", "LU", "PT", "FI"
 }
 
 # Standard Postal Code Patterns by Country
@@ -39,7 +39,12 @@ POSTAL_CODE_PATTERNS = {
     "JP": r'^\d{3}-?\d{4}$',
     "SG": r'^\d{6}$',
     "CH": r'^\d{4}$',
-    "NL": r'^\d{4}\s*[A-Z]{2}$'
+    "NL": r'^\d{4}\s*[A-Z]{2}$',
+    "ES": r'^\d{5}$',
+    "IT": r'^\d{5}$',
+    "BE": r'^\d{4}$',
+    "AT": r'^\d{4}$',
+    "IE": r'^[A-Z]\d{2}\s?[A-Z\d]{4}$'
 }
 
 
@@ -263,7 +268,9 @@ class GovernedDQ05AddressTransformer:
             country_keywords = {
                 "UNITED STATES": "US", "USA": "US", "GERMANY": "DE", "DEUTSCHLAND": "DE",
                 "UNITED KINGDOM": "GB", "GREAT BRITAIN": "GB", "FRANCE": "FR",
-                "JAPAN": "JP", "SINGAPORE": "SG", "SWITZERLAND": "CH", "CANADA": "CA"
+                "JAPAN": "JP", "SINGAPORE": "SG", "SWITZERLAND": "CH", "CANADA": "CA",
+                "NETHERLANDS": "NL", "NEDERLAND": "NL", "SPAIN": "ES", "ESPA\u00d1A": "ES", "ESPANA": "ES",
+                "ITALY": "IT", "ITALIA": "IT", "BELGIUM": "BE", "AUSTRIA": "AT", "IRELAND": "IE"
             }
             for name, code in country_keywords.items():
                 if name in raw_text.upper():
@@ -287,6 +294,15 @@ class GovernedDQ05AddressTransformer:
                 if matches:
                     post_code = matches[0] if isinstance(matches[0], str) else matches[0][0]
                     post_code = post_code.strip()
+                if not post_code:
+                    # Anchored patterns never match inside <AdrLine> elements; retry per address line.
+                    unanch = pattern.lstrip("^").rstrip("$")
+                    _plines = re.findall(r'<AdrLine>([^<]+)</AdrLine>', raw_text) or raw_text.splitlines()
+                    for _ln in _plines:
+                        _m = re.search(r'(?<![\w-])(?:' + unanch + r')(?![\w])', _ln.strip())
+                        if _m:
+                            post_code = _m.group(0).strip()
+                            break
 
         # Extract Street & Building Number
         street_name = None
@@ -298,6 +314,12 @@ class GovernedDQ05AddressTransformer:
         bldg_match = re.search(r'<BldgNb>([^<]+)</BldgNb>', raw_text)
         if bldg_match:
             bldg_no = bldg_match.group(1).strip()
+
+        # Town may already be structured (hybrid address). Defined before the block so it is never unbound.
+        town_name = None
+        _twn_pre = re.search(r'<TwnNm>([^<]+)</TwnNm>', raw_text)
+        if _twn_pre:
+            town_name = _twn_pre.group(1).strip()
 
         # If not structured in XML, parse from AdrLine or unstructured string
         if not street_name or not post_code:
@@ -318,14 +340,32 @@ class GovernedDQ05AddressTransformer:
                 bldg_no = street_bldg_match.group(1)
                 street_name = street_bldg_match.group(2).strip()
 
+            # Additional European street conventions (Dutch, French, Spanish, Italian): only taken when present in the text
+            if not street_name:
+                nl_match = re.search(r'\b([A-Za-z\.\-]+(?:straat|gracht|laan|plein|weg|kade|singel|dijk))\s+(\d+[a-zA-Z]?)\b', combined_str, re.IGNORECASE)
+                fr_lead = re.search(r'\b(\d+[a-zA-Z]?)\s*,?\s+((?:Rue|Avenue|Boulevard|Place|Chemin|Quai)\s+[A-Za-z\u00c0-\u00ff\' \.\-]+?)(?=,|\s+\d{4,5}\b|$)', combined_str, re.IGNORECASE)
+                ro_trail = re.search(r'\b((?:Calle|Avenida|Paseo|Via|Viale|Piazza|Corso|Rue|Avenue)\s+[A-Za-z\u00c0-\u00ff\' \.\-]+?)[,\s]+(\d+[a-zA-Z]?)\b', combined_str, re.IGNORECASE)
+                if nl_match:
+                    street_name, bldg_no = nl_match.group(1).strip(), nl_match.group(2).strip()
+                elif fr_lead:
+                    bldg_no, street_name = fr_lead.group(1).strip(), fr_lead.group(2).strip()
+                elif ro_trail:
+                    street_name, bldg_no = ro_trail.group(1).strip(), ro_trail.group(2).strip()
+
             # Town extraction
-            town_name = None
             twn_match = re.search(r'<TwnNm>([^<]+)</TwnNm>', raw_text)
             if twn_match:
                 town_name = twn_match.group(1).strip()
             else:
+                # Prefer the word(s) directly after the postal code ("1012 AB Amsterdam"); then the common-town lookup
+                if post_code and country_code in ("NL", "ES", "IT", "BE", "AT", "IE", "LU", "PT", "FI"):
+                    _pc_town = re.search(re.escape(post_code) + r'\s*,?\s+([A-Za-z\u00c0-\u00ff][A-Za-z\u00c0-\u00ff\' \-]+?)(?=,|$|\s+\d|\s+(?:Germany|France|Netherlands|Spain|Italy|Belgium|Austria|Ireland)\b)', combined_str, re.IGNORECASE)
+                    if _pc_town:
+                        town_name = _pc_town.group(1).strip()
                 # Common towns lookup or regex
-                for candidate_city in ["New York", "London", "Frankfurt", "München", "Paris", "Tokyo", "Singapore", "Berlin", "Zurich", "Toronto"]:
+                for candidate_city in () if town_name else ["New York", "London", "Frankfurt", "München", "Paris", "Tokyo", "Singapore", "Berlin", "Zurich", "Toronto",
+                                       "Amsterdam", "Rotterdam", "Utrecht", "Madrid", "Barcelona", "Valencia", "Milano", "Milan", "Roma", "Rome",
+                                       "Brussels", "Bruxelles", "Vienna", "Wien", "Dublin", "Hamburg", "Lyon", "Marseille"]:
                     if candidate_city.lower() in combined_str.lower():
                         town_name = candidate_city
                         break

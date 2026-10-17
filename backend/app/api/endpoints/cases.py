@@ -46,13 +46,30 @@ def list_cases(
     cases = repo.list_cases(queue=queue, status=status, profile=profile, search=search)
     return cases
 
+@router.get("/page")
+def page_cases(
+    limit: int = Query(50, ge=1, le=500),
+    offset: int = Query(0, ge=0),
+    queue: Optional[str] = None,
+    status: Optional[str] = None,
+    profile: Optional[str] = None,
+    rail: Optional[str] = None,
+    currency: Optional[str] = None,
+    q: Optional[str] = None,
+    sort: str = "created_at",
+    order: str = "desc",
+):
+    """Scale-safe paged worklist (SQL filtered/sorted). The unpaged GET /api/cases is unchanged."""
+    return repo.page_cases(limit=limit, offset=offset, queue=queue, status=status, profile=profile,
+                           rail=rail, currency=currency, q=q, sort=sort, order=order)
+
 @router.get("/{case_id}")
 def get_case(case_id: str):
     case = repo.get_case(case_id)
     if not case:
         raise HTTPException(status_code=404, detail=f"Case {case_id} not found")
     
-    rec = repo.recommendations.get(case_id)
+    rec = repo.get_recommendation(case_id)
     approvals = repo.approvals.get(case_id, [])
     
     return {

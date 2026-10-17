@@ -1,0 +1,44 @@
+{
+  "exception_id": "PEX-EUR-SEPA-RETURN-AC01",
+  "tenant_id": "DEFAULT_BANK",
+  "profile_id": "ST-01",
+  "domain": "SETTLEMENT_RETURNS",
+  "error_code": "ERR_INWARD_RETURN_RECEIVED",
+  "error_message": "Inward pacs.004 return received (Return Reason AC01). Original debit posted.",
+  "payment_info": {
+    "payment_id": "PMT-EUR-0018",
+    "uetr": "a152cfd1-9f71-410e-86e3-897a83d335a6",
+    "amount": 2800.0,
+    "currency": "EUR",
+    "clearing_rail": "SEPA_SCT",
+    "value_date": "2026-10-20",
+    "debtor_name": "Rheinland Maschinenbau Treasury GmbH",
+    "debtor_account": "DE82500105170484259967",
+    "debtor_agent_bic": "INGDDEFFXXX",
+    "creditor_name": "Delta Kaas BV",
+    "creditor_account": "NL86ABNA5003145037",
+    "creditor_agent_bic": "ABNANL2AXXX",
+    "remittance_info": "INV-2026-00018"
+  },
+  "bank_supplied_evidence": {
+    "original_debit_record": {
+      "original_debit_posted": true,
+      "original_uetr": "6656e638-ec42-42b6-8f5e-378f5498130b",
+      "ledger_account": "DE00"
+    },
+    "original_debit_posted": true
+  },
+  "external_authoritative_evidence": {
+    "inward_pacs004_return": {
+      "return_reason_code": "AC01",
+      "return_amount": 2800.0,
+      "originating_bic": "INGBNL2AXXX"
+    }
+  },
+  "derived_evidence": {
+    "amount_currency_match": true
+  },
+  "historical_evidence": {},
+  "evidence_provenance": "NON_PRODUCTION_DEMO",
+  "test_status": "TEST_ONLY"
+}

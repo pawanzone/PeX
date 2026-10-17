@@ -1,0 +1,45 @@
+{
+  "exception_id": "PEX-E2E-DQ08-SUFF",
+  "profile_id": "DQ-08",
+  "domain": "DATA_QUALITY",
+  "error_code": "ERR_INVALID_ROUTING_CODE",
+  "error_message": "Federal Reserve ABA routing transit check digit mismatch on Fedwire wire.",
+  "payment_info": {
+    "payment_id": "PMT-2026-DQ08-001",
+    "uetr": "UETR-DQ08-SUFF-0001-B1",
+    "amount": 7500.00,
+    "currency": "USD",
+    "clearing_rail": "FEDWIRE",
+    "value_date": "2026-10-08",
+    "debtor_name": "Sydney Infrastructure Ltd",
+    "debtor_account": "US11APEX9988770100",
+    "debtor_agent_bic": "ANZBAU3MXXX",
+    "creditor_name": "Atlas Mediterranean Marine",
+    "creditor_account": "US22CHAS00011122233344",
+    "creditor_agent_bic": "CHASUS33XXX"
+  },
+  "bank_supplied_evidence": {
+    "routing_syntax_master": {
+      "syntax_valid": true,
+      "format": "ABA_9_DIGIT"
+    }
+  },
+  "external_authoritative_evidence": {
+    "fedline_routing_directory": {
+      "routing_number": "021000021",
+      "institution_name": "JPMorgan Chase Bank, N.A.",
+      "fedwire_funds_status": "ELIGIBLE",
+      "check_digit_valid": true
+    },
+    "valid_routing_code": "021000021",
+    "inbound_routing_code": "021000020"
+  },
+  "derived_evidence": {
+    "aba_weight_algorithm_result": "021000021"
+  },
+  "historical_evidence": {
+    "precedent_count": 8
+  },
+  "evidence_provenance": "SYNTHETIC_TEST_FIXTURE",
+  "test_status": "TEST_ONLY"
+}

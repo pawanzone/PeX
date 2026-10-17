@@ -1,0 +1,48 @@
+{
+  "exception_id": "PEX-E2E-TR07-EXHAUSTED",
+  "profile_id": "TR-07",
+  "domain": "CLIENT_TREASURY",
+  "error_code": "ERR_LIQUIDITY_CONSTRAINT",
+  "error_message": "Clearing channel liquidity buffer breached with high queue depth.",
+  "payment_info": {
+    "payment_id": "PMT-2026-TR07-002",
+    "uetr": "UETR-TR07-EXHAUSTED-0002-B1",
+    "amount": 2000000.00,
+    "currency": "EUR",
+    "clearing_rail": "TARGET2",
+    "value_date": "2026-10-08",
+    "debtor_name": "Apex Commercial Holdings",
+    "debtor_account": "ACCT-CORP-USD-001",
+    "debtor_agent_bic": "CHASUS33XXX",
+    "creditor_name": "Euro Capital Partners",
+    "creditor_account": "FR7611223344556677889900112",
+    "creditor_agent_bic": "BNPAFRPPXXX",
+    "remittance_info": "EURO CLEARING LIQUIDITY CALL"
+  },
+  "bank_supplied_evidence": {
+    "clearing_context": "TARGET2",
+    "clearing_liquidity_reserve": {
+      "clearing_context": "TARGET2",
+      "currency": "EUR",
+      "current_available_liquidity": 1200000.00,
+      "minimum_buffer_target": 2000000.00,
+      "headroom": -800000.00,
+      "is_constrained": true,
+      "is_authoritative": true,
+      "authority_source": "LIQUIDITY_MANAGEMENT_SYSTEM"
+    },
+    "settlement_queue_status": {
+      "queue_id": "Q-TARGET2-EUR",
+      "clearing_context": "TARGET2",
+      "active_queue_depth": 42,
+      "priority_tier": "HOLD",
+      "estimated_release_delay_seconds": 600.0
+    }
+  },
+  "external_authoritative_evidence": {},
+  "derived_evidence": {
+    "liquidity_exhausted": true
+  },
+  "evidence_provenance": "SYNTHETIC_TEST_FIXTURE",
+  "test_status": "TEST_ONLY"
+}

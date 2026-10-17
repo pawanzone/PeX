@@ -213,7 +213,7 @@ def test_p0_1_d_only_bank_outcome_can_produce_settled():
         "outcome": "SETTLED",
         "bank_reference": "REAL-CHAPS-SETTLED-99182",
         "clearing_system": "CHAPS",
-        "idempotency_key": "IDEMP-BO-01"
+        "idempotency_key": "IDEMP-BO-01-" + __import__("uuid").uuid4().hex
     }
 
     import json as _json

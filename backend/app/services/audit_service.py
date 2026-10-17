@@ -38,7 +38,7 @@ class AuditService:
         )
 
     def get_case_provenance(self, case_id: str) -> ProvenanceChain:
-        case_events = [e for e in repo.audit_log if e.case_id == case_id]
+        case_events = repo.case_audit_events(case_id)
         head_hash = case_events[-1].current_hash if case_events else repo.latest_chain_hash
         return ProvenanceChain(
             case_id=case_id,
@@ -49,7 +49,7 @@ class AuditService:
         )
 
     def get_all_events(self, limit: int = 100) -> List[AuditEvent]:
-        return list(reversed(repo.audit_log[-limit:]))
+        return list(reversed(repo.recent_audit_events(limit)))
 
     def verify_chain(self) -> HashVerificationResult:
         from app.db.session import SessionLocal

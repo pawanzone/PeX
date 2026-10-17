@@ -193,7 +193,7 @@ class E2EExecutionHarness:
                     resolution_basis = f"Contradictory evidence detected ({', '.join(envelope.contradictions) if envelope.contradictions else 'Core DDA vs SSI directory conflict'}); resolution is ambiguous. Routing to Human-in-the-Loop."
                     resolution_rec = {"action": "INVESTIGATION_HOLD", "target": "creditor_account.iban", "candidate_value": target_iban, "reason": "CONTRADICTORY_EVIDENCE"}
                 else:
-                    resolution_basis = "IBAN MOD-97 check digit validated against UK CHAPS directory."
+                    resolution_basis = f"IBAN MOD-97 check digit validated against the {pmt.clearing_rail or 'scheme'} routing directory."
                     resolution_rec = {"action": "SUBSTITUTE_FIELD", "target": "creditor_account.iban", "value": target_iban}
             else:
                 resolution_basis = "Unable to derive valid MOD-97 IBAN checksum."
@@ -711,11 +711,56 @@ class E2EExecutionHarness:
                 resolution_rec = struct_data
             resolution_basis = "; ".join(diff_log) if diff_log else (err or "Evaluated ST-06")
 
+        elif profile == "DQ-05":
+            # CBPR+ structured postal address repair (traceability-guarded; see eur_rail_overlay.resolve_dq05)
+            from app.services.eur_rail_overlay import resolve_dq05
+            _d5 = resolve_dq05(evidence_ctx)
+            r_det, r_uniq, v_det = _d5["r_det"], _d5["r_uniq"], _d5["v_det"]
+            repaired_fields = _d5["repaired_fields"]
+            resolution_rec = _d5["rec"]
+            resolution_basis = _d5["basis"]
+
         else:
-            resolution_basis = f"Profile {profile} evaluated under standard rules."
-            r_det = True
-            r_uniq = True
-            v_det = True
+            # FAIL CLOSED: a profile without registered deterministic resolution logic must not reach STP.
+            # (Previously this branch set r_det = r_uniq = v_det = True, so ANY unregistered profile whose default
+            # mandatory evidence was present was STP-eligible without any resolution being derived.)
+            # Narrow exception that preserves the Wave0B dynamic-evidence design: the tenant has explicitly
+            # PUBLISHED an evidence configuration for this profile (generic evidence-driven evaluation by choice).
+            _tenant = getattr(e2e_input, "tenant_id", None) or "DEFAULT_BANK"
+            _published = None
+            try:
+                _published = self.config_port.get_evidence_config(_tenant, profile) or self.config_port.get_evidence_config("DEFAULT_BANK", profile)
+            except Exception:
+                _published = None
+            if _published is not None:
+                resolution_basis = f"Profile {profile} evaluated under standard rules."
+                r_det = True
+                r_uniq = True
+                v_det = True
+            else:
+                resolution_basis = f"No deterministic resolution logic is registered for profile {profile}; routed to human review (fail closed)."
+                r_det = False
+                r_uniq = False
+                v_det = False
+
+        # 3b. Eurozone rail-rules overlay (SEPA Instant, SEPA return codes, EU VoP). Only ever tightens.
+        eu_block_reason = None
+        _eu = None
+        try:
+            from app.services.eur_rail_overlay import evaluate_rail_rules
+            _eu = evaluate_rail_rules(profile, pmt, evidence_ctx)
+        except Exception as _eu_err:  # fail closed on overlay error for EU schemes
+            if (pmt.clearing_rail or "").upper() in ("SEPA_SCT", "SEPA_INST", "T2"):
+                _eu = {"block": True, "basis": f"Eurozone rail rules could not be evaluated ({_eu_err}); fail closed.", "rec": None, "notes": []}
+        if _eu:
+            if _eu.get("block"):
+                r_det = False
+                resolution_rec = _eu.get("rec") or resolution_rec
+                resolution_basis = _eu["basis"]
+                eu_block_reason = _eu["basis"]
+            elif _eu.get("rec_action") and isinstance(resolution_rec, dict):
+                resolution_rec = {**resolution_rec, "action": _eu["rec_action"], "handling": _eu.get("handling")}
+                resolution_basis = (resolution_basis + " " + " ".join(_eu.get("notes", []))).strip()
 
         # 4. Contextual Authority Validation (V_auth)
         if "DQ" in profile or profile in ["ST-02", "ST-03", "TR-01", "TR-02", "TR-03", "TR-05", "TR-06", "TR-08"]:
@@ -764,7 +809,7 @@ class E2EExecutionHarness:
         if not e_suff:
             denials.append(f"Evidence insufficient: missing mandatory {envelope.missing_mandatory_types} / stale {envelope.stale_types} / contradictory {envelope.contradictions}")
         if not r_det:
-            denials.append("Deterministic resolution could not be derived.")
+            denials.append("Deterministic resolution could not be derived." + (f" {eu_block_reason}" if eu_block_reason else ""))
         if not r_uniq:
             if envelope.contradictions:
                 denials.append(f"Resolution is ambiguous due to contradictory evidence ({', '.join(envelope.contradictions)}).")

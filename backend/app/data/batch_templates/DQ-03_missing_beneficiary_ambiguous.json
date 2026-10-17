@@ -1,0 +1,33 @@
+{
+  "exception_id": "PEX-E2E-DQ03-AMBIG",
+  "profile_id": "DQ-03",
+  "domain": "DATA_QUALITY",
+  "error_code": "ERR_MISSING_BENEFICIARY_DATA",
+  "error_message": "Inbound instruction missing mandatory creditor legal name and postal address elements.",
+  "payment_info": {
+    "payment_id": "PMT-2026-DQ03-002",
+    "uetr": "UETR-DQ03-AMBIG-0002-B2",
+    "amount": 5500.00,
+    "currency": "GBP",
+    "clearing_rail": "CHAPS",
+    "value_date": "2026-10-08",
+    "debtor_name": "Apex Global Treasury",
+    "debtor_account": "GB82WEST12345612345678",
+    "debtor_agent_bic": "MIDLGB22XXX",
+    "creditor_name": "",
+    "creditor_account": "12345678",
+    "creditor_agent_bic": "MIDLGB22XXX",
+    "remittance_info": "INVOICE MULTI-MATCH"
+  },
+  "bank_supplied_evidence": {
+    "ambiguous_beneficiary_matches": true,
+    "multiple_matching_profiles": true
+  },
+  "external_authoritative_evidence": {},
+  "derived_evidence": {
+    "debtor_id": "DEBTOR-001",
+    "creditor_hint": "UNKNOWN"
+  },
+  "evidence_provenance": "SYNTHETIC_TEST_FIXTURE",
+  "test_status": "TEST_ONLY"
+}

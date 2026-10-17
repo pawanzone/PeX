@@ -1,0 +1,218 @@
+{
+  "sct_dq01_de_transposition.json": {
+    "expect_stp": true,
+    "why": "DE IBAN transposition, repair evidenced by core DDA + scheme directory",
+    "profile": "DQ-01",
+    "rail": "SEPA_SCT"
+  },
+  "sct_dq01_fr_transposition.json": {
+    "expect_stp": true,
+    "why": "FR IBAN transposition, repair evidenced by core DDA + scheme directory",
+    "profile": "DQ-01",
+    "rail": "SEPA_SCT"
+  },
+  "sct_dq01_nl_transposition.json": {
+    "expect_stp": true,
+    "why": "NL IBAN transposition, repair evidenced by core DDA + scheme directory",
+    "profile": "DQ-01",
+    "rail": "SEPA_SCT"
+  },
+  "sct_dq01_es_transposition.json": {
+    "expect_stp": true,
+    "why": "ES IBAN transposition, repair evidenced by core DDA + scheme directory",
+    "profile": "DQ-01",
+    "rail": "SEPA_SCT"
+  },
+  "sct_dq01_it_transposition.json": {
+    "expect_stp": true,
+    "why": "IT IBAN transposition, repair evidenced by core DDA + scheme directory",
+    "profile": "DQ-01",
+    "rail": "SEPA_SCT"
+  },
+  "sct_dq01_de_missing_core_dda.json": {
+    "expect_stp": false,
+    "why": "mandatory CORE_DDA_ACCOUNT evidence missing -> fail closed",
+    "profile": "DQ-01",
+    "rail": "SEPA_SCT"
+  },
+  "sct_dq01_de_contradictory.json": {
+    "expect_stp": false,
+    "why": "core DDA IBAN != SSI directory IBAN -> contradictory evidence",
+    "profile": "DQ-01",
+    "rail": "SEPA_SCT"
+  },
+  "inst_dq01_within_limit.json": {
+    "expect_stp": true,
+    "why": "EUR, below limit: repair allowed",
+    "profile": "DQ-01",
+    "rail": "SEPA_INST"
+  },
+  "inst_dq01_over_limit.json": {
+    "expect_stp": false,
+    "why": "above SCT Inst limit EUR 100,000 -> human",
+    "profile": "DQ-01",
+    "rail": "SEPA_INST"
+  },
+  "inst_dq01_wrong_currency.json": {
+    "expect_stp": false,
+    "why": "SEPA Instant is EUR only",
+    "profile": "DQ-01",
+    "rail": "SEPA_INST"
+  },
+  "inst_pr07_timeout_exceeded.json": {
+    "expect_stp": false,
+    "why": "10 s scheme timeout exceeded: no blind retry/hold -> status inquiry/return review",
+    "profile": "PR-07",
+    "rail": "SEPA_INST"
+  },
+  "inst_pr07_unknown_timeout_state.json": {
+    "expect_stp": false,
+    "why": "no elapsed-time evidence: cannot prove retry is safe",
+    "profile": "PR-07",
+    "rail": "SEPA_INST"
+  },
+  "inst_pr07_within_window.json": {
+    "expect_stp": null,
+    "why": "within 10 s window: overlay does not block (engine decides)",
+    "profile": "PR-07",
+    "rail": "SEPA_INST"
+  },
+  "inst_pr09_hold_not_allowed.json": {
+    "expect_stp": false,
+    "why": "instant payments cannot be held for repair",
+    "profile": "PR-09",
+    "rail": "SEPA_INST"
+  },
+  "inst_pr04_cutoff_not_applicable.json": {
+    "expect_stp": false,
+    "why": "24/7 rail: no cut-off / value-date roll",
+    "profile": "PR-04",
+    "rail": "SEPA_INST"
+  },
+  "t2_pr04_cutoff_roll_allowed.json": {
+    "expect_stp": true,
+    "why": "policy allows a next-business-day roll",
+    "profile": "PR-04",
+    "rail": "T2"
+  },
+  "t2_pr04_cutoff_policy_blocked.json": {
+    "expect_stp": false,
+    "why": "bank policy forbids autonomous value-date roll -> human",
+    "profile": "PR-04",
+    "rail": "T2"
+  },
+  "sepa_return_ac01.json": {
+    "expect_stp": true,
+    "why": "STP-capable return reason",
+    "profile": "ST-01",
+    "rail": "SEPA_SCT"
+  },
+  "sepa_return_ac04.json": {
+    "expect_stp": true,
+    "why": "STP-capable return reason",
+    "profile": "ST-01",
+    "rail": "SEPA_SCT"
+  },
+  "sepa_return_ac06.json": {
+    "expect_stp": false,
+    "why": "needs human/compliance decision (or unknown code: fail closed)",
+    "profile": "ST-01",
+    "rail": "SEPA_SCT"
+  },
+  "sepa_return_am04.json": {
+    "expect_stp": false,
+    "why": "needs human/compliance decision (or unknown code: fail closed)",
+    "profile": "ST-01",
+    "rail": "SEPA_SCT"
+  },
+  "sepa_return_ms03.json": {
+    "expect_stp": false,
+    "why": "needs human/compliance decision (or unknown code: fail closed)",
+    "profile": "ST-01",
+    "rail": "SEPA_SCT"
+  },
+  "sepa_return_rr04.json": {
+    "expect_stp": false,
+    "why": "needs human/compliance decision (or unknown code: fail closed)",
+    "profile": "ST-01",
+    "rail": "SEPA_SCT"
+  },
+  "sepa_return_xx99.json": {
+    "expect_stp": false,
+    "why": "needs human/compliance decision (or unknown code: fail closed)",
+    "profile": "ST-01",
+    "rail": "SEPA_SCT"
+  },
+  "sepa_return_ac04_original_not_found.json": {
+    "expect_stp": false,
+    "why": "original debit not found -> fail closed",
+    "profile": "ST-01",
+    "rail": "SEPA_SCT"
+  },
+  "eu_vop_close_match.json": {
+    "expect_stp": false,
+    "why": "VoP CLOSE_MATCH: payer decision / human review required, no autonomous alignment",
+    "profile": "DQ-09",
+    "rail": "SEPA_SCT"
+  },
+  "eu_vop_no_match.json": {
+    "expect_stp": false,
+    "why": "VoP NO_MATCH: payer decision / human review required, no autonomous alignment",
+    "profile": "DQ-09",
+    "rail": "SEPA_SCT"
+  },
+  "eu_vop_not_possible.json": {
+    "expect_stp": false,
+    "why": "VoP NOT_POSSIBLE: payer decision / human review required, no autonomous alignment",
+    "profile": "DQ-09",
+    "rail": "SEPA_SCT"
+  },
+  "cbpr_dq05_nl_unstructured.json": {
+    "expect_stp": true,
+    "why": "every structured field traceable to inbound text",
+    "profile": "DQ-05",
+    "rail": "SWIFT_CBPR+"
+  },
+  "cbpr_dq05_es_unstructured.json": {
+    "expect_stp": true,
+    "why": "every structured field traceable to inbound text",
+    "profile": "DQ-05",
+    "rail": "SWIFT_CBPR+"
+  },
+  "cbpr_dq05_it_unstructured.json": {
+    "expect_stp": true,
+    "why": "every structured field traceable to inbound text",
+    "profile": "DQ-05",
+    "rail": "SWIFT_CBPR+"
+  },
+  "cbpr_dq05_fr_unstructured.json": {
+    "expect_stp": true,
+    "why": "every structured field traceable to inbound text",
+    "profile": "DQ-05",
+    "rail": "SWIFT_CBPR+"
+  },
+  "cbpr_dq05_de_unstructured.json": {
+    "expect_stp": true,
+    "why": "every structured field traceable to inbound text",
+    "profile": "DQ-05",
+    "rail": "SWIFT_CBPR+"
+  },
+  "cbpr_dq05_de_ambiguous_postcode.json": {
+    "expect_stp": false,
+    "why": "two plausible postal codes -> R_uniq false",
+    "profile": "DQ-05",
+    "rail": "SWIFT_CBPR+"
+  },
+  "cbpr_dq05_untraceable_components.json": {
+    "expect_stp": false,
+    "why": "resolver would default street/postcode/town; traceability guard fails closed",
+    "profile": "DQ-05",
+    "rail": "SWIFT_CBPR+"
+  },
+  "cbpr_dq05_missing_address_evidence.json": {
+    "expect_stp": false,
+    "why": "mandatory CREDITOR_POSTAL_ADDRESS missing",
+    "profile": "DQ-05",
+    "rail": "SWIFT_CBPR+"
+  }
+}

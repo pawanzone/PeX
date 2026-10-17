@@ -1,6 +1,7 @@
 """SQLAlchemy Engine & Thread-Safe Session Management for Cloud-Agnostic Relational Storage (SQLite / PostgreSQL)."""
+import os
 from typing import Generator
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker, Session
 from app.config import settings
 
@@ -23,6 +24,18 @@ else:
         pool_pre_ping=True,
         echo=settings.DB_ECHO,
     )
+
+if database_url.startswith("sqlite") and os.getenv("PEX_SQLITE_WAL", "true").lower() == "true":
+    @event.listens_for(engine, "connect")
+    def _sqlite_pragmas(dbapi_conn, _rec):  # pragma: no cover - environment dependent
+        try:
+            cur = dbapi_conn.cursor()
+            cur.execute("PRAGMA journal_mode=WAL")
+            cur.execute("PRAGMA synchronous=NORMAL")
+            cur.execute("PRAGMA busy_timeout=10000")
+            cur.close()
+        except Exception:
+            pass
 
 # Thread-safe Session Factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

@@ -1,0 +1,44 @@
+{
+  "exception_id": "PEX-EUR-SCT-DQ01-IT-TRANSPOSITION",
+  "tenant_id": "DEFAULT_BANK",
+  "profile_id": "DQ-01",
+  "domain": "DATA_QUALITY",
+  "error_code": "ERR_INVALID_IBAN_CHECKSUM",
+  "error_message": "Creditor IBAN MOD-97 check digit failure on pacs.008 (SEPA Credit Transfer).",
+  "payment_info": {
+    "payment_id": "PMT-EUR-0005",
+    "uetr": "5377899a-733c-4676-8dbd-6e02aecb9e68",
+    "amount": 4286.0,
+    "currency": "EUR",
+    "clearing_rail": "SEPA_SCT",
+    "value_date": "2026-10-20",
+    "debtor_name": "Rheinland Maschinenbau Treasury GmbH",
+    "debtor_account": "DE42760260002294866283",
+    "debtor_agent_bic": "HYVEDEMM473",
+    "creditor_name": "Brianza Tessuti SpA",
+    "creditor_account": "IT87X0306099606016105500875",
+    "creditor_agent_bic": "BCITITMMXXX",
+    "remittance_info": "INV-2026-00005"
+  },
+  "bank_supplied_evidence": {
+    "core_dda_account": "IT87X0306909606016105500875",
+    "verified_iban": "IT87X0306909606016105500875"
+  },
+  "external_authoritative_evidence": {
+    "routing_directory": {
+      "bank_code": "03069",
+      "sepa_reachable": true,
+      "country": "IT"
+    }
+  },
+  "derived_evidence": {
+    "mod97_calculated_checksum": "87",
+    "inbound_transposition_detected": true
+  },
+  "historical_evidence": {
+    "historical_match_count": 9,
+    "confidence_heuristic": 0.97
+  },
+  "evidence_provenance": "NON_PRODUCTION_DEMO",
+  "test_status": "TEST_ONLY"
+}

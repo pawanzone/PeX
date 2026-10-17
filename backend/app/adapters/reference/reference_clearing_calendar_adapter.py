@@ -22,6 +22,10 @@ class InMemoryClearingRailCalendarAdapter(ClearingRailCalendarPort):
             "FEDWIRE:USD": RailCutoffInfo(rail_code="FEDWIRE", currency="USD", operating_start_utc="00:00", cutoff_utc="22:00", is_open_today=True, next_operating_date=today + timedelta(days=1)),
             "CHAPS:GBP": RailCutoffInfo(rail_code="CHAPS", currency="GBP", operating_start_utc="06:00", cutoff_utc="17:00", is_open_today=True, next_operating_date=today + timedelta(days=1)),
             "TARGET2:EUR": RailCutoffInfo(rail_code="TARGET2", currency="EUR", operating_start_utc="07:00", cutoff_utc="18:00", is_open_today=True, next_operating_date=today + timedelta(days=1)),
+            # Eurozone (seeded reference times; a bank configures its own). T2 customer-payment cut-off 17:00 CET ~ 16:00 UTC.
+            "T2:EUR": RailCutoffInfo(rail_code="T2", currency="EUR", operating_start_utc="06:00", cutoff_utc="16:00", is_open_today=True, next_operating_date=today + timedelta(days=1)),
+            "SEPA_SCT:EUR": RailCutoffInfo(rail_code="SEPA_SCT", currency="EUR", operating_start_utc="06:00", cutoff_utc="15:00", is_open_today=True, next_operating_date=today + timedelta(days=1)),
+            "SEPA_INST:EUR": RailCutoffInfo(rail_code="SEPA_INST", currency="EUR", operating_start_utc="00:00", cutoff_utc="23:59", is_open_today=True, next_operating_date=today),
             "SWIFT_CBPR+:USD": RailCutoffInfo(rail_code="SWIFT_CBPR+", currency="USD", operating_start_utc="00:00", cutoff_utc="23:59", is_open_today=True, next_operating_date=today + timedelta(days=1)),
         }
 

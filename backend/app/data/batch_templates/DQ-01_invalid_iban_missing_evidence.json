@@ -1,0 +1,32 @@
+{
+  "exception_id": "PEX-E2E-DQ01-MISS",
+  "profile_id": "DQ-01",
+  "domain": "DATA_QUALITY",
+  "error_code": "ERR_INVALID_IBAN_CHECKSUM",
+  "error_message": "Creditor IBAN checksum failed; mandatory core DDA evidence missing.",
+  "payment_info": {
+    "payment_id": "PMT-2026-DQ01-002",
+    "uetr": "UETR-DQ01-MISS-0002-A2",
+    "amount": 5800.00,
+    "currency": "EUR",
+    "clearing_rail": "TARGET2",
+    "value_date": "2026-10-08",
+    "debtor_name": "Zurich Tech Logistics AG",
+    "debtor_account": "CH9300762011623852958",
+    "debtor_agent_bic": "UBSWCHZHXXX",
+    "creditor_name": "Vanguard BioPharma GmbH",
+    "creditor_account": "DE89370400440532013000",
+    "creditor_agent_bic": "DEUTDEDDXXX"
+  },
+  "bank_supplied_evidence": {},
+  "external_authoritative_evidence": {
+    "routing_directory": {
+      "blz": "37040044",
+      "target2_active": true
+    }
+  },
+  "derived_evidence": {},
+  "historical_evidence": {},
+  "evidence_provenance": "SYNTHETIC_TEST_FIXTURE",
+  "test_status": "TEST_ONLY"
+}

@@ -1,0 +1,44 @@
+{
+  "exception_id": "PEX-EUR-SCT-DQ01-ES-TRANSPOSITION",
+  "tenant_id": "DEFAULT_BANK",
+  "profile_id": "DQ-01",
+  "domain": "DATA_QUALITY",
+  "error_code": "ERR_INVALID_IBAN_CHECKSUM",
+  "error_message": "Creditor IBAN MOD-97 check digit failure on pacs.008 (SEPA Credit Transfer).",
+  "payment_info": {
+    "payment_id": "PMT-EUR-0004",
+    "uetr": "c07991d4-0b6e-46f3-9efe-bfda1eedfcfc",
+    "amount": 4663.0,
+    "currency": "EUR",
+    "clearing_rail": "SEPA_SCT",
+    "value_date": "2026-10-20",
+    "debtor_name": "Rheinland Maschinenbau Treasury GmbH",
+    "debtor_account": "DE44500105176714751362",
+    "debtor_agent_bic": "INGDDEFFXXX",
+    "creditor_name": "Levante Cerámica SL",
+    "creditor_account": "ES2701825656000107981933",
+    "creditor_agent_bic": "BBVAESMMXXX",
+    "remittance_info": "INV-2026-00004"
+  },
+  "bank_supplied_evidence": {
+    "core_dda_account": "ES2701825566000107981933",
+    "verified_iban": "ES2701825566000107981933"
+  },
+  "external_authoritative_evidence": {
+    "routing_directory": {
+      "bank_code": "0182",
+      "sepa_reachable": true,
+      "country": "ES"
+    }
+  },
+  "derived_evidence": {
+    "mod97_calculated_checksum": "27",
+    "inbound_transposition_detected": true
+  },
+  "historical_evidence": {
+    "historical_match_count": 9,
+    "confidence_heuristic": 0.97
+  },
+  "evidence_provenance": "NON_PRODUCTION_DEMO",
+  "test_status": "TEST_ONLY"
+}

@@ -1,0 +1,31 @@
+{
+  "exception_id": "PEX-EUR-CBPR-DQ05-NL-UNSTRUCTURED",
+  "tenant_id": "DEFAULT_BANK",
+  "profile_id": "DQ-05",
+  "domain": "DATA_QUALITY",
+  "error_code": "ERR_INVALID_POSTAL_ADDRESS",
+  "error_message": "CBPR+ validation: creditor postal address only unstructured (AdrLine).",
+  "payment_info": {
+    "payment_id": "PMT-EUR-0029",
+    "uetr": "704309dc-2f2d-412a-987f-0bc63fccf89c",
+    "amount": 5400.0,
+    "currency": "EUR",
+    "clearing_rail": "SWIFT_CBPR+",
+    "value_date": "2026-10-20",
+    "debtor_name": "Rheinland Maschinenbau Treasury GmbH",
+    "debtor_account": "DE30100700000019815247",
+    "debtor_agent_bic": "DEUTDEBBXXX",
+    "creditor_name": "Delta Kaas BV",
+    "creditor_account": "NL93INGB5736385607",
+    "creditor_agent_bic": "INGBNL2AXXX",
+    "remittance_info": "INV-2026-00029"
+  },
+  "bank_supplied_evidence": {
+    "creditor_postal_address": "<PstlAdr><AdrLine>Keizersgracht 123</AdrLine><AdrLine>1015 CJ Amsterdam</AdrLine><Ctry>NL</Ctry></PstlAdr>"
+  },
+  "external_authoritative_evidence": {},
+  "derived_evidence": {},
+  "historical_evidence": {},
+  "evidence_provenance": "NON_PRODUCTION_DEMO",
+  "test_status": "TEST_ONLY"
+}

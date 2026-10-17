@@ -1,0 +1,40 @@
+{
+  "exception_id": "PEX-E2E-PR04-SUFF",
+  "profile_id": "PR-04",
+  "domain": "PROCESSING",
+  "error_code": "ERR_CLEARING_CUTOFF_MISSED",
+  "error_message": "Payment instruction submitted after clearing rail cutoff window. Value date recalculation required.",
+  "payment_info": {
+    "payment_id": "PMT-2026-PR04-001",
+    "uetr": "UETR-PR04-SUFF-0001-A1",
+    "amount": 6200.00,
+    "currency": "USD",
+    "clearing_rail": "FEDWIRE",
+    "value_date": "2026-10-08",
+    "debtor_name": "Apex Global Treasury (US)",
+    "debtor_account": "US11APEX9988770100",
+    "debtor_agent_bic": "CHASUS33XXX",
+    "creditor_name": "Pacific Rim Trading Corp",
+    "creditor_account": "99887766",
+    "creditor_agent_bic": "CHASUS33XXX",
+    "remittance_info": "OVERNIGHT COMMODITY SETTLEMENT"
+  },
+  "bank_supplied_evidence": {
+    "rail_operating_calendar": {
+      "rail": "FEDWIRE",
+      "is_operating_day": true
+    },
+    "rail_cutoff_schedule": {
+      "rail": "FEDWIRE",
+      "cutoff_utc": "22:00"
+    },
+    "bank_cutoff_policy": {
+      "cutoff_buffer_minutes": 15,
+      "allow_auto_value_date_roll": true
+    }
+  },
+  "external_authoritative_evidence": {},
+  "derived_evidence": {},
+  "evidence_provenance": "SYNTHETIC_TEST_FIXTURE",
+  "test_status": "TEST_ONLY"
+}

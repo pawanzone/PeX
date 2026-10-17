@@ -38,6 +38,7 @@ class InMemoryConfigurationAdapter(ConfigurationSchemaPort):
                 RailCutoffSchedule(rail_code="FEDWIRE", currency="USD", operating_start_utc="00:00", cutoff_utc="22:00"),
                 RailCutoffSchedule(rail_code="CHAPS", currency="GBP", operating_start_utc="06:00", cutoff_utc="17:00"),
                 RailCutoffSchedule(rail_code="TARGET2", currency="EUR", operating_start_utc="07:00", cutoff_utc="18:00"),
+                RailCutoffSchedule(rail_code="T2", currency="EUR", operating_start_utc="06:00", cutoff_utc="16:00"),
                 RailCutoffSchedule(rail_code="SWIFT_CBPR+", currency="USD", operating_start_utc="00:00", cutoff_utc="23:59")
             ],
             default_currency="USD",
@@ -882,6 +883,28 @@ class InMemoryConfigurationAdapter(ConfigurationSchemaPort):
                         HitlFieldDefinition(field_id="inquiry_dispatch_authorization", label="camt.056 Inquiry Dispatch Authorization", field_type=HitlFieldType.TEXT, required=True)
                     ]
                 )
+            ),
+            # DQ-05: Invalid beneficiary postal address (CBPR+ structured address)
+            BankEvidenceRequiredConfig(
+                tenant_id="DEFAULT_BANK",
+                profile_id="DQ-05",
+                config_version="1.0.0",
+                rules=[
+                    EvidenceRuleDefinition(
+                        rule_id="R-DQ05-01",
+                        evidence_type="CREDITOR_POSTAL_ADDRESS",
+                        mandatory=True,
+                        min_trust_tier=TrustTier.TIER_3_CLIENT_ERP,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_1_INBOUND_PAYLOAD, EvidenceAcquisitionMode.MODE_2_API_CONNECTOR]
+                    ),
+                    EvidenceRuleDefinition(
+                        rule_id="R-DQ05-02",
+                        evidence_type="CORE_ADDRESS_MASTER",
+                        mandatory=False,
+                        min_trust_tier=TrustTier.TIER_1_CORE_RECORD,
+                        acquisition_modes=[EvidenceAcquisitionMode.MODE_2_API_CONNECTOR, EvidenceAcquisitionMode.MODE_3_BANK_PUSH]
+                    )
+                ]
             )
         ]
         for cfg in defaults:

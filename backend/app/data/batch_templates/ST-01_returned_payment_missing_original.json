@@ -1,0 +1,28 @@
+{
+  "exception_id": "PEX-E2E-ST01-MISS",
+  "profile_id": "ST-01",
+  "domain": "SETTLEMENT_RETURNS",
+  "error_code": "ERR_INWARD_RETURN_UNMATCHED",
+  "error_message": "Inward pacs.004 return received, but original payment debit cannot be found in ledger.",
+  "payment_info": {
+    "payment_id": "PMT-2026-ST01-002",
+    "uetr": "UETR-ST01-MISS-0002-E2",
+    "amount": 2800.00,
+    "currency": "EUR",
+    "clearing_rail": "TARGET2",
+    "debtor_name": "Bavaria Engine Works AG",
+    "creditor_name": "Vanguard BioPharma GmbH"
+  },
+  "bank_supplied_evidence": {},
+  "external_authoritative_evidence": {
+    "inward_pacs004_return": {
+      "return_reason_code": "AC04"
+    }
+  },
+  "derived_evidence": {
+    "original_debit_posted": false
+  },
+  "historical_evidence": {},
+  "evidence_provenance": "SYNTHETIC_TEST_FIXTURE",
+  "test_status": "TEST_ONLY"
+}

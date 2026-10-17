@@ -1,0 +1,42 @@
+{
+  "exception_id": "PEX-EUR-INST-PR04-CUTOFF-NOT-APPLICABLE",
+  "tenant_id": "DEFAULT_BANK",
+  "profile_id": "PR-04",
+  "domain": "PROCESSING",
+  "error_code": "ERR_CLEARING_CUTOFF_MISSED",
+  "error_message": "Cut-off missed.",
+  "payment_info": {
+    "payment_id": "PMT-EUR-0015",
+    "uetr": "e5ea919c-e838-41ee-929c-0c9d54eb1e9f",
+    "amount": 1800.0,
+    "currency": "EUR",
+    "clearing_rail": "SEPA_INST",
+    "value_date": "2026-10-20",
+    "debtor_name": "Rheinland Maschinenbau Treasury GmbH",
+    "debtor_account": "DE22760260007188357951",
+    "debtor_agent_bic": "HYVEDEMM473",
+    "creditor_name": "Delta Kaas BV",
+    "creditor_account": "NL17INGB1744325688",
+    "creditor_agent_bic": "INGBNL2AXXX",
+    "remittance_info": "INV-2026-00015"
+  },
+  "bank_supplied_evidence": {
+    "rail_operating_calendar": {
+      "rail": "SEPA_INST",
+      "is_operating_day": true
+    },
+    "rail_cutoff_schedule": {
+      "rail": "SEPA_INST",
+      "cutoff_utc": "23:59"
+    },
+    "bank_cutoff_policy": {
+      "cutoff_buffer_minutes": 15,
+      "allow_auto_value_date_roll": true
+    }
+  },
+  "external_authoritative_evidence": {},
+  "derived_evidence": {},
+  "historical_evidence": {},
+  "evidence_provenance": "NON_PRODUCTION_DEMO",
+  "test_status": "TEST_ONLY"
+}

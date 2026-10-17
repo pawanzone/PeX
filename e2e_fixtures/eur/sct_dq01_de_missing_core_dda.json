@@ -1,0 +1,34 @@
+{
+  "exception_id": "PEX-EUR-SCT-DQ01-DE-MISSING-CORE-DDA",
+  "tenant_id": "DEFAULT_BANK",
+  "profile_id": "DQ-01",
+  "domain": "DATA_QUALITY",
+  "error_code": "ERR_INVALID_IBAN_CHECKSUM",
+  "error_message": "Creditor IBAN checksum failed; mandatory core DDA evidence missing.",
+  "payment_info": {
+    "payment_id": "PMT-EUR-0006",
+    "uetr": "ffce6973-7f62-4f26-b6c3-266043710baf",
+    "amount": 3300.0,
+    "currency": "EUR",
+    "clearing_rail": "SEPA_SCT",
+    "value_date": "2026-10-20",
+    "debtor_name": "Rheinland Maschinenbau Treasury GmbH",
+    "debtor_account": "DE44760260003702838222",
+    "debtor_agent_bic": "HYVEDEMM473",
+    "creditor_name": "Delta Kaas BV",
+    "creditor_account": "DE13760260004686146252",
+    "creditor_agent_bic": "HYVEDEMM473",
+    "remittance_info": "INV-2026-00006"
+  },
+  "bank_supplied_evidence": {},
+  "external_authoritative_evidence": {
+    "routing_directory": {
+      "bank_code": "37040044",
+      "sepa_reachable": true
+    }
+  },
+  "derived_evidence": {},
+  "historical_evidence": {},
+  "evidence_provenance": "NON_PRODUCTION_DEMO",
+  "test_status": "TEST_ONLY"
+}

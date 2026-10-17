@@ -1,0 +1,37 @@
+{
+  "exception_id": "PEX-E2E-PR01-SUFF",
+  "profile_id": "PR-01",
+  "domain": "PROCESSING",
+  "error_code": "ERR_DUPLICATE_TRANSACTION_DETECTED",
+  "error_message": "Exact matching payload and amount received within 24-hour duplicate detection window.",
+  "payment_info": {
+    "payment_id": "PMT-2026-PR01-001",
+    "uetr": "UETR-PR01-SUFF-0001-C1",
+    "amount": 3500.00,
+    "currency": "USD",
+    "clearing_rail": "FEDWIRE",
+    "value_date": "2026-10-08",
+    "debtor_name": "Apex Global Treasury (US)",
+    "creditor_name": "Nordhavn Components A/S"
+  },
+  "bank_supplied_evidence": {
+    "settlement_ledger": {
+      "settled_status": "POSTED",
+      "settled_amount": 3500.00
+    }
+  },
+  "external_authoritative_evidence": {
+    "historical_payment_journal": {
+      "original_payment_id": "PMT-ORIG-998811",
+      "original_uetr": "UETR-ORIG-998811-00",
+      "transmitted_timestamp": "2026-10-08T08:15:00Z"
+    },
+    "original_payment_id": "PMT-ORIG-998811"
+  },
+  "derived_evidence": {
+    "exact_hash_match": true
+  },
+  "historical_evidence": {},
+  "evidence_provenance": "SYNTHETIC_TEST_FIXTURE",
+  "test_status": "TEST_ONLY"
+}

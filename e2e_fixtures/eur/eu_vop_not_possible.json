@@ -1,0 +1,39 @@
+{
+  "exception_id": "PEX-EUR-EU-VOP-NOT-POSSIBLE",
+  "tenant_id": "DEFAULT_BANK",
+  "profile_id": "DQ-09",
+  "domain": "DATA_QUALITY",
+  "error_code": "ERR_BENEFICIARY_NAME_MISMATCH",
+  "error_message": "Verification of Payee returned a name variation.",
+  "payment_info": {
+    "payment_id": "PMT-EUR-0028",
+    "uetr": "dc483871-88e6-423d-ab0d-86d417840d5e",
+    "amount": 8000.0,
+    "currency": "EUR",
+    "clearing_rail": "SEPA_SCT",
+    "value_date": "2026-10-20",
+    "debtor_name": "Rheinland Maschinenbau Treasury GmbH",
+    "debtor_account": "DE07100700000190187916",
+    "debtor_agent_bic": "DEUTDEBBXXX",
+    "creditor_name": "ELBE CHEMIE",
+    "creditor_account": "DE20760260009780252016",
+    "creditor_agent_bic": "HYVEDEMM473",
+    "remittance_info": "INV-2026-00028"
+  },
+  "bank_supplied_evidence": {
+    "core_account_title": {
+      "account_number": "DE20760260009780252016",
+      "account_title": "ELBE CHEMIE GMBH",
+      "status": "ACTIVE"
+    },
+    "verification_of_payee_confirmation": {
+      "match_score": 0.0,
+      "match_status": "NOT_POSSIBLE"
+    }
+  },
+  "external_authoritative_evidence": {},
+  "derived_evidence": {},
+  "historical_evidence": {},
+  "evidence_provenance": "NON_PRODUCTION_DEMO",
+  "test_status": "TEST_ONLY"
+}

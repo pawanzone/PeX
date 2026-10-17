@@ -1,0 +1,35 @@
+{
+  "exception_id": "PEX-EUR-SEPA-RETURN-AC04-ORIGINAL-NOT-FOUND",
+  "tenant_id": "DEFAULT_BANK",
+  "profile_id": "ST-01",
+  "domain": "SETTLEMENT_RETURNS",
+  "error_code": "ERR_INWARD_RETURN_UNMATCHED",
+  "error_message": "Return AC04 received but original debit cannot be found.",
+  "payment_info": {
+    "payment_id": "PMT-EUR-0025",
+    "uetr": "bd328e8b-3607-4a2a-a59d-7568e0f32241",
+    "amount": 2800.0,
+    "currency": "EUR",
+    "clearing_rail": "SEPA_SCT",
+    "value_date": "2026-10-20",
+    "debtor_name": "Rheinland Maschinenbau Treasury GmbH",
+    "debtor_account": "DE48760260003233735286",
+    "debtor_agent_bic": "HYVEDEMM473",
+    "creditor_name": "Delta Kaas BV",
+    "creditor_account": "NL54RABO6753478971",
+    "creditor_agent_bic": "RABONL2UXXX",
+    "remittance_info": "INV-2026-00025"
+  },
+  "bank_supplied_evidence": {},
+  "external_authoritative_evidence": {
+    "inward_pacs004_return": {
+      "return_reason_code": "AC04"
+    }
+  },
+  "derived_evidence": {
+    "original_debit_posted": false
+  },
+  "historical_evidence": {},
+  "evidence_provenance": "NON_PRODUCTION_DEMO",
+  "test_status": "TEST_ONLY"
+}

@@ -97,6 +97,17 @@ PROFILE_CODE_TO_ENUM: Dict[str, ExceptionProfile] = {
 }
 
 
+def _derive_country(account: Optional[str], bic: Optional[str]) -> Optional[str]:
+    """ISO country from an IBAN prefix, else from BIC characters 5-6; None when neither is usable."""
+    acc = (account or "").replace(" ", "").upper()
+    if len(acc) >= 15 and acc[:2].isalpha() and acc[2:4].isdigit():
+        return acc[:2]
+    b = (bic or "").strip().upper()
+    if len(b) >= 8 and b[4:6].isalpha():
+        return b[4:6]
+    return None
+
+
 class FileWatcherService:
     """Institutional-grade Inbound File Watcher Service for PeX.
     
@@ -636,7 +647,7 @@ class FileWatcherService:
             "payment_rail": pmt.clearing_rail or "SWIFT_CBPR+",
             "debtor_party": {
                 "party_name": pmt.debtor_name or "Ordering Customer",
-                "country": "US",
+                "country": _derive_country(pmt.debtor_account, pmt.debtor_agent_bic) or "US",
                 "token_ref": debtor_name_tok
             },
             "debtor_account": {
@@ -645,7 +656,7 @@ class FileWatcherService:
             },
             "creditor_party": {
                 "party_name": pmt.creditor_name or "Beneficiary Customer",
-                "country": e2e_input.bank_supplied_evidence.get("creditor_country", "GB"),
+                "country": e2e_input.bank_supplied_evidence.get("creditor_country") or _derive_country(pmt.creditor_account, pmt.creditor_agent_bic) or "GB",
                 "token_ref": creditor_name_tok
             },
             "creditor_account": {

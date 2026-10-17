@@ -1,0 +1,29 @@
+{
+  "exception_id": "PEX-E2E-PR08-FAIL",
+  "profile_id": "PR-08",
+  "domain": "PROCESSING",
+  "error_code": "ERR_QUEUE_PROCESSING_FAILURE",
+  "error_message": "Message broker cluster unreachable; authority unavailable.",
+  "payment_info": {
+    "payment_id": "PMT-2026-PR08-002",
+    "uetr": "UETR-PR08-FAIL-0002-D2",
+    "amount": 1200.00,
+    "currency": "USD",
+    "clearing_rail": "FEDWIRE",
+    "debtor_name": "Atlas Mediterranean Marine",
+    "creditor_name": "Apex Global Treasury"
+  },
+  "bank_supplied_evidence": {
+    "dlq_record": {
+      "reason": "CONNECTION_TIMEOUT"
+    },
+    "simulate_authority_unavailable": true
+  },
+  "external_authoritative_evidence": {},
+  "derived_evidence": {
+    "broker_deadlocked": true
+  },
+  "historical_evidence": {},
+  "evidence_provenance": "SYNTHETIC_TEST_FIXTURE",
+  "test_status": "TEST_ONLY"
+}

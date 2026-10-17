@@ -1,0 +1,44 @@
+{
+  "exception_id": "PEX-EUR-INST-DQ01-WRONG-CURRENCY",
+  "tenant_id": "DEFAULT_BANK",
+  "profile_id": "DQ-01",
+  "domain": "DATA_QUALITY",
+  "error_code": "ERR_INVALID_IBAN_CHECKSUM",
+  "error_message": "Instant payment rejected: IBAN check digit failure.",
+  "payment_info": {
+    "payment_id": "PMT-EUR-0010",
+    "uetr": "0e66c6be-5147-4b93-be3b-496ec129017d",
+    "amount": 2500.0,
+    "currency": "GBP",
+    "clearing_rail": "SEPA_INST",
+    "value_date": "2026-10-20",
+    "debtor_name": "Rheinland Maschinenbau Treasury GmbH",
+    "debtor_account": "DE32760260004230048764",
+    "debtor_agent_bic": "HYVEDEMM473",
+    "creditor_name": "Delta Kaas BV",
+    "creditor_account": "DE77107000002912808458",
+    "creditor_agent_bic": "DEUTDEBBXXX",
+    "remittance_info": "INV-2026-00010"
+  },
+  "bank_supplied_evidence": {
+    "core_dda_account": "DE77100700002912808458",
+    "verified_iban": "DE77100700002912808458"
+  },
+  "external_authoritative_evidence": {
+    "routing_directory": {
+      "bank_code": "37040044",
+      "sepa_reachable": true,
+      "sct_inst_reachable": true
+    }
+  },
+  "derived_evidence": {
+    "mod97_calculated_checksum": "77",
+    "inbound_transposition_detected": true
+  },
+  "historical_evidence": {
+    "historical_match_count": 6,
+    "confidence_heuristic": 0.96
+  },
+  "evidence_provenance": "NON_PRODUCTION_DEMO",
+  "test_status": "TEST_ONLY"
+}
