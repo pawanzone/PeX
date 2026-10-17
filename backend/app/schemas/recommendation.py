@@ -70,6 +70,10 @@ class HypothesisRankingItem(BaseModel):
     elimination_reason: Optional[str] = None
     candidate_value: Optional[str] = None
     candidate_description: Optional[str] = None
+    # Provenance of the score: DETERMINISTIC (resolver candidate), SIMULATED (demo fixture),
+    # LLM_ESTIMATE (advisory model estimate - NOT a calibrated probability). None = legacy/unknown.
+    source: Optional[str] = None
+    evidence_ids: List[str] = []
 
 class AnomalyGuardrailItem(BaseModel):
     guardrail_name: str
@@ -81,6 +85,7 @@ class ConsequenceSimulation(BaseModel):
     cutoff_deadline_status: str = "MEETS 16:00 EST CUTOFF"
     fee_penalty_avoidance: str = "$150.00 late inquiry avoided"
     nostro_liquidity_impact: str = "Sufficient Nostro Balance ($14.2M available)"
+    narrative: Optional[str] = None  # advisory LLM summary of consequences (not a computed figure)
 
 class DecisionRecommendation(BaseModel):
     recommendation_id: str
@@ -107,6 +112,15 @@ class DecisionRecommendation(BaseModel):
     model_identifier: str = "mock-governed-reasoner-v1"
     prompt_tokens: int = 0
     completion_tokens: int = 0
+
+    # Advisory LLM provenance (all optional; None when the LLM layer was not used)
+    model_version: Optional[str] = None        # e.g. ollama:qwen2.5:7b-instruct
+    prompt_version: Optional[str] = None
+    latency_ms: Optional[int] = None
+    llm_status: Optional[str] = None           # OK | UNREACHABLE | TIMEOUT | INVALID_OUTPUT | DISABLED
+    llm_disagreement: bool = False             # model contradicted the deterministic candidate -> advisory discarded
+    llm_flags: List[str] = []
+    deterministic_rationale: Optional[str] = None
     generated_at: datetime = Field(default_factory=datetime.utcnow)
 
     @property

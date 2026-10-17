@@ -12,9 +12,13 @@ from app.schemas.recommendation import (
 )
 from app.schemas.canonical import ExceptionSeverity
 from app.core.tokenization import token_vault
+from app.schemas.recommendation import ConsequenceSimulation as _ConsequenceSimulation
+from app.services.llm_provider import (
+    llm_provider, LLMStatus, LLMResult, PROMPT_VERSION, build_candidates, _tail,
+)
 
 class ModelGateway:
-    def evaluate_investigation(
+    def _evaluate_deterministic(
         self,
         context: TokenizedInvestigationContext,
         scenario_key: Optional[str] = None
@@ -98,5 +102,140 @@ class ModelGateway:
             creditor_country=creditor_country,
             case_idx=1
         )
+
+    # ------------------------------------------------------------------------------------
+    # Advisory LLM layer. Deterministic output is authoritative; the model can only add
+    # narrative (rationale, hypotheses with evidence refs, questions, consequence summary).
+    # ------------------------------------------------------------------------------------
+    def evaluate_investigation(
+        self,
+        context: TokenizedInvestigationContext,
+        scenario_key: Optional[str] = None
+    ) -> DecisionRecommendation:
+        rec = self._evaluate_deterministic(context, scenario_key)
+        if scenario_key or not settings.LLM_ENABLED:
+            return rec                      # canned scenarios / disabled: deterministic output unchanged
+        if rec.llm_status == LLMStatus.OK.value:
+            return rec                      # already advised once
+        enriched = self._enrich(context, rec)
+        try:
+            from app.services.data_loader import repo
+            repo.recommendations[context.case_id] = enriched
+        except Exception:
+            pass
+        return enriched
+
+    @staticmethod
+    def _annotate_hypothesis_sources(rec: DecisionRecommendation) -> None:
+        for h in rec.hypothesis_ranking:
+            if h.source is None:
+                h.source = "SIMULATED" if "[SIMULATED]" in (h.title or "") else "DETERMINISTIC"
+
+    def _enrich(self, context: TokenizedInvestigationContext, rec: DecisionRecommendation) -> DecisionRecommendation:
+        out = rec.model_copy(deep=True)
+        try:
+            res = llm_provider.advise(context, rec)
+        except Exception as e:  # defensive: the provider should never raise
+            res = LLMResult(status=LLMStatus.INVALID_OUTPUT, error=f"provider error: {type(e).__name__}")
+
+        out.llm_status = res.status.value
+        out.prompt_version = res.prompt_version
+        out.latency_ms = res.latency_ms
+        flags: list = []
+        disagreement = False
+
+        if res.status == LLMStatus.OK and res.advisory is not None:
+            out.model_version = res.model_version
+            out.prompt_tokens = res.prompt_tokens
+            out.completion_tokens = res.completion_tokens
+            adv = res.advisory
+            valid_ids = {e.evidence_id for e in context.evidence_items}
+
+            # 1) Candidate check: the model may only confirm a deterministic candidate, never invent one.
+            cands = build_candidates(rec)
+            cand_ids = {c["candidate_id"] for c in cands}
+            cand_tails = {c["proposed_tail"] for c in cands}
+            if adv.selected_candidate_id is not None and adv.selected_candidate_id not in cand_ids:
+                disagreement = True
+            if adv.proposed_value_hint:
+                if not cands or _tail(adv.proposed_value_hint) not in cand_tails:
+                    disagreement = True
+
+            if disagreement:
+                out.llm_disagreement = True
+                flags.append("llm_disagreement:candidate_mismatch")
+                self._annotate_hypothesis_sources(out)  # advisory discarded entirely
+            else:
+                # 2) Evidence references must exist; unknown ones are dropped and flagged.
+                unknown = set(adv.cited_evidence_ids) - valid_ids
+                hyps = []
+                for i, h in enumerate(adv.hypotheses, start=1):
+                    refs = [r for r in h.evidence_ids if r in valid_ids]
+                    unknown |= set(h.evidence_ids) - valid_ids
+                    hyps.append(HypothesisRankingItem(
+                        hypothesis_id=f"HYP-{i}", title=h.title, confidence=h.confidence,
+                        status=h.status, elimination_reason=h.elimination_reason,
+                        source="LLM_ESTIMATE", evidence_ids=refs,
+                    ))
+                if unknown:
+                    flags.append("llm_unknown_evidence_ref:" + ",".join(sorted(unknown))[:120])
+                seen_selected = False
+                for h in hyps:
+                    if h.status == "SELECTED":
+                        if seen_selected:
+                            h.status = "ELIGIBLE_CANDIDATE"
+                        seen_selected = True
+
+                out.deterministic_rationale = rec.rationale
+                out.rationale = adv.rationale
+                if hyps:
+                    out.hypothesis_ranking = hyps
+                else:
+                    self._annotate_hypothesis_sources(out)
+                if adv.guided_questions:
+                    out.guided_questions = [GuidedQuestionItem(
+                        category=q.category, question=q.question,
+                        investigation_tip=q.investigation_tip or "Verify against source system of record.",
+                    ) for q in adv.guided_questions]
+                if adv.consequence_summary:
+                    if out.consequence_simulation is None:
+                        out.consequence_simulation = _ConsequenceSimulation(
+                            estimated_settlement_velocity="n/a", cutoff_deadline_status="n/a",
+                            fee_penalty_avoidance="n/a", nostro_liquidity_impact="n/a",
+                        )
+                    out.consequence_simulation.narrative = adv.consequence_summary
+        else:
+            flags.append(f"llm_{res.status.value.lower()}")
+            self._annotate_hypothesis_sources(out)
+
+        out.llm_flags = flags
+        self._audit(context, out, res, disagreement, flags)
+        return out
+
+    @staticmethod
+    def _audit(context, rec, res, disagreement, flags) -> None:
+        """Audit-visible record of the advisory call (never raises)."""
+        try:
+            from app.services.data_loader import repo
+            tags = ["Advisory only", f"LLM:{res.status.value}"]
+            if disagreement:
+                tags.append("LLM_DISAGREEMENT")
+            repo.log_audit_event(
+                case_id=context.case_id,
+                correlation_id=getattr(context.tokenized_payment, "uetr", None) or context.case_id,
+                stage_name="AI_ADVISORY",
+                actor_id=res.model_version or "llm-advisor",
+                actor_role="LLM_ADVISOR",
+                action_name=f"LLM_ADVISORY_{res.status.value}",
+                details=(
+                    f"status={res.status.value} model_version={res.model_version} prompt_version={res.prompt_version} "
+                    f"prompt_tokens={res.prompt_tokens} completion_tokens={res.completion_tokens} "
+                    f"latency_ms={res.latency_ms} disagreement={disagreement} flags={flags} "
+                    f"(advisory only; deterministic gates unchanged)"
+                ),
+                control_tags=tags,
+            )
+        except Exception:
+            pass
 
 model_gateway = ModelGateway()
