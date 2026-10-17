@@ -52,9 +52,9 @@ def execute_action(req: ExecuteActionRequest, authorization: Optional[str] = Hea
         stage_name="ACTION_DISPATCH",
         actor_id=user_id,
         actor_role=actor_role_str,
-        action_name="GOVERNED_SETTLEMENT_DISPATCHED",
-        details=f"Settlement dispatch authorized and executed by {actor_name} ({actor_role_str}). Reconciled against banking ledger. Receipt: {receipt.bank_ack_reference}",
-        control_tags=["Maker-Checker enforced", "SoD verified", "Idempotency key recorded", "Ledger reconciled"]
+        action_name="GOVERNED_HANDOFF_AUTHORIZED",
+        details=f"Handoff authorized by {actor_name} ({actor_role_str}). {message} Settlement is NOT confirmed until the bank reports it.",
+        control_tags=["Maker-Checker enforced", "SoD verified", "Idempotency key recorded", "Awaiting bank confirmation"]
     )
 
     return {
