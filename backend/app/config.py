@@ -27,7 +27,8 @@ class Settings(BaseModel):
     DUAL_AUTH_THRESHOLD: float = 250000.0  # USD equivalent
     
     # Security
-    JWT_SECRET: str = os.getenv("JWT_SECRET", "pex-enterprise-secret-key-2026-sha256")
+    JWT_SECRET: str = os.getenv("JWT_SECRET", "")  # empty -> ephemeral random secret per process (see core/auth.py)
+    ALLOW_LEGACY_TOKENS: bool = os.getenv("PEX_ALLOW_LEGACY_TOKENS", "false").lower() == "true"  # tests only
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24
 
@@ -58,6 +59,7 @@ class Settings(BaseModel):
     BANK_CALLBACK_SECRET: str = os.getenv("PEX_BANK_CALLBACK_SECRET", "")  # HMAC-SHA256 secret for /api/bank/outcome
     BANK_COMM_MODE: str = os.getenv("PEX_BANK_COMM_MODE", "SIMULATED")      # SIMULATED only for now
     SIM_BANK_ACK_SECONDS: float = float(os.getenv("PEX_SIM_BANK_ACK_SECONDS", "6"))
+    STATUS_UNKNOWN_AFTER_SECONDS: float = float(os.getenv("PEX_STATUS_UNKNOWN_AFTER_SECONDS", "300"))
     STP_MAX_AMOUNT: float = float(os.getenv("PEX_STP_MAX_AMOUNT", "10000"))  # conservative default; bank-configurable
 
     # Local LLM (OpenAI-compatible endpoint, e.g. Ollama http://localhost:11434/v1). Advisory only.

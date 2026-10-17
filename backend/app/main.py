@@ -11,6 +11,7 @@ from app.api.router import api_router
 from app.services.data_loader import repo
 from app.services.audit_service import audit_service
 from app.services.file_watcher import file_watcher
+from app.services.simulated_bank import worker as sim_bank_worker
 
 
 app = FastAPI(
@@ -37,7 +38,7 @@ def startup_db_client():
     repo.load_all_data()
     
     # Log system genesis audit event if empty
-    if not repo.audit_log:
+    if repo.audit_event_count() == 0:
         audit_service.log_event(
             case_id="SYS-INIT",
             correlation_id="CORR-INIT-001",
@@ -54,12 +55,15 @@ def startup_db_client():
         file_watcher.start(initial_scan_baseline=True)
         print(f"[PeX Watcher] Inbound file monitoring active on {file_watcher.input_dir}")
 
+    sim_bank_worker.start()  # hand-off reconciler always; simulated bank answers only when PEX_DEMO
+
     print("PeX Enterprise Platform Startup Complete!")
 
 @app.on_event("shutdown")
 def shutdown_services():
     print("Shutting down PeX services...")
     file_watcher.stop()
+    sim_bank_worker.stop()
     print("PeX Inbound File Monitoring stopped cleanly.")
 
 # Mount API routes
@@ -73,8 +77,8 @@ def health_check():
         "version": settings.VERSION,
         "mode": settings.MODEL_GATEWAY_MODE,
         "database": db_info,
-        "cases_count": len(repo.cases),
-        "audit_events_count": len(repo.audit_log),
+        "cases_count": repo.case_count(),
+        "audit_events_count": repo.audit_event_count(),
         "latest_audit_hash": repo.latest_chain_hash,
         "file_watcher": file_watcher.get_status()
     }

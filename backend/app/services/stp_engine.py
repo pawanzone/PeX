@@ -277,7 +277,7 @@ class STPEngine:
             return STPEligibilityItem(
                 case_id=case_id, payment_id=payment_id, amount=amount, currency=currency,
                 domain=domain, profile=profile, ai_confidence=confidence, eligible=True,
-                mode=STPMode.AUTONOMOUS if amount <= 100000.0 else STPMode.ONE_CLICK_BATCH,
+                mode=STPMode.AUTONOMOUS if amount <= float(getattr(settings, 'STP_MAX_AMOUNT', 10000.0)) else STPMode.ONE_CLICK_BATCH,
                 reason=stp_reason or "All 8 canonical predicates satisfied (E_suff ∧ R_det ∧ R_uniq ∧ V_det ∧ V_auth ∧ P_bank ∧ C_comp ∧ X_pre).",
                 proposed_repair_summary=proposed_summary,
                 debtor_name=debtor_name, creditor_name=creditor_name,
@@ -332,6 +332,13 @@ class STPEngine:
         if not eval_item.eligible:
             raise ValueError(f"Case {case_id} does not qualify for STP: {eval_item.reason}")
 
+        from app.services.outbound_port import resolve_handoff_state
+        _ts, _why = resolve_handoff_state("SYS-AUTONOMOUS-STP", policy_approved=True)
+        if _ts is None:
+            raise ValueError(f"Autonomous STP refused for {case_id}: {_why} Use the supervised 1-click fast-lane release.")
+        if float(case.get("amount", 0.0)) > float(getattr(settings, "STP_MAX_AMOUNT", 10000.0)):
+            raise ValueError(f"Case {case_id} exceeds the STP amount limit ({settings.STP_MAX_AMOUNT:,.0f}); human approval required.")
+
         db: Session = SessionLocal()
         try:
             now = datetime.utcnow()
@@ -364,8 +371,7 @@ class STPEngine:
             db.add(appr)
 
             # 3. Create Idempotent Action
-            op_mode = getattr(settings, "PEX_OPERATION_MODE", "SHADOW").upper()
-            target_state = LifecycleStage.SHADOW_RECORDED.value if op_mode == "SHADOW" else LifecycleStage.HANDED_TO_BANK.value
+            target_state = _ts
 
             action_id = f"ACT-STP-{uuid.uuid4().hex[:6].upper()}"
             idempotency_key = f"IDEMP-STP-{case_id}-{uuid.uuid4().hex[:4]}"
@@ -526,8 +532,11 @@ class STPEngine:
                 )
                 db.add(appr)
 
-                op_mode = getattr(settings, "PEX_OPERATION_MODE", "SHADOW").upper()
-                target_state = LifecycleStage.SHADOW_RECORDED.value if op_mode == "SHADOW" else LifecycleStage.HANDED_TO_BANK.value
+                from app.services.outbound_port import resolve_handoff_state
+                target_state, _why = resolve_handoff_state(payload.approver_id)
+                if target_state is None:
+                    failed_count += 1
+                    continue
 
                 # 3. Governed Action
                 action_id = f"ACT-BATCH-{uuid.uuid4().hex[:6].upper()}"

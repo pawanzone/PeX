@@ -1,5 +1,6 @@
 """Persistent Relational Database Repository for PeX Enterprise Platform."""
 import logging
+import os
 import threading
 from typing import Dict, List, Any, Optional
 
@@ -24,6 +25,7 @@ from app.db.models import (
     ICDConfigurationModel,
 )
 from app.core.hashing import calculate_event_hash
+from app.services.state_machine import normalize_status
 
 def _sanitize_for_json(val: Any) -> Any:
     if isinstance(val, datetime):
@@ -49,7 +51,9 @@ class PeXDBRepository:
         self._rules_cache: Dict[str, Dict[str, Any]] = {}
         self._icd_cache: Dict[str, Dict[str, Any]] = {}
         self._latest_hash: str = "0" * 64
-        self._audit_lock = threading.Lock()
+        self._audit_lock = threading.RLock()
+        self._tl = threading.local()
+        self._case_cache_max = int(os.getenv("PEX_CASE_CACHE_MAX", "20000"))
 
 
     def load_all_data(self):
@@ -63,13 +67,13 @@ class PeXDBRepository:
         db: Session = SessionLocal()
         try:
             # Sync Cases
-            db_cases = db.query(CaseModel).all()
+            db_cases = db.query(CaseModel).order_by(desc(CaseModel.created_at)).limit(self._case_cache_max).all()
             self._case_cache.clear()
             for c in db_cases:
                 self._case_cache[c.case_id] = self._case_to_dict(c)
 
             # Sync Recommendations
-            db_recs = db.query(RecommendationModel).all()
+            db_recs = db.query(RecommendationModel).order_by(desc(RecommendationModel.generated_at)).limit(self._case_cache_max).all()
             self._recommendations_cache.clear()
             for r in db_recs:
                 self._recommendations_cache[r.case_id] = self._rec_to_schema(r)
@@ -289,11 +293,15 @@ class PeXDBRepository:
         creditor_account = _extract_account_str(creditor_account)
                     
         with self._audit_lock:
-            db: Session = SessionLocal()
+            ctx = self._bctx()
+            db: Session = ctx.session if ctx else SessionLocal()
             try:
-                latest_ev = db.query(AuditEventModel).order_by(desc(AuditEventModel.event_index)).first()
-                idx = (latest_ev.event_index + 1) if latest_ev else 1
-                prev_hash = latest_ev.current_hash if latest_ev else ("0" * 64)
+                if ctx:
+                    idx, prev_hash = ctx.next_idx, ctx.prev_hash
+                else:
+                    latest_ev = db.query(AuditEventModel).order_by(desc(AuditEventModel.event_index)).first()
+                    idx = (latest_ev.event_index + 1) if latest_ev else 1
+                    prev_hash = latest_ev.current_hash if latest_ev else ("0" * 64)
                 now_dt = datetime.utcnow()
                 timestamp_iso = now_dt.isoformat()
 
@@ -331,8 +339,11 @@ class PeXDBRepository:
                     current_hash=curr_hash
                 )
                 db.add(db_ev)
-                db.commit()
-                self._latest_hash = curr_hash
+                if ctx:
+                    ctx.next_idx, ctx.prev_hash = idx + 1, curr_hash
+                else:
+                    db.commit()
+                    self._latest_hash = curr_hash
 
                 return AuditEvent(
                     event_index=idx,
@@ -353,11 +364,170 @@ class PeXDBRepository:
                     current_hash=curr_hash
                 )
             except Exception as e:
-                db.rollback()
+                if not ctx:
+                    db.rollback()
                 print(f"[PeX DB Error] Failed to log audit event: {e}")
                 raise e
             finally:
-                db.close()
+                if not ctx:
+                    db.close()
+
+    # ------------------------------------------------------------------
+    # Bounded cache + batch (bulk transaction) support
+    # ------------------------------------------------------------------
+    def _cache_put(self, case_id: str, d: Dict[str, Any]):
+        cache = self._case_cache
+        if case_id in cache:
+            cache[case_id] = d
+            return
+        while len(cache) >= self._case_cache_max and cache:
+            cache.pop(next(iter(cache)))
+        cache[case_id] = d
+
+    def _bctx(self):
+        return getattr(self._tl, "ctx", None)
+
+    def begin_batch(self):
+        """Start a bulk transaction on this thread: one session, one audit-chain read, no per-event commit.
+        Holds the audit lock until commit_batch/rollback_batch so the hash chain stays gap-free."""
+        self._audit_lock.acquire()
+        try:
+            class _Ctx:  # noqa: N801
+                pass
+            ctx = _Ctx()
+            ctx.session = SessionLocal()
+            latest = ctx.session.query(AuditEventModel).order_by(desc(AuditEventModel.event_index)).first()
+            ctx.next_idx = (latest.event_index + 1) if latest else 1
+            ctx.prev_hash = latest.current_hash if latest else ("0" * 64)
+            ctx.pending_cases = {}
+            ctx.pending_recs = {}
+            ctx.mark = None
+            self._tl.ctx = ctx
+        except Exception:
+            self._audit_lock.release()
+            raise
+
+    def batch_record_begin(self):
+        ctx = self._bctx()
+        ctx.mark = (set(ctx.session.new), ctx.next_idx, ctx.prev_hash, set(ctx.pending_cases), set(ctx.pending_recs))
+
+    def batch_record_abort(self):
+        """Discard everything staged since batch_record_begin (a single record failed)."""
+        ctx = self._bctx()
+        if not ctx or not ctx.mark:
+            return
+        before, idx, ph, cases, recs = ctx.mark
+        for obj in list(ctx.session.new):
+            if obj not in before:
+                ctx.session.expunge(obj)
+        ctx.next_idx, ctx.prev_hash = idx, ph
+        for k in list(ctx.pending_cases):
+            if k not in cases:
+                ctx.pending_cases.pop(k)
+        for k in list(ctx.pending_recs):
+            if k not in recs:
+                ctx.pending_recs.pop(k)
+
+    def commit_batch(self, warm_cache: bool = False):
+        ctx = self._bctx()
+        try:
+            ctx.session.commit()
+            self._latest_hash = ctx.prev_hash
+            if warm_cache:
+                for k, v in ctx.pending_cases.items():
+                    self._cache_put(k, v)
+        except Exception:
+            ctx.session.rollback()
+            raise
+        finally:
+            self._end_batch(ctx)
+
+    def rollback_batch(self):
+        ctx = self._bctx()
+        if ctx:
+            try:
+                ctx.session.rollback()
+            finally:
+                self._end_batch(ctx)
+
+    def _end_batch(self, ctx):
+        try:
+            ctx.session.close()
+        finally:
+            self._tl.ctx = None
+            self._audit_lock.release()
+
+    def existing_case_ids(self, ids: List[str]) -> set:
+        found = set()
+        ids = list(ids)
+        db: Session = SessionLocal()
+        try:
+            for i in range(0, len(ids), 400):
+                part = ids[i:i + 400]
+                rows = db.query(CaseModel.case_id).filter(CaseModel.case_id.in_(part)).all()
+                found.update(r[0] for r in rows)
+            return found
+        finally:
+            db.close()
+
+    def existing_uetrs(self, uetrs: List[str]) -> set:
+        found = set()
+        uetrs = [u for u in uetrs if u]
+        db: Session = SessionLocal()
+        try:
+            for i in range(0, len(uetrs), 400):
+                part = uetrs[i:i + 400]
+                rows = db.query(CaseModel.uetr).filter(CaseModel.uetr.in_(part)).all()
+                found.update(r[0] for r in rows)
+            return found
+        finally:
+            db.close()
+
+    def case_count(self) -> int:
+        db: Session = SessionLocal()
+        try:
+            return db.query(CaseModel).count()
+        finally:
+            db.close()
+
+    def audit_event_count(self) -> int:
+        db: Session = SessionLocal()
+        try:
+            return db.query(AuditEventModel).count()
+        finally:
+            db.close()
+
+    @staticmethod
+    def _audit_row_to_event(ev: AuditEventModel):
+        from app.schemas.audit import AuditEvent
+        try:
+            ts = datetime.fromisoformat(ev.timestamp.replace("Z", "+00:00").split("+")[0])
+        except (ValueError, TypeError, AttributeError):
+            ts = datetime.utcnow()
+        return AuditEvent(
+            event_index=ev.event_index, timestamp=ts, case_id=ev.case_id,
+            correlation_id=ev.correlation_id, stage_name=ev.stage_name, actor_id=ev.actor_id,
+            actor_role=ev.actor_role, action_name=ev.action_name, details=ev.details,
+            control_tags=ev.control_tags or [], prev_hash=ev.prev_hash, current_hash=ev.current_hash,
+        )
+
+    def recent_audit_events(self, limit: int = 200) -> List[Any]:
+        """Most recent events, returned in ascending event_index order."""
+        db: Session = SessionLocal()
+        try:
+            rows = db.query(AuditEventModel).order_by(desc(AuditEventModel.event_index)).limit(limit).all()
+            return [self._audit_row_to_event(r) for r in reversed(rows)]
+        finally:
+            db.close()
+
+    def case_audit_events(self, case_id: str) -> List[Any]:
+        db: Session = SessionLocal()
+        try:
+            rows = (db.query(AuditEventModel).filter(AuditEventModel.case_id == case_id)
+                    .order_by(AuditEventModel.event_index).all())
+            return [self._audit_row_to_event(r) for r in rows]
+        finally:
+            db.close()
 
     def save_approval(self, approval_record: Any):
         """Persists an approval record to database and caches."""
@@ -392,13 +562,17 @@ class PeXDBRepository:
     def save_case(self, case_dict: Dict[str, Any]):
         """Persists a case to database and updates in-memory cache."""
         case_id = case_dict["case_id"]
-        self._case_cache[case_id] = case_dict
+        ctx = self._bctx()
+        if ctx:
+            ctx.pending_cases[case_id] = case_dict
+        else:
+            self._cache_put(case_id, case_dict)
 
-        db: Session = SessionLocal()
+        db: Session = ctx.session if ctx else SessionLocal()
         try:
             existing = db.query(CaseModel).filter(CaseModel.case_id == case_id).first()
             if existing:
-                existing.status = str(case_dict.get("status"))
+                existing.status = normalize_status(case_dict.get("status"))
                 existing.queue = str(case_dict.get("queue"))
                 existing.amount = float(case_dict.get("amount", 0.0))
                 existing.currency = str(case_dict.get("currency", "USD"))
@@ -408,6 +582,11 @@ class PeXDBRepository:
                 existing.audit_timeline = _sanitize_for_json(case_dict.get("audit_timeline", []))
                 existing.guided_questions = _sanitize_for_json(case_dict.get("guided_questions", []))
                 existing.expedite_ping = case_dict.get("expedite_ping")
+                existing.maker_id = case_dict.get("maker_id")
+                existing.dispatch_status = case_dict.get("dispatch_status")
+                existing.handed_off_at = case_dict.get("handed_off_at")
+                existing.bank_ack_reference = case_dict.get("bank_ack_reference")
+                existing.bank_clearing_system = case_dict.get("bank_clearing_system")
             else:
                 new_c = CaseModel(
                     case_id=case_id,
@@ -427,7 +606,7 @@ class PeXDBRepository:
                     creditor_party=_sanitize_for_json(case_dict.get("creditor_party", {})),
                     creditor_account=_sanitize_for_json(case_dict.get("creditor_account", {})),
                     queue=str(case_dict.get("queue", "Repair")),
-                    status=str(case_dict.get("status", "PENDING_APPROVAL")),
+                    status=normalize_status(case_dict.get("status", "PENDING_APPROVAL")),
                     severity=str(case_dict.get("severity", "MEDIUM")),
                     priority=str(case_dict.get("priority", "NORMAL")),
                     sla_due_at=str(case_dict.get("sla_due_at", datetime.utcnow().isoformat())),
@@ -438,17 +617,29 @@ class PeXDBRepository:
                     approval_history=_sanitize_for_json(case_dict.get("approval_history", [])),
                     audit_timeline=_sanitize_for_json(case_dict.get("audit_timeline", [])),
                     guided_questions=_sanitize_for_json(case_dict.get("guided_questions", [])),
-                    expedite_ping=case_dict.get("expedite_ping")
+                    expedite_ping=case_dict.get("expedite_ping"),
+                    maker_id=case_dict.get("maker_id"),
+                    dispatch_status=case_dict.get("dispatch_status"),
+                    handed_off_at=case_dict.get("handed_off_at"),
+                    bank_ack_reference=case_dict.get("bank_ack_reference"),
+                    bank_clearing_system=case_dict.get("bank_clearing_system")
                 )
                 db.add(new_c)
-            db.commit()
+            if not ctx:
+                db.commit()
         except Exception as e:
+            if ctx:
+                raise
             db.rollback()
             print(f"[PeX DB Error] Failed to save case {case_id}: {e}")
         finally:
-            db.close()
+            if not ctx:
+                db.close()
 
     def get_case(self, case_id: str) -> Optional[Dict[str, Any]]:
+        ctx = self._bctx()
+        if ctx and case_id in ctx.pending_cases:
+            return ctx.pending_cases[case_id]
         if case_id in self._case_cache:
             return self._case_cache[case_id]
         
@@ -457,7 +648,7 @@ class PeXDBRepository:
             c = db.query(CaseModel).filter(CaseModel.case_id == case_id).first()
             if c:
                 d = self._case_to_dict(c)
-                self._case_cache[case_id] = d
+                self._cache_put(case_id, d)
                 return d
             return None
         finally:
@@ -504,11 +695,15 @@ class PeXDBRepository:
     ):
         """Appends a new cryptographically chained event directly into the DB and updates chain head."""
         with self._audit_lock:
-            db: Session = SessionLocal()
+            ctx = self._bctx()
+            db: Session = ctx.session if ctx else SessionLocal()
             try:
-                latest_ev = db.query(AuditEventModel).order_by(desc(AuditEventModel.event_index)).first()
-                idx = (latest_ev.event_index + 1) if latest_ev else 1
-                prev_hash = latest_ev.current_hash if latest_ev else ("0" * 64)
+                if ctx:
+                    idx, prev_hash = ctx.next_idx, ctx.prev_hash
+                else:
+                    latest_ev = db.query(AuditEventModel).order_by(desc(AuditEventModel.event_index)).first()
+                    idx = (latest_ev.event_index + 1) if latest_ev else 1
+                    prev_hash = latest_ev.current_hash if latest_ev else ("0" * 64)
                 ts = datetime.utcnow().isoformat()
 
                 current_hash = calculate_event_hash(
@@ -536,13 +731,19 @@ class PeXDBRepository:
                     current_hash=current_hash
                 )
                 db.add(ev)
-                db.commit()
-                self._latest_hash = current_hash
+                if ctx:
+                    ctx.next_idx, ctx.prev_hash = idx + 1, current_hash
+                else:
+                    db.commit()
+                    self._latest_hash = current_hash
             except Exception as e:
+                if ctx:
+                    raise
                 db.rollback()
                 print(f"[PeX DB Error] Failed to append audit event for {case_id}: {e}")
             finally:
-                db.close()
+                if not ctx:
+                    db.close()
 
     def _case_to_dict(self, c: CaseModel) -> Dict[str, Any]:
         return {
@@ -574,7 +775,12 @@ class PeXDBRepository:
             "approval_history": c.approval_history or [],
             "audit_timeline": c.audit_timeline or [],
             "guided_questions": c.guided_questions or [],
-            "expedite_ping": c.expedite_ping
+            "expedite_ping": c.expedite_ping,
+            "maker_id": getattr(c, "maker_id", None),
+            "dispatch_status": getattr(c, "dispatch_status", None),
+            "handed_off_at": getattr(c, "handed_off_at", None),
+            "bank_ack_reference": getattr(c, "bank_ack_reference", None),
+            "bank_clearing_system": getattr(c, "bank_clearing_system", None)
         }
 
     def _rec_to_schema(self, r: RecommendationModel):
@@ -626,14 +832,34 @@ class PeXDBRepository:
 
     def get_recommendation(self, case_id: str) -> Optional[Any]:
         """Returns the recommendation for a given case_id from cache or DB."""
-        return self._recommendations_cache.get(case_id)
+        ctx = self._bctx()
+        if ctx and case_id in ctx.pending_recs:
+            return ctx.pending_recs[case_id]
+        r = self._recommendations_cache.get(case_id)
+        if r is not None:
+            return r
+        db: Session = SessionLocal()
+        try:
+            m = db.query(RecommendationModel).filter(RecommendationModel.case_id == case_id).first()
+            if m:
+                r = self._rec_to_schema(m)
+                if len(self._recommendations_cache) < self._case_cache_max:
+                    self._recommendations_cache[case_id] = r
+                return r
+            return None
+        finally:
+            db.close()
 
     def save_recommendation(self, rec: Any):
         """Persists or updates a DecisionRecommendation in database and cache."""
         case_id = rec.case_id if hasattr(rec, "case_id") else rec.get("case_id")
-        self._recommendations_cache[case_id] = rec
+        ctx = self._bctx()
+        if ctx:
+            ctx.pending_recs[case_id] = rec
+        elif len(self._recommendations_cache) < self._case_cache_max or case_id in self._recommendations_cache:
+            self._recommendations_cache[case_id] = rec
 
-        db: Session = SessionLocal()
+        db: Session = ctx.session if ctx else SessionLocal()
         try:
             rec_id = rec.recommendation_id if hasattr(rec, "recommendation_id") else rec.get("recommendation_id")
             existing = db.query(RecommendationModel).filter(RecommendationModel.case_id == case_id).first()
@@ -684,12 +910,16 @@ class PeXDBRepository:
                     generated_at=raw_dict.get("generated_at") or datetime.utcnow()
                 )
                 db.add(new_rec)
-            db.commit()
+            if not ctx:
+                db.commit()
         except Exception as e:
+            if ctx:
+                raise
             db.rollback()
             print(f"[PeX DB Error] Failed to save recommendation for {case_id}: {e}")
         finally:
-            db.close()
+            if not ctx:
+                db.close()
 
     def _approval_to_schema(self, a: ApprovalRecordModel):
         from app.schemas.approval import ApprovalRecord, ApprovalAction, UserRole

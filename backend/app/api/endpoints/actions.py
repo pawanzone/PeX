@@ -7,6 +7,7 @@ from app.services.action_executor import action_executor
 from app.services.audit_service import audit_service
 from app.services.data_loader import repo
 from app.core.security import get_persona
+from app.core.auth import resolve_user_id
 from app.schemas.approval import UserRole
 
 router = APIRouter()
@@ -18,17 +19,7 @@ class ExecuteActionRequest(BaseModel):
 
 @router.post("/execute")
 def execute_action(req: ExecuteActionRequest, authorization: Optional[str] = Header(None)):
-    user_id = None
-    if authorization and authorization.startswith("Bearer pex-token-"):
-        user_id = authorization.replace("Bearer pex-token-", "").strip()
-    elif req.actor_id:
-        user_id = req.actor_id
-        
-    if not user_id:
-        raise HTTPException(
-            status_code=401,
-            detail="Authentication required: valid Authorization Bearer token or actor_id must be provided"
-        )
+    user_id = resolve_user_id(authorization, fallback=req.actor_id)
 
     actor = get_persona(user_id)
     if not actor:
@@ -81,9 +72,7 @@ class PingApproverRequest(BaseModel):
 
 @router.post("/ping-approver")
 def ping_approver(req: PingApproverRequest, authorization: Optional[str] = Header(None)):
-    user_id = req.actor_id or "OP-9012"
-    if authorization and authorization.startswith("Bearer pex-token-"):
-        user_id = authorization.replace("Bearer pex-token-", "").strip()
+    user_id = resolve_user_id(authorization, fallback=req.actor_id, default="OP-9012")
         
     actor = get_persona(user_id)
     actor_name = actor.name if actor else "Payment Operator"

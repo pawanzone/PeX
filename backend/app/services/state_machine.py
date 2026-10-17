@@ -1,11 +1,13 @@
-"""Governed State Machine & Transition Kernel for PeX Lifecycle.
+"""Governed State Machine & Transition Kernel for the PeX case lifecycle.
 
-Enforces allowed transition matrix and strict authority boundaries:
-- SETTLED and EXECUTED_CONFIRMED may be set ONLY by an inbound bank-signal handler.
-- Platform components cannot mark payments settled autonomously.
-- Enforces single transition choke point for all lifecycle updates.
+Invariants enforced here (and tested in tests/test_p05_hardening.py):
+  1. EVERY lifecycle status write goes through transition_case().
+  2. Transitions not in ALLOWED_TRANSITIONS raise IllegalTransition (no silent warnings).
+  3. SETTLED / EXECUTED_CONFIRMED (and bank REJECTED/FAILED outcomes) can ONLY be set with
+     is_bank_signal=True, i.e. from the authenticated inbound bank-outcome handler.
+  4. PeX never settles: the strongest state PeX can reach by itself is DISPATCHED (handed to bank).
 """
-from typing import Dict, Any, Optional, Union
+from typing import Dict, Any, Optional, Union, FrozenSet
 from datetime import datetime, timezone
 import logging
 
@@ -13,69 +15,63 @@ from app.schemas.canonical import LifecycleStage
 
 logger = logging.getLogger(__name__)
 
-# Normalize values to string for safe comparison
-ALLOWED_TRANSITIONS: Dict[Optional[str], list[str]] = {
-    None: [
-        "INGESTED", "CANONICALIZED", "VALIDATED", "RECOMMENDED",
-        "PENDING_APPROVAL", "DISPATCHED", "HANDED_TO_BANK", "SHADOW_RECORDED", "STATUS_UNKNOWN"
-    ],
-    "INGESTED": [
-        "CANONICALIZED", "VALIDATED", "INVESTIGATING", "RECOMMENDED",
-        "PENDING_APPROVAL", "DISPATCHED", "HANDED_TO_BANK", "SHADOW_RECORDED", "FAILED", "STATUS_UNKNOWN"
-    ],
-    "CANONICALIZED": [
-        "VALIDATED", "INVESTIGATING", "RECOMMENDED",
-        "PENDING_APPROVAL", "DISPATCHED", "HANDED_TO_BANK", "SHADOW_RECORDED", "FAILED", "STATUS_UNKNOWN"
-    ],
-    "VALIDATED": [
-        "INVESTIGATING", "RECOMMENDED",
-        "PENDING_APPROVAL", "DISPATCHED", "HANDED_TO_BANK", "SHADOW_RECORDED", "FAILED", "STATUS_UNKNOWN"
-    ],
-    "INVESTIGATING": [
-        "VALIDATED", "RECOMMENDED", "PENDING_APPROVAL", "FAILED", "STATUS_UNKNOWN"
-    ],
-    "RECOMMENDED": [
-        "PENDING_APPROVAL", "AWAITING_SECOND_APPROVAL", "APPROVED",
-        "DISPATCHED", "HANDED_TO_BANK", "SHADOW_RECORDED", "REJECTED", "ESCALATED", "FAILED", "STATUS_UNKNOWN"
-    ],
-    "PENDING_APPROVAL": [
-        "AWAITING_SECOND_APPROVAL", "APPROVED", "RETURNED_FOR_REWORK",
-        "REJECTED", "ESCALATED", "FAILED", "STATUS_UNKNOWN"
-    ],
-    "AWAITING_SECOND_APPROVAL": [
-        "APPROVED", "RETURNED_FOR_REWORK", "REJECTED", "ESCALATED", "FAILED", "STATUS_UNKNOWN"
-    ],
-    "RETURNED_FOR_REWORK": [
-        "PENDING_APPROVAL", "RECOMMENDED", "INVESTIGATING", "REJECTED", "FAILED", "STATUS_UNKNOWN"
-    ],
-    "APPROVED": [
-        "DISPATCHED", "HANDED_TO_BANK", "SHADOW_RECORDED", "FAILED", "STATUS_UNKNOWN"
-    ],
-    "DISPATCHED": [
-        "EXECUTED_CONFIRMED", "SETTLED", "FAILED", "STATUS_UNKNOWN"
-    ],
-    "HANDED_TO_BANK": [
-        "EXECUTED_CONFIRMED", "SETTLED", "FAILED", "STATUS_UNKNOWN"
-    ],
-    "EXECUTED_CONFIRMED": [
-        "SETTLED", "FAILED", "STATUS_UNKNOWN"
-    ],
-    "SHADOW_RECORDED": [
-        "STATUS_UNKNOWN"
-    ],
-    "SETTLED": [
-        "STATUS_UNKNOWN"
-    ],
-    "REJECTED": [
-        "STATUS_UNKNOWN"
-    ],
-    "FAILED": [
-        "STATUS_UNKNOWN"
-    ],
-    "STATUS_UNKNOWN": [
-        "INGESTED", "INVESTIGATING", "RECOMMENDED", "PENDING_APPROVAL", "FAILED"
-    ]
-}
+
+class IllegalTransition(ValueError):
+    """Raised when a lifecycle transition is not permitted."""
+
+
+# HANDED_TO_BANK is an alias of DISPATCHED (same canonical value).
+BANK_SIGNAL_ONLY: FrozenSet[str] = frozenset({"EXECUTED_CONFIRMED", "SETTLED"})
+BANK_SIGNAL_TARGETS: FrozenSet[str] = frozenset({"EXECUTED_CONFIRMED", "SETTLED", "REJECTED", "FAILED"})
+
+ALLOWED_TRANSITIONS: Dict[Optional[str], FrozenSet[str]] = {k: frozenset(v) for k, v in {
+    None: ["INGESTED", "CANONICALIZED", "VALIDATED", "RECOMMENDED", "PENDING_APPROVAL"],
+    "INGESTED": ["CANONICALIZED", "VALIDATED", "INVESTIGATING", "RECOMMENDED", "PENDING_APPROVAL",
+                 "ESCALATED", "FAILED", "STATUS_UNKNOWN"],
+    "CANONICALIZED": ["VALIDATED", "INVESTIGATING", "RECOMMENDED", "PENDING_APPROVAL", "ESCALATED", "FAILED"],
+    "VALIDATED": ["INVESTIGATING", "RECOMMENDED", "PENDING_APPROVAL", "ESCALATED", "FAILED"],
+    "INVESTIGATING": ["VALIDATED", "RECOMMENDED", "PENDING_APPROVAL", "ESCALATED", "FAILED"],
+    "RECOMMENDED": ["PENDING_APPROVAL", "APPROVED", "SHADOW_RECORDED", "INVESTIGATING", "REJECTED",
+                    "ESCALATED", "FAILED"],
+    "PENDING_APPROVAL": ["AWAITING_SECOND_APPROVAL", "APPROVED", "RETURNED_FOR_REWORK", "REJECTED",
+                         "ESCALATED", "RECOMMENDED", "FAILED"],
+    "AWAITING_SECOND_APPROVAL": ["APPROVED", "RETURNED_FOR_REWORK", "REJECTED", "ESCALATED", "PENDING_APPROVAL"],
+    "RETURNED_FOR_REWORK": ["PENDING_APPROVAL", "RECOMMENDED", "INVESTIGATING", "REJECTED", "ESCALATED"],
+    "ESCALATED": ["PENDING_APPROVAL", "RECOMMENDED", "REJECTED"],
+    "APPROVED": ["DISPATCHED", "SHADOW_RECORDED", "FAILED"],
+    "DISPATCHED": ["EXECUTED_CONFIRMED", "SETTLED", "REJECTED", "FAILED", "STATUS_UNKNOWN"],
+    "EXECUTED_CONFIRMED": ["SETTLED", "FAILED", "STATUS_UNKNOWN"],
+    "STATUS_UNKNOWN": ["EXECUTED_CONFIRMED", "SETTLED", "REJECTED", "FAILED", "INVESTIGATING"],
+    "SHADOW_RECORDED": [],
+    "SETTLED": [],
+    "REJECTED": [],
+    "FAILED": ["PENDING_APPROVAL"],
+}.items()}
+
+
+def normalize_status(value: Any) -> Optional[str]:
+    """Canonical string for a status (handles Enum members and 'LifecycleStage.X' strings; HANDED_TO_BANK -> DISPATCHED)."""
+    if value is None:
+        return None
+    if hasattr(value, "value"):
+        value = value.value
+    s = str(value).strip()
+    if s.startswith("LifecycleStage."):
+        s = s[len("LifecycleStage."):]
+    if s == "HANDED_TO_BANK":
+        s = "DISPATCHED"
+    return s or None
+
+
+def _get(case: Any, key: str):
+    return case.get(key) if isinstance(case, dict) else getattr(case, key, None)
+
+
+def _set(case: Any, key: str, value: Any):
+    if isinstance(case, dict):
+        case[key] = value
+    elif hasattr(case, key):
+        setattr(case, key, value)
 
 
 def transition_case(
@@ -86,90 +82,67 @@ def transition_case(
     is_bank_signal: bool = False,
     dispatch_status: Optional[str] = None,
     settled_at: Optional[str] = None,
-    details: Optional[Dict[str, Any]] = None
+    details: Optional[Dict[str, Any]] = None,
+    system_reset: bool = False,
 ) -> Any:
-    """Executes a governed state transition on a case.
-    
-    Validates allowed-transition table and enforces that SETTLED and EXECUTED_CONFIRMED
-    can ONLY be set by an inbound bank-signal handler (is_bank_signal=True).
+    """Executes a governed lifecycle transition on a case (dict or ORM object).
+
+    system_reset=True bypasses the transition table (seed/demo reset only) but NEVER the
+    bank-signal rule for SETTLED/EXECUTED_CONFIRMED.
     """
-    to_state_str = to_state.value if hasattr(to_state, "value") else str(to_state)
+    to_s = normalize_status(to_state)
+    from_s = normalize_status(_get(case, "status"))
 
-    # Strict constraint: SETTLED and EXECUTED_CONFIRMED may be set ONLY by an inbound bank signal
-    if to_state_str in ["SETTLED", "EXECUTED_CONFIRMED"] and not is_bank_signal:
-        raise ValueError(
-            f"State transition to {to_state_str} is prohibited: SETTLED and EXECUTED_CONFIRMED "
-            f"may be set ONLY by an inbound bank-signal handler (/api/bank/outcome). Actor: {actor}."
+    if to_s in BANK_SIGNAL_ONLY and not is_bank_signal:
+        raise IllegalTransition(
+            f"Transition to {to_s} is prohibited: it may be set ONLY by an authenticated inbound bank "
+            f"signal (/api/bank/outcome). Actor: {actor}."
         )
+    if is_bank_signal and to_s not in BANK_SIGNAL_TARGETS:
+        raise IllegalTransition(f"A bank signal may only produce {sorted(BANK_SIGNAL_TARGETS)}, not {to_s}.")
 
-    # Determine current status
-    if isinstance(case, dict):
-        from_state = case.get("status")
-    elif hasattr(case, "status"):
-        from_state = getattr(case, "status")
-    else:
-        from_state = None
-
-    from_state_str = from_state.value if hasattr(from_state, "value") else (str(from_state) if from_state else None)
-
-    # Validate transition
-    allowed = ALLOWED_TRANSITIONS.get(from_state_str)
-    if allowed is None:
-        allowed = ALLOWED_TRANSITIONS.get(None, [])
-
-    # If from_state equals to_state, it's idempotent
-    if from_state_str != to_state_str and to_state_str not in allowed and "DISPATCHED" not in allowed and to_state_str != "HANDED_TO_BANK":
-        logger.warning(
-            f"Transition warning: {from_state_str} -> {to_state_str} by {actor}. Reason: {reason}"
-        )
+    if from_s != to_s and not system_reset:
+        allowed = ALLOWED_TRANSITIONS.get(from_s)
+        if allowed is None or to_s not in allowed:
+            raise IllegalTransition(f"Illegal lifecycle transition {from_s} -> {to_s} by {actor}. Reason given: {reason}")
 
     now_iso = datetime.now(timezone.utc).isoformat()
+    _set(case, "status", to_s)
+    if dispatch_status:
+        _set(case, "dispatch_status", dispatch_status)
+    if to_s == "DISPATCHED":
+        _set(case, "handed_off_at", now_iso)
+    if to_s in ("EXECUTED_CONFIRMED", "SETTLED", "REJECTED", "FAILED") and is_bank_signal:
+        _set(case, "dispatch_status", "BANK_" + to_s)
+    if to_s == "SETTLED":
+        _set(case, "settled_at", settled_at or _get(case, "settled_at") or now_iso)
+    elif settled_at:
+        _set(case, "settled_at", settled_at)
 
-    # Apply status mutation
-    if isinstance(case, dict):
-        case["status"] = to_state_str
-        if dispatch_status:
-            case["dispatch_status"] = dispatch_status
-        if settled_at:
-            case["settled_at"] = settled_at
-        elif to_state_str == "SETTLED" and not case.get("settled_at"):
-            case["settled_at"] = now_iso
-
-        # Append to live timeline
-        tl = case.get("audit_timeline")
-        if isinstance(tl, list):
-            tl.append({
-                "step_index": len(tl) + 1,
-                "timestamp": now_iso,
-                "actor_name": actor,
-                "actor_role": "BANK_OUTCOME" if is_bank_signal else "SYSTEM",
-                "badge_color": "emerald" if to_state_str in ["SETTLED", "EXECUTED_CONFIRMED", "APPROVED"] else ("blue" if to_state_str in ["DISPATCHED", "HANDED_TO_BANK"] else "amber"),
-                "action_title": f"Lifecycle Transition: {to_state_str}",
-                "icon": "✓" if to_state_str == "SETTLED" else "⚡",
-                "summary": reason
-            })
-    elif hasattr(case, "status"):
-        setattr(case, "status", to_state_str)
-        if dispatch_status and hasattr(case, "dispatch_status"):
-            setattr(case, "dispatch_status", dispatch_status)
-        if hasattr(case, "settled_at"):
-            if settled_at:
-                setattr(case, "settled_at", settled_at)
-            elif to_state_str == "SETTLED":
-                setattr(case, "settled_at", now_iso)
-
-        if hasattr(case, "audit_timeline"):
-            tl = list(getattr(case, "audit_timeline") or [])
-            tl.append({
-                "step_index": len(tl) + 1,
-                "timestamp": now_iso,
-                "actor_name": actor,
-                "actor_role": "BANK_OUTCOME" if is_bank_signal else "SYSTEM",
-                "badge_color": "emerald" if to_state_str in ["SETTLED", "EXECUTED_CONFIRMED", "APPROVED"] else "blue",
-                "action_title": f"Lifecycle Transition: {to_state_str}",
-                "icon": "✓" if to_state_str == "SETTLED" else "⚡",
-                "summary": reason
-            })
-            setattr(case, "audit_timeline", tl)
-
+    # Append to the case timeline
+    tl = _get(case, "audit_timeline")
+    color = ("emerald" if to_s in ("SETTLED", "EXECUTED_CONFIRMED", "APPROVED")
+             else "blue" if to_s in ("DISPATCHED", "RECOMMENDED", "VALIDATED")
+             else "red" if to_s in ("REJECTED", "FAILED", "STATUS_UNKNOWN") else "amber")
+    entry_title = {"DISPATCHED": "Handed to bank (awaiting confirmation)",
+                   "SHADOW_RECORDED": "Shadow mode: recommendation recorded, no action taken",
+                   "EXECUTED_CONFIRMED": "Bank confirmed execution", "SETTLED": "Bank confirmed settlement",
+                   "STATUS_UNKNOWN": "Execution status unknown: do not resend"}.get(to_s, f"Lifecycle transition: {to_s}")
+    entry = {
+        "step_index": (len(tl) + 1) if isinstance(tl, list) else 1,
+        "timestamp": now_iso,
+        "actor_name": actor,
+        "actor_role": "BANK_OUTCOME" if is_bank_signal else "SYSTEM",
+        "badge_color": color,
+        "action_title": entry_title,
+        "icon": "✓" if to_s in ("SETTLED", "EXECUTED_CONFIRMED") else "⚡",
+        "summary": reason,
+    }
+    if isinstance(tl, list):
+        if isinstance(case, dict):
+            tl.append(entry)
+        else:
+            _set(case, "audit_timeline", list(tl) + [entry])
+    elif tl is None and not isinstance(case, dict) and hasattr(case, "audit_timeline"):
+        _set(case, "audit_timeline", [entry])
     return case

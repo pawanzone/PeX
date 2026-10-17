@@ -7,7 +7,8 @@ from app.schemas.action import GovernedActionContract, DeliveryReceipt, ActionSt
 from app.schemas.canonical import LifecycleStage
 from app.schemas.recommendation import ActionType
 from app.services.data_loader import repo
-from app.services.state_machine import transition_case
+from app.services.state_machine import transition_case, normalize_status
+from app.services.outbound_port import dispatch_to_bank_handoff
 
 
 class ActionExecutor:
@@ -36,8 +37,10 @@ class ActionExecutor:
             existing_receipt = repo.receipts.get(existing.action_id)
             return True, "Idempotent response: action already handed off.", existing, existing_receipt
 
-        if case.get("status") not in [LifecycleStage.APPROVED.value, LifecycleStage.APPROVED]:
-            return False, f"Cannot execute action: Case status is {case.get('status')}, expected APPROVED.", None, None
+        if normalize_status(case.get("status")) != LifecycleStage.APPROVED.value:
+            st = normalize_status(case.get("status"))
+            hint = " Do NOT resend: the bank has not confirmed." if st == "STATUS_UNKNOWN" else ""
+            return False, f"Cannot execute action: Case status is {st}, expected APPROVED.{hint}", None, None
 
         last_approval = approvals[-1]
         rec = repo.recommendations.get(case_id)
@@ -63,21 +66,22 @@ class ActionExecutor:
             settled_at=None
         )
 
-        repo.actions[actual_idempotency_key] = action_contract
-
-        # All status writes go strictly through transition_case
-        transition_case(
-            case=case,
-            to_state=LifecycleStage.HANDED_TO_BANK,
-            actor=f"{last_approval.approver_name} ({last_approval.approver_role.value if hasattr(last_approval.approver_role, 'value') else last_approval.approver_role})",
-            reason="Governed action authorized and handed to bank execution system; awaiting bank ACK.",
-            dispatch_status="AWAITING_BANK_ACK"
-        )
+        # Single outbound choke point: mode-aware (SHADOW suppresses, ASSISTED needs a named human approver).
+        actor_label = f"{last_approval.approver_name} ({last_approval.approver_role.value if hasattr(last_approval.approver_role, 'value') else last_approval.approver_role})"
+        result = dispatch_to_bank_handoff(
+            case, action_contract=action_contract, actor=actor_label,
+            approved_by=last_approval.approver_id,
+            reason="Governed action authorized and handed to bank execution system; awaiting bank ACK.")
         case["expedite_ping"] = None
         repo.save_case(case)
+        if not result["dispatched"] and result["mode"] != "SHADOW":
+            return False, result["message"], None, None
 
-        # No synthetic ACK-SIM receipt is generated. Bank ACK will arrive via /api/bank/outcome.
-        return True, "Action successfully handed off to bank systems for execution (awaiting bank ACK).", action_contract, None
+        repo.actions[actual_idempotency_key] = action_contract
+        if result["mode"] == "SHADOW":
+            return True, "SHADOW mode: recommendation recorded; nothing was sent to the bank.", action_contract, None
+        # No synthetic receipt is generated. The bank's answer arrives via the signed /api/bank/outcome path.
+        return True, "Action handed off to the bank (awaiting bank confirmation).", action_contract, None
 
 
 action_executor = ActionExecutor()

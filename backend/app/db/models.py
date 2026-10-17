@@ -72,6 +72,12 @@ class CaseModel(Base):
     audit_timeline = Column(JSON, default=list)
     guided_questions = Column(JSON, default=list)
     expedite_ping = Column(JSON, nullable=True)
+    # P0.5: persisted control fields (previously lived only in the in-memory dict and were lost on restart)
+    maker_id = Column(String(64), nullable=True, index=True)
+    dispatch_status = Column(String(64), nullable=True, index=True)
+    handed_off_at = Column(String(64), nullable=True)
+    bank_ack_reference = Column(String(128), nullable=True)
+    bank_clearing_system = Column(String(64), nullable=True)
 
     __table_args__ = (
         Index("ix_cases_domain_status", "domain", "status"),
@@ -233,3 +239,16 @@ class ICDConfigurationModel(Base):
     checker_comments = Column(Text, nullable=True)
     approved_at = Column(DateTime, nullable=True)
 
+
+
+class BankOutcomeModel(Base):
+    """Idempotency + evidence record for every inbound bank outcome signal."""
+    __tablename__ = "bank_outcomes"
+
+    idempotency_key = Column(String(160), primary_key=True)
+    case_id = Column(String(64), nullable=False, index=True)
+    outcome = Column(String(32), nullable=False)
+    bank_reference = Column(String(128), nullable=False)
+    clearing_system = Column(String(64), nullable=True)
+    received_at = Column(String(64), nullable=False)
+    signature_verified = Column(Boolean, default=False)

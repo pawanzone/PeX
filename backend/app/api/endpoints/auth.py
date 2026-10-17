@@ -1,35 +1,39 @@
-"""Authentication & Persona Endpoints."""
+"""Authentication & Persona Endpoints (demo persona login; production identity = bank IdP/SSO, not built yet)."""
 from fastapi import APIRouter, HTTPException, Header
 from typing import List, Optional
 
+from app.config import settings
+from app.core.auth import create_token, resolve_user_id
 from app.schemas.auth import UserPersona, LoginRequest, LoginResponse
 from app.core.security import DEMO_PERSONAS, get_persona
 
 router = APIRouter()
 
+
+def _require_demo():
+    if not settings.PEX_DEMO:
+        raise HTTPException(status_code=404, detail="Persona login is disabled (PEX_DEMO=false). Configure bank SSO.")
+
+
 @router.get("/personas", response_model=List[UserPersona])
 def list_personas():
+    _require_demo()
     return list(DEMO_PERSONAS.values())
+
 
 @router.post("/login", response_model=LoginResponse)
 def login(req: LoginRequest):
+    _require_demo()
     persona = get_persona(req.user_id)
     if not persona:
         raise HTTPException(status_code=404, detail="Persona not found")
-    
-    # In demo mode, token is user_id prefixed
-    token = f"pex-token-{persona.user_id}"
-    return LoginResponse(
-        access_token=token,
-        token_type="bearer",
-        user=persona
-    )
+    return LoginResponse(access_token=create_token(persona.user_id), token_type="bearer", user=persona)
+
 
 @router.get("/me", response_model=UserPersona)
 def get_current_user(authorization: Optional[str] = Header(None)):
-    user_id = "OP-8472" # Default to Amina Okafor
-    if authorization and authorization.startswith("Bearer pex-token-"):
-        user_id = authorization.replace("Bearer pex-token-", "").strip()
-    
-    persona = get_persona(user_id) or DEMO_PERSONAS["OP-8472"]
+    user_id = resolve_user_id(authorization, default="OP-8472")
+    persona = get_persona(user_id)
+    if not persona:
+        raise HTTPException(status_code=401, detail="Unknown user")
     return persona

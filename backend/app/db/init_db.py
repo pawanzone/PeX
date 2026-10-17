@@ -40,6 +40,33 @@ def create_tables():
             conn.commit()
         except Exception as e:
             pass
+        # P0.5: persisted control fields on cases
+        try:
+            res = conn.execute(text("PRAGMA table_info(cases)"))
+            cols = [row[1] for row in res.fetchall()]
+            for name, ddl in [
+                ("maker_id", "VARCHAR(64)"), ("dispatch_status", "VARCHAR(64)"),
+                ("handed_off_at", "VARCHAR(64)"), ("bank_ack_reference", "VARCHAR(128)"),
+                ("bank_clearing_system", "VARCHAR(64)"),
+            ]:
+                if cols and name not in cols:
+                    conn.execute(text(f"ALTER TABLE cases ADD COLUMN {name} {ddl}"))
+            conn.commit()
+        except Exception as e:
+            pass
+        # P0.5 scale: indexes for paged/filtered case queries (idempotent)
+        for ddl in [
+            "CREATE INDEX IF NOT EXISTS ix_cases_created_at ON cases (created_at)",
+            "CREATE INDEX IF NOT EXISTS ix_cases_payment_rail ON cases (payment_rail)",
+            "CREATE INDEX IF NOT EXISTS ix_cases_profile_status ON cases (profile, status)",
+            "CREATE INDEX IF NOT EXISTS ix_audit_events_case_id ON audit_events (case_id)",
+            "CREATE INDEX IF NOT EXISTS ix_recommendations_case_id ON recommendations (case_id)",
+        ]:
+            try:
+                conn.execute(text(ddl))
+                conn.commit()
+            except Exception:
+                pass
 
 def seed_users(db: Session):
     """Populates initial user personas and RBAC roles."""
