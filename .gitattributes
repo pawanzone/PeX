@@ -3,3 +3,4 @@
 *.pptx binary
 *.docx binary
 *.db binary
+*.bat text eol=crlf
