@@ -14,6 +14,8 @@ interface Session {
 const Ctx = createContext<Session>({ personas: [], persona: null, note: null, switchTo: async () => false, epoch: 0 });
 export const useSession = () => useContext(Ctx);
 const KEY = "pex.v2.persona";
+/** older personas that share a name with a current one; hidden so the persona menu has no look-alikes */
+const LEGACY_DUPLICATES = new Set(["OP-1001", "OP-8472", "CMP-5502"]);
 const DEFAULT_PERSONA = "OP-9012"; // Priya Nair (Maker): first screen is the maker home (design 01)
 
 export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -37,7 +39,7 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
   useEffect(() => {
     (async () => {
       let list: UserPersona[] = [];
-      try { list = await fetchPersonas(); setPersonas(list); } catch (e: any) { setNote(e?.message || "Could not load personas"); return; }
+      try { list = (await fetchPersonas()).filter((p) => !LEGACY_DUPLICATES.has(p.user_id)); setPersonas(list); } catch (e: any) { setNote(e?.message || "Could not load personas"); return; }
       let saved: string | null = null;
       try { saved = window.localStorage.getItem(KEY); } catch { /* ignore */ }
       const pick = list.find((p) => p.user_id === saved) || list.find((p) => p.user_id === DEFAULT_PERSONA) || list[0];
