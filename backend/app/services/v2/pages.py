@@ -226,7 +226,7 @@ def build_actions(case: Dict[str, Any], ext: Dict[str, Any], variant: str, user)
         if has_perm(user, "compliance.decide"):
             cd = ext.get("compliance") or {}
             sr = (cd.get("second_review") or {})
-            acts.append(_action(cid, "compliance_release", "Release hold · false match", "primary", True, None, path="compliance/decision"))
+            acts.append(_action(cid, "compliance_release", "Clear hold · false match (returns to approval)", "primary", True, None, path="compliance/decision"))
             acts.append(_action(cid, "compliance_confirm_block", "Confirm match · block payment", "danger", True, None, path="compliance/decision"))
             acts.append(_action(cid, "compliance_escalate", "Escalate to Senior Compliance", "secondary", True, None, path="compliance/decision"))
         else:
@@ -373,7 +373,7 @@ def _compliance(case, ext):
     sr = cd.get("second_review") or {"required": False, "state": "none", "first_reviewer": None}
     return {
         "alert": alert, "party_comparison": cmp_rows, "notes": cd.get("notes") or [], "attachments": cd.get("attachments") or [],
-        "decisions": [{"key": "release", "label": "Release hold · false match", "needs_second_reviewer": False},
+        "decisions": [{"key": "release", "label": "Clear hold · false match (returns to approval)", "needs_second_reviewer": False},
                       {"key": "confirm_block", "label": "Confirm match · block payment", "needs_second_reviewer": True},
                       {"key": "escalate", "label": "Escalate to Senior Compliance", "needs_second_reviewer": False}],
         "reason_codes": COMPLIANCE_REASONS, "second_review": sr, "decision": cd.get("decision"),

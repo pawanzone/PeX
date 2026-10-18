@@ -164,6 +164,9 @@ def approve_gate(case: Dict[str, Any], user) -> Tuple[bool, str, str]:
     if not ok:
         code = "SOD_VIOLATION" if "Segregation" in msg else ("LIMIT_EXCEEDED" if "limit" in msg.lower() else "FORBIDDEN")
         return False, code, msg
+    rel = ((ext_of(case).get("compliance") or {}).get("released_by") or {}).get("user_id")
+    if rel and rel == user.user_id:
+        return False, "SOD_VIOLATION", "You cleared the screening hold on this case. A Risk Approver (not you) must authorise the handoff."
     if st == "AWAITING_SECOND_APPROVAL":
         l1 = [a for a in (case.get("approval_history") or []) if int((a or {}).get("step_number", 1)) == 1
               and str((a or {}).get("action")) in ("APPROVE", "ApprovalAction.APPROVE", "MODIFY")]

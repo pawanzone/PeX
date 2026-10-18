@@ -77,7 +77,7 @@ Legend. p05 = React app on `demo/p05`. v2 = React app on `ui/v2`. Decision: KEEP
 ## 10. Workflow 5D: Compliance and sanctions
 - **p05:** backend `CLEAR_FALSE_POSITIVE` and `GRANT_KYC_WAIVER` in `approval_engine.py`; no React UI.
 - **v2:** `#/compliance` and `#/compliance/case/<id>`: alert, party-versus-listed-entity table, decisions Release hold (false match), Confirm match and block (needs a second reviewer), Escalate. Each needs reason code and comment. No repair actions.
-- **Decision: CHANGED.** Compliance holds never offer repair. KYC waiver is not in v2 (a waiver is a policy exception that needs its own approval design). Open product question: a released hold currently goes straight to "Handed to bank (simulated)". It should probably return to approval first.
+- **Decision: CHANGED.** Compliance holds never offer repair. KYC waiver is not in v2 (a waiver is a policy exception that needs its own approval design). Decided 18 Oct: clearing a hold returns the payment to the approval queue; a Risk Approver (not the person who cleared it) authorises any bank handoff.
 
 ## 11. Workflow 5E: Tier-2 dual authorisation
 - **p05:** `AWAITING_SECOND_APPROVAL` supported (`state_machine.py`, `approval_engine.py`).
@@ -121,7 +121,7 @@ New header: search box, mode and bank-simulated chips, "Demo data" chip, clock, 
 1. Notification bell and expedite-ping UI (backend exists).
 2. Rules and Policy Studio screen (backend exists); policy thresholds are read-only.
 3. Skills Hub / SOP screen and token-vault demonstration.
-4. KYC waiver action; compliance "release hold" goes straight to the bank handoff.
+4. KYC waiver action.
 5. "Run AI reasoner on all cases" bulk action.
 6. Highlight of check digits in the diff (the UI highlights any differing characters).
 7. Supervisor Home action buttons only navigate; Team workload "Reassign" not wired.

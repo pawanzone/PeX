@@ -40,7 +40,7 @@ Admin sub-tabs (Roles and permissions, Policies, Exception types) are read-only.
 - New script `scripts/make_ui_test_batch.py` for the manual batch JSON test.
 
 ## Things I noticed and did not change
-- Releasing a compliance hold moves the case straight to "Handed to bank (simulated)". Product question: should a released hold go back through approval first?
+- Clearing a compliance hold returns the case to the approval queue (decided 18 Oct). Only a Risk Approver other than the person who cleared it can then authorise the bank handoff.
 - Log noise `FolderInputAdapter ingestion note: 'str' object has no attribute 'model_dump'` during batch processing: caught, case creation unaffected, in code this branch did not touch (`FolderInputAdapter`). Needs a proper look.
 - Two older file-watcher e2e tests fail identically on the baseline (they expect SETTLED, get SHADOW_RECORDED); `test_p0_remediation` needs `PEX_ALLOW_LEGACY_TOKENS=true` and a writable DB path.
 - Repo noise not to commit: `.fuse_hidden*`, `backend/pex_demo_run.db-shm/-wal`, `pex_enterprise.db-wal`, stale `.git/stale-*` lock files.

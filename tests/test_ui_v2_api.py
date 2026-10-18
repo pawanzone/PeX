@@ -390,3 +390,23 @@ def test_reprocess_rejected_records(client, tmp_path, isolated_pipeline):
     fixed["profile_id"] = good["profile_id"]
     r = client.post(f"/api/v2/batches/{bid}/reprocess", files={"file": ("fixed.jsonl", io.BytesIO((json.dumps(fixed) + "\n").encode()), "application/json")}, headers=H(MAKER))
     assert r.status_code == 200 and r.json()["parent_batch_id"] == bid
+
+
+def test_compliance_release_returns_to_approval_not_bank(client):
+    """Clearing a sanctions hold must not hand anything to the bank; an approver must still authorise."""
+    cid = "PEX-CUS-0067"
+    post(client, CMP, f"/cases/{cid}/compliance/decision", {"decision": "release", "reason_code": "FALSE_POSITIVE", "comment": "Different DOB and country."})
+    assert repo.get_case(cid)["status"] in ("PENDING_APPROVAL", "AWAITING_SECOND_APPROVAL")
+    assert page(client, cid)["variant"] == "APPROVAL"
+    assert repo.get_case(cid)["status"] not in ("APPROVED", "DISPATCHED", "EXECUTED_CONFIRMED", "SETTLED")
+    # the compliance officer cannot push it to the bank herself
+    post(client, CMP, f"/cases/{cid}/approve", {"reviewed": True}, expect=403)
+
+
+def test_released_compliance_case_needs_the_risk_approver(client):
+    cid = "PEX-CUS-0067"
+    post(client, CMP, f"/cases/{cid}/compliance/decision", {"decision": "release", "reason_code": "FALSE_POSITIVE", "comment": "Different DOB and country."})
+    post(client, CMP, f"/cases/{cid}/approve", {"reviewed": True}, expect=403)   # releaser cannot approve
+    post(client, APPR, f"/cases/{cid}/approve", {"reviewed": True}, expect=403)  # ops approver is not in the Compliance queue
+    post(client, "RSK-7714", f"/cases/{cid}/approve", {"reviewed": True})        # the Risk Approver can authorise the handoff
+    assert repo.get_case(cid)["status"] in ("APPROVED", "DISPATCHED", "SHADOW_RECORDED")

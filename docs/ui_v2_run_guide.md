@@ -59,7 +59,7 @@ Open http://localhost:5173 (it proxies `/api` to 127.0.0.1:8000). The first scre
 3. **Cases (04-07):** `#/worklist/case/PEX-INV-0002` (submit needs a handover note), `PEX-BEN-0012` (request information, reassess), `PEX-CON-0031` (three sources, "Why STP is blocked", start verification), `PEX-TMO-0044` (Check status: first still unknown, second accepted; "Do not resend" blocked).
 4. **Priya submits PEX-INV-0002** (note required) -> switch to **Mei Tan**, Approvals (08): tick "I reviewed", Approve. Case shows "Handed to bank, waiting for confirmation"; after about 6 seconds and a refresh it shows "Executed by bank" (journey 12 B then C). Priya cannot approve her own case (separation of duties).
 5. **Mei, Approvals > Review low-risk batch (09):** 12 eligible micro-repairs (mixed currencies) and 3 not eligible with reasons (conflict, compliance hold, validation failed). Approve selected.
-6. **Amara Okafor, Compliance (10):** open PEX-SAN-0102. No repair actions exist. Release hold, Confirm match (needs a second reviewer: Kenji Watanabe), Escalate.
+6. **Amara Okafor, Compliance (10):** open PEX-SAN-0102. No repair actions exist. Clear hold (returns the payment to approval; nothing is sent to the bank; then log in as Kenji Watanabe, Risk Approver, to authorise it; Amara cannot), Confirm match (needs a second reviewer: Kenji Watanabe), Escalate.
 7. **Rhea Kapoor, Audit (13):** filter, open an event (hash sealed and verified), export CSV.
 8. **Tomas Berg, Admin > Integrations (14):** six simulated systems; request a mode change, then sign in as Alex Whitfield and approve it (the requester cannot).
 

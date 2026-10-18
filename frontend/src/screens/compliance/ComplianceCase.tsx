@@ -14,7 +14,7 @@ const RESULT: Record<string, { tone: "amber" | "grey" | "green" | "red"; icon: R
   not_comparable: { tone: "grey", icon: Minus, label: "Not comparable" },
 };
 const DEFAULT_DECISIONS = [
-  { key: "release", label: "Release hold · false match" },
+  { key: "release", label: "Clear hold · false match (returns to approval)" },
   { key: "confirm_block", label: "Confirm match · block payment", needs_second_reviewer: true },
   { key: "escalate", label: "Escalate to Senior Compliance" },
 ];

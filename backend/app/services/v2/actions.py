@@ -619,23 +619,21 @@ def compliance_decision(case_id: str, user, decision: Optional[str], reason_code
               ["Four-eyes", "Compliance decision"], before=before, after=lg.status_of(case), reason=f"[{rc}] {cm}", policy_version=POLICY_VERSION, sod="Passed (two different reviewers)")
         return result(case_id, user, "Match confirmed by a second reviewer. The payment is blocked and will not be released.", second_review=sr)
 
-    # release
+    # release: the compliance officer clears the screening hold only. The payment then goes back
+    # through the normal approval queue; compliance never hands a payment to the bank itself.
     _ensure_pending(case, user, ext)
-    ok, msg, record, nxt = approval_engine.process_approval_action(
-        ApprovalSubmission(case_id=case_id, action=ApprovalAction.CLEAR_FALSE_POSITIVE, comments=f"[{rc}] {cm}"), approver_id=user.user_id)
-    if not ok:
-        raise _map_engine_error(msg)
+    case = _load(case_id)
     cd["released"] = True
     cd["decision"] = {"decision": "release", "by": user.user_id, "at": iso(now()), "reason_code": rc}
+    cd["released_by"] = person(user.user_id)
+    cd["released_at"] = iso(now())
     ext["compliance"] = cd
-    case = _load(case_id)
     touch(case, ext)
-    audit(case, user, "COMPLIANCE_DECISION", "COMPLIANCE_HOLD_RELEASED", f"{user.name} released the hold on {case_id} (false match).", ["Compliance decision", "False positive cleared"],
-          before=before, after=lg.status_of(case), reason=f"[{rc}] {cm}", policy_version=POLICY_VERSION, sod="Passed")
-    if lg.status_of(case) == "APPROVED":
-        _handoff(case_id, user, ext)
     xt.persist_ext(case_id, ext)
-    return result(case_id, user, "Hold released. The payment continues to the bank handoff (simulated); not yet executed.")
+    audit(case, user, "COMPLIANCE_DECISION", "COMPLIANCE_HOLD_RELEASED", f"{user.name} cleared the screening hold on {case_id} (false match). The payment returns to the approval queue; nothing was handed to the bank.",
+          ["Compliance decision", "False positive cleared", "Returned to approval"], before=before, after=lg.status_of(case), reason=f"[{rc}] {cm}", policy_version=POLICY_VERSION, sod="Passed")
+    notify("APPROVAL", f"{case_id} ready for approval", f"{user.name} cleared the sanctions hold. A Risk Approver must authorise before any bank handoff.", case_id, target_role="RISK_APPROVER")
+    return result(case_id, user, "Hold released. The payment is back in the approval queue; it is not handed to the bank until an approver authorises it.")
 
 
 # ----------------------------------------------------------------------------------------------
