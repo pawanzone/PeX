@@ -3,7 +3,7 @@ from fastapi import APIRouter
 
 from app.api.endpoints import (
     auth, cases, events, approvals, actions, analytics,
-    adapters, governance, ontology, copilot, audit, rules, stp, bank, system, batch, summary
+    adapters, governance, ontology, copilot, audit, rules, stp, bank, system, batch, summary, v2
 )
 
 api_router = APIRouter()
@@ -23,6 +23,7 @@ api_router.include_router(bank.router, prefix="/bank", tags=["Bank Systems Inbou
 api_router.include_router(system.router, prefix="/system", tags=["System"])
 api_router.include_router(batch.router, prefix="/batch", tags=["Batch I/O"])
 api_router.include_router(summary.router, prefix="/summary", tags=["Summary Counts"])
+api_router.include_router(v2.router, prefix="/v2", tags=["UI v2"])
 api_router.include_router(rules.router)
 api_router.include_router(stp.router)
 

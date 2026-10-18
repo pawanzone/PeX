@@ -103,7 +103,23 @@ DEMO_PERSONAS: Dict[str, UserPersona] = {
         avatar_initials="AW",
         badge_color="slate",
         max_approval_amount=10000000.0
-    )
+    ),
+    "SUP-2001": UserPersona(user_id="SUP-2001", name="Elena Marsh", email="e.marsh@pexbank.internal", role=UserRole.SUPERVISOR,
+        title="Supervisor — Payment Operations", department="Payment Repair Operations", avatar_initials="EM", badge_color="indigo", max_approval_amount=0.0),
+    "OP-9020": UserPersona(user_id="OP-9020", name="Marcus Lee", email="m.lee@pexbank.internal", role=UserRole.OPERATOR,
+        title="Payments Analyst", department="Payment Repair Operations", avatar_initials="ML", badge_color="blue", max_approval_amount=0.0),
+    "OP-9021": UserPersona(user_id="OP-9021", name="Sofia Rossi", email="s.rossi@pexbank.internal", role=UserRole.OPERATOR,
+        title="Payments Analyst", department="Payment Repair Operations", avatar_initials="SR", badge_color="blue", max_approval_amount=0.0),
+    "OP-9022": UserPersona(user_id="OP-9022", name="Chen Wei", email="c.wei@pexbank.internal", role=UserRole.OPERATOR,
+        title="Payments Analyst", department="Payment Repair Operations", avatar_initials="CW", badge_color="blue", max_approval_amount=0.0),
+    "APR-3192": UserPersona(user_id="APR-3192", name="Mei Tan", email="m.tan@pexbank.internal", role=UserRole.OPERATIONS_APPROVER,
+        title="Operations Approver", department="Payment Exceptions", avatar_initials="MT", badge_color="emerald", max_approval_amount=250000.0),
+    "CMP-6001": UserPersona(user_id="CMP-6001", name="Amara Okafor", email="am.okafor@pexbank.internal", role=UserRole.COMPLIANCE_APPROVER,
+        title="Compliance Officer", department="Financial Crime Compliance", avatar_initials="AO", badge_color="amber", max_approval_amount=5000000.0),
+    "AUD-5001": UserPersona(user_id="AUD-5001", name="Rhea Kapoor", email="r.kapoor@pexbank.internal", role=UserRole.AUDIT_RISK,
+        title="Audit and Risk (read only)", department="Internal Audit and Risk", avatar_initials="RK", badge_color="slate", max_approval_amount=0.0),
+    "ADM-0002": UserPersona(user_id="ADM-0002", name="Tomas Berg", email="t.berg@pexbank.internal", role=UserRole.ADMIN,
+        title="Administrator", department="Platform Governance", avatar_initials="TB", badge_color="slate", max_approval_amount=0.0),
 }
 
 ROLE_MAX_APPROVAL_LIMITS: Dict[UserRole, float] = {
@@ -112,6 +128,8 @@ ROLE_MAX_APPROVAL_LIMITS: Dict[UserRole, float] = {
     UserRole.COMPLIANCE_APPROVER: 5000000.0,
     UserRole.RISK_APPROVER: 10000000.0,
     UserRole.ADMIN: 10000000.0,
+    UserRole.SUPERVISOR: 0.0,
+    UserRole.AUDIT_RISK: 0.0,
 }
 
 def get_persona(user_id: str) -> Optional[UserPersona]:
@@ -125,8 +143,8 @@ def check_can_approve(
     persona: Optional[UserPersona] = None,
     maker_id: Optional[str] = None
 ) -> Tuple[bool, str]:
-    if role == UserRole.OPERATOR:
-        return False, "Operators cannot approve repairs (Maker-Checker policy violation)."
+    if role in (UserRole.OPERATOR, UserRole.SUPERVISOR, UserRole.AUDIT_RISK):
+        return False, "This role cannot approve repairs (Maker-Checker policy: only approvers authorise)."
     
     # Enforce Segregation of Duties (Maker != Approver)
     if user_id and maker_id:

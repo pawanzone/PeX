@@ -60,6 +60,8 @@ class Settings(BaseModel):
     BANK_COMM_MODE: str = os.getenv("PEX_BANK_COMM_MODE", "SIMULATED")      # SIMULATED only for now
     SIM_BANK_ACK_SECONDS: float = float(os.getenv("PEX_SIM_BANK_ACK_SECONDS", "6"))
     STATUS_UNKNOWN_AFTER_SECONDS: float = float(os.getenv("PEX_STATUS_UNKNOWN_AFTER_SECONDS", "300"))
+    BATCH_APPROVAL_MAX_AMOUNT: float = float(os.getenv("PEX_BATCH_APPROVAL_MAX", "25000"))  # one-click supervised batch (human approves); autonomous STP stays at STP_MAX_AMOUNT
+    SEED_V2: bool = os.getenv("PEX_SEED_V2", "true").lower() == "true"
     STP_MAX_AMOUNT: float = float(os.getenv("PEX_STP_MAX_AMOUNT", "10000"))  # conservative default; bank-configurable
 
     # Local LLM (OpenAI-compatible endpoint, e.g. Ollama http://localhost:11434/v1). Advisory only.

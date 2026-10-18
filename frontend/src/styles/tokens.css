@@ -1,0 +1,16 @@
+/* PeX v2 design tokens. Mirrors tailwind.config.js; use CSS vars for non-Tailwind consumers. */
+:root {
+  --pex-navy: #0B2A4A;
+  --pex-surface: #F4F6F9;
+  --pex-card: #FFFFFF;
+  --pex-line: #E2E8F0;
+  --pex-primary: #0070AD;
+  --pex-ok: #16794C;
+  --pex-wait: #B45309;
+  --pex-block: #B42318;
+  --pex-radius: 12px;
+}
+.pex-mono { font-family: 'JetBrains Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+.pex-focus:focus-visible, button:focus-visible, a:focus-visible, [role="tab"]:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 2px solid #0070AD; outline-offset: 2px;
+}

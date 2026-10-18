@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import gzip
 import io
+import hashlib
 import json
 import logging
 import os
@@ -262,7 +263,8 @@ class BatchPipeline:
     def new_batch_id(self, prefix: str = "BATCH") -> str:
         return f"{prefix}-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}-{uuid.uuid4().hex[:6].upper()}"
 
-    def submit_file(self, path: Path, batch_id: Optional[str] = None, filename: Optional[str] = None) -> str:
+    def submit_file(self, path: Path, batch_id: Optional[str] = None, filename: Optional[str] = None,
+                    parent_batch_id: Optional[str] = None, source: Optional[str] = None) -> str:
         path = Path(path)
         batch_id = batch_id or self._id_from_name(path)
         meta = {
@@ -277,6 +279,7 @@ class BatchPipeline:
             "records_per_sec": 0.0,
             "mode": str(getattr(settings, "PEX_OPERATION_MODE", "SHADOW")).upper(),
             "summary": None, "error": None,
+            "needs_review": 0, "parent_batch_id": parent_batch_id, "source": source,
         }
         with self._lock:
             self._batches[batch_id] = meta
@@ -297,14 +300,15 @@ class BatchPipeline:
             bid = f"{bid}-{uuid.uuid4().hex[:6].upper()}"
         return bid
 
-    def save_upload(self, filename: str, fileobj) -> str:
+    def save_upload(self, filename: str, fileobj, parent_batch_id: Optional[str] = None) -> str:
         """Persist an uploaded stream into the inbox and enqueue it. Returns batch_id."""
-        batch_id = self.new_batch_id("UPL")
+        batch_id = self.new_batch_id("UPL" if not parent_batch_id else "RPR")
         safe = _SAFE.sub("_", Path(filename or "upload.json").name)
         dest = self.inbox / f"{batch_id}__{safe}"
         with open(dest, "wb") as out:
             shutil.copyfileobj(fileobj, out, 1 << 20)
-        return self.submit_file(dest, batch_id=batch_id, filename=safe)
+        return self.submit_file(dest, batch_id=batch_id, filename=safe, parent_batch_id=parent_batch_id,
+                                source="Reprocess" if parent_batch_id else "Upload")
 
     def scan_inbox(self) -> List[str]:
         """Pick up stable streaming-format files dropped into the inbox. Never touches e2e_fixtures/."""
@@ -323,7 +327,7 @@ class BatchPipeline:
             self._seen_sizes[p.name] = sig
             if prev != sig or time.time() - st.st_mtime < 1.0:
                 continue  # still being written
-            started.append(self.submit_file(p))
+            started.append(self.submit_file(p, source="Bank adapter"))
         return started
 
     def claims(self, name: str) -> bool:
@@ -343,7 +347,8 @@ class BatchPipeline:
     @staticmethod
     def _public(m: Dict[str, Any]) -> Dict[str, Any]:
         keys = ("batch_id", "filename", "status", "total", "processed", "failed", "duplicates",
-                "progress", "started_at", "finished_at", "records_per_sec", "summary", "mode", "error", "note", "queued_at")
+                "progress", "started_at", "finished_at", "records_per_sec", "summary", "mode", "error", "note", "queued_at",
+                "needs_review", "parent_batch_id", "source", "stages", "archive")
         return {k: m.get(k) for k in keys}
 
     def results_path(self, batch_id: str) -> Path:
@@ -476,10 +481,21 @@ class BatchPipeline:
         meta["progress"] = 1.0
         meta["status"] = "COMPLETED"
         meta["finished_at"] = summary["finished_at"]
+        arch_at = _now()
         try:
             shutil.move(str(src), str(self.archive / src.name))
+            h = hashlib.sha256()
+            with open(self.archive / src.name, "rb") as fh:
+                for blk in iter(lambda: fh.read(1 << 20), b""):
+                    h.update(blk)
+            meta["archive"] = {"archived": True, "checksum": "sha256:" + h.hexdigest(), "verified": True, "at": arch_at,
+                               "path": str(self.archive / src.name)}
         except Exception as e:  # pragma: no cover
             logger.warning("archive move failed: %s", e)
+            meta["archive"] = {"archived": False, "checksum": None, "verified": False, "at": arch_at}
+        meta["stages"] = {"received": meta.get("queued_at"), "schema_checked": meta.get("started_at"),
+                          "duplicates_checked": meta.get("started_at"), "cases_created": meta.get("finished_at"), "archived": arch_at}
+        summary["needs_review"] = meta.get("needs_review", 0)
         self._persist(meta)
 
     def _process_chunk(self, chunk, bid, src, watcher, repo, Model, counts, stats, meta,
@@ -494,7 +510,12 @@ class BatchPipeline:
                 parsed.append((idx, raw, None, "Record is not a JSON object"))
                 continue
             try:
-                parsed.append((idx, raw, Model(**raw), None))
+                _m = Model(**raw)
+                _pid = (_m.profile_id or "").upper()
+                if _pid and not _known_profile(_pid):
+                    parsed.append((idx, raw, None, f"Unknown exception type: {_m.profile_id}"))
+                else:
+                    parsed.append((idx, raw, _m, None))
             except Exception as e:
                 msg = str(e).replace("\n", " ")[:400]
                 parsed.append((idx, raw, None, f"Schema validation failed: {msg}"))
@@ -523,6 +544,8 @@ class BatchPipeline:
                 seen_uetr.add(u)
             work.append((idx, raw, model))
 
+        dupe_of = self._possible_duplicates(work, stats)
+
         # 3) one transaction per chunk
         if work:
             repo.begin_batch()
@@ -543,6 +566,11 @@ class BatchPipeline:
                             seen_uetr.discard(model.payment_info.uetr)
                         self._fail(meta, counts, fail_f, lines, idx, raw, f"Processing error: {type(e).__name__}: {e}")
                 repo.commit_batch()
+                try:
+                    from app.services.v2.core import ext_store
+                    ext_store.flush()
+                except Exception:  # pragma: no cover
+                    pass
             except Exception as e:
                 repo.rollback_batch()
                 logger.exception("chunk commit failed in %s", bid)
@@ -552,6 +580,16 @@ class BatchPipeline:
                                f"Chunk transaction rolled back: {type(e).__name__}: {e}")
                 ok_lines = []
             for ln, output, model in ok_lines:
+                if model.exception_id in dupe_of:
+                    ln["needs_review"] = True
+                    ln["possible_duplicate_of"] = dupe_of[model.exception_id]
+                    meta["needs_review"] = meta.get("needs_review", 0) + 1
+                    try:
+                        from app.services.v2.core import ext_store
+                        ext_store.patch(model.exception_id, possible_duplicate_of=dupe_of[model.exception_id])
+                        ext_store.flush()
+                    except Exception:  # pragma: no cover
+                        pass
                 meta["processed"] += 1
                 counts["status"][ln["status"]] += 1
                 counts["queue"][ln["queue"]] += 1
@@ -568,6 +606,42 @@ class BatchPipeline:
         lines.sort(key=lambda l: l["record_index"])
         for ln in lines:
             res_f.write(json.dumps(ln, default=str) + "\n")
+
+    @staticmethod
+    def _possible_duplicates(work, stats) -> Dict[str, str]:
+        """Records that are NOT identical (different id/UETR) but match an existing case, or an earlier record of this
+        batch, on payment reference + amount + currency + creditor. Returned as {exception_id: matching_case_id}."""
+        out: Dict[str, str] = {}
+        if not work:
+            return out
+        from app.db.models import CaseModel
+        from app.db.session import SessionLocal
+
+        def key_of(m):
+            p = m.payment_info
+            return (p.remittance_info or f"REF-{p.payment_id}", round(float(p.amount), 2), p.currency, (p.creditor_name or "").strip().lower())
+
+        refs = list({key_of(m)[0] for _, _, m in work})
+        existing: Dict[Tuple[str, float, str, str], str] = {}
+        db = SessionLocal()
+        try:
+            for i in range(0, len(refs), 500):
+                for c in db.query(CaseModel).filter(CaseModel.payment_ref.in_(refs[i:i + 500])).all():
+                    cp = c.creditor_party or {}
+                    nm = str((cp.get("party_name") if isinstance(cp, dict) else cp) or "").strip().lower()
+                    existing.setdefault((c.payment_ref, round(float(c.amount), 2), c.currency, nm), c.case_id)
+        except Exception:  # pragma: no cover
+            pass
+        finally:
+            db.close()
+        seen = stats.setdefault("dupkeys", {})
+        for _, _, m in work:
+            k = key_of(m)
+            hit = existing.get(k) or seen.get(k)
+            if hit and hit != m.exception_id:
+                out[m.exception_id] = hit
+            seen.setdefault(k, m.exception_id)
+        return out
 
     @staticmethod
     def _trim_ports(watcher, keep: Optional[int] = None):
@@ -602,6 +676,8 @@ class BatchPipeline:
             "amount": p.amount, "status": status, "queue": None, "stp_eligible": False,
             "predicates": None, "recommended_action": None, "proposed_changes": [],
             "decision_reason": None, "evidence_summary": None, "errors": errors or [],
+            "source_reference": ((getattr(model, "processing_metadata", None) or {}).get("source_reference")
+                                 or (getattr(model, "raw_payload", None) or {}).get("source_reference") or model.exception_id),
         }
 
     def _ok_line(self, idx, model, output, final_status, case) -> Dict[str, Any]:
@@ -636,6 +712,8 @@ class BatchPipeline:
             "currency": pi.get("currency"), "amount": pi.get("amount"), "status": "FAILED", "queue": None,
             "stp_eligible": False, "predicates": None, "recommended_action": None, "proposed_changes": [],
             "decision_reason": None, "evidence_summary": None, "errors": [err],
+            "source_reference": ((raw.get("source_reference") or (raw.get("processing_metadata") or {}).get("source_reference")
+                                  or (raw.get("raw_payload") or {}).get("source_reference") or eid) if isinstance(raw, dict) else None),
         })
         fail_f.write(json.dumps({"record_index": idx, "error": err, "record": raw}, default=str) + "\n")
 
@@ -648,6 +726,14 @@ class BatchPipeline:
             "handoff_status": output.bank_handoff_status, "bank_comm": "SIMULATED",
             "execution_owner": "BANK", "note": "Instruction package for the bank's own systems. PeX does not execute or settle.",
         }
+
+
+def _known_profile(pid: str) -> bool:
+    try:
+        from app.services.file_watcher import PROFILE_CODE_TO_ENUM
+        return pid in PROFILE_CODE_TO_ENUM or pid in {e.value for e in PROFILE_CODE_TO_ENUM.values()}
+    except Exception:  # pragma: no cover
+        return True
 
 
 def _peak_rss_mb() -> Optional[float]:

@@ -252,3 +252,75 @@ class BankOutcomeModel(Base):
     clearing_system = Column(String(64), nullable=True)
     received_at = Column(String(64), nullable=False)
     signature_verified = Column(Boolean, default=False)
+
+
+# ---------------------------------------------------------------------------------------------
+# UI v2 extension tables (additive; nothing above is changed)
+# ---------------------------------------------------------------------------------------------
+class CaseExtModel(Base):
+    """Per-case UI v2 working data (assignee, cutoff, evidence rows, handover note, request-info state...)."""
+    __tablename__ = "v2_case_ext"
+
+    case_id = Column(String(64), primary_key=True, index=True)
+    data = Column(JSON, nullable=False, default=dict)
+    updated_at = Column(String(64), nullable=True)
+
+
+class V2SavedViewModel(Base):
+    __tablename__ = "v2_saved_views"
+
+    id = Column(String(32), primary_key=True)
+    owner_id = Column(String(64), nullable=False, index=True)
+    name = Column(String(128), nullable=False)
+    filters = Column(JSON, nullable=False, default=dict)
+    sort = Column(String(32), nullable=True)
+    created_at = Column(String(64), nullable=False)
+
+
+class V2NotificationModel(Base):
+    __tablename__ = "v2_notifications"
+
+    id = Column(String(32), primary_key=True)
+    target_user_id = Column(String(64), nullable=True, index=True)
+    target_role = Column(String(64), nullable=True, index=True)
+    kind = Column(String(32), nullable=False)
+    case_id = Column(String(64), nullable=True, index=True)
+    title = Column(String(256), nullable=False)
+    text = Column(Text, nullable=True)
+    created_at = Column(String(64), nullable=False)
+    read_by = Column(JSON, nullable=False, default=list)
+
+
+class V2ModeChangeModel(Base):
+    __tablename__ = "v2_mode_changes"
+
+    id = Column(String(32), primary_key=True)
+    integration_id = Column(String(64), nullable=False, index=True)
+    from_mode = Column(String(16), nullable=False)
+    to_mode = Column(String(16), nullable=False)
+    reason = Column(Text, nullable=True)
+    state = Column(String(32), nullable=False, default="PENDING_SECOND_ADMIN")
+    requested_by = Column(String(64), nullable=False)
+    requested_at = Column(String(64), nullable=False)
+    decided_by = Column(String(64), nullable=True)
+    decided_at = Column(String(64), nullable=True)
+
+
+class V2IntegrationModel(Base):
+    """Simulated integration registry (mode is the only mutable field and only via a two-admin change)."""
+    __tablename__ = "v2_integrations"
+
+    id = Column(String(64), primary_key=True)
+    mode = Column(String(16), nullable=False, default="SHADOW")
+    health = Column(String(16), nullable=False, default="healthy")
+    health_note = Column(String(256), nullable=True)
+    queue = Column(Integer, nullable=False, default=0)
+    last_event_at = Column(String(64), nullable=True)
+
+
+class V2IdempotencyModel(Base):
+    __tablename__ = "v2_idempotency"
+
+    key = Column(String(190), primary_key=True)
+    response = Column(JSON, nullable=False, default=dict)
+    created_at = Column(String(64), nullable=False)

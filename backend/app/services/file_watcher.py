@@ -718,6 +718,16 @@ class FileWatcherService:
         # Save case
         repo.save_case(case_dict)
 
+        # UI v2: store per-case working data (evidence rows, change summary, batch reference). Never blocks processing.
+        try:
+            from app.services.v2.ext import ext_from_e2e
+            from app.services.v2.core import ext_store
+            ext_store.put(case_dict["case_id"], ext_from_e2e(case_dict, e2e_input, output, batch_id, record_index))
+            if not repo._bctx():
+                ext_store.flush()
+        except Exception as _e:  # pragma: no cover
+            logger.warning(f"[PeX Watcher] v2 extension not stored for {case_dict['case_id']}: {_e}")
+
         # 7. Persist Structured Recommendation
         self._attach_recommendation(e2e_input, output)
 

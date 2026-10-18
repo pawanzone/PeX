@@ -1,8 +1,12 @@
 """Pytest configuration and shared fixtures for PeX test suite."""
+import os
 import pytest
 import sys
 from pathlib import Path
 from fastapi.testclient import TestClient
+
+# UI v2 demo data is seeded explicitly by tests/test_ui_v2_api.py
+os.environ.setdefault("PEX_SEED_V2", "false")
 
 # Add backend directory to sys.path
 backend_dir = Path(__file__).resolve().parent.parent / "backend"

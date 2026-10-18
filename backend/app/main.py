@@ -66,6 +66,34 @@ def shutdown_services():
     sim_bank_worker.stop()
     print("PeX Inbound File Monitoring stopped cleanly.")
 
+# UI v2 error shape: {"error": {code, message, field}, "detail": message}
+from fastapi import Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+from app.services.v2.core import V2Error
+
+
+@app.exception_handler(V2Error)
+async def _v2_error_handler(request: Request, exc: V2Error):
+    return JSONResponse(status_code=exc.status, content=exc.body())
+
+
+@app.exception_handler(RequestValidationError)
+async def _validation_handler(request: Request, exc: RequestValidationError):
+    if request.url.path.startswith(f"{settings.API_V1_STR}/v2"):
+        errs = exc.errors()
+        first = errs[0] if errs else {}
+        loc = [str(x) for x in first.get("loc", []) if x not in ("body", "query", "path")]
+        msg = f"{'.'.join(loc) or 'request'}: {first.get('msg', 'invalid')}"
+        return JSONResponse(status_code=422, content={"error": {"code": "VALIDATION", "message": msg, "field": loc[-1] if loc else None}, "detail": msg})
+    return JSONResponse(status_code=422, content={"detail": jsonable_errors(errs=exc.errors())})
+
+
+def jsonable_errors(errs):
+    from fastapi.encoders import jsonable_encoder
+    return jsonable_encoder(errs)
+
+
 # Mount API routes
 app.include_router(api_router, prefix=settings.API_V1_STR)
 

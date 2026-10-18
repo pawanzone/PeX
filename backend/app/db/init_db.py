@@ -68,9 +68,26 @@ def create_tables():
             except Exception:
                 pass
 
+def ensure_personas(db: Session):
+    """Upserts any demo persona missing from an existing DB (keeps older DBs working after new personas are added)."""
+    existing = {u.user_id for u in db.query(UserModel.user_id).all()}
+    added = 0
+    for p in DEMO_PERSONAS.values():
+        if p.user_id in existing:
+            continue
+        db.add(UserModel(user_id=p.user_id, name=p.name, email=p.email,
+                         role=p.role.value if hasattr(p.role, "value") else str(p.role), title=p.title,
+                         department=p.department, avatar_initials=p.avatar_initials, badge_color=p.badge_color,
+                         max_approval_amount=p.max_approval_amount, is_active=True, created_at=datetime.utcnow()))
+        added += 1
+    if added:
+        db.commit()
+
+
 def seed_users(db: Session):
     """Populates initial user personas and RBAC roles."""
     if db.query(UserModel).count() > 0:
+        ensure_personas(db)
         return
 
     for p in DEMO_PERSONAS.values():
@@ -662,9 +679,15 @@ def init_db(force_reseed: bool = False):
     create_tables()
     db = SessionLocal()
     try:
+        fresh_db = db.query(CaseModel).count() == 0
         seed_users(db)
         seed_initial_data(db, force_reseed=force_reseed)
         seed_policy_rules(db, force_reseed=force_reseed)
         seed_icd_configs(db, force_reseed=force_reseed)
+        try:
+            from app.services.v2.seed import maybe_auto_seed
+            maybe_auto_seed(db, fresh=(fresh_db or force_reseed))
+        except Exception as e:  # never block startup
+            print(f"[PeX DB] UI v2 seed skipped: {e}")
     finally:
         db.close()

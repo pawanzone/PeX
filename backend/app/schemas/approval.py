@@ -11,6 +11,8 @@ class UserRole(str, Enum):
     COMPLIANCE_APPROVER = "COMPLIANCE_APPROVER"
     RISK_APPROVER = "RISK_APPROVER"
     ADMIN = "ADMIN"
+    SUPERVISOR = "SUPERVISOR"
+    AUDIT_RISK = "AUDIT_RISK"
 
 class ApprovalAction(str, Enum):
     APPROVE = "APPROVE"
