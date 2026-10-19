@@ -26,9 +26,9 @@ $env:PEX_OPERATION_MODE="ASSISTED"
 $env:PEX_BANK_CALLBACK_SECRET="demo-secret"
 $env:JWT_SECRET="demo-jwt-secret"
 $env:SIM_BANK_ACK_SECONDS="6"
-python -m uvicorn app.main:app --port 8000
+python -m uvicorn app.main:app --port 8001
 ```
-Check: http://127.0.0.1:8000/api/system/info shows JSON with mode ASSISTED and bank SIMULATED.
+Check: http://127.0.0.1:8001/api/system/info shows JSON with mode ASSISTED and bank SIMULATED.
 
 **Reset or refresh the demo data** (do this shortly before you demo, because cutoffs are relative to seed time):
 stop the backend, delete `backend\pex_v2_demo.db*`, start again. Or, without deleting: `python ..\scripts\seed_ui_v2_demo.py --force` with the same environment variables set.
@@ -38,7 +38,7 @@ stop the backend, delete `backend\pex_v2_demo.db*`, start again. Or, without del
 cd C:\Users\pawan\.gemini\antigravity\scratch\pex_platform\demo_build\frontend
 npm run dev
 ```
-Open http://localhost:5173 (it proxies `/api` to 127.0.0.1:8000). The first screen is the maker home as Priya Nair. Switch persona from the menu top right.
+Open http://localhost:5174 (it proxies `/api` to 127.0.0.1:8001). The first screen is the maker home as Priya Nair. Switch persona from the menu top right.
 
 ## 4. Personas
 | Name | Role | Use for |
@@ -78,10 +78,15 @@ Open http://localhost:5173 (it proxies `/api` to 127.0.0.1:8000). The first scre
 7. Backend log may print `FolderInputAdapter ingestion note: 'str' object has no attribute 'model_dump'`: known, harmless to the result, to be fixed.
 
 ## 7. If something does not load
-- Page blank or "could not load": open http://127.0.0.1:8000/api/system/info. If that fails the backend is not running or died (read terminal 1). If it works, hard-refresh the page.
-- The Vite proxy points at `127.0.0.1:8000` on purpose (Node resolves `localhost` to IPv6 on your machine).
+- Page blank or "could not load": open http://127.0.0.1:8001/api/system/info. If that fails the backend is not running or died (read terminal 1). If it works, hard-refresh the page.
+- The Vite proxy points at `127.0.0.1:8001` on purpose (Node resolves `localhost` to IPv6 on your machine).
 - Slow first load: note the Network tab timings (which request is slow) and send them.
 - Sign-in problems after a server restart: pick a persona again from the top-right menu.
 
 ## 8. What is real and what is simulated
 Real: the case lifecycle and state machine, maker-checker and separation of duties, approval limits and dual authorisation, hash-chained audit, evidence rules, batch pipeline, idempotency. Simulated: the bank payment engine and its acknowledgement (only a signed inbound bank signal can make a case "Executed"), sanctions screening, directories, core ledger, notifications delivery, all customer contact. PeX never executes or settles a payment itself.
+
+
+## Running next to the original AG demo
+
+PeX v2 uses ports **8001** (backend) and **5174** (frontend). The original AG demo keeps **8000** (open http://127.0.0.1:8000/). Both can run at the same time. `run\stop_all.bat` stops only the v2 servers.
