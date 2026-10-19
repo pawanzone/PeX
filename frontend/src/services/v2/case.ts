@@ -71,6 +71,13 @@ export interface CasePage {
   request_information?: RequestInfoDto | null; decision_form?: DecisionForm | null;
   handoff?: { handoff_id?: string; sent_at?: string; mode?: string; bank_comm?: string; awaiting?: string } | null;
   bank?: { reference?: string; confirmed_at?: string; clearing_system?: string } | null;
+  confidence?: {
+    profile: string; profile_id: string; family: string; family_name: string; coverage_pct: number; confidence_pct: number; raw_pct: number; penalty_pct: number;
+    threshold: number; extra_approval: boolean; applies: boolean; label: string; reasons: string[]; gates_missing: string[]; standards: string;
+    pillars: Record<string, { name: string; weight: number; score_pct: number }>;
+    items: Array<{ name: string; role: string; weight: number; pillar: string; pillar_name: string; gate: boolean; state: string; source_class: string; source: string; connection: string }>;
+    review: { required: boolean; state: string; reviewed_by?: Person | null; reviewed_at?: string | null; comment?: string | null; can_review: boolean; endpoint: string };
+  } | null;
   recommendation?: { summary?: string; reasoning?: string[]; confidence_label?: string; source?: string } | null;
   journey?: JourneyDto | null;
   actions?: CaseAction[];

@@ -9,6 +9,7 @@ from app.config import settings
 from app.core.security import check_can_approve, get_persona
 from app.services.state_machine import normalize_status
 from app.services.v2 import ext as xt
+from app.services.v2 import evidence_model as em
 from app.services.v2.core import (
     now, parse_ts, iso, cutoff_obj, money, rail_obj, profile_code, profile_label, domain_of, is_compliance, party_name,
     account_str, role_of, has_perm, person, ROLE_LABELS,
@@ -73,6 +74,50 @@ def derive_variant(case: Dict[str, Any], ext: Optional[Dict[str, Any]] = None) -
         if ext.get("change"):
             return "DECISION"
     return "GENERIC"
+
+
+def confidence_of(case: Dict[str, Any], ext: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
+    """Evidence coverage % and decision confidence % for the case's error type (see evidence_model.py).
+
+    Item states are derived from the case's evidence state; `ext["confidence_inputs"]` ({"missing": [...], "stale": [...], "ambiguity": n})
+    lets a connector or a demo case say which evidence items were not available. Compliance cases keep their own workflow."""
+    ext = ext if ext is not None else ext_of(case)
+    code = profile_code(case.get("profile"))
+    if code not in em.PROFILES:
+        nm = str(getattr(case.get("profile"), "value", case.get("profile")) or "").split(".")[-1].upper()
+        code = (em.BY_PROFILE.get(nm) or (None,))[0]
+        if not code:
+            return None
+    name, standards, items = em.PROFILES[code]
+    ci = ext.get("confidence_inputs") or {}
+    states = {i["name"]: "PRESENT" for i in items}
+    amb = float(ci.get("ambiguity", 0) or 0)
+    es = evidence_state(ext)
+    gates = [i for i in items if i["gate"]]
+    if es == "conflict" and gates:
+        states[gates[0]["name"]] = "CONFLICT"
+        amb = max(amb, 15.0)
+    elif es == "missing" and gates:
+        states[gates[0]["name"]] = "MISSING"
+    for n in ci.get("missing") or []:
+        if n in states:
+            states[n] = "MISSING"
+    for n in ci.get("stale") or []:
+        if n in states:
+            states[n] = "STALE"
+    res = em.score(name, states, amb)
+    res["family_name"] = em.FAMILY_NAMES[res["family"]]
+    res["standards"] = standards
+    res["applies"] = not is_compliance(case)
+    res["items"] = [{"name": i["name"], "role": i["role"], "weight": i["weight"], "pillar": i["pillar"], "pillar_name": em.PILLAR_NAMES[i["pillar"]],
+                     "gate": i["gate"], "state": states[i["name"]], "source_class": em.SYSTEMS[i["system"]][0],
+                     "source": em.SYSTEMS[i["system"]][1], "connection": em.SYSTEMS[i["system"]][2]} for i in items]
+    return res
+
+
+def review_pending(ext: Dict[str, Any]) -> bool:
+    cr = ext.get("confidence_review") or {}
+    return bool(cr.get("required")) and cr.get("state") == "pending"
 
 
 def waiting(case: Dict[str, Any], ext: Dict[str, Any]) -> bool:
@@ -152,8 +197,8 @@ def next_action(case: Dict[str, Any], ext: Dict[str, Any], variant: str, viewer=
 # ----------------------------------------------------------------------------------------------
 # Authorisation gate for checker actions (shared by page, actions and STP)
 # ----------------------------------------------------------------------------------------------
-def approve_gate(case: Dict[str, Any], user) -> Tuple[bool, str, str]:
-    """Returns (allowed, code, message)."""
+def approve_gate(case: Dict[str, Any], user, for_decline: bool = False) -> Tuple[bool, str, str]:
+    """Returns (allowed, code, message). `for_decline` skips the evidence-review hold (a checker may always return or reject)."""
     st = status_of(case)
     if not has_perm(user, "case.approve"):
         return False, "FORBIDDEN", f"{ROLE_LABELS.get(role_of(user), role_of(user))} cannot approve repairs."
@@ -164,6 +209,15 @@ def approve_gate(case: Dict[str, Any], user) -> Tuple[bool, str, str]:
     if not ok:
         code = "SOD_VIOLATION" if "Segregation" in msg else ("LIMIT_EXCEEDED" if "limit" in msg.lower() else "FORBIDDEN")
         return False, code, msg
+    ext0 = ext_of(case)
+    if not for_decline:
+        cr = ext0.get("confidence_review") or {}
+        if review_pending(ext0):
+            return False, "EVIDENCE_REVIEW_REQUIRED", (f"Decision confidence is {cr.get('confidence_pct')}%, below the {em.CONFIDENCE_THRESHOLD}% threshold. "
+                                                      "A second person must review the evidence before this can be approved.")
+        rb = (cr.get("reviewed_by") or {}).get("user_id")
+        if cr.get("state") == "confirmed" and rb and rb == user.user_id:
+            return False, "SOD_VIOLATION", "You carried out the evidence review on this case. A different approver must authorise the handoff."
     rel = ((ext_of(case).get("compliance") or {}).get("released_by") or {}).get("user_id")
     if rel and rel == user.user_id:
         return False, "SOD_VIOLATION", "You cleared the screening hold on this case. A Risk Approver (not you) must authorise the handoff."

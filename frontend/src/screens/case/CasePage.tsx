@@ -12,6 +12,7 @@ import { BannerFromApi, chipTone, errText, journeyVariant, mapJourney } from "./
 import { BankBlock, ChangeBlock, ConflictBlock, DecisionBrief, EvidenceBlock, HandoverNote, NeededBlock, ReassessBlock, RequestInfoForm, StatusUnknownBlock } from "./blocks";
 import type { SendHandle } from "./blocks";
 import { DecisionPanel, EscalateModal, SubmitModal } from "./forms";
+import { ConfidenceBlock } from "./confidence";
 
 const ICONS: Record<string, React.ElementType> = {
   submit: Play, request_information: MessageSquare, send_request: Send, escalate: ArrowUp, start_verification: Phone, check_status: RefreshCw,
@@ -89,6 +90,7 @@ export const CasePage: React.FC<{ id: string; context?: "worklist" | "approvals"
     }));
 
   const ev = <EvidenceBlock page={page} />;
+  const conf = page.confidence && page.confidence.applies ? <ConfidenceBlock page={page} run={run} /> : null;
   const showChange = !!page.change_summary;
 
   return (
@@ -110,11 +112,12 @@ export const CasePage: React.FC<{ id: string; context?: "worklist" | "approvals"
           <BannerFromApi banner={page.banner} />
 
           {(v === "DECISION" || v === "GENERIC") && page.decision_brief && <DecisionBrief brief={page.decision_brief} />}
-          {v === "DECISION" && <>{showChange && <ChangeBlock page={page} mode="decision" />}{page.handover && <HandoverNote h={page.handover} />}{ev}</>}
+          {v === "DECISION" && <>{showChange && <ChangeBlock page={page} mode="decision" />}{page.handover && <HandoverNote h={page.handover} />}{ev}{conf}</>}
           {v === "APPROVAL" && <>
             {showChange && <ChangeBlock page={page} mode="approval" />}
             {page.handover && <HandoverNote h={page.handover} />}
             {ev}
+            {conf}
             {hasDecisionPanel && <div id="decision-panel"><DecisionPanel page={page} form={page.decision_form} actions={actions} run={run} /></div>}
           </>}
           {v === "MISSING_INFO" && <>
@@ -132,6 +135,7 @@ export const CasePage: React.FC<{ id: string; context?: "worklist" | "approvals"
             {showChange && <ChangeBlock page={page} mode="approval" />}
             {page.handover && <HandoverNote h={page.handover} />}
             {ev}
+            {conf}
           </>}
           {v === "GENERIC" && <>{showChange && <ChangeBlock page={page} mode="decision" />}{ev}</>}
         </div>

@@ -145,6 +145,20 @@ def seed_named() -> List[str]:
     _put(c["case_id"], _base_ext(c, ok_rows(60), "complete", change=ch))
     ids.append(c["case_id"])
 
+    # ---- PEX-LOW-0096: valid repair, but a brand-new beneficiary with no payment history (confidence below 85%) ------------------
+    good3 = make_iban("NL", "91ABNA0417164300")
+    c = _case("PEX-LOW-0096", "DQ-01", 18900, "EUR", "SEPA", "VALIDATED", "Repair", "Oranje Techniek BV", "NL", _corrupt(good3), "ABNANL2A",
+              55, 170, "Creditor IBAN failed validation (mod-97).")
+    _ingest(c)
+    ch = xt.build_change("creditor_account.iban", _corrupt(good3), good3, source="Bank directory", risk="Low", policy_basis="One approver",
+                         justification="Checksum passes and the directory matches. No earlier payments to this beneficiary and no name check available.")
+    rows = [_ev("ev-1", "Creditor IBAN checksum", "Original fails mod-97; proposed passes mod-97", "Payment instruction", "Deterministic check", "pass", "Passed", ts(50)),
+            _ev("ev-2", "Bank directory", "Bank code resolves to the named institution", "Bank directory", "Authoritative", "agree", "Agree", ts(50)),
+            _ev("ev-3", "Prior payments", "No earlier payments to this beneficiary", "Payment history", "Supporting", "info", "None found", ts(50))]
+    _put(c["case_id"], _base_ext(c, rows, "complete", change=ch,
+        confidence_inputs={"missing": ["Historical repair / settlement precedent", "CoP / VoP name check"]}))
+    ids.append(c["case_id"])
+
     # ---- PEX-BEN-0012: missing beneficiary data (MISSING_INFO) -----------------------------------------------------------
     c = _case("PEX-BEN-0012", "DQ-03", 24300, "EUR", "SEPA", "INVESTIGATING", "Repair", "Valence Logistics SAS", "FR", "", "BNPAFRPP", 210, 55,
               "Beneficiary account details are incomplete.")

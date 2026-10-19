@@ -46,7 +46,7 @@ def post(client, uid, path, body=None, expect=200):
 @pytest.mark.parametrize("case_id,variant", [
     ("PEX-INV-0001", "APPROVAL"), ("PEX-INV-0002", "DECISION"), ("PEX-BEN-0012", "MISSING_INFO"), ("PEX-CON-0031", "CONFLICT"),
     ("PEX-NAM-0027", "CONFLICT"), ("PEX-TMO-0044", "STATUS_UNKNOWN"), ("PEX-SAN-0102", "COMPLIANCE_HOLD"), ("PEX-CUS-0067", "COMPLIANCE_HOLD"),
-    ("PEX-RET-0035", "APPROVAL"), ("PEX-SET-0039", "HANDED_TO_BANK"), ("PEX-EXE-0088", "EXECUTED"),
+    ("PEX-RET-0035", "APPROVAL"), ("PEX-SET-0039", "HANDED_TO_BANK"), ("PEX-EXE-0088", "EXECUTED"), ("PEX-LOW-0096", "DECISION"),
 ])
 def test_named_cases_variant(client, case_id, variant):
     assert page(client, case_id)["variant"] == variant
@@ -410,3 +410,52 @@ def test_released_compliance_case_needs_the_risk_approver(client):
     post(client, APPR, f"/cases/{cid}/approve", {"reviewed": True}, expect=403)  # ops approver is not in the Compliance queue
     post(client, "RSK-7714", f"/cases/{cid}/approve", {"reviewed": True})        # the Risk Approver can authorise the handoff
     assert repo.get_case(cid)["status"] in ("APPROVED", "DISPATCHED", "SHADOW_RECORDED")
+
+
+# ------------------------------------------------------------------------------------------------------------------
+# Decision confidence gate (below 85% -> independent evidence review before approval)
+# ------------------------------------------------------------------------------------------------------------------
+RSK = "RSK-7714"
+
+
+def test_confidence_shown_on_case_page():
+    from app.services.v2 import evidence_model as em
+    assert len(em.PROFILES) == 42 and all(sum(i["weight"] for i in v[2]) == 100 for v in em.PROFILES.values())
+
+
+def test_case_page_has_confidence_block(client):
+    ok = page(client, "PEX-INV-0002")["confidence"]
+    assert ok["confidence_pct"] == 100 and ok["coverage_pct"] == 100 and ok["extra_approval"] is False
+    low = page(client, "PEX-LOW-0096")["confidence"]
+    assert low["confidence_pct"] < 85 and low["extra_approval"] is True and low["threshold"] == 85
+    assert any(i["state"] == "MISSING" for i in low["items"]) and {i["source_class"] for i in low["items"]} <= {"B", "A", "X"}
+
+
+def test_high_confidence_goes_straight_to_approval(client):
+    post(client, MAKER, "/cases/PEX-INV-0002/submit", {"handover_note": "Directory confirms IBAN."})
+    assert (repo.get_case("PEX-INV-0002").get("status")) == "PENDING_APPROVAL"
+    assert page(client, "PEX-INV-0002", APPR)["confidence"]["review"]["required"] is False
+    post(client, APPR, "/cases/PEX-INV-0002/approve", {"reviewed": True, "comment": "ok"})
+
+
+def test_low_confidence_needs_independent_review_then_different_approver(client):
+    post(client, MAKER, "/cases/PEX-LOW-0096/submit", {"handover_note": "New supplier, directory matches."})
+    pg = page(client, "PEX-LOW-0096", APPR)
+    assert pg["confidence"]["review"]["state"] == "pending" and pg["confidence"]["review"]["can_review"] is True
+    r = post(client, APPR, "/cases/PEX-LOW-0096/approve", {"reviewed": True}, expect=403)
+    assert r["error"]["code"] == "EVIDENCE_REVIEW_REQUIRED"
+    post(client, MAKER, "/cases/PEX-LOW-0096/confidence-review", {"decision": "confirm", "comment": "x"}, expect=403)  # maker cannot review
+    post(client, APPR, "/cases/PEX-LOW-0096/confidence-review", {"decision": "confirm"}, expect=422)  # comment required
+    post(client, APPR, "/cases/PEX-LOW-0096/confidence-review", {"decision": "confirm", "comment": "Checked directory and invoice."})
+    r = post(client, APPR, "/cases/PEX-LOW-0096/approve", {"reviewed": True}, expect=403)  # reviewer cannot also authorise
+    assert r["error"]["code"] == "SOD_VIOLATION"
+    post(client, RSK, "/cases/PEX-LOW-0096/approve", {"reviewed": True, "comment": "ok"})
+    assert repo.get_case("PEX-LOW-0096")["status"] in ("DISPATCHED", "APPROVED", "SHADOW_RECORDED", "EXECUTED_CONFIRMED")
+    ev = json.dumps(client.get("/api/v2/audit/events?case_id=PEX-LOW-0096", headers=H(AUD)).json()).upper()
+    assert "LOW_CONFIDENCE_ROUTED" in ev and "EVIDENCE_REVIEW_CONFIRMED" in ev
+
+
+def test_low_confidence_case_can_still_be_returned_by_checker(client):
+    post(client, MAKER, "/cases/PEX-LOW-0096/submit", {"handover_note": "x"})
+    post(client, APPR, "/cases/PEX-LOW-0096/return", {"reason_code": "EVIDENCE_INSUFFICIENT", "comment": "Need client confirmation."})
+    assert repo.get_case("PEX-LOW-0096")["status"] == "RETURNED_FOR_REWORK"

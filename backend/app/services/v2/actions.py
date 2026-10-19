@@ -182,6 +182,10 @@ def submit(case_id: str, user, handover_note: Optional[str], attachment_name: Op
     ext["approver_assigned"] = _least_loaded_approver(case)
     ext["returned"] = None
     ext["assignee"] = ext.get("assignee") or user.user_id
+    conf = lg.confidence_of(case, ext)
+    low = bool(conf and conf["applies"] and conf["extra_approval"])
+    ext["confidence_review"] = ({"required": True, "state": "pending", "confidence_pct": conf["confidence_pct"], "coverage_pct": conf["coverage_pct"],
+                                 "reasons": conf["reasons"], "routed_at": t} if low else {"required": False, "state": "none"})
     touch(case, ext)
     move(case, "PENDING_APPROVAL", user, f"Maker {user.name} submitted the repair for approval with a handover note.")
     case["expedite_ping"] = None
@@ -190,8 +194,13 @@ def submit(case_id: str, user, handover_note: Optional[str], attachment_name: Op
     audit(case, user, "MAKER_SUBMIT", "MAKER_SUBMITTED_FOR_APPROVAL", f"{user.name} submitted {case_id} for approval. Handover note recorded.",
           ["Maker-Checker", "Handover note recorded"], before="VALIDATED", after="PENDING_APPROVAL", reason=note[:300],
           evidence_reviewed=len(ext.get("evidence") or []), policy_version=POLICY_VERSION, sod="Pending (checker must differ from maker)")
+    if low:
+        audit(case, user, "CONFIDENCE_GATE", "LOW_CONFIDENCE_ROUTED_FOR_EVIDENCE_REVIEW",
+              f"Decision confidence {conf['confidence_pct']}% is below {conf['threshold']}%. {case_id} needs an independent evidence review before approval.",
+              ["Confidence gate", "Extra approval required"], before="PENDING_APPROVAL", after="PENDING_APPROVAL", reason="; ".join(conf["reasons"])[:300],
+              policy_version=POLICY_VERSION)
     ap = ext["approver_assigned"]
-    notify("SUBMITTED", f"{case_id} awaiting your approval", f"{user.name} submitted {case_id} ({money(case['amount'], case['currency'])['display']}).", case_id, target_user=ap)
+    notify("SUBMITTED", f"{case_id} awaiting your approval" + (" (evidence review needed)" if low else ""), f"{user.name} submitted {case_id} ({money(case['amount'], case['currency'])['display']}).", case_id, target_user=ap)
     return result(case_id, user, "Submitted for approval.")
 
 
@@ -445,8 +454,8 @@ def ping(case_id: str, user, note: Optional[str]) -> Dict[str, Any]:
 # ----------------------------------------------------------------------------------------------
 # checker actions
 # ----------------------------------------------------------------------------------------------
-def _gate_or_raise(case, user):
-    ok, code, msg = lg.approve_gate(case, user)
+def _gate_or_raise(case, user, for_decline: bool = False):
+    ok, code, msg = lg.approve_gate(case, user, for_decline)
     if not ok:
         status = 409 if code == "INVALID_STATE" else 403
         if code in ("SOD_VIOLATION", "LIMIT_EXCEEDED"):
@@ -457,6 +466,34 @@ def _gate_or_raise(case, user):
             except Exception:  # pragma: no cover
                 pass
         raise V2Error(status, code, msg)
+
+
+def confidence_review(case_id: str, user, decision: Optional[str], comment: Optional[str]) -> Dict[str, Any]:
+    """Independent evidence review for a low-confidence case (same idea as the compliance second review).
+    Confirming does NOT approve: it unlocks the normal approval, which must be done by a different person."""
+    require(user, "case.approve")
+    case = _load(case_id)
+    ext = lg.ext_of(case)
+    if lg.status_of(case) not in lg.PENDING or not lg.review_pending(ext):
+        raise bad_state("This case has no open evidence review.")
+    if case.get("maker_id") and case["maker_id"] == user.user_id:
+        raise V2Error(403, "SOD_VIOLATION", "You prepared this repair. Someone else must review its evidence.")
+    d = (decision or "").strip().lower()
+    if d != "confirm":
+        raise invalid("decision must be 'confirm'. To send it back, use Return to Maker.", "decision")
+    cm = _need(comment, "comment", "Review comment")
+    cr = dict(ext.get("confidence_review") or {})
+    cr.update({"state": "confirmed", "reviewed_by": person(user.user_id), "reviewed_at": iso(now()), "comment": cm})
+    ext["confidence_review"] = cr
+    touch(case, ext)
+    xt.persist_ext(case_id, ext)
+    audit(case, user, "CONFIDENCE_GATE", "EVIDENCE_REVIEW_CONFIRMED",
+          f"{user.name} reviewed the evidence on {case_id} (confidence {cr.get('confidence_pct')}%). A different approver must now authorise the handoff.",
+          ["Confidence gate", "Independent evidence review", "Segregation of duties"], before=lg.status_of(case), after=lg.status_of(case), reason=cm[:300],
+          policy_version=POLICY_VERSION, sod="Reviewer must differ from maker and from the final approver")
+    notify("SUBMITTED", f"{case_id} ready for approval", f"{user.name} completed the evidence review. Awaiting a different approver.", case_id, target_role="RISK_APPROVER")
+    notify("SUBMITTED", f"{case_id} ready for approval", f"{user.name} completed the evidence review. Awaiting a different approver.", case_id, target_role="OPERATIONS_APPROVER")
+    return result(case_id, user, "Evidence review recorded. The case still needs approval from a different approver.")
 
 
 def _handoff(case_id: str, user, ext: Dict[str, Any]) -> Dict[str, Any]:
@@ -514,7 +551,7 @@ def _checker_decline(case_id: str, user, action: ApprovalAction, reason_code: Op
     case = _load(case_id)
     rc = _need(reason_code, "reason_code", "Reason code")
     cm = _need(comment, "comment", "Comment")
-    _gate_or_raise(case, user)
+    _gate_or_raise(case, user, for_decline=True)
     ext = lg.ext_of(case)
     before = lg.status_of(case)
     ok, msg, record, nxt = approval_engine.process_approval_action(

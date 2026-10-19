@@ -446,6 +446,7 @@ def case_page(case_id: str, user) -> Dict[str, Any]:
         "compliance": _compliance(case, ext) if variant == "COMPLIANCE_HOLD" else None,
         "request_information": _request_info(case, ext) if variant in ("MISSING_INFO", "CONFLICT", "DECISION") else None,
         "recommendation": _recommendation(case, ext),
+        "confidence": _confidence(case, ext, variant, user),
         "journey": build_journey(case, ext, variant),
         "actions": build_actions(case, ext, variant, user),
         "blocked_actions": [],
@@ -468,6 +469,21 @@ def case_page(case_id: str, user) -> Dict[str, Any]:
     return page
 
 
+def _confidence(case, ext, variant, user):
+    conf = lg.confidence_of(case, ext)
+    if not conf:
+        return None
+    cr = ext.get("confidence_review") or {}
+    maker = case.get("maker_id")
+    pending = lg.review_pending(ext) and lg.status_of(case) in lg.PENDING
+    conf["review"] = {"required": bool(cr.get("required")), "state": cr.get("state", "none"), "reviewed_by": cr.get("reviewed_by"),
+                      "reviewed_at": cr.get("reviewed_at"), "comment": cr.get("comment"),
+                      "can_review": bool(pending and has_perm(user, "case.approve") and maker != user.user_id),
+                      "endpoint": f"/api/v2/cases/{case['case_id']}/confidence-review"}
+    conf["label"] = "High" if conf["confidence_pct"] >= 95 else ("Sufficient" if conf["confidence_pct"] >= conf["threshold"] else "Below threshold")
+    return conf
+
+
 def _recommendation(case, ext):
     rec = repo.recommendations.get(case["case_id"])
     stp = ext.get("stp") or {}
@@ -477,5 +493,5 @@ def _recommendation(case, ext):
     summary = ext.get("resolution_basis") or (rec.rationale if rec else "")
     if rec is not None:
         reasoning = [f"{s.step_title}: {s.proof_detail}" for s in (rec.step_by_step_assessment or [])][:8]
-    return {"summary": summary, "reasoning": reasoning, "confidence_label": "Advisory only (not used by controls)",
+    return {"summary": summary, "reasoning": reasoning, "confidence_label": "Model text is advisory. Decision confidence % above is computed by rules and is used by controls",
             "predicates": stp.get("predicates"), "source": "DETERMINISTIC" if ext.get("source") == "e2e" else "DEMO_FIXTURE"}
