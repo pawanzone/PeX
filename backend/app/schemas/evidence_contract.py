@@ -72,12 +72,47 @@ class EvidenceContractRegistry:
     def __init__(self):
         self._contracts: Dict[str, EvidenceContract] = {}
         self._register_default_contracts()
+        self._register_generated_contracts()
 
     def register(self, contract: EvidenceContract):
         self._contracts[contract.profile_id] = contract
 
     def get_contract(self, profile_id: str) -> Optional[EvidenceContract]:
         return self._contracts.get(profile_id)
+
+    def _register_generated_contracts(self):
+        """Contracts for every profile in the evidence matrix that has no hand-written contract.
+
+        Generated from app/services/v2/evidence_model.py so the matrix, the confidence score and the sufficiency engine share one
+        source. Freshness limits and tiers are proposed defaults to be confirmed with the bank."""
+        try:
+            from app.services.v2 import evidence_model as em
+        except Exception:  # pragma: no cover - model optional
+            return
+        ttl = {"CORE": 3600, "SSI": 86400, "CUSTM": 86400, "KYC": 86400, "LIMITS": 900, "TREAS": 900, "AML": 3600, "LEDGER": 3600,
+               "POLICY": 86400, "MANDATE": 3600, "ERP": 86400, "SWIFTREF": 86400, "IBANREG": 86400, "NATCLR": 86400, "COPVOP": 3600,
+               "FEDW": 300, "RTGS": 3600, "GPI": 300, "LISTS": 3600, "PEPV": 86400, "FATF": 86400, "REG": 86400, "GEO": 2592000,
+               "FX": 60, "CB": 900, "STMT": 3600}
+        roles = {"ID": "IDENTIFICATION", "VAL": "VALIDATION", "AUTH": "AUTHORIZATION", "COR": "CORROBORATION", "CTX": "CONTEXT"}
+        for pid, (name, standards, items) in em.PROFILES.items():
+            if pid in self._contracts:
+                continue
+            fam = pid.split("-")[0]
+            buckets = {"m": [], "c": [], "o": []}
+            for it in items:
+                cls = em.SYSTEMS[it["system"]][0]
+                tier = (EvidenceTrustTier.TIER_4_HISTORICAL_PRECEDENT if it["pillar"] == "P3"
+                        else EvidenceTrustTier.TIER_2_EXTERNAL_AUTHORITATIVE if cls == "X" else EvidenceTrustTier.TIER_1_BANK_AUTHORITATIVE)
+                mandatory = it["gate"] or it["role"] in ("ID", "AUTH")
+                optional = it["pillar"] == "P3" or (not mandatory and it["weight"] <= 10)
+                req = EvidenceItemRequirement(
+                    item_name=it["name"], description=f"{it['name']} (source: {em.SYSTEMS[it['system']][1]}; basis: {standards})",
+                    role=roles[it["role"]], required_trust_tier=tier, is_mandatory_for_stp=mandatory,
+                    policy_freshness_seconds=ttl.get(it["system"]),
+                    fallback_behavior="ROUTE_TO_COMPLIANCE" if fam == "CO" else "SUSPEND_TO_OPERATIONS")
+                buckets["m" if mandatory else ("o" if optional else "c")].append(req)
+            self.register(EvidenceContract(profile_id=pid, profile_name=name, mandatory_evidence=buckets["m"],
+                                           conditional_evidence=buckets["c"], optional_evidence=buckets["o"]))
 
     def _register_default_contracts(self):
         # PR-03: ISO20022_ERROR (Phase 1 Vertical Slice Baseline)
