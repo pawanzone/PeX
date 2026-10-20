@@ -60,23 +60,28 @@ export const HandoverNote: React.FC<{ h: NonNullable<CasePage["handover"]> }> = 
   </Section>
 );
 
-export const EvidenceBlock: React.FC<{ page: CasePage }> = ({ page }) => {
+export const RecommendationBlock: React.FC<{ page: CasePage }> = ({ page }) => {
+  const rec = page.recommendation;
+  if (!rec) return null;
+  return (
+    <Section title="PeX recommendation and reasoning" right={rec.confidence_label ? <span className="text-xs text-pex-muted">{rec.confidence_label}</span> : undefined}>
+      <div className="text-sm grid gap-2">
+        {rec.summary && <p>{rec.summary}</p>}
+        {!!rec.reasoning?.length && <ul className="list-disc pl-5 text-pex-muted">{rec.reasoning.map((r, i) => <li key={i}>{r}</li>)}</ul>}
+        <p className="text-xs text-pex-muted">Advisory only. Controls decide, humans authorise, the bank executes.</p>
+      </div>
+    </Section>
+  );
+};
+
+export const EvidenceBlock: React.FC<{ page: CasePage; bare?: boolean }> = ({ page, bare }) => {
   const rows = page.evidence_table ?? [];
   const sum = page.evidence_summary;
+  const pill = sum?.label ? <StatusPill tone={sum.status === "conflict" ? "red" : sum.status === "missing" ? "amber" : "green"}>{sum.label}</StatusPill> : undefined;
+  if (bare) return <div>{pill && <div className="mb-2">{pill}</div>}<EvidenceGrid caseId={page.case_id} rows={rows} /></div>;
   return (
-    <Section title="Evidence" right={sum?.label ? <StatusPill tone={sum.status === "conflict" ? "red" : sum.status === "missing" ? "amber" : "green"}>{sum.label}</StatusPill> : undefined}>
+    <Section title="Evidence" right={pill}>
       <EvidenceGrid caseId={page.case_id} rows={rows} />
-      {page.recommendation && (
-        <details className="mt-3 rounded-lg border border-surface-line">
-          <summary className="cursor-pointer px-3 py-2.5 text-sm font-semibold flex items-center gap-2">PeX recommendation and reasoning
-            {page.recommendation.confidence_label && <span className="text-xs font-normal text-pex-muted">· {page.recommendation.confidence_label}</span>}</summary>
-          <div className="px-3 pb-3 text-sm grid gap-2">
-            {page.recommendation.summary && <p>{page.recommendation.summary}</p>}
-            {!!page.recommendation.reasoning?.length && <ul className="list-disc pl-5 text-pex-muted">{page.recommendation.reasoning.map((r, i) => <li key={i}>{r}</li>)}</ul>}
-            <p className="text-xs text-pex-muted">Advisory only. Controls decide, humans authorise, the bank executes.</p>
-          </div>
-        </details>
-      )}
     </Section>
   );
 };

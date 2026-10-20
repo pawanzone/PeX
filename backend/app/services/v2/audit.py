@@ -175,6 +175,16 @@ def events(f: Dict[str, Any], page: int, page_size: int) -> Dict[str, Any]:
         db.close()
 
 
+def case_timeline(case_id: str) -> Dict[str, Any]:
+    """Events of one case, oldest first, for the case page. Same rows as the Audit screen, limited to this case."""
+    db = SessionLocal()
+    try:
+        rows = db.query(AuditEventModel).filter(AuditEventModel.case_id == case_id).order_by(AuditEventModel.event_index.asc()).all()
+        return {"case_id": case_id, "total": len(rows), "items": [_row(e) for e in rows], "now": iso(now())}
+    finally:
+        db.close()
+
+
 def _event_hash_ok(e: AuditEventModel, prev_hash: Optional[str]) -> bool:
     h = calculate_event_hash(event_index=e.event_index, timestamp_iso=e.timestamp, case_id=e.case_id, stage_name=e.stage_name, actor_id=e.actor_id,
                              action_name=e.action_name, details=e.details, prev_hash=e.prev_hash, amount=e.amount, currency=e.currency,

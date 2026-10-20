@@ -9,11 +9,12 @@ import { useV2 } from "../../services/v2";
 import { getCasePage, postCaseAction, actionPath } from "../../services/v2/case";
 import type { ActionResult, CaseAction, CasePage as CasePageDto } from "../../services/v2/case";
 import { BannerFromApi, chipTone, errText, journeyVariant, mapJourney } from "./parts";
-import { BankBlock, ChangeBlock, ConflictBlock, DecisionBrief, EvidenceBlock, HandoverNote, NeededBlock, ReassessBlock, RequestInfoForm, StatusUnknownBlock } from "./blocks";
+import { BankBlock, ChangeBlock, ConflictBlock, DecisionBrief, NeededBlock, ReassessBlock, RequestInfoForm, StatusUnknownBlock } from "./blocks";
 import type { SendHandle } from "./blocks";
 import { DecisionPanel, EscalateModal, SubmitModal } from "./forms";
 import { ConfidenceBlock } from "./confidence";
-import { PiiBar, AiSeen } from "./pii";
+import { PiiBar } from "./pii";
+import { CaseTabs } from "./CaseTabs";
 
 const ICONS: Record<string, React.ElementType> = {
   submit: Play, request_information: MessageSquare, send_request: Send, escalate: ArrowUp, start_verification: Phone, check_status: RefreshCw,
@@ -90,7 +91,6 @@ export const CasePage: React.FC<{ id: string; context?: "worklist" | "approvals"
       onClick: () => doAction(a.key),
     }));
 
-  const ev = <EvidenceBlock page={page} />;
   const conf = page.confidence && page.confidence.applies ? <ConfidenceBlock page={page} run={run} /> : null;
   const showChange = !!page.change_summary;
 
@@ -112,15 +112,12 @@ export const CasePage: React.FC<{ id: string; context?: "worklist" | "approvals"
           {err && <Banner tone="red" title="That did not go through">{err}</Banner>}
           <BannerFromApi banner={page.banner} />
           <PiiBar page={page} run={run} />
-          <AiSeen page={page} />
 
           {(v === "DECISION" || v === "GENERIC") && page.decision_brief && <DecisionBrief brief={page.decision_brief} />}
-          {v === "DECISION" && <>{showChange && <ChangeBlock page={page} mode="decision" />}{page.handover && <HandoverNote h={page.handover} />}{ev}{conf}</>}
+          {v === "DECISION" && <>{showChange && <ChangeBlock page={page} mode="decision" />}</>}
           {v === "APPROVAL" && <>
             {showChange && <ChangeBlock page={page} mode="approval" />}
-            {page.handover && <HandoverNote h={page.handover} />}
-            {ev}
-            {conf}
+            
             {hasDecisionPanel && <div id="decision-panel"><DecisionPanel page={page} form={page.decision_form} actions={actions} run={run} /></div>}
           </>}
           {v === "MISSING_INFO" && <>
@@ -128,19 +125,15 @@ export const CasePage: React.FC<{ id: string; context?: "worklist" | "approvals"
             <RequestInfoForm caseId={id} info={page.request_information} run={run} handle={sendHandle} />
             <ReassessBlock caseId={id} run={run} enabled={find("reassess")?.enabled !== false && !!find("reassess")} reason={find("reassess")?.disabled_reason ?? "Available once information is received."} />
           </>}
-          {v === "CONFLICT" && <>
-            {page.conflict && <ConflictBlock c={page.conflict} caseId={id} onAction={doAction} run={run} canWork={canWork} />}
-            {!!page.evidence_table?.length && ev}
-          </>}
+          {v === "CONFLICT" && page.conflict && <ConflictBlock c={page.conflict} caseId={id} onAction={doAction} run={run} canWork={canWork} />}
           {v === "STATUS_UNKNOWN" && page.status_unknown && <StatusUnknownBlock s={page.status_unknown} blocked={page.blocked_actions ?? []} onAction={doAction} canWork={!!find("check_status") && find("check_status")?.enabled !== false} busy={busy} />}
           {(v === "HANDED_TO_BANK" || v === "EXECUTED") && <>
             <BankBlock page={page} />
             {showChange && <ChangeBlock page={page} mode="approval" />}
-            {page.handover && <HandoverNote h={page.handover} />}
-            {ev}
-            {conf}
+            
           </>}
-          {v === "GENERIC" && <>{showChange && <ChangeBlock page={page} mode="decision" />}{ev}</>}
+          {v === "GENERIC" && showChange && <ChangeBlock page={page} mode="decision" />}
+          <CaseTabs page={page} confidence={conf} />
         </div>
         <div className="lg:sticky lg:top-4">
           <CaseJourney steps={j.steps} variant={journeyVariant(v)} tone={j.tone} nextAction={j.next}

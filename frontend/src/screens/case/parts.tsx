@@ -1,3 +1,4 @@
+import { Dossier } from "./Dossier";
 import React, { useState } from "react";
 import { Hourglass, AlertOctagon, CheckCircle2, User, Copy, Check, X as XIcon } from "lucide-react";
 import { Banner, Modal, StatusPill, NextActionCard, KeyValueList, Loading, ErrorState, cn } from "../../components/v2";
@@ -121,23 +122,8 @@ export function mapJourney(page: CasePage): { steps: JourneyStep[]; next: React.
 // ------------------------------------------------------------ evidence
 const EV_STATUS_TONE: Record<string, StatusTone> = { pass: "green", agree: "green", fail: "red", differs: "red", missing: "amber", info: "grey" };
 
-const SourceModal: React.FC<{ caseId: string; item: EvidenceItem; onClose: () => void }> = ({ caseId, item, onClose }) => {
-  const r = useV2(() => getEvidenceSource(caseId, item.id), [caseId, item.id]);
-  return (
-    <Modal open title={`Source: ${item.check ?? item.id}`} onClose={onClose} width="md">
-      {r.loading ? <Loading /> : r.error ? <ErrorState message={r.error} unavailable={r.unavailable} onRetry={r.reload} /> : r.data && (
-        <div className="grid gap-4">
-          <KeyValueList cols={2} items={[{ label: "Source", value: r.data.source ?? item.source ?? "" }, { label: "Authority", value: r.data.authority ?? item.authority ?? "" }, { label: "Checked", value: fmtDateTime(r.data.checked_at ?? item.checked_at) }]} />
-          {r.data.raw && <pre className="pex-mono text-xs bg-slate-50 border border-surface-line rounded-lg p-3 overflow-auto max-h-72">{JSON.stringify(r.data.raw, null, 2)}</pre>}
-          <p className="text-xs text-pex-muted">{r.data.note ?? "Simulated source view"}</p>
-        </div>
-      )}
-    </Modal>
-  );
-};
-
 export const EvidenceGrid: React.FC<{ caseId: string; rows: EvidenceItem[] }> = ({ caseId, rows }) => {
-  const [open, setOpen] = useState<EvidenceItem | null>(null);
+  const [open, setOpen] = useState<string | null>(null);
   if (!rows.length) return <p className="text-sm text-pex-muted">No evidence recorded yet.</p>;
   return (
     <>
@@ -145,7 +131,7 @@ export const EvidenceGrid: React.FC<{ caseId: string; rows: EvidenceItem[] }> = 
         <table className="w-full text-sm">
           <caption className="sr-only">Evidence checks</caption>
           <thead><tr className="text-left text-xs text-pex-muted bg-slate-50 border-b border-surface-line">
-            {["Check", "Result", "Source", "Authority", "Checked", "Status", ""].map((h, i) => <th key={i} scope="col" className="py-2 px-3 font-medium">{h || <span className="sr-only">Source</span>}</th>)}
+            {["Check", "Result", "Source", "Authority", "Checked", "Status", ""].map((h, i) => <th key={i} scope="col" className="py-2 px-3 font-medium">{h || <span className="sr-only">Dossier</span>}</th>)}
           </tr></thead>
           <tbody>
             {rows.map((r) => (
@@ -153,13 +139,13 @@ export const EvidenceGrid: React.FC<{ caseId: string; rows: EvidenceItem[] }> = 
                 <td className="py-2.5 px-3">{r.check}</td><td className="py-2.5 px-3">{r.result}</td><td className="py-2.5 px-3">{r.source}</td>
                 <td className="py-2.5 px-3">{r.authority}</td><td className="py-2.5 px-3 pex-mono">{fmtTime(r.checked_at)}</td>
                 <td className="py-2.5 px-3"><StatusPill tone={EV_STATUS_TONE[r.status ?? "info"] ?? "grey"}>{r.status_label ?? r.status ?? "Info"}</StatusPill></td>
-                <td className="py-2.5 px-3">{r.can_view_source !== false && <button className="text-pex-primary hover:underline text-sm" onClick={() => setOpen(r)}>View source</button>}</td>
+                <td className="py-2.5 px-3">{r.can_view_source !== false && <button className="text-pex-primary hover:underline text-sm" onClick={() => setOpen(r.id)}>Open dossier</button>}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      {open && <SourceModal caseId={caseId} item={open} onClose={() => setOpen(null)} />}
+      {open && <Dossier caseId={caseId} evidenceId={open} onClose={() => setOpen(null)} onOpen={setOpen} />}
     </>
   );
 };

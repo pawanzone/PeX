@@ -204,9 +204,9 @@ def preview(case_id: str, user=Depends(current_user)):
 
 
 @router.get("/approvals")
-def approvals(page: int = 1, page_size: int = 25, tier: str = "all", user=Depends(current_user)):
+def approvals(page: int = 1, page_size: int = 25, tier: str = "all", desk: str = "all", user=Depends(current_user)):
     require(user, "case.read")
-    return rw.approvals_queue(user, page, page_size, tier)
+    return rw.approvals_queue(user, page, page_size, tier, desk)
 
 
 @router.get("/compliance/queue")
@@ -228,6 +228,14 @@ def case_journey(case_id: str, user=Depends(current_user)):
     return pg.case_page(case_id, user)["journey"]
 
 
+@router.get("/cases/{case_id}/timeline")
+def case_timeline(case_id: str, user=Depends(current_user)):
+    require(user, "case.read")
+    if not repo.get_case(case_id):
+        raise not_found(f"Case {case_id}")
+    return au.case_timeline(case_id)
+
+
 @router.get("/cases/{case_id}/evidence/{evidence_id}")
 def evidence_source(case_id: str, evidence_id: str, user=Depends(current_user)):
     require(user, "case.read")
@@ -239,6 +247,19 @@ def evidence_source(case_id: str, evidence_id: str, user=Depends(current_user)):
             return {"id": r["id"], "check": r["check"], "result": r["result"], "source": r["source"], "authority": r["authority"], "checked_at": r["checked_at"],
                     "status": r["status"], "raw": r.get("raw") or {}, "note": "Simulated source view: the original system is not connected in this build."}
     raise not_found(f"Evidence {evidence_id}")
+
+
+@router.get("/cases/{case_id}/evidence/{evidence_id}/dossier")
+def evidence_dossier(case_id: str, evidence_id: str, user=Depends(current_user)):
+    require(user, "case.read")
+    from app.services.v2 import dossier as ds
+    case = repo.get_case(case_id)
+    if not case:
+        raise not_found(f"Case {case_id}")
+    d = ds.build(case, lg.ext_of(case).get("evidence") or [], evidence_id)
+    if d is None:
+        raise not_found(f"Evidence {evidence_id}")
+    return d
 
 
 @router.post("/cases/{case_id}/assign")

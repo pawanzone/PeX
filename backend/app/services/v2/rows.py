@@ -225,7 +225,7 @@ def delete_view(user, view_id: str):
 
 
 # ---- approvals / compliance queues ----------------------------------------------------------------
-def approvals_queue(user, page: int, page_size: int, tier: str):
+def approvals_queue(user, page: int, page_size: int, tier: str, desk: str = "all"):
     items = []
     for case in all_cases():
         if lg.status_of(case) not in lg.PENDING or is_compliance(case):
@@ -245,12 +245,21 @@ def approvals_queue(user, page: int, page_size: int, tier: str):
             "approver_assigned": person(approver_for(case, ext)), "dual_auth": dual,
             "can_approve": ok, "cannot_approve_reason": None if ok else msg,
         })
+        assigned = row["approver_assigned"] or {}
+        row["mine"] = bool(ok or (assigned.get("user_id") and assigned.get("user_id") == getattr(user, "user_id", None)))
+        if not row["mine"] and not row["cannot_approve_reason"]:
+            row["cannot_approve_reason"] = f"With {assigned.get('name') or 'another approver'}"
         row.pop("tab", None)
         items.append(row)
     items.sort(key=lambda r: (r["cutoff"] or {}).get("seconds_left", 10 ** 9))
+    counts = {"mine": sum(1 for r in items if r["mine"]), "others": sum(1 for r in items if not r["mine"])}
+    if desk == "mine":
+        items = [r for r in items if r["mine"]]
+    elif desk == "others":
+        items = [r for r in items if not r["mine"]]
     page_size = max(1, min(int(page_size or 25), 200))
     page = max(1, int(page or 1))
-    return {"page": page, "page_size": page_size, "total": len(items), "items": items[(page - 1) * page_size: page * page_size], "now": iso(now())}
+    return {"page": page, "page_size": page_size, "total": len(items), "counts": counts, "desk": desk, "items": items[(page - 1) * page_size: page * page_size], "now": iso(now())}
 
 
 def compliance_queue(user, page: int, page_size: int):
