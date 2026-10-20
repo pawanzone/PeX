@@ -17,6 +17,7 @@ export const PiiBar: React.FC<{ page: CasePage; run: Run }> = ({ page, run }) =>
   const [reason, setReason] = useState("");
   if (!p || !p.masking) return null;
   const revealed = !p.protected;
+  const minLen = p.min_reason_length ?? 10;
   return (
     <>
       <div className={"rounded-lg border px-3 py-2 text-sm flex items-center gap-3 flex-wrap " + (revealed ? "border-amber-300 bg-amber-50" : "border-surface-line bg-slate-50")} role="status">
@@ -40,10 +41,11 @@ export const PiiBar: React.FC<{ page: CasePage; run: Run }> = ({ page, run }) =>
               <p className="text-xs text-pex-muted">Your role can reveal: {p.reveal_classes.map((c) => c.name).join(", ")}.{p.restricted_note ? " " + p.restricted_note : ""}</p>
             )}
             <label className="text-sm font-medium" htmlFor="pii-reason">Why do you need to see them?</label>
-            <textarea id="pii-reason" rows={3} className={field} value={reason} onChange={(e) => setReason(e.target.value)} placeholder="For example: confirming the beneficiary against invoice INV-2291." />
+            <textarea id="pii-reason" rows={3} className={field} value={reason} onChange={(e) => setReason(e.target.value)} placeholder="For example: confirming the beneficiary against invoice INV-2291." aria-describedby="pii-reason-hint" />
+            <p id="pii-reason-hint" className="text-xs text-pex-muted -mt-1">{reason.trim().length >= minLen ? "Ready to reveal." : `Enter at least ${minLen} characters (${reason.trim().length} so far).`}</p>
             <div className="flex justify-end gap-2">
               <button type="button" className={plainBtn} onClick={() => setOpen(false)}>Cancel</button>
-              <button type="button" className={primaryBtn} disabled={reason.trim().length < (p.min_reason_length ?? 10)}
+              <button type="button" className={primaryBtn} disabled={reason.trim().length < minLen}
                 onClick={async () => { const r = await run(() => postCaseAction(page.case_id, "pii/reveal", { reason }), "Revealed"); if (r) { setOpen(false); setReason(""); } }}>Reveal</button>
             </div>
           </div>

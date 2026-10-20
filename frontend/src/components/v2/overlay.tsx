@@ -5,12 +5,16 @@ import { cn } from "./primitives";
 /** Accessible modal: role=dialog, Escape closes, focus moves in and returns, Tab is trapped. */
 export const Modal: React.FC<{ open: boolean; title: string; onClose: () => void; children: React.ReactNode; footer?: React.ReactNode; width?: "md" | "lg" | "xl" }> = ({ open, title, onClose, children, footer, width = "lg" }) => {
   const box = useRef<HTMLDivElement>(null);
+  // Keep the latest onClose in a ref. Callers pass a new arrow function on every render, and listing it as an effect
+  // dependency re-ran the effect on each keystroke, which pulled focus out of the text box being typed in.
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
   useEffect(() => {
     if (!open) return;
     const prev = document.activeElement as HTMLElement | null;
     box.current?.focus();
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") { onClose(); return; }
+      if (e.key === "Escape") { closeRef.current(); return; }
       if (e.key !== "Tab" || !box.current) return;
       const f = Array.from(box.current.querySelectorAll<HTMLElement>("button,[href],input,select,textarea,[tabindex]:not([tabindex='-1'])")).filter((el) => !el.hasAttribute("disabled"));
       if (!f.length) return;
@@ -20,7 +24,7 @@ export const Modal: React.FC<{ open: boolean; title: string; onClose: () => void
     };
     document.addEventListener("keydown", onKey);
     return () => { document.removeEventListener("keydown", onKey); prev?.focus(); };
-  }, [open, onClose]);
+  }, [open]);
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
