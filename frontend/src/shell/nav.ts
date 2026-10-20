@@ -1,4 +1,4 @@
-import { LayoutDashboard, Home, ListChecks, ShieldCheck, Scale, Layers, ScrollText, Settings, SlidersHorizontal, type LucideIcon } from "lucide-react";
+import { LayoutDashboard, Home, ListChecks, ShieldCheck, Scale, Layers, ScrollText, Settings, SlidersHorizontal, ArrowLeftRight, type LucideIcon } from "lucide-react";
 import type { Area } from "../lib/router";
 import type { UserPersona } from "../types";
 
@@ -9,6 +9,7 @@ export const NAV: NavDef[] = [
   { area: "worklist", label: "Worklist", icon: ListChecks, href: "#/worklist" },
   { area: "approvals", label: "Approvals", icon: ShieldCheck, href: "#/approvals" },
   { area: "compliance", label: "Compliance", icon: Scale, href: "#/compliance" },
+  { area: "network", label: "Network cases", icon: ArrowLeftRight, href: "#/network" },
   { area: "batches", label: "Batches", icon: Layers, href: "#/batches" },
   { area: "audit", label: "Audit", icon: ScrollText, href: "#/audit" },
   { area: "policy", label: "Policy Studio", icon: SlidersHorizontal, href: "#/policy" },
@@ -18,12 +19,12 @@ export const NAV: NavDef[] = [
 /** Role-aware visibility, mirroring the server's GET /api/v2/me nav table (backend/app/services/v2/core.py NAV).
  *  UI hiding is a convenience only; the server enforces every permission. Unknown roles see Home only. */
 const ROLE_AREAS: Record<string, Area[]> = {
-  OPERATOR: ["dashboard", "home", "worklist", "batches"],
-  SUPERVISOR: ["dashboard", "home", "worklist", "approvals", "compliance", "batches", "audit"],
-  OPERATIONS_APPROVER: ["dashboard", "home", "approvals", "worklist", "batches"],
-  RISK_APPROVER: ["dashboard", "home", "approvals", "compliance", "worklist", "batches"],
-  COMPLIANCE_APPROVER: ["dashboard", "home", "compliance", "audit"],
-  AUDIT_RISK: ["dashboard", "home", "audit"],
+  OPERATOR: ["dashboard", "home", "worklist", "network", "batches"],
+  SUPERVISOR: ["dashboard", "home", "worklist", "approvals", "compliance", "network", "batches", "audit"],
+  OPERATIONS_APPROVER: ["dashboard", "home", "approvals", "worklist", "network", "batches"],
+  RISK_APPROVER: ["dashboard", "home", "approvals", "compliance", "worklist", "network", "batches"],
+  COMPLIANCE_APPROVER: ["dashboard", "home", "compliance", "network", "audit"],
+  AUDIT_RISK: ["dashboard", "home", "network", "audit"],
   ADMIN: ["dashboard", "home", "batches", "audit", "admin"],
   POLICY_OWNER: ["dashboard", "policy", "admin", "audit"],
 };

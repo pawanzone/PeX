@@ -18,12 +18,15 @@ from app.db.models import CaseExtModel
 # Errors
 # ----------------------------------------------------------------------------------------------
 class V2Error(Exception):
-    def __init__(self, status: int, code: str, message: str, field: Optional[str] = None):
+    def __init__(self, status: int, code: str, message: str, field: Optional[str] = None, problems: Optional[list] = None):
         super().__init__(message)
-        self.status, self.code, self.message, self.field = status, code, message, field
+        self.status, self.code, self.message, self.field, self.problems = status, code, message, field, problems
 
     def body(self) -> Dict[str, Any]:
-        return {"error": {"code": self.code, "message": self.message, "field": self.field}, "detail": self.message}
+        b = {"error": {"code": self.code, "message": self.message, "field": self.field}, "detail": self.message}
+        if self.problems:
+            b["problems"] = list(self.problems)
+        return b
 
 
 def not_found(what: str) -> V2Error:
@@ -210,28 +213,28 @@ ROLE_LABELS = {
     "AUDIT_RISK": "Audit and Risk", "ADMIN": "Administrator", "POLICY_OWNER": "Policy Owner",
 }
 PERMISSIONS: Dict[str, List[str]] = {
-    "OPERATOR": ["case.read", "case.work", "case.assign", "batch.upload", "pii.reveal"],
-    "SUPERVISOR": ["case.read", "case.work", "case.assign", "case.reassign", "audit.read", "batch.upload", "pii.reveal"],
-    "OPERATIONS_APPROVER": ["case.read", "case.approve", "stp.approve", "pii.reveal"],
-    "COMPLIANCE_APPROVER": ["case.read", "compliance.decide", "audit.read", "pii.reveal"],
-    "RISK_APPROVER": ["case.read", "case.approve", "stp.approve", "compliance.decide", "pii.reveal"],
-    "AUDIT_RISK": ["case.read", "audit.read", "audit.export", "pii.reveal"],
+    "OPERATOR": ["case.read", "case.work", "case.assign", "batch.upload", "pii.reveal", "network.read", "network.work"],
+    "SUPERVISOR": ["case.read", "case.work", "case.assign", "case.reassign", "audit.read", "batch.upload", "pii.reveal", "network.read", "network.work"],
+    "OPERATIONS_APPROVER": ["case.read", "case.approve", "stp.approve", "pii.reveal", "network.read", "network.approve"],
+    "COMPLIANCE_APPROVER": ["case.read", "compliance.decide", "audit.read", "pii.reveal", "network.read"],
+    "RISK_APPROVER": ["case.read", "case.approve", "stp.approve", "compliance.decide", "pii.reveal", "network.read", "network.approve"],
+    "AUDIT_RISK": ["case.read", "audit.read", "audit.export", "pii.reveal", "network.read"],
     "ADMIN": ["case.read", "case.approve", "audit.read", "audit.export", "admin.read", "admin.mode_change", "admin.mode_approve", "batch.upload", "reference.read"],
     "POLICY_OWNER": ["case.read", "audit.read", "policy.read", "policy.write", "policy.approve", "reference.read"],
 }
 NAV = {
-    "OPERATOR": ["dashboard", "home", "worklist", "batches"],
-    "SUPERVISOR": ["dashboard", "home", "worklist", "approvals", "compliance", "batches", "audit"],
-    "OPERATIONS_APPROVER": ["dashboard", "home", "approvals", "worklist", "batches"],
-    "RISK_APPROVER": ["dashboard", "home", "approvals", "compliance", "worklist", "batches"],
-    "COMPLIANCE_APPROVER": ["dashboard", "home", "compliance", "audit"],
-    "AUDIT_RISK": ["dashboard", "audit"],
+    "OPERATOR": ["dashboard", "home", "worklist", "network", "batches"],
+    "SUPERVISOR": ["dashboard", "home", "worklist", "approvals", "compliance", "network", "batches", "audit"],
+    "OPERATIONS_APPROVER": ["dashboard", "home", "approvals", "worklist", "network", "batches"],
+    "RISK_APPROVER": ["dashboard", "home", "approvals", "compliance", "worklist", "network", "batches"],
+    "COMPLIANCE_APPROVER": ["dashboard", "home", "compliance", "network", "audit"],
+    "AUDIT_RISK": ["dashboard", "network", "audit"],
     "ADMIN": ["dashboard", "home", "batches", "audit", "admin"],
     "POLICY_OWNER": ["dashboard", "policy", "admin", "audit"],
 }
 NAV_LABELS = {"dashboard": ("Dashboard", "/dashboard"), "home": ("My work", "/"), "worklist": ("Worklist", "/worklist"), "approvals": ("Approvals", "/approvals"),
               "compliance": ("Compliance", "/compliance"), "batches": ("Batches", "/batches"), "audit": ("Audit", "/audit"),
-              "admin": ("Admin", "/admin"), "policy": ("Policy Studio", "/policy")}
+              "admin": ("Admin", "/admin"), "policy": ("Policy Studio", "/policy"), "network": ("Network cases", "/network")}
 
 
 def role_of(user) -> str:

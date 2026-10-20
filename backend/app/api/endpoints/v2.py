@@ -643,3 +643,100 @@ def admin_policies(user=Depends(current_user)):
 def admin_exception_types(user=Depends(current_user)):
     require(user, "admin.read")
     return ad.exception_types()
+
+
+# ---- network cases: investigations (camt.110/111) and recalls (camt.056/029) ------------------------------------
+class NetInboundBody(BaseModel):
+    xml: str
+
+
+class NetSampleBody(BaseModel):
+    kind: str = "INVESTIGATION"
+    case_id: Optional[str] = None
+
+
+class NetOutboundBody(BaseModel):
+    kind: str
+    uetr: str = ""
+    case_id: Optional[str] = None
+    reason_code: str
+    narrative: str = ""
+    counterparty_bic: str
+
+
+class NetDraftBody(BaseModel):
+    outcome: str
+    reason_code: Optional[str] = None
+    text: str = ""
+
+
+class NetNoteBody(BaseModel):
+    note: Optional[str] = None
+
+
+class NetReturnBody(BaseModel):
+    reference: str = ""
+
+
+class NetReplyBody(BaseModel):
+    outcome: Optional[str] = None
+
+
+@router.get("/network/cases")
+def network_list(kind: Optional[str] = None, direction: Optional[str] = None, status: Optional[str] = None, user=Depends(current_user)):
+    from app.services.v2 import network as nw
+    return nw.listing(user, kind, direction, status)
+
+
+@router.get("/network/cases/{nid}")
+def network_detail(nid: str, user=Depends(current_user)):
+    from app.services.v2 import network as nw
+    return nw.get_detail(user, nid)
+
+
+@router.post("/network/inbound", status_code=201)
+def network_inbound(body: NetInboundBody, user=Depends(writer_user)):
+    from app.services.v2 import network as nw
+    return nw.receive(user, body.xml)
+
+
+@router.post("/network/inbound/sample", status_code=201)
+def network_sample(body: NetSampleBody, user=Depends(writer_user)):
+    from app.services.v2 import network as nw
+    return nw.sample(user, body.kind, body.case_id)
+
+
+@router.post("/network/outbound", status_code=201)
+def network_outbound(body: NetOutboundBody, user=Depends(writer_user)):
+    from app.services.v2 import network as nw
+    return nw.raise_outbound(user, body.kind, body.uetr, body.reason_code, body.narrative, body.counterparty_bic, body.case_id)
+
+
+@router.post("/network/cases/{nid}/draft")
+def network_draft(nid: str, body: NetDraftBody, user=Depends(writer_user)):
+    from app.services.v2 import network as nw
+    return nw.draft(user, nid, body.outcome, body.reason_code, body.text)
+
+
+@router.post("/network/cases/{nid}/authorise")
+def network_authorise(nid: str, body: NetNoteBody, user=Depends(writer_user)):
+    from app.services.v2 import network as nw
+    return nw.authorise(user, nid, body.note)
+
+
+@router.post("/network/cases/{nid}/simulate-reply")
+def network_simulate(nid: str, body: NetReplyBody, user=Depends(writer_user)):
+    from app.services.v2 import network as nw
+    return nw.simulate_reply(user, nid, body.outcome)
+
+
+@router.post("/network/cases/{nid}/bank-return")
+def network_return(nid: str, body: NetReturnBody, user=Depends(writer_user)):
+    from app.services.v2 import network as nw
+    return nw.bank_return(user, nid, body.reference)
+
+
+@router.post("/network/cases/{nid}/close")
+def network_close(nid: str, body: NetNoteBody, user=Depends(writer_user)):
+    from app.services.v2 import network as nw
+    return nw.close(user, nid, body.note)

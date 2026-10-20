@@ -343,3 +343,36 @@ class V2IdempotencyModel(Base):
     key = Column(String(190), primary_key=True)
     response = Column(JSON, nullable=False, default=dict)
     created_at = Column(String(64), nullable=False)
+
+
+class V2NetworkCaseModel(Base):
+    """An investigation (camt.110/111) or recall (camt.056/029) exchanged with another bank, tied to a payment by UETR."""
+    __tablename__ = "v2_network_cases"
+
+    id = Column(String(32), primary_key=True)
+    kind = Column(String(16), nullable=False, index=True)           # INVESTIGATION | RECALL
+    direction = Column(String(8), nullable=False, index=True)       # INBOUND | OUTBOUND
+    status = Column(String(24), nullable=False, index=True)
+    uetr = Column(String(64), nullable=False, index=True)
+    counterparty_bic = Column(String(16), nullable=False)
+    case_ref = Column(String(64), nullable=True)                    # the case id the requester uses; echoed in our reply
+    message_id = Column(String(64), nullable=True, index=True)
+    response_message_id = Column(String(64), nullable=True, index=True)
+    amount = Column(Float, nullable=True)
+    currency = Column(String(3), nullable=True)
+    reason_code = Column(String(8), nullable=True)
+    narrative = Column(Text, nullable=True)
+    created_at = Column(String(40), nullable=False)
+    due_at = Column(String(40), nullable=True)
+    closed_at = Column(String(40), nullable=True)
+    request_xml = Column(Text, nullable=False)
+    response_xml = Column(Text, nullable=True)
+    response_outcome = Column(String(8), nullable=True)
+    response_reason = Column(String(8), nullable=True)
+    response_text = Column(Text, nullable=True)
+    drafted_by = Column(String(64), nullable=True)
+    approvals = Column(JSON, nullable=True)
+    handoff = Column(JSON, nullable=True)
+    timeline = Column(JSON, nullable=True)
+    warnings = Column(JSON, nullable=True)
+    linked_case_id = Column(String(64), nullable=True, index=True)

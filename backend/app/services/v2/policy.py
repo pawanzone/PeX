@@ -32,6 +32,9 @@ PARAMS: List[Dict[str, Any]] = [
      "description": "The same level cannot be pinged again sooner than this.", "used_by": "Ping / escalate ladder", "default": lambda: _ex().COOLDOWN_MIN},
     {"key": "expedite_auto_escalate_min", "label": "Automatic escalation after", "group": "SLA", "unit": "minutes", "min": 5, "max": 240, "step": 1, "kind": "int",
      "description": "An unanswered expedite request climbs one level by itself after this long.", "used_by": "Ping / escalate ladder", "default": lambda: _ex().AUTO_ESCALATE_MIN},
+    {"key": "network_response_hours", "label": "Network case response time", "group": "SLA", "unit": "hours", "min": 1, "max": 240, "step": 1, "kind": "int",
+     "description": "How long we have to answer an investigation or recall from another bank, and how long we wait for theirs.", "used_by": "Network cases: due time and overdue flag",
+     "default": lambda: _nw().RESPONSE_HOURS},
 ]
 BY_KEY = {p["key"]: p for p in PARAMS}
 
@@ -54,6 +57,11 @@ def _pii():
 def _ex():
     from app.services.v2 import expedite
     return expedite
+
+
+def _nw():
+    from app.services.v2 import network
+    return network
 
 
 # ---- value in force -------------------------------------------------------------------------------------------
@@ -154,7 +162,8 @@ def impact(key: str, new: Any) -> Dict[str, Any]:
         verb = "need an extra evidence review" if new > old else "no longer need an extra evidence review"
         scope = "open"
     else:
-        return {"cases_affected": 0, "cases": [], "summary": f"Takes effect for the next {'reveal' if key == 'reveal_minutes' else 'expedite request'}. No case changes.", "old": old, "new": new}
+        nxt = {"reveal_minutes": "reveal", "network_response_hours": "network case received or raised"}.get(key, "expedite request")
+        return {"cases_affected": 0, "cases": [], "summary": f"Takes effect for the next {nxt}. No case changes.", "old": old, "new": new}
     hit.sort(key=lambda h: -h["amount"])
     n = len(hit)
     summary = f"{n} {scope} case{'s' if n != 1 else ''} would {verb}." if n else f"No {scope} case changes with this value."

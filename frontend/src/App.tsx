@@ -14,6 +14,7 @@ import { BatchDetail } from "./screens/BatchDetail";
 import { Audit } from "./screens/Audit";
 import { Admin } from "./screens/Admin";
 import { Policy } from "./screens/Policy";
+import { Network } from "./screens/Network";
 
 /** Route table. Screen forks replace the stub in src/screens/<Name>.tsx; this file should rarely change. */
 const render = (r: Route): React.ReactNode => {
@@ -27,6 +28,7 @@ const render = (r: Route): React.ReactNode => {
     case "audit": return <Audit />;
     case "admin": return <Admin route={r} />;
     case "policy": return <Policy />;
+    case "network": return <Network id={r.id} />;
   }
 };
 

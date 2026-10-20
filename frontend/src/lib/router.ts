@@ -2,8 +2,8 @@
  *  #/compliance, #/compliance/case/<id>, #/batches, #/batches/<id>, #/audit, #/admin/<section>. */
 import { useEffect, useState, useCallback } from "react";
 
-export type Area = "dashboard" | "home" | "worklist" | "approvals" | "compliance" | "batches" | "audit" | "admin" | "policy";
-export const AREAS: Area[] = ["dashboard", "home", "worklist", "approvals", "compliance", "batches", "audit", "admin", "policy"];
+export type Area = "dashboard" | "home" | "worklist" | "approvals" | "compliance" | "batches" | "audit" | "admin" | "policy" | "network";
+export const AREAS: Area[] = ["dashboard", "home", "worklist", "approvals", "compliance", "batches", "audit", "admin", "policy", "network"];
 
 export interface Route {
   area: Area;
@@ -27,7 +27,7 @@ export function parseHash(hash: string): Route {
   const area: Area = AREAS.includes(first) ? first : "dashboard";
   const r: Route = { area, query, raw };
   if ((area === "worklist" || area === "compliance") && parts[1] === "case" && parts[2]) { r.kind = "case"; r.id = parts[2]; }
-  else if (area === "batches" && parts[1]) r.id = parts[1];
+  else if ((area === "batches" || area === "network") && parts[1]) r.id = parts[1];
   else if (area === "admin") r.section = parts[1] || "integrations";
   if (area === "admin" && parts[1] === "reference" && parts[2]) r.id = parts[2];
   return r;
@@ -51,6 +51,7 @@ export const routes = {
   batch: (id: string) => `#/batches/${e(id)}`,
   audit: (query?: Record<string, string>) => `#/audit${q(query)}`,
   policy: () => "#/policy",
+  network: (id?: string) => `#/network${id ? "/" + e(id) : ""}`,
   admin: (section = "integrations") => `#/admin/${e(section)}`,
   adminReference: (screen?: string) => `#/admin/reference${screen ? "/" + e(screen) : ""}`,
 };
