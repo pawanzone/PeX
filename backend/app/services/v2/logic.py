@@ -100,6 +100,18 @@ def confidence_of(case: Dict[str, Any], ext: Optional[Dict[str, Any]] = None) ->
         amb = max(amb, 15.0)
     elif es == "missing" and gates:
         states[gates[0]["name"]] = "MISSING"
+    # Keep this tab consistent with the evidence tab: a check the case lists as missing is missing here too, and anything the
+    # client has to supply is missing until the client answers.
+    for r in ext.get("evidence") or []:
+        if str(r.get("status")) == "missing":
+            chk = str(r.get("check") or "").strip().lower()
+            for i in items:
+                if chk and (chk in i["name"].lower()) and i["name"] != (gates[0]["name"] if gates else None):
+                    states[i["name"]] = "MISSING"
+    if es == "missing":
+        for i in items:
+            if i["system"] == "CLIENT":
+                states[i["name"]] = "MISSING"
     for n in ci.get("missing") or []:
         if n in states:
             states[n] = "MISSING"
