@@ -14,6 +14,7 @@ from app.config import settings
 from app.db.models import CaseModel
 from app.services.data_loader import repo
 from app.services.v2 import ext as xt
+from app.services.v2 import zone
 from app.services.v2.core import ext_store, now, iso
 
 log = logging.getLogger("pex.v2.seed")
@@ -87,7 +88,7 @@ def _case(case_id: str, code: str, amount: float, ccy: str, rail: str, status: s
 
 def _log(case: Dict[str, Any], stage: str, actor: str, role: str, action: str, text: str, tags: Optional[List[str]] = None):
     repo.log_audit_event(case_id=case["case_id"], correlation_id=case["uetr"], stage_name=stage, actor_id=actor, actor_role=role,
-                         action_name=action, details="[DEMO_ONLY] " + text, control_tags=(tags or []) + ["DEMO_ONLY"],
+                         action_name=action, details="[DEMO_ONLY] " + zone.seal_text(text, case), control_tags=(tags or []) + ["DEMO_ONLY"],
                          amount=case["amount"], currency=case["currency"])
 
 
@@ -114,10 +115,12 @@ def seed_named() -> List[str]:
     t = now()
     ids: List[str] = []
     ts = lambda m: iso(t - timedelta(minutes=m))
-    ok_rows = lambda m, extra=(): [
-        _ev("ev-1", "Creditor IBAN checksum", "Original fails mod-97; proposed passes mod-97", "Payment instruction", "Deterministic check", "pass", "Passed", ts(m)),
+    # Evidence rows come from the zone: the simulated connectors answer with real-looking values, the zone checks them and
+    # returns tokens and derived facts only (same interface a real connector will use).
+    ok_rows = lambda m, case, bad_iban, good_iban, extra=(): [
+        zone.run("checksum", "ev-1", case, {"checksum": {"original": bad_iban, "proposed": good_iban}}, ts(m), source="Payment instruction"),
         _ev("ev-2", "Bank directory", "Bank code resolves to the named institution", "Bank directory", "Authoritative", "agree", "Agree", ts(m)),
-        _ev("ev-3", "Prior payments", "3 earlier payments to this beneficiary used the proposed IBAN", "Payment history", "Supporting", "agree", "Agree", ts(m)),
+        zone.run("history", "ev-3", case, {"checksum": {"original": bad_iban, "proposed": good_iban}, "history": {"count": 3, "same_account": 3}}, ts(m)),
         *extra]
 
     # ---- PEX-INV-0001: invalid IBAN, validated, submitted by Priya Nair with a handover note --------------------------------
@@ -129,7 +132,7 @@ def seed_named() -> List[str]:
                 ("MAKER_SUBMIT", "OP-9012", "OPERATOR", "CASE_SUBMITTED", "Priya Nair submitted the repair for approval with a handover note.", ["Maker-checker"])])
     ch = xt.build_change("creditor_account.iban", bad, good, source="Bank directory + payment history", risk="Low",
                          policy_basis="One approver", justification="Directory record and three prior payments use the proposed IBAN.")
-    _put(c["case_id"], _base_ext(c, ok_rows(140), "complete", change=ch, assignee="OP-9012",
+    _put(c["case_id"], _base_ext(c, ok_rows(140, c, bad, good), "complete", change=ch, assignee="OP-9012",
         handover={"note": "Beneficiary confirmed the corrected IBAN by phone (invoice INV-2291 attached). Please release.", "by": {"user_id": "OP-9012", "name": "Priya Nair"},
                   "at": ts(35), "attachment": {"name": "INV-2291.pdf"}}, submitted_at=ts(35),
         stp={"eligible": False, "reason": "Maker-checker required"}, recommended_action="APPLY_REPAIR"))
@@ -142,7 +145,7 @@ def seed_named() -> List[str]:
     _ingest(c)
     ch = xt.build_change("creditor_account.iban", _corrupt(good2), good2, source="Bank directory", risk="Low", policy_basis="One approver",
                          justification="Single directory match; checksum passes.")
-    _put(c["case_id"], _base_ext(c, ok_rows(60), "complete", change=ch))
+    _put(c["case_id"], _base_ext(c, ok_rows(60, c, _corrupt(good2), good2), "complete", change=ch))
     ids.append(c["case_id"])
 
     # ---- PEX-LOW-0096: valid repair, but a brand-new beneficiary with no payment history (confidence below 85%) ------------------
@@ -180,9 +183,10 @@ def seed_named() -> List[str]:
     c = _case("PEX-CON-0031", "DQ-01", 41200, "EUR", "SEPA", "INVESTIGATING", "Repair", "Hartmann Industrietechnik AG", "DE", a, "COBADEFF",
               180, 75, "Invoice bank details differ from the beneficiary master directory.")
     _ingest(c)
-    rows = [_ev("ev-1", "Creditor IBAN checksum", "Both IBANs pass mod-97", "Deterministic check", "Deterministic check", "pass", "Passed", ts(170)),
-            _ev("ev-2", "Beneficiary master directory", f"Directory holds {xt.iban_group(a)}", "Beneficiary master directory", "Authoritative", "agree", "Agree", ts(169)),
-            _ev("ev-3", "Invoice INV-4410", f"Invoice shows {xt.iban_group(b)}", "Invoice INV-4410", "Supporting", "differs", "Differs", ts(160))]
+    world = {"checksum": {"instruction": a, "invoice": b}, "directory": {"iban": a}, "invoice": {"number": "INV-4410", "iban": b}}
+    rows = [zone.run("checksum", "ev-1", c, world, ts(170)),
+            zone.run("directory", "ev-2", c, world, ts(169)),
+            zone.run("invoice", "ev-3", c, world, ts(160))]
     conflict = {"field": "Beneficiary account (IBAN)", "note": "Both IBANs pass checksum validation, so validation cannot decide this.",
                 "sources": [{"name": "Payment instruction", "value": xt.iban_group(a), "relation": "agrees", "authority": "Originator", "tag": "Agree", "changed_at": None,
                              "received_at": ts(180), "note": "Supplied by originator"},
@@ -201,9 +205,10 @@ def seed_named() -> List[str]:
     c = _case("PEX-NAM-0027", "DQ-09", 412000, "EUR", "TARGET2", "INVESTIGATING", "Repair", "Van der Berg Holding BV", "NL", nm, "ABNANL2A", 260, 120,
               "Beneficiary name does not match the account holder.")
     _ingest(c)
-    rows = [_ev("ev-1", "Account holder name", "Bank returns 'V. d. Berg Vastgoed BV'", "Verification of Payee (simulated)", "Authoritative", "differs", "Differs", ts(250)),
+    world = {"account_holder": "V. d. Berg Vastgoed BV"}
+    rows = [zone.run("vop", "ev-1", c, world, ts(250)),
             _ev("ev-2", "Instruction name", "Instruction says 'Van der Berg Holding BV'", "Payment instruction", "Supporting", "agree", "Agree", ts(250)),
-            _ev("ev-3", "IBAN checksum", "Passes mod-97", "Deterministic check", "Deterministic check", "pass", "Passed", ts(250))]
+            zone.run("checksum", "ev-3", c, world, ts(250))]
     conflict = {"field": "Beneficiary name", "note": "Account holder differs from the name on the instruction. This could be a different entity.",
                 "sources": [{"name": "Payment instruction", "value": "Van der Berg Holding BV", "relation": "differs", "authority": "Supporting", "tag": "Instruction", "changed_at": None},
                             {"name": "Verification of Payee", "value": "V. d. Berg Vastgoed BV", "relation": "differs", "authority": "Authoritative", "tag": "Bank says", "changed_at": ts(250)}]}

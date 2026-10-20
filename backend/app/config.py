@@ -62,6 +62,10 @@ class Settings(BaseModel):
     STATUS_UNKNOWN_AFTER_SECONDS: float = float(os.getenv("PEX_STATUS_UNKNOWN_AFTER_SECONDS", "300"))
     BATCH_APPROVAL_MAX_AMOUNT: float = float(os.getenv("PEX_BATCH_APPROVAL_MAX", "25000"))  # one-click supervised batch (human approves); autonomous STP stays at STP_MAX_AMOUNT
     PII_MASKING: bool = os.getenv("PEX_PII_MASKING", "true").lower() == "true"   # tokenised display by default; audited reveal
+    # Key for the token vault (HMAC). Set a long random value in any real deployment; the default is for the demo only.
+    TOKEN_KEY: str = os.getenv("PEX_TOKEN_KEY", "pex-demo-token-key-change-me")
+    # Per-connector mode, e.g. "CUSTM=real,COPVOP=real". Anything not listed is simulated. Real needs a registered adapter.
+    CONNECTOR_MODES: str = os.getenv("PEX_CONNECTOR_MODES", "")
     SEED_V2: bool = os.getenv("PEX_SEED_V2", "true").lower() == "true"
     STP_MAX_AMOUNT: float = float(os.getenv("PEX_STP_MAX_AMOUNT", "10000"))  # conservative default; bank-configurable
 

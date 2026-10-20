@@ -71,7 +71,7 @@ export interface CasePage {
   request_information?: RequestInfoDto | null; decision_form?: DecisionForm | null;
   handoff?: { handoff_id?: string; sent_at?: string; mode?: string; bank_comm?: string; awaiting?: string } | null;
   bank?: { reference?: string; confirmed_at?: string; clearing_system?: string } | null;
-  pii?: { masking: boolean; protected: boolean; can_reveal: boolean; revealed_until?: string | null; reveal_minutes: number; min_reason_length: number; reveal_endpoint: string; hide_endpoint: string } | null;
+  pii?: { masking: boolean; protected: boolean; can_reveal: boolean; revealed_until?: string | null; reveal_minutes: number; min_reason_length: number; reveal_classes?: { class: string; name: string }[]; restricted_note?: string | null; ai_view_endpoint?: string; reveal_endpoint: string; hide_endpoint: string } | null;
   confidence?: {
     profile: string; profile_id: string; family: string; family_name: string; coverage_pct: number; confidence_pct: number; raw_pct: number; penalty_pct: number;
     threshold: number; extra_approval: boolean; applies: boolean; label: string; reasons: string[]; gates_missing: string[]; standards: string;
@@ -91,6 +91,10 @@ const enc = encodeURIComponent;
 export const getCasePage = (id: string) => v2Get<CasePage>(`/cases/${enc(id)}/page`);
 export const getEvidenceSource = (id: string, evidenceId: string) =>
   v2Get<{ id: string; check?: string; source?: string; authority?: string; checked_at?: string; raw?: Record<string, unknown>; note?: string }>(`/cases/${enc(id)}/evidence/${enc(evidenceId)}`);
+
+export interface AiView { case_id: string; payload: Record<string, unknown>; guard: { passed: boolean; rule: string }; connectors: { key: string; name: string; mode: string }[] }
+/** Exactly what an AI model would be sent for this case (tokens, an amount band and derived facts only). */
+export const getAiView = (id: string) => v2Get<AiView>(`/cases/${enc(id)}/ai-view`);
 
 /** Generic POST to /cases/{id}/<path>. Used for every case action. */
 export const postCaseAction = (id: string, path: string, body: Record<string, unknown> = {}) =>

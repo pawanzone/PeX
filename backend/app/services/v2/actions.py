@@ -21,6 +21,8 @@ from app.services.v2 import ext as xt
 from app.services.v2 import logic as lg
 from app.services.v2 import pages as pg
 from app.services.v2 import pii
+from app.services.v2 import classification as cl
+from app.services.v2 import zone
 from app.services.v2.core import (
     V2Error, bad_state, invalid, not_found, now, iso, parse_ts, role_of, has_perm, require, person, ext_store, new_id,
     is_compliance, party_name, money, ROLE_LABELS,
@@ -49,9 +51,11 @@ def audit(case: Dict[str, Any], user, stage: str, action: str, text: str, tags: 
           before: Optional[str] = None, after: Optional[str] = None, reason: Optional[str] = None,
           evidence_reviewed: Optional[int] = None, policy_version: Optional[str] = None, sod: Optional[str] = None,
           actor_id: Optional[str] = None, actor_role: Optional[str] = None):
+    pairs = zone.case_pairs(case)                       # stored audit rows hold tokens, never real values
+    text = zone.seal_text(text, None, pairs)
     meta = {"before": before, "after": after, "reason": reason, "evidence_reviewed": evidence_reviewed,
             "policy_version": policy_version, "sod": sod}
-    meta = {k: v for k, v in meta.items() if v is not None}
+    meta = {k: (zone.seal_text(v, None, pairs) if isinstance(v, str) else v) for k, v in meta.items() if v is not None}
     details = text + (META_MARK + json.dumps(meta) if meta else "")
     audit_service.log_event(
         case_id=case["case_id"], correlation_id=case.get("uetr") or case["case_id"], stage_name=stage,
@@ -72,6 +76,12 @@ def move(case: Dict[str, Any], to: str, user, reason: str, **kw):
 
 def notify(kind: str, title: str, text: str, case_id: Optional[str] = None, target_user: Optional[str] = None,
            target_role: Optional[str] = None):
+    title, text = zone.seal_text(title), zone.seal_text(text)
+    if case_id:
+        c = repo.get_case(case_id)
+        if c:
+            pairs = zone.case_pairs(c)
+            title, text = zone.seal_text(title, None, pairs), zone.seal_text(text, None, pairs)
     db = SessionLocal()
     try:
         db.add(V2NotificationModel(id=new_id("N"), target_user_id=target_user, target_role=target_role, kind=kind, case_id=case_id,
@@ -271,7 +281,7 @@ def reassess(case_id: str, user, note: Optional[str], provided: Optional[Dict[st
                 if key == "iban" and not xt.iban_valid(sv):
                     msgs.append("The IBAN provided fails the mod-97 check; still missing.")
                     continue
-                r.update({"status": "agree", "status_label": "Agree", "result": f"Provided by client: {sv}", "source": "Client reply",
+                r.update({"status": "agree", "status_label": "Agree", "result": f"Provided by client: {zone.seal_text(sv, case)}", "source": "Client reply",
                           "authority": "Client supplied", "checked_at": iso(now())})
                 changed = True
                 if key == "iban":
@@ -356,7 +366,7 @@ def disambiguate(case_id: str, user, candidate_id: Optional[str], rationale: Opt
     ext["disambiguation"] = {"candidate_id": cid, "value": pick.get("value"), "rationale": why, "by": user.user_id, "at": iso(now())}
     if pick.get("value"):
         old = account_or(case)
-        ext["change"] = xt.build_change("creditor_account.iban", old, pick["value"], source="Analyst disambiguation", risk="Medium",
+        ext["change"] = xt.build_change("creditor_account.iban", old, zone.raw_of(pick["value"]), source="Analyst disambiguation", risk="Medium",
                                         policy_basis="One approver; analyst chose between conflicting sources", what_changes="Beneficiary account confirmed by analyst")
         ext["evidence_state"] = "complete"
         for r in ext.get("evidence") or []:
@@ -485,7 +495,7 @@ def pii_reveal(case_id: str, user, reason: Optional[str]) -> Dict[str, Any]:
     ext["pii_reveals"] = grants[-50:]
     touch(case, ext)
     xt.persist_ext(case_id, ext)
-    audit(case, user, "PII_ACCESS", "PII_REVEALED", f"{user.name} ({ROLE_LABELS.get(role_of(user), role_of(user))}) revealed personal data on {case_id} for {pii.REVEAL_MINUTES} minutes.",
+    audit(case, user, "PII_ACCESS", "PII_REVEALED", f"{user.name} ({ROLE_LABELS.get(role_of(user), role_of(user))}) revealed personal data ({', '.join(sorted(cl.revealable_classes(role_of(user))))}) on {case_id} for {pii.REVEAL_MINUTES} minutes.",
           ["PII reveal", "Reason recorded", "Time-limited"], before=lg.status_of(case), after=lg.status_of(case), reason=r[:300])
     return result(case_id, user, f"Real values are shown to you for {pii.REVEAL_MINUTES} minutes. This access is logged.")
 
@@ -772,3 +782,13 @@ def with_idempotency(key: Optional[str], user, fn):
     finally:
         db.close()
     return out
+
+
+def ai_view(case_id: str, user) -> Dict[str, Any]:
+    """What an AI model would be sent for this case. Built by the zone and checked by its guard: if anything real were in it, this fails."""
+    case = _load(case_id)
+    ext = lg.ext_of(case)
+    payload = zone.llm_input(case, ext)
+    return {"case_id": case_id, "payload": payload,
+            "guard": {"passed": True, "rule": "No names, addresses, account numbers or e-mail addresses; exact amount replaced by a band; references tokenised."},
+            "connectors": zone.connector_status()}

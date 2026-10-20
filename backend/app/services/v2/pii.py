@@ -14,8 +14,9 @@ from datetime import timedelta
 from typing import Any, Dict, List, Optional, Tuple
 
 from app.config import settings
-from app.core.tokenization import token_vault
+from app.services.v2 import classification as cl
 from app.services.v2 import ext as xt
+from app.services.v2 import zone
 
 REVEAL_MINUTES = 10
 MIN_REASON = 10
@@ -27,38 +28,7 @@ def enabled() -> bool:
 
 
 def _pairs(case: Dict[str, Any]) -> List[Tuple[str, str]]:
-    """(raw text as it may appear, token) for one case, longest first."""
-    from app.services.v2 import logic as lg
-    ext = lg.ext_of(case)
-    out: Dict[str, str] = {}
-
-    def add(raw: Any, kind: str):
-        if not isinstance(raw, str):
-            return
-        r = raw.strip()
-        if len(r) < 5:
-            return
-        tok = token_vault.tokenize(r, kind)
-        out[r] = tok
-        if kind in ("IBAN", "ACC"):
-            c = xt.iban_compact(r)
-            out[c] = tok
-            out[xt.iban_group(c)] = tok
-
-    for k in ("debtor_party", "creditor_party"):
-        add((case.get(k) or {}).get("party_name"), "PARTY")
-    for k in ("debtor_account", "creditor_account"):
-        a = case.get(k) or {}
-        add(a.get("iban"), "IBAN")
-        add(a.get("account_number"), "ACC")
-    add(ext.get("counterparty"), "PARTY")
-    add(ext.get("debtor"), "PARTY")
-    ch = ext.get("change") or {}
-    for side in ("original", "proposed"):
-        v = (ch.get(side) or {}).get("value")
-        if isinstance(v, str) and xt.looks_like_iban(v):
-            add(v, "IBAN")
-    return sorted(out.items(), key=lambda kv: -len(kv[0]))
+    return zone.case_pairs(case)
 
 
 def active_reveal(ext: Dict[str, Any], user_id: Optional[str]) -> Optional[Dict[str, Any]]:
@@ -74,11 +44,17 @@ def active_reveal(ext: Dict[str, Any], user_id: Optional[str]) -> Optional[Dict[
 
 
 def page_block(case: Dict[str, Any], ext: Dict[str, Any], user) -> Dict[str, Any]:
-    from app.services.v2.core import has_perm
+    from app.services.v2.core import has_perm, role_of
     g = active_reveal(ext, getattr(user, "user_id", None))
-    return {"masking": enabled(), "protected": enabled() and not g, "can_reveal": enabled() and has_perm(user, "pii.reveal"),
+    role = role_of(user) if user is not None else ""
+    can = enabled() and has_perm(user, "pii.reveal")
+    classes = sorted(cl.revealable_classes(role)) if can else []
+    return {"masking": enabled(), "protected": enabled() and not g, "can_reveal": can,
             "revealed_until": g.get("expires_at") if g else None, "reveal_minutes": REVEAL_MINUTES,
             "min_reason_length": MIN_REASON,
+            "reveal_classes": [{"class": c, "name": cl.CLASSES[c]} for c in classes],
+            "restricted_note": ("Screening details (C3) can be revealed by the Compliance role only." if can and "C3" not in classes else None),
+            "ai_view_endpoint": f"/api/v2/cases/{case['case_id']}/ai-view",
             "reveal_endpoint": f"/api/v2/cases/{case['case_id']}/pii/reveal", "hide_endpoint": f"/api/v2/cases/{case['case_id']}/pii/hide"}
 
 
@@ -116,7 +92,9 @@ def _case_ids(o: Any, acc: set):
             _case_ids(x, acc)
 
 
-def mask_payload(payload: Any, viewer_id: Optional[str], path_ids: Optional[List[str]] = None) -> Any:
+def mask_payload(payload: Any, viewer_id: Optional[str], path_ids: Optional[List[str]] = None, role: str = "") -> Any:
+    """Everything leaving the API. Stored evidence already holds tokens; this also covers values that live in the case record.
+    A viewer with an active reveal on every case in the payload gets the real values back for the classes their role may see."""
     if not enabled():
         return payload
     from app.services.data_loader import repo
@@ -124,13 +102,17 @@ def mask_payload(payload: Any, viewer_id: Optional[str], path_ids: Optional[List
     ids: set = set(path_ids or [])
     _case_ids(payload, ids)
     pairs: List[Tuple[str, str]] = []
+    revealed_all = bool(ids)
     for cid in ids:
         case = repo.get_case(cid)
         if not case:
             continue
         if active_reveal(lg.ext_of(case), viewer_id):
             continue
+        revealed_all = False
         pairs.extend(_pairs(case))
+    if revealed_all:
+        return zone.unseal_obj(payload, role)          # tokens back to real values, class by class
     if not pairs:
         return payload
     pairs.sort(key=lambda kv: -len(kv[0]))

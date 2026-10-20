@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { ShieldCheck, Eye, EyeOff } from "lucide-react";
+import { ShieldCheck, Eye, EyeOff, Bot } from "lucide-react";
 import { Modal } from "../../components/v2";
 import type { Run } from "./forms";
 import type { CasePage } from "../../services/v2/case";
-import { postCaseAction } from "../../services/v2/case";
+import { postCaseAction, getAiView, type AiView } from "../../services/v2/case";
 
 const field = "py-2 px-2.5 text-sm rounded-lg border border-surface-line bg-white text-pex-ink w-full";
 const primaryBtn = "px-4 py-2 text-sm font-medium rounded-lg bg-pex-primary text-white hover:bg-pex-primary-dark disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2";
@@ -36,6 +36,9 @@ export const PiiBar: React.FC<{ page: CasePage; run: Run }> = ({ page, run }) =>
         <Modal open title="Reveal personal data" onClose={() => setOpen(false)} width="lg">
           <div className="grid gap-3">
             <p className="text-sm text-pex-muted">Real names, IBANs and account numbers will show for {p.reveal_minutes} minutes on this case, for you only. Who, when and why is recorded in the audit trail.</p>
+            {p.reveal_classes && p.reveal_classes.length > 0 && (
+              <p className="text-xs text-pex-muted">Your role can reveal: {p.reveal_classes.map((c) => c.name).join(", ")}.{p.restricted_note ? " " + p.restricted_note : ""}</p>
+            )}
             <label className="text-sm font-medium" htmlFor="pii-reason">Why do you need to see them?</label>
             <textarea id="pii-reason" rows={3} className={field} value={reason} onChange={(e) => setReason(e.target.value)} placeholder="For example: confirming the beneficiary against invoice INV-2291." />
             <div className="flex justify-end gap-2">
@@ -47,5 +50,34 @@ export const PiiBar: React.FC<{ page: CasePage; run: Run }> = ({ page, run }) =>
         </Modal>
       )}
     </>
+  );
+};
+
+/** "What the AI saw": the exact payload a model receives. Never un-tokenised, even during a reveal. */
+export const AiSeen: React.FC<{ page: CasePage }> = ({ page }) => {
+  const [open, setOpen] = useState(false);
+  const [data, setData] = useState<AiView | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  if (!page.pii?.masking) return null;
+  const toggle = async () => {
+    const next = !open;
+    setOpen(next);
+    if (next && !data) {
+      try { setData(await getAiView(page.case_id)); } catch (e) { setErr(e instanceof Error ? e.message : "Could not load"); }
+    }
+  };
+  return (
+    <div className="rounded-lg border border-surface-line bg-white px-3 py-2 text-sm">
+      <button type="button" className="inline-flex items-center gap-2 font-medium text-pex-primary" onClick={() => void toggle()} aria-expanded={open}>
+        <Bot className="w-4 h-4" aria-hidden />What the AI saw
+      </button>
+      {open && (
+        <div className="mt-2 grid gap-2">
+          <p className="text-xs text-pex-muted">{data ? data.guard.rule : "Loading…"} The model never receives real names, account numbers or the exact amount.</p>
+          {err && <p className="text-xs text-red-700">{err}</p>}
+          {data && <pre className="text-xs bg-slate-50 border border-surface-line rounded-lg p-2 overflow-auto max-h-72">{JSON.stringify(data.payload, null, 2)}</pre>}
+        </div>
+      )}
+    </div>
   );
 };

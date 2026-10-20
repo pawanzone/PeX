@@ -1,5 +1,6 @@
 """Tokenization Vault & PII Isolation Boundary."""
 import hashlib
+import hmac
 from typing import Dict, Tuple, Optional
 
 class TokenVault:
@@ -29,7 +30,9 @@ class TokenVault:
             return self._raw_to_token[clean_raw]
         
         # Deterministic token generation
-        h = hashlib.sha256(clean_raw.encode("utf-8")).hexdigest()[:12].upper()
+        # keyed (HMAC) so tokens cannot be recomputed from a list of names or IBANs without the vault key
+        from app.config import settings
+        h = hmac.new(str(settings.TOKEN_KEY).encode("utf-8"), clean_raw.encode("utf-8"), hashlib.sha256).hexdigest()[:12].upper()
         token = f"TOK-{token_type}-{h}"
         self._raw_to_token[clean_raw] = token
         self._token_to_raw[token] = clean_raw

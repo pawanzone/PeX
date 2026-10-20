@@ -316,6 +316,8 @@ class _ExtStore:
             return self._mem.get(case_id)
 
     def put(self, case_id: str, data: Dict[str, Any], persist: bool = True):
+        from app.services.v2 import zone       # evidence and derived text hold tokens, never real values; fails closed
+        zone.seal_ext(case_id, data)
         with self._lock:
             self._mem[case_id] = data
             if persist:

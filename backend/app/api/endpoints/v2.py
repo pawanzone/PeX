@@ -41,11 +41,16 @@ class PiiRoute(APIRoute):
                 return resp
             try:
                 from app.core.auth import resolve_user_id
+                from app.core.security import get_persona
                 uid = resolve_user_id(request.headers.get("authorization"))
+                persona = get_persona(uid)
+                role = role_of(persona) if persona else ""
             except Exception:
-                uid = None
+                uid, role = None, ""
             data = json.loads(resp.body)
-            masked = pii.mask_payload(data, uid, _CASE_ID.findall(request.url.path))
+            # the "what the AI saw" view is never un-tokenised, not even during a reveal: it shows exactly what a model receives
+            viewer = None if request.url.path.endswith("/ai-view") else uid
+            masked = pii.mask_payload(data, viewer, _CASE_ID.findall(request.url.path), role)
             if masked is data:
                 return resp
             out = JSONResponse(masked, status_code=resp.status_code)
@@ -300,6 +305,21 @@ class RevealBody(BaseModel):
 @router.post("/cases/{case_id}/pii/reveal")
 def pii_reveal(case_id: str, body: RevealBody, user=Depends(current_user)):
     return ac.pii_reveal(case_id, user, body.reason)
+
+
+@router.get("/cases/{case_id}/ai-view")
+def ai_view(case_id: str, user=Depends(current_user)):
+    """The exact payload an AI model would receive for this case. Tokens, an amount band and derived facts only."""
+    require(user, "case.read")
+    return ac.ai_view(case_id, user)
+
+
+@router.get("/connectors")
+def connectors(user=Depends(current_user)):
+    require(user, "case.read")
+    from app.services.v2 import zone
+    return {"connectors": zone.connector_status(),
+            "note": "Simulated connectors return ISO 20022-shaped data. A connector set to real needs a registered adapter and fails closed without one."}
 
 
 @router.post("/cases/{case_id}/pii/hide")

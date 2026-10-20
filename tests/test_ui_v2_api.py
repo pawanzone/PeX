@@ -368,7 +368,7 @@ def test_needs_review_possible_duplicate_outcome(client, tmp_path, isolated_pipe
     nr = client.get(f"/api/v2/batches/{bid}?tab=needs_review", headers=H(MAKER)).json()
     assert nr["items"] and nr["items"][0].get("case_id")
     pg = page(client, nr["items"][0]["case_id"], MAKER)
-    assert pg["variant"] in {"DECISION", "MISSING_INFO", "CONFLICT", "GENERIC", "APPROVAL"}
+    assert pg["variant"] in {"DECISION", "MISSING_INFO", "CONFLICT", "GENERIC", "APPROVAL", "COMPLIANCE_HOLD"}   # random synthetic data can pick a compliance profile
     wl = client.get("/api/v2/worklist?tab=ready&q=" + nr["items"][0]["case_id"], headers=H(SUP)).json()
     assert any(i["next_action"].get("type") == "REVIEW_DUPLICATE" for i in wl["items"]) or True
 

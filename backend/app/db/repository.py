@@ -291,6 +291,14 @@ class PeXDBRepository:
 
         debtor_account = _extract_account_str(debtor_account)
         creditor_account = _extract_account_str(creditor_account)
+
+        # Single write point for the audit trail: real names, IBANs and e-mails become vault tokens before they are stored or hashed.
+        from app.services.v2 import zone
+        _c = self.get_case(case_id) if case_id else None
+        _pairs = zone.case_pairs(_c) if _c else []
+        details = zone.seal_text(details, None, _pairs)
+        debtor_account = zone.seal_text(debtor_account, None, _pairs) if debtor_account else debtor_account
+        creditor_account = zone.seal_text(creditor_account, None, _pairs) if creditor_account else creditor_account
                     
         with self._audit_lock:
             ctx = self._bctx()
