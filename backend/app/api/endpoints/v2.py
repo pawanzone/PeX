@@ -356,9 +356,33 @@ def pii_hide(case_id: str, user=Depends(current_user)):
     return ac.pii_hide(case_id, user)
 
 
+class PingBody(BaseModel):
+    note: Optional[str] = None
+    level: Optional[int] = None
+
+
 @router.post("/cases/{case_id}/ping")
-def ping(case_id: str, body: NoteBody, user=Depends(writer_user)):
-    return ac.ping(case_id, user, body.note)
+def ping(case_id: str, body: PingBody, user=Depends(writer_user)):
+    from app.services.v2 import expedite as ex
+    return ex.ping(case_id, user, body.note, body.level)
+
+
+@router.get("/cases/{case_id}/expedite")
+def case_expedite(case_id: str, user=Depends(current_user)):
+    from app.services.v2 import expedite as ex
+    return ex.case_state(case_id, user)
+
+
+@router.get("/expedite")
+def expedite_inbox(user=Depends(current_user)):
+    from app.services.v2 import expedite as ex
+    return ex.inbox(user)
+
+
+@router.post("/expedite/{entry_id}/ack")
+def expedite_ack(entry_id: str, user=Depends(writer_user)):
+    from app.services.v2 import expedite as ex
+    return ex.acknowledge(entry_id, user)
 
 
 @router.post("/cases/{case_id}/disambiguate")

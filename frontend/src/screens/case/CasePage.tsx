@@ -14,6 +14,7 @@ import type { SendHandle } from "./blocks";
 import { DecisionPanel, EscalateModal, SubmitModal } from "./forms";
 import { ConfidenceBlock } from "./confidence";
 import { PiiBar } from "./pii";
+import { ExpediteLadder } from "./Expedite";
 import { CaseTabs } from "./CaseTabs";
 
 const ICONS: Record<string, React.ElementType> = {
@@ -112,6 +113,7 @@ export const CasePage: React.FC<{ id: string; context?: "worklist" | "approvals"
           {err && <Banner tone="red" title="That did not go through">{err}</Banner>}
           <BannerFromApi banner={page.banner} />
           <PiiBar page={page} run={run} />
+          <ExpediteLadder caseId={id} onSent={() => { r.reload(); onChanged?.(); }} />
 
           {(v === "DECISION" || v === "GENERIC") && page.decision_brief && <DecisionBrief brief={page.decision_brief} />}
           {v === "DECISION" && <>{showChange && <ChangeBlock page={page} mode="decision" />}</>}

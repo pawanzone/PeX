@@ -144,7 +144,7 @@ def dashboard(user, stuck_limit: int = 10) -> Dict[str, Any]:
             missing += 1
         if lg.review_pending(ext):
             low_conf += 1
-        if c.get("expedite_ping"):
+        if (c.get("expedite_ping") or {}).get("status") == "UNREAD":
             pings += 1
         if stage == "with_maker" and owner["name"] == "Unassigned":
             unassigned += 1

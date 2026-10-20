@@ -7,6 +7,7 @@ import { NAV, areaAllowed, roleLabel } from "./nav";
 import { Avatar, Banner, StatusPill, cn } from "../components/v2";
 import { Login } from "./Login";
 import { TextSizeControl } from "./textsize";
+import { ChasersBell } from "./Chasers";
 
 const Clock: React.FC = () => {
   const [now, setNow] = useState(new Date());
@@ -74,6 +75,7 @@ const TopBar: React.FC = () => {
         <StatusPill tone="amber" title="All data in this environment is synthetic">Demo data</StatusPill>
         <Clock />
         <TextSizeControl userId={persona?.user_id} />
+        <ChasersBell />
         <PersonaMenu />
       </div>
     </header>

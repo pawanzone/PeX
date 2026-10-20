@@ -200,6 +200,7 @@ def submit(case_id: str, user, handover_note: Optional[str], attachment_name: Op
     touch(case, ext)
     move(case, "PENDING_APPROVAL", user, f"Maker {user.name} submitted the repair for approval with a handover note.")
     case["expedite_ping"] = None
+    case["expedite_log"] = []
     repo.save_case(case)
     xt.persist_ext(case_id, ext)
     audit(case, user, "MAKER_SUBMIT", "MAKER_SUBMITTED_FOR_APPROVAL", f"{user.name} submitted {case_id} for approval. Handover note recorded.",
@@ -435,31 +436,9 @@ def request_bank_status(case_id: str, user, note: Optional[str]) -> Dict[str, An
     return result(case_id, user, "Status request sent to bank operations (simulated).")
 
 
-def ping(case_id: str, user, note: Optional[str]) -> Dict[str, Any]:
-    require(user, "case.work")
-    case = _load(case_id)
-    ext = lg.ext_of(case)
-    st = lg.status_of(case)
-    if st not in ("PENDING_APPROVAL", "AWAITING_SECOND_APPROVAL", "APPROVED"):
-        raise bad_state(f"Cannot ping an approver for a case in {st.replace('_', ' ').lower()}.")
-    if st == "APPROVED":
-        role, title = "OPERATIONS_APPROVER", "Operations Approver (dispatch release)"
-    elif is_compliance(case):
-        role, title = "COMPLIANCE_APPROVER", "Compliance Officer"
-    elif float(case.get("amount") or 0) >= lg.DUAL_AUTH_THRESHOLD or st == "AWAITING_SECOND_APPROVAL":
-        role, title = "RISK_APPROVER", "Risk Approver (tier 2)"
-    else:
-        role, title = "OPERATIONS_APPROVER", "Operations Approver (tier 1)"
-    text = (note or "").strip() or "Cutoff approaching. Please prioritise approval."
-    case["expedite_ping"] = {"sender_id": user.user_id, "sender_name": user.name, "sender_role": role_of(user), "target_role": role,
-                             "target_role_title": title, "timestamp": iso(now()), "note": text, "status": "UNREAD"}
-    repo.save_case(case)
-    touch(case, ext)
-    xt.persist_ext(case_id, ext)
-    audit(case, user, "SLA_EXPEDITE_ESCALATION", "EXPEDITE_PING_SENT", f"{user.name} pinged {title} to expedite {case_id}.", ["Expedite ping"], reason=text)
-    target_user = ext.get("approver_assigned") if role in ("OPERATIONS_APPROVER", "RISK_APPROVER") else None
-    notify("PING", f"Expedite: {case_id}", f"{user.name}: {text}", case_id, target_user=target_user, target_role=None if target_user else role)
-    return result(case_id, user, f"{title} notified.", ping=case["expedite_ping"])
+def ping(case_id: str, user, note: Optional[str], level: Optional[int] = None) -> Dict[str, Any]:
+    from app.services.v2 import expedite as ex
+    return ex.ping(case_id, user, note, level)
 
 
 # ----------------------------------------------------------------------------------------------
