@@ -179,7 +179,7 @@ def assign(case_id: str, user, assignee: Optional[str]) -> Dict[str, Any]:
 # ----------------------------------------------------------------------------------------------
 # maker actions
 # ----------------------------------------------------------------------------------------------
-def submit(case_id: str, user, handover_note: Optional[str], attachment_name: Optional[str]) -> Dict[str, Any]:
+def submit(case_id: str, user, handover_note: Optional[str], attachment_name: Optional[str], attachment_id: Optional[str] = None) -> Dict[str, Any]:
     require(user, "case.work")
     case = _load(case_id)
     ext = lg.ext_of(case)
@@ -188,8 +188,14 @@ def submit(case_id: str, user, handover_note: Optional[str], attachment_name: Op
     if variant != "DECISION":
         raise bad_state(f"This case cannot be submitted for approval right now (it is in the '{variant.replace('_', ' ').lower()}' state).")
     t = iso(now())
+    attach = None
+    if attachment_id:
+        from app.services.v2 import attachments as att
+        attach = att.for_submit(case_id, attachment_id, user)
+    elif attachment_name and attachment_name.strip():
+        attach = {"name": attachment_name.strip()}
     case["maker_id"] = user.user_id
-    ext["handover"] = {"note": note, "by": person(user.user_id), "at": t, "attachment": ({"name": attachment_name.strip()} if attachment_name and attachment_name.strip() else None)}
+    ext["handover"] = {"note": note, "by": person(user.user_id), "at": t, "attachment": attach}
     ext["submitted_at"] = t
     ext["approver_assigned"] = _least_loaded_approver(case)
     ext["returned"] = None

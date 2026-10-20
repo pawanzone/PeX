@@ -45,7 +45,7 @@ export const CaseTabs: React.FC<{ page: CasePage; confidence?: React.ReactNode }
       <div className="px-3 pt-1"><Tabs tabs={tabs} value={cur} onChange={setTab} label="Case detail" /></div>
       <div role="tabpanel" className="p-4">
         {cur === "evidence" && <EvidenceBlock page={page} bare />}
-        {cur === "handover" && page.handover && <HandoverNote h={page.handover} />}
+        {cur === "handover" && page.handover && <HandoverNote h={page.handover} caseId={page.case_id} />}
         {cur === "ai" && <div className="grid gap-4"><RecommendationBlock page={page} />{confidence}<AiSeen page={page} /></div>}
         {cur === "audit" && <Timeline caseId={page.case_id} />}
       </div>

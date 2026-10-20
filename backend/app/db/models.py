@@ -6,6 +6,7 @@ from sqlalchemy import (
     Integer,
     Float,
     Boolean,
+    LargeBinary,
     DateTime,
     Text,
     JSON,
@@ -376,3 +377,19 @@ class V2NetworkCaseModel(Base):
     timeline = Column(JSON, nullable=True)
     warnings = Column(JSON, nullable=True)
     linked_case_id = Column(String(64), nullable=True, index=True)
+
+
+class V2AttachmentModel(Base):
+    """A file a maker attaches to a case (for example the client's invoice). Kept with a SHA-256 fingerprint; every open is audited."""
+    __tablename__ = "v2_attachments"
+
+    id = Column(String(32), primary_key=True)
+    case_id = Column(String(64), nullable=False, index=True)
+    name = Column(String(160), nullable=False)
+    content_type = Column(String(80), nullable=False)
+    size = Column(Integer, nullable=False)
+    sha256 = Column(String(64), nullable=False)
+    data = Column(LargeBinary, nullable=False)
+    uploaded_by = Column(String(32), nullable=False)
+    uploaded_at = Column(String(40), nullable=False)
+    linked = Column(Boolean, nullable=False, default=False)         # true once it is tied to a submitted handover note

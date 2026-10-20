@@ -31,7 +31,7 @@ LABELS = {
     "CASE_RETURNED_TO_QUEUE": "Returned to queue", "COMPLIANCE_HOLD_RELEASED": "Compliance hold released",
     "COMPLIANCE_BLOCK_FIRST_REVIEW": "Match confirmed (first review)", "COMPLIANCE_BLOCK_CONFIRMED": "Payment blocked (second review)",
     "COMPLIANCE_ESCALATED": "Escalated to Senior Compliance", "HANDOFF_REFUSED": "Handoff refused", "SHADOW_HANDOFF_RECORDED": "Shadow handoff recorded",
-    "NETWORK_RECEIVED": "Network message received", "NETWORK_RAISED": "Network case raised", "NETWORK_DRAFTED": "Reply drafted", "NETWORK_AUTHORISED": "Message authorised",
+    "ATTACHMENT_ADDED": "Attachment added", "ATTACHMENT_OPENED": "Attachment opened", "NETWORK_RECEIVED": "Network message received", "NETWORK_RAISED": "Network case raised", "NETWORK_DRAFTED": "Reply drafted", "NETWORK_AUTHORISED": "Message authorised",
     "NETWORK_SENT": "Message sent to bank (simulated)", "NETWORK_REPLY_RECEIVED": "Reply received", "NETWORK_RETURN_CONFIRMED": "Bank return confirmed", "NETWORK_CLOSED": "Network case closed",
     "STATUS_UNKNOWN": "Status unknown", "ROUTED_TO_QUEUE": "Routed to queue", "AUTONOMOUS_STP_HANDOFF": "Autonomous STP handoff",
 }

@@ -4,6 +4,7 @@ import { Banner, StatusPill, KeyValueList, Avatar, cn } from "../../components/v
 import { Section, ValueBoxes, EvidenceGrid, fmtTime, fmtDateTime, HighlightedValue } from "./parts";
 import type { Run } from "./forms";
 import type { CasePage, ConflictDto, NeededDto, RequestInfoDto, StatusUnknownDto } from "../../services/v2/case";
+import { openAttachment } from "../../services/v2/case";
 import { requestInformation, postCaseAction, disambiguateCase } from "../../services/v2/case";
 
 const field = "py-2 px-2.5 text-sm rounded-lg border border-surface-line bg-white text-pex-ink w-full";
@@ -47,13 +48,17 @@ export const ChangeBlock: React.FC<{ page: CasePage; mode: "decision" | "approva
   );
 };
 
-export const HandoverNote: React.FC<{ h: NonNullable<CasePage["handover"]> }> = ({ h }) => (
+export const HandoverNote: React.FC<{ h: NonNullable<CasePage["handover"]>; caseId: string }> = ({ h, caseId }) => (
   <Section title="Maker's handover note">
     <div className="flex gap-4 items-start flex-wrap">
       <div className="flex items-center gap-3 min-w-[12rem]"><Avatar bare name={h.by?.name} /><div><div className="text-sm font-semibold">{h.by?.name}</div><div className="text-xs text-pex-muted">{h.by?.role ?? "Maker"}</div></div></div>
       <div className="flex-1 min-w-[14rem] sm:border-l sm:pl-4 border-surface-line">
         <p className="text-sm text-pex-ink">{h.note}</p>
-        {h.attachment?.name && <span className="mt-2 inline-flex items-center gap-1.5 text-sm px-2.5 py-1 rounded-lg border border-surface-line bg-slate-50"><Paperclip className="w-3.5 h-3.5" aria-hidden />{h.attachment.name}</span>}
+        {h.attachment?.name && (h.attachment.id
+          ? <button type="button" onClick={() => void openAttachment(caseId, h.attachment!.id!, h.attachment!.name!).catch((e) => window.alert(e instanceof Error ? e.message : "The file could not be opened."))}
+              className="mt-2 inline-flex items-center gap-1.5 text-sm px-2.5 py-1 rounded-lg border border-surface-line bg-slate-50 text-pex-primary hover:bg-slate-100" title={"SHA-256 " + (h.attachment.sha256 ?? "")}>
+              <Paperclip className="w-3.5 h-3.5" aria-hidden />{h.attachment.name}<span className="text-xs text-pex-muted">Open</span></button>
+          : <span className="mt-2 inline-flex items-center gap-1.5 text-sm px-2.5 py-1 rounded-lg border border-surface-line bg-slate-50"><Paperclip className="w-3.5 h-3.5" aria-hidden />{h.attachment.name}</span>)}
       </div>
       <div className="text-xs text-pex-muted text-right">{fmtTime(h.at)}<br />Today</div>
     </div>

@@ -69,6 +69,12 @@ router = APIRouter(route_class=PiiRoute)
 class SubmitBody(BaseModel):
     handover_note: Optional[str] = None
     attachment_name: Optional[str] = None
+    attachment_id: Optional[str] = None
+
+
+class AttachmentBody(BaseModel):
+    name: Optional[str] = None
+    content_base64: Optional[str] = None
 
 
 class ApproveBody(BaseModel):
@@ -352,9 +358,31 @@ def assign(case_id: str, body: AssignBody, user=Depends(writer_user), idem: Opti
     return _idem(idem, user, lambda: ac.assign(case_id, user, body.assignee))
 
 
+@router.post("/cases/{case_id}/attachments", status_code=201)
+def attachment_add(case_id: str, body: AttachmentBody, user=Depends(writer_user)):
+    from app.services.v2 import attachments as att
+    return att.add(case_id, user, body.name, body.content_base64)
+
+
+@router.delete("/cases/{case_id}/attachments/{attachment_id}")
+def attachment_remove(case_id: str, attachment_id: str, user=Depends(writer_user)):
+    from app.services.v2 import attachments as att
+    att.remove(case_id, attachment_id, user)
+    return {"ok": True}
+
+
+@router.get("/cases/{case_id}/attachments/{attachment_id}/download")
+def attachment_download(case_id: str, attachment_id: str, user=Depends(current_user)):
+    from app.services.v2 import attachments as att
+    name, ctype, data = att.open_file(case_id, attachment_id, user)
+    safe = name.replace('"', "")
+    return Response(content=data, media_type=ctype, headers={"Content-Disposition": f'attachment; filename="{safe}"', "X-Content-Type-Options": "nosniff",
+                                                              "Cache-Control": "no-store"})
+
+
 @router.post("/cases/{case_id}/submit")
 def submit(case_id: str, body: SubmitBody, user=Depends(writer_user), idem: Optional[str] = Header(None, alias="Idempotency-Key")):
-    return _idem(idem, user, lambda: ac.submit(case_id, user, body.handover_note, body.attachment_name))
+    return _idem(idem, user, lambda: ac.submit(case_id, user, body.handover_note, body.attachment_name, body.attachment_id))
 
 
 @router.post("/cases/{case_id}/approve")

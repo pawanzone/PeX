@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { Check, X, Undo2, Paperclip } from "lucide-react";
 import { Banner, ConfirmCheckbox, Modal, ReasonCommentFields, Section, cn } from "./reexports";
 import type { ActionResult, CaseAction, DecisionForm, CasePage } from "../../services/v2/case";
-import { returnCase, rejectCase, approveCase, submitCase, escalateCase } from "../../services/v2/case";
+import { returnCase, rejectCase, approveCase, submitCase, escalateCase, uploadAttachment, removeAttachment, ATTACH_ACCEPT, ATTACH_MAX_BYTES, type AttachmentMeta } from "../../services/v2/case";
 
 export type Run = (fn: () => Promise<ActionResult>, doneText?: string) => Promise<ActionResult | undefined>;
 
@@ -13,23 +13,50 @@ const plainBtn = "px-4 py-2 text-sm font-medium rounded-lg bg-white border borde
 // ------------------------------------------------------------ maker submit (handover note required)
 export const SubmitModal: React.FC<{ caseId: string; run: Run; onClose: () => void }> = ({ caseId, run, onClose }) => {
   const [note, setNote] = useState("");
-  const [attach, setAttach] = useState("");
+  const [file, setFile] = useState<AttachmentMeta | null>(null);
+  const [upBusy, setUpBusy] = useState(false);
+  const [upErr, setUpErr] = useState<string | null>(null);
+  const pick = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const ok = note.trim().length > 0;
+  const choose = async (f: File | undefined) => {
+    if (!f) return;
+    setUpErr(null);
+    if (f.size > ATTACH_MAX_BYTES) { setUpErr("This file is larger than 5 MB."); return; }
+    setUpBusy(true);
+    try { setFile(await uploadAttachment(caseId, f)); } catch (e) { setUpErr(e instanceof Error ? e.message : "The file could not be uploaded."); }
+    setUpBusy(false);
+    if (pick.current) pick.current.value = "";
+  };
+  const drop = async () => { if (!file) return; const id = file.id; setFile(null); try { await removeAttachment(caseId, id); } catch { /* a leftover file is harmless: it is not tied to anything */ } };
   return (
     <Modal open title="Submit for approval" onClose={onClose} width="md"
       footer={<>
         <button className={plainBtn} onClick={onClose}>Cancel</button>
-        <button className={primaryBtn} disabled={!ok || busy} onClick={async () => { setBusy(true); const r = await run(() => submitCase(caseId, note.trim(), attach.trim()), "Submitted for approval"); setBusy(false); if (r) onClose(); }}>Submit for approval</button>
+        <button className={primaryBtn} disabled={!ok || busy || upBusy} onClick={async () => { setBusy(true); const r = await run(() => submitCase(caseId, note.trim(), file?.id), "Submitted for approval"); setBusy(false); if (r) onClose(); }}>Submit for approval</button>
       </>}>
       <div className="grid gap-4">
         <p className="text-sm text-pex-muted">The approver sees this note with the evidence. A different person must approve: you cannot approve your own repair.</p>
         <label className="grid gap-1 text-xs text-pex-muted">Handover note (required)
           <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={4} className={field} placeholder="What did you verify, and with whom?" />
         </label>
-        <label className="grid gap-1 text-xs text-pex-muted"><span className="flex items-center gap-1"><Paperclip className="w-3 h-3" aria-hidden />Attachment name (optional)</span>
-          <input value={attach} onChange={(e) => setAttach(e.target.value)} className={field} placeholder="INV-2291.pdf" />
-        </label>
+        <div className="grid gap-1 text-xs text-pex-muted">
+          <span className="flex items-center gap-1"><Paperclip className="w-3 h-3" aria-hidden />Attachment (optional)</span>
+          <input ref={pick} id="submit-attachment" type="file" accept={ATTACH_ACCEPT} className="sr-only" onChange={(e) => void choose(e.target.files?.[0])} />
+          {file ? (
+            <div className="flex items-center gap-2 rounded-lg border border-surface-line bg-slate-50 px-2.5 py-2 text-sm text-pex-ink">
+              <Paperclip className="w-4 h-4 shrink-0" aria-hidden /><span className="truncate">{file.name}</span>
+              <span className="text-xs text-pex-muted shrink-0">{file.size < 1024 * 1024 ? Math.max(1, Math.round(file.size / 1024)) + " KB" : (file.size / 1024 / 1024).toFixed(1) + " MB"} · fingerprint {file.sha256.slice(0, 8)}</span>
+              <button type="button" className="ml-auto text-pex-primary text-xs font-medium" onClick={() => void drop()}>Remove</button>
+            </div>
+          ) : (
+            <button type="button" className={plainBtn + " justify-self-start inline-flex items-center gap-2"} disabled={upBusy} onClick={() => pick.current?.click()}>
+              <Paperclip className="w-4 h-4" aria-hidden />{upBusy ? "Uploading…" : "Choose a file"}
+            </button>
+          )}
+          <span>PDF, image, text, CSV, Word or Excel. Up to 5 MB. The approver can open it; each open is recorded.</span>
+          {upErr && <span role="alert" className="text-pex-block">{upErr}</span>}
+        </div>
         {!ok && <p className="text-xs text-pex-wait">A handover note is required before you can submit.</p>}
       </div>
     </Modal>

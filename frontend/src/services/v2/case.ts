@@ -1,6 +1,7 @@
 /** Case page + case action wrappers. Coded to docs/ui_v2_api_contract.md sections 5-6.
  *  Every field is optional: the backend may omit blocks that do not apply to a variant. */
 import { v2Get, v2Post } from "./client";
+import { apiDownload, apiFetch } from "../http";
 
 export type Variant = "DECISION" | "MISSING_INFO" | "CONFLICT" | "STATUS_UNKNOWN" | "COMPLIANCE_HOLD" | "APPROVAL" | "HANDED_TO_BANK" | "EXECUTED" | "GENERIC";
 export type ApiTone = "neutral" | "info" | "warn" | "danger" | "success";
@@ -64,7 +65,7 @@ export interface CasePage {
   decision_brief?: { what_happened?: string; proposed_change?: string; evidence?: string; controls?: string; next?: string } | null;
   change_summary?: ChangeSummary | null;
   sod?: { status?: "passed" | "failed" | "n/a"; text?: string; maker?: Person; viewer_is_maker?: boolean } | null;
-  handover?: { note?: string; by?: Person; at?: string; attachment?: { name?: string } | null } | null;
+  handover?: { note?: string; by?: Person; at?: string; attachment?: { id?: string; name?: string; size?: number; sha256?: string } | null } | null;
   evidence_table?: EvidenceItem[];
   evidence_summary?: { agree?: number; total?: number; label?: string; status?: string } | null;
   needed?: NeededDto | null; conflict?: ConflictDto | null; status_unknown?: StatusUnknownDto | null; compliance?: unknown;
@@ -100,8 +101,25 @@ export const getAiView = (id: string) => v2Get<AiView>(`/cases/${enc(id)}/ai-vie
 export const postCaseAction = (id: string, path: string, body: Record<string, unknown> = {}) =>
   v2Post<ActionResult>(`/cases/${enc(id)}/${path}`, body);
 
-export const submitCase = (id: string, handover_note: string, attachment_name?: string) =>
-  postCaseAction(id, "submit", { handover_note, attachment_name: attachment_name || null });
+export const submitCase = (id: string, handover_note: string, attachment_id?: string) =>
+  postCaseAction(id, "submit", { handover_note, attachment_id: attachment_id || null });
+
+/** Files a maker attaches to a handover note. The file is sent as base64 JSON; the server checks size, type and content. */
+export interface AttachmentMeta { id: string; name: string; size: number; sha256: string }
+export const ATTACH_MAX_BYTES = 5 * 1024 * 1024;
+export const ATTACH_ACCEPT = ".pdf,.png,.jpg,.jpeg,.txt,.csv,.docx,.xlsx";
+const toBase64 = (f: File) => new Promise<string>((res, rej) => {
+  const r = new FileReader();
+  r.onload = () => res(String(r.result).split(",")[1] ?? "");
+  r.onerror = () => rej(new Error("The file could not be read."));
+  r.readAsDataURL(f);
+});
+export const uploadAttachment = async (caseId: string, file: File) =>
+  v2Post<AttachmentMeta>(`/cases/${enc(caseId)}/attachments`, { name: file.name, content_base64: await toBase64(file) });
+export const removeAttachment = (caseId: string, id: string) =>
+  apiFetch<{ ok: boolean }>(`/v2/cases/${enc(caseId)}/attachments/${encodeURIComponent(id)}`, { method: "DELETE" });
+export const openAttachment = (caseId: string, id: string, name: string) =>
+  apiDownload(`/v2/cases/${enc(caseId)}/attachments/${encodeURIComponent(id)}/download`, name);
 export const approveCase = (id: string, reviewed: boolean, comment?: string) =>
   postCaseAction(id, "approve", { reviewed, comment: comment || null });
 export const returnCase = (id: string, reason_code: string, comment: string) => postCaseAction(id, "return", { reason_code, comment });
