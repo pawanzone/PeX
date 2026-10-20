@@ -219,15 +219,15 @@ PERMISSIONS: Dict[str, List[str]] = {
     "ADMIN": ["case.read", "case.approve", "audit.read", "audit.export", "admin.read", "admin.mode_change", "admin.mode_approve", "batch.upload"],
 }
 NAV = {
-    "OPERATOR": ["home", "worklist", "batches"],
-    "SUPERVISOR": ["home", "worklist", "approvals", "compliance", "batches", "audit"],
-    "OPERATIONS_APPROVER": ["home", "approvals", "worklist", "batches"],
-    "RISK_APPROVER": ["home", "approvals", "compliance", "worklist", "batches"],
-    "COMPLIANCE_APPROVER": ["home", "compliance", "audit"],
-    "AUDIT_RISK": ["audit"],
-    "ADMIN": ["home", "batches", "audit", "admin"],
+    "OPERATOR": ["dashboard", "home", "worklist", "batches"],
+    "SUPERVISOR": ["dashboard", "home", "worklist", "approvals", "compliance", "batches", "audit"],
+    "OPERATIONS_APPROVER": ["dashboard", "home", "approvals", "worklist", "batches"],
+    "RISK_APPROVER": ["dashboard", "home", "approvals", "compliance", "worklist", "batches"],
+    "COMPLIANCE_APPROVER": ["dashboard", "home", "compliance", "audit"],
+    "AUDIT_RISK": ["dashboard", "audit"],
+    "ADMIN": ["dashboard", "home", "batches", "audit", "admin"],
 }
-NAV_LABELS = {"home": ("Home", "/"), "worklist": ("Worklist", "/worklist"), "approvals": ("Approvals", "/approvals"),
+NAV_LABELS = {"dashboard": ("Dashboard", "/dashboard"), "home": ("My work", "/"), "worklist": ("Worklist", "/worklist"), "approvals": ("Approvals", "/approvals"),
               "compliance": ("Compliance", "/compliance"), "batches": ("Batches", "/batches"), "audit": ("Audit", "/audit"),
               "admin": ("Admin", "/admin")}
 

@@ -4,6 +4,7 @@ import { Shell } from "./shell/Shell";
 import { ToastProvider } from "./components/v2";
 import type { Route } from "./lib/router";
 import { Home } from "./screens/Home";
+import { Dashboard } from "./screens/Dashboard";
 import { Worklist } from "./screens/Worklist";
 import { CaseView } from "./screens/CaseView";
 import { Approvals } from "./screens/Approvals";
@@ -16,6 +17,7 @@ import { Admin } from "./screens/Admin";
 /** Route table. Screen forks replace the stub in src/screens/<Name>.tsx; this file should rarely change. */
 const render = (r: Route): React.ReactNode => {
   switch (r.area) {
+    case "dashboard": return <Dashboard />;
     case "home": return <Home />;
     case "worklist": return r.kind === "case" && r.id ? <CaseView id={r.id} /> : <Worklist />;
     case "approvals": return <Approvals />;

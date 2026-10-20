@@ -15,6 +15,7 @@ from app.services.v2 import actions as ac
 from app.services.v2 import admin as ad
 from app.services.v2 import audit as au
 from app.services.v2 import batches as bt
+from app.services.v2 import dashboard as db_
 from app.services.v2 import home as hm
 from app.services.v2 import pages as pg
 from app.services.v2 import rows as rw
@@ -155,6 +156,13 @@ def me(user=Depends(current_user)):
             "stp_limit": {"amount": float(settings.STP_MAX_AMOUNT), "currency": "payment currency", "label": "Autonomous STP limit"},
             "batch_limit": {"amount": float(settings.BATCH_APPROVAL_MAX_AMOUNT), "label": "One-click batch approval limit"},
             "unread_notifications": ac.list_notifications(user)["unread"]}
+
+
+@router.get("/dashboard")
+def dashboard(stuck_limit: int = 10, user=Depends(current_user)):
+    """Bank-wide picture, identical for every role, plus extras for the caller's role."""
+    require(user, "case.read")
+    return db_.dashboard(user, stuck_limit)
 
 
 @router.get("/home")
