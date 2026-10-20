@@ -30,6 +30,15 @@ export async function loginPersona(user_id: string): Promise<{ access_token: str
   return res;
 }
 
+/** Sign-in screen: user + shared demo password. */
+export async function signinPersona(user_id: string, password: string): Promise<{ access_token: string; user: UserPersona }> {
+  const res = await apiFetch<{ access_token: string; user: UserPersona }>("/auth/signin", { method: "POST", json: { user_id, password } });
+  if (res?.access_token) setToken(res.access_token);
+  return res;
+}
+
+export function clearSession(): void { setToken(null); }
+
 // ---------------------------------------------------------------- system
 
 export async function fetchSystemInfo(): Promise<SystemInfo> {

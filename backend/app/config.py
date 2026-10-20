@@ -55,6 +55,7 @@ class Settings(BaseModel):
     DATA_DIR: Path = SYNTHETIC_DATA_DIR
 
     # Demo / security
+    PEX_DEMO_PASSWORD: str = os.getenv("PEX_DEMO_PASSWORD", "demo1234")   # shared demo password for the sign-in screen (bank SSO replaces this)
     PEX_DEMO: bool = os.getenv("PEX_DEMO", "false").lower() == "true"   # enables persona login + demo bank simulator
     BANK_CALLBACK_SECRET: str = os.getenv("PEX_BANK_CALLBACK_SECRET", "")  # HMAC-SHA256 secret for /api/bank/outcome
     BANK_COMM_MODE: str = os.getenv("PEX_BANK_COMM_MODE", "SIMULATED")      # SIMULATED only for now

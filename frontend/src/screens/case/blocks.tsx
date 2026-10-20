@@ -50,7 +50,7 @@ export const ChangeBlock: React.FC<{ page: CasePage; mode: "decision" | "approva
 export const HandoverNote: React.FC<{ h: NonNullable<CasePage["handover"]> }> = ({ h }) => (
   <Section title="Maker's handover note">
     <div className="flex gap-4 items-start flex-wrap">
-      <div className="flex items-center gap-3 min-w-[12rem]"><Avatar name={h.by?.name} /><div><div className="text-sm font-semibold">{h.by?.name}</div><div className="text-xs text-pex-muted">{h.by?.role ?? "Maker"}</div></div></div>
+      <div className="flex items-center gap-3 min-w-[12rem]"><Avatar bare name={h.by?.name} /><div><div className="text-sm font-semibold">{h.by?.name}</div><div className="text-xs text-pex-muted">{h.by?.role ?? "Maker"}</div></div></div>
       <div className="flex-1 min-w-[14rem] sm:border-l sm:pl-4 border-surface-line">
         <p className="text-sm text-pex-ink">{h.note}</p>
         {h.attachment?.name && <span className="mt-2 inline-flex items-center gap-1.5 text-sm px-2.5 py-1 rounded-lg border border-surface-line bg-slate-50"><Paperclip className="w-3.5 h-3.5" aria-hidden />{h.attachment.name}</span>}

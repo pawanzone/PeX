@@ -1,10 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
-import { ChevronDown, Search } from "lucide-react";
+import { ChevronDown, LogOut, Search } from "lucide-react";
 import { useRoute, navigate, routes, type Route } from "../lib/router";
 import { useSystemInfo } from "../hooks/useSystemInfo";
 import { useSession } from "./session";
 import { NAV, areaAllowed, roleLabel } from "./nav";
 import { Avatar, Banner, StatusPill, cn } from "../components/v2";
+import { Login } from "./Login";
+import { TextSizeControl } from "./textsize";
 
 const Clock: React.FC = () => {
   const [now, setNow] = useState(new Date());
@@ -15,7 +17,7 @@ const Clock: React.FC = () => {
 };
 
 const PersonaMenu: React.FC = () => {
-  const { personas, persona, switchTo } = useSession();
+  const { personas, persona, switchTo, signOut } = useSession();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -33,20 +35,21 @@ const PersonaMenu: React.FC = () => {
   return (
     <div ref={ref} className="relative" onKeyDown={onKey}>
       <button aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((o) => !o)} className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-lg hover:bg-slate-100">
-        <Avatar size="sm" name={persona?.name} initials={persona?.avatar_initials} />
-        <span className="text-sm text-pex-ink max-w-[16rem] truncate">{roleLabel(persona)}</span><ChevronDown className="w-3.5 h-3.5 text-slate-400" aria-hidden />
+        <Avatar bare size="sm" name={persona?.name} initials={persona?.avatar_initials} />
+        <span className="text-sm text-pex-ink max-w-[9rem] xl:max-w-[16rem] truncate">{roleLabel(persona)}</span><ChevronDown className="w-3.5 h-3.5 text-slate-400" aria-hidden />
       </button>
       {open && (
         <div role="menu" aria-label="Switch demo persona" className="absolute right-0 mt-1 w-80 max-h-[70vh] overflow-y-auto bg-white border border-surface-line rounded-lg shadow-xl z-40 py-1">
-          <div className="px-3 py-1.5 text-[11px] uppercase tracking-wide text-pex-muted">Demo persona</div>
+          <div className="px-3 py-1.5 text-[11px] uppercase tracking-wide text-pex-muted">Switch role (demo)</div>
           {personas.map((p) => (
             <button key={p.user_id} role="menuitemradio" aria-checked={p.user_id === persona?.user_id} onClick={async () => { if (await switchTo(p)) setOpen(false); }}
               className={cn("w-full text-left px-3 py-2 flex items-center gap-2.5 hover:bg-slate-50", p.user_id === persona?.user_id && "bg-pex-primary-soft/50")}>
-              <Avatar size="sm" name={p.name} initials={p.avatar_initials} />
+              <Avatar bare size="sm" name={p.name} initials={p.avatar_initials} />
               <span className="leading-tight"><span className="block text-sm text-pex-ink">{p.name}</span><span className="block text-xs text-pex-muted">{p.title} · {p.role}</span></span>
             </button>
           ))}
           {!personas.length && <div className="px-3 py-2 text-sm text-pex-muted">No personas available.</div>}
+          <div className="border-t border-surface-line mt-1 pt-1"><button role="menuitem" onClick={() => { setOpen(false); signOut(); }} className="w-full text-left px-3 py-2 flex items-center gap-2 text-sm text-pex-ink hover:bg-slate-50"><LogOut className="w-4 h-4" aria-hidden />Sign out</button></div>
         </div>
       )}
     </div>
@@ -55,6 +58,7 @@ const PersonaMenu: React.FC = () => {
 
 const TopBar: React.FC = () => {
   const { info } = useSystemInfo();
+  const { persona } = useSession();
   const [q, setQ] = useState("");
   const submit = (e: React.FormEvent) => { e.preventDefault(); if (q.trim()) navigate(routes.worklist({ q: q.trim() })); };
   return (
@@ -69,6 +73,7 @@ const TopBar: React.FC = () => {
         {info?.bank_comm && <StatusPill tone="grey" title="Bank communication">Bank: {info.bank_comm}</StatusPill>}
         <StatusPill tone="amber" title="All data in this environment is synthetic">Demo data</StatusPill>
         <Clock />
+        <TextSizeControl userId={persona?.user_id} />
         <PersonaMenu />
       </div>
     </header>
@@ -102,7 +107,9 @@ const Sidebar: React.FC<{ route: Route }> = ({ route }) => {
 
 export const Shell: React.FC<{ render: (route: Route) => React.ReactNode }> = ({ render }) => {
   const route = useRoute();
-  const { persona, note } = useSession();
+  const { persona, note, ready } = useSession();
+  if (!ready) return <div className="min-h-screen bg-navy-800" aria-busy="true" />;
+  if (!persona) return <Login />;
   const allowed = route.kind === "case" || areaAllowed(route.area, persona?.role); // case links are readable by every role (server decides what it shows)
   return (
     <div className="flex h-screen overflow-hidden font-sans bg-surface text-pex-ink">

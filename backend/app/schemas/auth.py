@@ -18,6 +18,10 @@ class UserPersona(BaseModel):
 class LoginRequest(BaseModel):
     user_id: str
 
+class SigninRequest(BaseModel):
+    user_id: str
+    password: str = ""
+
 class LoginResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"

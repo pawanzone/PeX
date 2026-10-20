@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Check, X, AlertTriangle, Minus, Download, FileText, ExternalLink } from "lucide-react";
-import { PageHeader, Tabs, FilterBar, FilterSelect, DataTable, StatusPill, Banner, Loading, ErrorState, KeyValueList, useToast } from "../components/v2";
+import { Avatar, PageHeader, Tabs, FilterBar, FilterSelect, DataTable, StatusPill, Banner, Loading, ErrorState, KeyValueList, useToast } from "../components/v2";
 import { useV2 } from "../services/v2/client";
 import { getAuditEvents, getAuditEvent, getControlReports, getAuditCases, downloadAuditExport, downloadCaseReport, type AuditEventRow, type AuditFilters, type CaseReportRow } from "../services/v2/audit";
 import { navigate, routes, useRoute } from "../lib/router";
@@ -107,12 +107,13 @@ const Detail: React.FC<{ id: string }> = ({ id }) => {
   return (
     <aside aria-label="Event detail" className="bg-surface-card rounded-card border border-surface-line shadow-card p-5">
       <h2 className="text-base font-semibold text-pex-ink mb-3">Event detail</h2>
+      {e?.actor?.name && <div className="mb-4 pb-3 border-b border-surface-line"><div className="text-xs text-pex-muted mb-1.5">Acted by</div><Avatar size="lg" name={e.actor.name} role={e.actor.role} initials={/system/i.test(e.actor.role || "") ? "PX" : undefined} system={/system/i.test(e.actor.role || "")} /></div>}
       {!id ? <div className="text-sm text-pex-muted">Select an event.</div> : d.loading ? <Loading /> : d.error || !e ? <ErrorState unavailable={d.unavailable} message={d.error ?? undefined} onRetry={d.reload} /> : (
         <>
           <KeyValueList cols={1} items={[
             { label: "Event", value: e.event ?? "—" },
             { label: "Case", value: e.case_id ? <a className="text-pex-primary hover:underline pex-mono" href={routes.workCase(e.case_id)}>{e.case_id}</a> : "—" },
-            { label: "Actor", value: e.actor ? `${e.actor.name ?? ""}${e.actor.role ? " · " + e.actor.role : ""}` : "—" },
+            
             { label: "Time", value: hhmmss(e.time) || "—" },
             ...(e.before != null || e.after != null ? [{ label: "Before", value: e.before ?? "—", mono: true }, { label: "After", value: e.after ?? "—", mono: true }] : []),
             { label: "Evidence reviewed", value: e.evidence_reviewed != null ? `${e.evidence_reviewed} items` : "—" },

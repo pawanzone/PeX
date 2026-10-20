@@ -24,7 +24,7 @@ const CaseRow: React.FC<{ c: DashCase; detail: "cutoff" | "reason" }> = ({ c, de
       <div className="min-w-0">
         <a className="pex-mono text-sm text-pex-primary hover:underline" href={routes.workCase(c.case_id)}>{c.case_id}</a>
         <span className="text-sm text-pex-ink ml-2">{c.exception}</span>
-        <div className="text-xs text-pex-muted mt-0.5">{c.stage} · with <strong className="text-pex-ink font-medium">{c.with.name}</strong> · {money(c.amount, c.currency)}</div>
+        <div className="text-xs text-pex-muted mt-0.5">{c.stage} · {/^unassigned/i.test(c.with.name) ? <strong className="text-pex-wait font-medium">not yet assigned</strong> : <>with <strong className="text-pex-ink font-medium">{c.with.name}</strong></>} · {money(c.amount, c.currency)}</div>
         {detail === "reason" && c.reason && <div className="text-xs text-pex-wait mt-0.5">{c.reason}</div>}
       </div>
       {detail === "cutoff" && c.cutoff && (

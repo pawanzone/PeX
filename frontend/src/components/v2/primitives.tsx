@@ -116,12 +116,42 @@ export const Tabs: React.FC<{ tabs: TabDef[]; value: string; onChange: (id: stri
   );
 };
 
-export const Avatar: React.FC<{ name?: string; initials?: string; role?: string; size?: "sm" | "md"; system?: boolean }> = ({ name, initials, role, size = "md", system }) => {
+const SKIN = ["#f1c9a5", "#e0a97c", "#c68642", "#8d5524", "#f6d7bd"];
+const HAIR = ["#2b2118", "#4a3222", "#1c1c1c", "#7a5230", "#9a9a9a"];
+const BG = ["#dbeafe", "#dcfce7", "#fef3c7", "#fce7f3", "#e0e7ff", "#ccfbf1"];
+const SHIRT = ["#1e3a5f", "#0f766e", "#7c3aed", "#b45309", "#334155", "#be123c"];
+const hashOf = (s: string) => { let h = 7; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0; return h; };
+
+/** Illustrated avatar, drawn from the name so the same person always looks the same. Not a photo. */
+export const Illustration: React.FC<{ seed: string; className?: string }> = ({ seed, className }) => {
+  const h = hashOf(seed || "?");
+  const skin = SKIN[h % SKIN.length], hair = HAIR[(h >>> 3) % HAIR.length], bg = BG[(h >>> 5) % BG.length], shirt = SHIRT[(h >>> 7) % SHIRT.length], style = (h >>> 9) % 4;
+  return (
+    <svg viewBox="0 0 40 40" className={className} aria-hidden>
+      <rect width="40" height="40" fill={bg} />
+      {style === 1 && <path d="M9 24c-1-12 5-17 11-17s12 5 11 17l-3 6H12z" fill={hair} />}
+      <path d="M5 40c1-8 7-11 15-11s14 3 15 11z" fill={shirt} />
+      <rect x="17" y="24" width="6" height="6" rx="2" fill={skin} />
+      <ellipse cx="20" cy="17.5" rx="7" ry="8" fill={skin} />
+      {style === 0 && <path d="M12.5 16c0-6 3-9 7.5-9s7.5 3 7.5 9c-2-3-5-4-7.5-4s-5.500 1-7.500 4z" fill={hair} />}
+      {style === 1 && <path d="M13 16c1-5 4-7 7-7s6 2 7 7c-3-2-5-3-7-3s-4 1-7 3z" fill={hair} />}
+      {style === 2 && <><circle cx="20" cy="7.5" r="3.2" fill={hair} /><path d="M13 16c0-5 3-7.500 7-7.500s7 2.500 7 7.500c-2-2.500-4.500-3.500-7-3.500s-5 1-7 3.500z" fill={hair} /></>}
+      {style === 3 && <path d="M13.500 14.500c1-4.500 4-6 6.500-6s5.500 1.500 6.500 6c-2-1.500-4-2-6.500-2s-4.500.5-6.500 2z" fill={hair} />}
+      <circle cx="17.200" cy="18" r=".8" fill="#1f2937" /><circle cx="22.800" cy="18" r=".8" fill="#1f2937" />
+      <path d="M17.500 21.500c1.500 1.200 3.500 1.200 5 0" stroke="#7c2d12" strokeWidth=".9" fill="none" strokeLinecap="round" />
+    </svg>
+  );
+};
+
+export const Avatar: React.FC<{ name?: string; initials?: string; role?: string; size?: "sm" | "md" | "lg"; system?: boolean; bare?: boolean }> = ({ name, initials, role, size = "md", system, bare }) => {
   const ini = initials || (name || "?").split(/\s+/).map((p) => p[0]).slice(0, 2).join("").toUpperCase();
+  const dim = size === "sm" ? "w-6 h-6" : size === "lg" ? "w-14 h-14" : "w-8 h-8";
   return (
     <span className="inline-flex items-center gap-2" title={role ? `${name} · ${role}` : name}>
-      <span className={cn("rounded-full flex items-center justify-center font-semibold shrink-0", size === "sm" ? "w-6 h-6 text-[10px]" : "w-8 h-8 text-xs", system ? "bg-slate-200 text-slate-700" : "bg-pex-primary-soft text-pex-primary-dark")}>{ini}</span>
-      {(name || role) && <span className="leading-tight">{name && <span className="block text-sm text-pex-ink">{name}</span>}{role && <span className="block text-xs text-pex-muted">{role}</span>}</span>}
+      {system
+        ? <span className={cn("rounded-full flex items-center justify-center font-semibold shrink-0 bg-slate-200 text-slate-700", dim, size === "sm" ? "text-[10px]" : "text-xs")}>{ini}</span>
+        : <span className={cn("rounded-full overflow-hidden shrink-0 ring-1 ring-black/5", dim)}><Illustration seed={name || ini} className="w-full h-full block" /></span>}
+      {!bare && (name || role) && <span className="leading-tight">{name && <span className="block text-sm text-pex-ink">{name}</span>}{role && <span className="block text-xs text-pex-muted">{role}</span>}</span>}
     </span>
   );
 };
