@@ -154,8 +154,93 @@ def me(user=Depends(current_user)):
             "nav": [{"key": k, "label": NAV_LABELS[k][0], "path": NAV_LABELS[k][1]} for k in NAV.get(r, ["home"])],
             "mode": operation_mode(), "bank_comm": settings.BANK_COMM_MODE, "demo": bool(settings.PEX_DEMO), "now": iso(now()),
             "stp_limit": {"amount": float(settings.STP_MAX_AMOUNT), "currency": "payment currency", "label": "Autonomous STP limit"},
-            "batch_limit": {"amount": float(settings.BATCH_APPROVAL_MAX_AMOUNT), "label": "One-click batch approval limit"},
+            "batch_limit": {"amount": float(__import__("app.services.v2.policy", fromlist=["x"]).get("batch_limit")), "label": "One-click batch approval limit"},
             "unread_notifications": ac.list_notifications(user)["unread"]}
+
+
+class PolicyChangeBody(BaseModel):
+    key: str
+    value: Any
+    reason: str = ""
+
+
+class PolicyPreviewBody(BaseModel):
+    key: str
+    value: Any
+
+
+class PolicyNoteBody(BaseModel):
+    note: Optional[str] = None
+
+
+@router.get("/policy/params")
+def policy_params(user=Depends(current_user)):
+    require(user, "policy.read", "Only a Policy Owner can see and change rules.")
+    from app.services.v2 import policy as po
+    return po.listing()
+
+
+@router.post("/policy/preview")
+def policy_preview(body: PolicyPreviewBody, user=Depends(current_user)):
+    require(user, "policy.read", "Only a Policy Owner can see and change rules.")
+    from app.services.v2 import policy as po
+    return po.impact(body.key, body.value)
+
+
+@router.post("/policy/changes")
+def policy_propose(body: PolicyChangeBody, user=Depends(writer_user)):
+    require(user, "policy.write", "Only a Policy Owner can see and change rules.")
+    from app.services.v2 import policy as po
+    return po.propose(user, body.key, body.value, body.reason)
+
+
+@router.post("/policy/changes/{change_id}/approve")
+def policy_approve(change_id: str, body: PolicyNoteBody, user=Depends(writer_user)):
+    require(user, "policy.approve", "Only a Policy Owner can approve rule changes.")
+    from app.services.v2 import policy as po
+    return po.approve(user, change_id, body.note)
+
+
+@router.post("/policy/changes/{change_id}/reject")
+def policy_reject(change_id: str, body: PolicyNoteBody, user=Depends(writer_user)):
+    require(user, "policy.approve", "Only a Policy Owner can decide on rule changes.")
+    from app.services.v2 import policy as po
+    return po.reject(user, change_id, body.note)
+
+
+@router.post("/policy/changes/{change_id}/withdraw")
+def policy_withdraw(change_id: str, body: PolicyNoteBody, user=Depends(writer_user)):
+    require(user, "policy.write", "Only a Policy Owner can withdraw a rule change.")
+    from app.services.v2 import policy as po
+    return po.withdraw(user, change_id, body.note)
+
+
+@router.get("/reference/ontology")
+def ref_ontology(user=Depends(current_user)):
+    require(user, "reference.read", "Reference pages are for Administrators and Policy Owners.")
+    from app.services.v2 import reference as rf
+    return rf.ontology()
+
+
+@router.get("/reference/data-model")
+def ref_data_model(user=Depends(current_user)):
+    require(user, "reference.read", "Reference pages are for Administrators and Policy Owners.")
+    from app.services.v2 import reference as rf
+    return rf.data_model()
+
+
+@router.get("/reference/sops")
+def ref_sops(user=Depends(current_user)):
+    require(user, "reference.read", "Reference pages are for Administrators and Policy Owners.")
+    from app.services.v2 import reference as rf
+    return rf.sops()
+
+
+@router.get("/reference/sops/{code}")
+def ref_sop(code: str, user=Depends(current_user)):
+    require(user, "reference.read", "Reference pages are for Administrators and Policy Owners.")
+    from app.services.v2 import reference as rf
+    return rf.sop(code)
 
 
 @router.get("/dashboard")

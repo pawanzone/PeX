@@ -207,7 +207,7 @@ def account_str(a: Any) -> str:
 ROLE_LABELS = {
     "OPERATOR": "Maker", "SUPERVISOR": "Supervisor", "OPERATIONS_APPROVER": "Operations Approver",
     "COMPLIANCE_APPROVER": "Compliance Officer", "RISK_APPROVER": "Risk Approver (tier 2)",
-    "AUDIT_RISK": "Audit and Risk", "ADMIN": "Administrator",
+    "AUDIT_RISK": "Audit and Risk", "ADMIN": "Administrator", "POLICY_OWNER": "Policy Owner",
 }
 PERMISSIONS: Dict[str, List[str]] = {
     "OPERATOR": ["case.read", "case.work", "case.assign", "batch.upload", "pii.reveal"],
@@ -216,7 +216,8 @@ PERMISSIONS: Dict[str, List[str]] = {
     "COMPLIANCE_APPROVER": ["case.read", "compliance.decide", "audit.read", "pii.reveal"],
     "RISK_APPROVER": ["case.read", "case.approve", "stp.approve", "compliance.decide", "pii.reveal"],
     "AUDIT_RISK": ["case.read", "audit.read", "audit.export", "pii.reveal"],
-    "ADMIN": ["case.read", "case.approve", "audit.read", "audit.export", "admin.read", "admin.mode_change", "admin.mode_approve", "batch.upload"],
+    "ADMIN": ["case.read", "case.approve", "audit.read", "audit.export", "admin.read", "admin.mode_change", "admin.mode_approve", "batch.upload", "reference.read"],
+    "POLICY_OWNER": ["case.read", "audit.read", "policy.read", "policy.write", "policy.approve", "reference.read"],
 }
 NAV = {
     "OPERATOR": ["dashboard", "home", "worklist", "batches"],
@@ -226,10 +227,11 @@ NAV = {
     "COMPLIANCE_APPROVER": ["dashboard", "home", "compliance", "audit"],
     "AUDIT_RISK": ["dashboard", "audit"],
     "ADMIN": ["dashboard", "home", "batches", "audit", "admin"],
+    "POLICY_OWNER": ["dashboard", "policy", "admin", "audit"],
 }
 NAV_LABELS = {"dashboard": ("Dashboard", "/dashboard"), "home": ("My work", "/"), "worklist": ("Worklist", "/worklist"), "approvals": ("Approvals", "/approvals"),
               "compliance": ("Compliance", "/compliance"), "batches": ("Batches", "/batches"), "audit": ("Audit", "/audit"),
-              "admin": ("Admin", "/admin")}
+              "admin": ("Admin", "/admin"), "policy": ("Policy Studio", "/policy")}
 
 
 def role_of(user) -> str:

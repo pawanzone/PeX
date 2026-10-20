@@ -5,17 +5,24 @@ import { AdminIntegrations } from "./AdminIntegrations";
 import { Gallery } from "./Gallery";
 import { LegacyApp } from "../legacy/LegacyApp";
 import { useSession } from "../shell/session";
+import { OntologyView, DataModelView, SopsView } from "./admin/Reference";
 
 export const Admin: React.FC<{ route: Route }> = ({ route }) => {
   const { persona } = useSession();
-  const section = route.section || "integrations";
-  const tabs = [{ id: "integrations", label: "Integrations" }, { id: "reference", label: "Reference screens" }, { id: "components", label: "Component gallery" }];
+  const owner = persona?.role === ("POLICY_OWNER" as any);
+  const section = route.section || (owner ? "ontology" : "integrations");
+  const tabs = owner
+    ? [{ id: "ontology", label: "Payment ontology" }, { id: "data-model", label: "Data model and semantic layer" }, { id: "sops", label: "SOPs" }]
+    : [{ id: "integrations", label: "Integrations" }, { id: "ontology", label: "Payment ontology" }, { id: "data-model", label: "Data model and semantic layer" }, { id: "sops", label: "SOPs" }, { id: "reference", label: "Reference screens" }, { id: "components", label: "Component gallery" }];
   return (
     <>
-      <PageHeader title="Admin" subtitle="Integrations, reference screens and the UI component gallery" />
+      <PageHeader title="Admin" subtitle={owner ? "Read-only reference: ontology, data model, SOPs" : "Integrations, reference pages, reference screens and the UI component gallery"} />
       <Tabs tabs={tabs} value={section} onChange={(id) => navigate(routes.admin(id))} label="Admin sections" />
       <div className="mt-4">
-        {section === "integrations" && <AdminIntegrations />}
+        {section === "integrations" && !owner && <AdminIntegrations />}
+        {section === "ontology" && <OntologyView />}
+        {section === "data-model" && <DataModelView />}
+        {section === "sops" && <SopsView />}
         {section === "components" && <Gallery />}
         {section === "reference" && (
           <>

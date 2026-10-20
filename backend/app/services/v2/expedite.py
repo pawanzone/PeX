@@ -18,6 +18,7 @@ from app.services.v2 import logic as lg
 from app.services.v2 import rows as rw
 from app.services.v2 import ext as xt
 from app.services.v2 import zone
+from app.services.v2 import policy
 from app.services.v2.core import V2Error, bad_state, has_perm, iso, is_compliance, not_found, now, parse_ts, person, require, role_of
 
 COOLDOWN_MIN = 10          # same level cannot be pinged again sooner than this
@@ -41,7 +42,7 @@ def _target(case: Dict[str, Any], ext: Dict[str, Any], level: int) -> Dict[str, 
         return {"target_role": "OPERATIONS_APPROVER", "target_user": None, "target_title": "Operations Approver (dispatch release)"}
     if is_compliance(case):
         return {"target_role": "COMPLIANCE_APPROVER", "target_user": None, "target_title": "Compliance Officer"}
-    if float(case.get("amount") or 0) >= lg.DUAL_AUTH_THRESHOLD or st == "AWAITING_SECOND_APPROVAL":
+    if float(case.get("amount") or 0) >= policy.get("dual_auth_amount") or st == "AWAITING_SECOND_APPROVAL":
         return {"target_role": "RISK_APPROVER", "target_user": ext.get("approver_assigned"), "target_title": "Risk Approver (tier 2)"}
     return {"target_role": "OPERATIONS_APPROVER", "target_user": ext.get("approver_assigned"), "target_title": "Operations Approver (tier 1)"}
 
@@ -93,8 +94,8 @@ def ping(case_id: str, user, note: Optional[str], level: Optional[int] = None) -
     if lvl > 1 and (lvl - 1) not in sent:
         raise bad_state(f"Escalate one level at a time: level {lvl - 1} has not been pinged yet.")
     same = [e for e in log if e["level"] == lvl]
-    if same and _age_min(same[-1]) < COOLDOWN_MIN:
-        wait = COOLDOWN_MIN - _age_min(same[-1])
+    if same and _age_min(same[-1]) < policy.get("expedite_cooldown_min"):
+        wait = policy.get("expedite_cooldown_min") - _age_min(same[-1])
         raise bad_state(f"Level {lvl} was pinged {_minutes_text(_age_min(same[-1]))} ago. Try again in {_minutes_text(wait)}.")
     text = (note or "").strip() or "Cutoff approaching. Please prioritise."
     entry = _add(case, ext, lvl, {"user_id": user.user_id, "name": user.name, "role": role_of(user)}, text, auto=False)
@@ -112,16 +113,16 @@ def sweep() -> int:
         if not log:
             continue
         last = log[-1]
-        if last["status"] != "UNREAD" or last["level"] >= 3 or _age_min(last) < AUTO_ESCALATE_MIN:
+        if last["status"] != "UNREAD" or last["level"] >= 3 or _age_min(last) < policy.get("expedite_auto_escalate_min"):
             continue
         if lg.status_of(case) not in PENDING:
             continue
         ext = lg.ext_of(case)
         lvl = last["level"] + 1
         entry = _add(case, ext, lvl, {"user_id": None, "name": SYSTEM_NAME, "role": "SYSTEM"},
-                     f"No answer to the level {last['level']} ping after {AUTO_ESCALATE_MIN} minutes. Escalated automatically.", auto=True)
+                     f"No answer to the level {last['level']} ping after {policy.get('expedite_auto_escalate_min')} minutes. Escalated automatically.", auto=True)
         ac.audit(case, None, "SLA_EXPEDITE_ESCALATION", "EXPEDITE_AUTO_ESCALATED",
-                 f"No answer for {AUTO_ESCALATE_MIN} minutes. {case['case_id']} was escalated automatically to {entry['target_title']} (level {lvl}).",
+                 f"No answer for {policy.get('expedite_auto_escalate_min')} minutes. {case['case_id']} was escalated automatically to {entry['target_title']} (level {lvl}).",
                  ["Expedite ping", f"Level {lvl}", "Automatic"], actor_id="SYS-SLA", actor_role="SYSTEM")
         ac.notify("PING", f"Escalated: {case['case_id']}", entry["note"], case["case_id"], target_role="SUPERVISOR")
         n += 1
@@ -156,7 +157,7 @@ def inbox(user) -> Dict[str, Any]:
     received.sort(key=lambda i: (order.get(i["status"], 2), (i["cutoff"] or {}).get("seconds_left", 10 ** 9)))
     sent.sort(key=lambda i: i["at"], reverse=True)
     return {"unread": sum(1 for i in received if i["status"] == "UNREAD"), "items": received[:50], "sent": sent[:30], "now": iso(now()),
-            "policy": {"cooldown_minutes": COOLDOWN_MIN, "auto_escalate_minutes": AUTO_ESCALATE_MIN}}
+            "policy": {"cooldown_minutes": policy.get("expedite_cooldown_min"), "auto_escalate_minutes": policy.get("expedite_auto_escalate_min")}}
 
 
 def acknowledge(entry_id: str, user) -> Dict[str, Any]:
@@ -191,7 +192,7 @@ def case_state(case_id: str, user) -> Dict[str, Any]:
         last = es[-1] if es else None
         levels.append({"level": lvl, "title": t["target_title"], "sent": bool(es), "at": last["at"] if last else None, "status": last["status"] if last else None,
                        "auto": bool(last and last.get("auto")), "ack_by": person(last["ack_by"]) if last and last.get("ack_by") else None,
-                       "cooldown_minutes_left": max(0, int(COOLDOWN_MIN - _age_min(last))) if last else 0})
+                       "cooldown_minutes_left": max(0, int(policy.get("expedite_cooldown_min") - _age_min(last))) if last else 0})
     nl = next_level(case)
     can = has_perm(user, "case.work") and st in PENDING and levels[nl - 1]["cooldown_minutes_left"] == 0
     return {"case_id": case_id, "levels": levels, "next_level": nl, "can_ping": bool(can),

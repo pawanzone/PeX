@@ -29,7 +29,8 @@ RULE_ID = "MR-01"
 
 
 def limit_amount() -> float:
-    return float(settings.BATCH_APPROVAL_MAX_AMOUNT)
+    from app.services.v2 import policy
+    return float(policy.get("batch_limit"))
 
 
 def policy_text() -> str:

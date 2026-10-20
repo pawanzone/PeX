@@ -38,7 +38,7 @@ def all_cases() -> List[Dict[str, Any]]:
 def approver_for(case: Dict[str, Any], ext: Dict[str, Any]) -> str:
     if ext.get("approver_assigned"):
         return ext["approver_assigned"]
-    if float(case.get("amount") or 0) >= lg.DUAL_AUTH_THRESHOLD:
+    if float(case.get("amount") or 0) >= __import__('app.services.v2.policy', fromlist=['x']).get("dual_auth_amount"):
         return "RSK-7714"
     return "APR-3191" if int(hashlib.sha256(case["case_id"].encode()).hexdigest()[:4], 16) % 2 == 0 else "APR-3192"
 

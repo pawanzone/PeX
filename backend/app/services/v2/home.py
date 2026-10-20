@@ -227,6 +227,6 @@ def home(user) -> Dict[str, Any]:
         return compliance_home(user)
     if r == "AUDIT_RISK":
         return audit_home(user)
-    if r == "ADMIN":
+    if r in ("ADMIN", "POLICY_OWNER"):
         return admin_home(user)
     return maker_home(user)

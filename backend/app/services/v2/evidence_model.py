@@ -18,6 +18,12 @@ Weights and pillar weights are PROPOSED starting values to be calibrated with th
 """
 
 CONFIDENCE_THRESHOLD = 85
+
+
+def confidence_threshold() -> float:
+    """The value in force (Rules & Policy Studio); CONFIDENCE_THRESHOLD is the shipped default."""
+    from app.services.v2 import policy
+    return policy.get("confidence_threshold")
 PENALTY_MAX = 40
 
 # source class: B = supplied by bank in the event, A = bank system API seek, X = external system
@@ -393,10 +399,11 @@ def score(profile_name, states, ambiguity=0):
     penalty = min(max(ambiguity, 0), PENALTY_MAX)
     conf = max(0.0, raw - penalty)
     gates_missing = [i["name"] for i in items if i["gate"] and not ok(i)]
-    manual = conf < CONFIDENCE_THRESHOLD or bool(gates_missing) or profile_name in ALWAYS_MANUAL
+    thr = confidence_threshold()
+    manual = conf < thr or bool(gates_missing) or profile_name in ALWAYS_MANUAL
     reasons = []
-    if conf < CONFIDENCE_THRESHOLD:
-        reasons.append(f"Confidence {conf:.0f}% is below the {CONFIDENCE_THRESHOLD}% threshold")
+    if conf < thr:
+        reasons.append(f"Confidence {conf:.0f}% is below the {thr:g}% threshold")
     if gates_missing:
         reasons.append("Authority evidence missing or stale: " + ", ".join(gates_missing))
     if profile_name in ALWAYS_MANUAL:
@@ -405,7 +412,7 @@ def score(profile_name, states, ambiguity=0):
             "confidence_pct": round(conf, 1), "raw_pct": round(raw, 1), "penalty_pct": penalty,
             "pillars": {p: {"name": PILLAR_NAMES[p], "weight": w, "score_pct": round(f * 100)} for p, (f, w) in pillars.items()},
             "gates_missing": gates_missing, "extra_approval": manual, "reasons": reasons,
-            "threshold": CONFIDENCE_THRESHOLD}
+            "threshold": thr}
 
 
 if __name__ == "__main__":

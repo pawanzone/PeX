@@ -291,6 +291,25 @@ class V2NotificationModel(Base):
     read_by = Column(JSON, nullable=False, default=list)
 
 
+class V2PolicyChangeModel(Base):
+    """One proposed or applied change to a platform rule (Rules & Policy Studio). The ACTIVE row per key is the value in force."""
+    __tablename__ = "v2_policy_changes"
+
+    id = Column(String(32), primary_key=True)
+    key = Column(String(64), nullable=False, index=True)
+    value = Column(JSON, nullable=False)
+    prev_value = Column(JSON, nullable=True)
+    status = Column(String(16), nullable=False, index=True)        # PENDING | ACTIVE | SUPERSEDED | REJECTED | WITHDRAWN
+    reason = Column(String(512), nullable=True)
+    proposed_by = Column(String(64), nullable=False)
+    proposed_at = Column(String(64), nullable=False)
+    decided_by = Column(String(64), nullable=True)
+    decided_at = Column(String(64), nullable=True)
+    decision_note = Column(String(512), nullable=True)
+    effective_from = Column(String(64), nullable=True)
+    impact = Column(JSON, nullable=True)
+
+
 class V2ModeChangeModel(Base):
     __tablename__ = "v2_mode_changes"
 

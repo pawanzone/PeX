@@ -62,6 +62,7 @@ ROLE_REVEAL: Dict[str, FrozenSet[str]] = {
     "COMPLIANCE_APPROVER": frozenset({"C1", "C2", "C3", "C4"}),   # only role that sees C3 (and also C1, C2)
     "AUDIT_RISK": frozenset({"C1", "C2", "C4"}),                  # with a reason, logged
     "ADMIN": frozenset(),                                        # never
+    "POLICY_OWNER": frozenset(),                                  # sets rules; does not work cases
 }
 
 

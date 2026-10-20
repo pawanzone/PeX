@@ -118,6 +118,10 @@ DEMO_PERSONAS: Dict[str, UserPersona] = {
         title="Compliance Officer", department="Financial Crime Compliance", avatar_initials="AO", badge_color="amber", max_approval_amount=5000000.0),
     "AUD-5001": UserPersona(user_id="AUD-5001", name="Rhea Kapoor", email="r.kapoor@pexbank.internal", role=UserRole.AUDIT_RISK,
         title="Audit and Risk (read only)", department="Internal Audit and Risk", avatar_initials="RK", badge_color="slate", max_approval_amount=0.0),
+    "POL-8001": UserPersona(user_id="POL-8001", name="Nadia Rahman", email="n.rahman@pexbank.internal", role=UserRole.POLICY_OWNER,
+        title="Policy Owner — Payment Operations", department="Operations Policy and Controls", avatar_initials="NR", badge_color="violet", max_approval_amount=0.0),
+    "POL-8002": UserPersona(user_id="POL-8002", name="Greg Holt", email="g.holt@pexbank.internal", role=UserRole.POLICY_OWNER,
+        title="Policy Owner — Risk and Controls", department="Operations Policy and Controls", avatar_initials="GH", badge_color="violet", max_approval_amount=0.0),
     "ADM-0002": UserPersona(user_id="ADM-0002", name="Tomas Berg", email="t.berg@pexbank.internal", role=UserRole.ADMIN,
         title="Administrator", department="Platform Governance", avatar_initials="TB", badge_color="slate", max_approval_amount=0.0),
 }
@@ -130,6 +134,7 @@ ROLE_MAX_APPROVAL_LIMITS: Dict[UserRole, float] = {
     UserRole.ADMIN: 10000000.0,
     UserRole.SUPERVISOR: 0.0,
     UserRole.AUDIT_RISK: 0.0,
+    UserRole.POLICY_OWNER: 0.0,
 }
 
 def get_persona(user_id: str) -> Optional[UserPersona]:
@@ -143,7 +148,7 @@ def check_can_approve(
     persona: Optional[UserPersona] = None,
     maker_id: Optional[str] = None
 ) -> Tuple[bool, str]:
-    if role in (UserRole.OPERATOR, UserRole.SUPERVISOR, UserRole.AUDIT_RISK):
+    if role in (UserRole.OPERATOR, UserRole.SUPERVISOR, UserRole.AUDIT_RISK, UserRole.POLICY_OWNER):
         return False, "This role cannot approve repairs (Maker-Checker policy: only approvers authorise)."
     
     # Enforce Segregation of Duties (Maker != Approver)

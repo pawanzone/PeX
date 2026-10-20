@@ -1,4 +1,4 @@
-import { LayoutDashboard, Home, ListChecks, ShieldCheck, Scale, Layers, ScrollText, Settings, type LucideIcon } from "lucide-react";
+import { LayoutDashboard, Home, ListChecks, ShieldCheck, Scale, Layers, ScrollText, Settings, SlidersHorizontal, type LucideIcon } from "lucide-react";
 import type { Area } from "../lib/router";
 import type { UserPersona } from "../types";
 
@@ -11,6 +11,7 @@ export const NAV: NavDef[] = [
   { area: "compliance", label: "Compliance", icon: Scale, href: "#/compliance" },
   { area: "batches", label: "Batches", icon: Layers, href: "#/batches" },
   { area: "audit", label: "Audit", icon: ScrollText, href: "#/audit" },
+  { area: "policy", label: "Policy Studio", icon: SlidersHorizontal, href: "#/policy" },
   { area: "admin", label: "Admin", icon: Settings, href: "#/admin/integrations" },
 ];
 
@@ -24,6 +25,7 @@ const ROLE_AREAS: Record<string, Area[]> = {
   COMPLIANCE_APPROVER: ["dashboard", "home", "compliance", "audit"],
   AUDIT_RISK: ["dashboard", "home", "audit"],
   ADMIN: ["dashboard", "home", "batches", "audit", "admin"],
+  POLICY_OWNER: ["dashboard", "policy", "admin", "audit"],
 };
 export function areaAllowed(area: Area, role?: string): boolean {
   const r = (role || "").toUpperCase();

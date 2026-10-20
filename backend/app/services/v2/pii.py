@@ -19,6 +19,11 @@ from app.services.v2 import ext as xt
 from app.services.v2 import zone
 
 REVEAL_MINUTES = 10
+
+
+def reveal_minutes() -> int:
+    from app.services.v2 import policy
+    return int(policy.get("reveal_minutes"))
 MIN_REASON = 10
 _ID = re.compile(r"PEX-[A-Z]+-\d+")
 
@@ -50,7 +55,7 @@ def page_block(case: Dict[str, Any], ext: Dict[str, Any], user) -> Dict[str, Any
     can = enabled() and has_perm(user, "pii.reveal")
     classes = sorted(cl.revealable_classes(role)) if can else []
     return {"masking": enabled(), "protected": enabled() and not g, "can_reveal": can,
-            "revealed_until": g.get("expires_at") if g else None, "reveal_minutes": REVEAL_MINUTES,
+            "revealed_until": g.get("expires_at") if g else None, "reveal_minutes": reveal_minutes(),
             "min_reason_length": MIN_REASON,
             "reveal_classes": [{"class": c, "name": cl.CLASSES[c]} for c in classes],
             "restricted_note": ("Screening details (C3) can be revealed by the Compliance role only." if can and "C3" not in classes else None),

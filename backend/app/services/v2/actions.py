@@ -23,6 +23,7 @@ from app.services.v2 import pages as pg
 from app.services.v2 import pii
 from app.services.v2 import classification as cl
 from app.services.v2 import zone
+from app.services.v2 import policy
 from app.services.v2.core import (
     V2Error, bad_state, invalid, not_found, now, iso, parse_ts, role_of, has_perm, require, person, ext_store, new_id,
     is_compliance, party_name, money, ROLE_LABELS,
@@ -129,7 +130,7 @@ def _map_engine_error(msg: str) -> V2Error:
 
 def _least_loaded_approver(case: Dict[str, Any]) -> str:
     from app.services.v2.rows import all_cases, approver_for
-    if float(case.get("amount") or 0) >= lg.DUAL_AUTH_THRESHOLD:
+    if float(case.get("amount") or 0) >= policy.get("dual_auth_amount"):
         return "RSK-7714"
     load = {"APR-3191": 0, "APR-3192": 0}
     for c in all_cases():
@@ -470,13 +471,13 @@ def pii_reveal(case_id: str, user, reason: Optional[str]) -> Dict[str, Any]:
         raise invalid(f"Please give a reason of at least {pii.MIN_REASON} characters.", "reason")
     t = now()
     grants = list(ext.get("pii_reveals") or [])
-    grants.append({"user_id": user.user_id, "name": user.name, "reason": r[:300], "at": iso(t), "expires_at": iso(t + timedelta(minutes=pii.REVEAL_MINUTES))})
+    grants.append({"user_id": user.user_id, "name": user.name, "reason": r[:300], "at": iso(t), "expires_at": iso(t + timedelta(minutes=pii.reveal_minutes()))})
     ext["pii_reveals"] = grants[-50:]
     touch(case, ext)
     xt.persist_ext(case_id, ext)
-    audit(case, user, "PII_ACCESS", "PII_REVEALED", f"{user.name} ({ROLE_LABELS.get(role_of(user), role_of(user))}) revealed personal data ({', '.join(sorted(cl.revealable_classes(role_of(user))))}) on {case_id} for {pii.REVEAL_MINUTES} minutes.",
+    audit(case, user, "PII_ACCESS", "PII_REVEALED", f"{user.name} ({ROLE_LABELS.get(role_of(user), role_of(user))}) revealed personal data ({', '.join(sorted(cl.revealable_classes(role_of(user))))}) on {case_id} for {pii.reveal_minutes()} minutes.",
           ["PII reveal", "Reason recorded", "Time-limited"], before=lg.status_of(case), after=lg.status_of(case), reason=r[:300])
-    return result(case_id, user, f"Real values are shown to you for {pii.REVEAL_MINUTES} minutes. This access is logged.")
+    return result(case_id, user, f"Real values are shown to you for {pii.reveal_minutes()} minutes. This access is logged.")
 
 
 def pii_hide(case_id: str, user) -> Dict[str, Any]:

@@ -228,6 +228,15 @@ def _extras(user, mine: Dict[str, int], d: Dict[str, Any]) -> Dict[str, Any]:
     if r == "COMPLIANCE_APPROVER":
         holds = next((s["count"] for s in d["stages"] if s["key"] == "compliance_hold"), 0)
         return {"title": "Compliance", "items": [{"label": "Open holds", "value": holds}, {"label": "Evidence conflicts bank-wide", "value": att["evidence_conflicts"]}], "link": "/compliance"}
+    if r == "POLICY_OWNER":
+        from app.db.models import V2PolicyChangeModel
+        db = SessionLocal()
+        try:
+            pending = db.query(V2PolicyChangeModel).filter(V2PolicyChangeModel.status == "PENDING").count()
+            active = db.query(V2PolicyChangeModel).filter(V2PolicyChangeModel.status == "ACTIVE").count()
+        finally:
+            db.close()
+        return {"title": "Rules and policy", "items": [{"label": "Changes waiting for a decision", "value": pending}, {"label": "Rules changed from the default", "value": active}], "link": "/policy"}
     if r == "AUDIT_RISK":
         since = iso(now() - timedelta(hours=24))
         db = SessionLocal()

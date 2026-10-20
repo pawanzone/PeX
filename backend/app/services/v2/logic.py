@@ -33,7 +33,8 @@ def ext_of(case: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def is_dual(case: Dict[str, Any]) -> bool:
-    return float(case.get("amount") or 0) >= DUAL_AUTH_THRESHOLD or bool(case.get("dual_auth_required")) or status_of(case) == "AWAITING_SECOND_APPROVAL"
+    from app.services.v2 import policy
+    return float(case.get("amount") or 0) >= policy.get("dual_auth_amount") or bool(case.get("dual_auth_required")) or status_of(case) == "AWAITING_SECOND_APPROVAL"
 
 
 def evidence_state(ext: Dict[str, Any]) -> str:
@@ -213,7 +214,7 @@ def approve_gate(case: Dict[str, Any], user, for_decline: bool = False) -> Tuple
     if not for_decline:
         cr = ext0.get("confidence_review") or {}
         if review_pending(ext0):
-            return False, "EVIDENCE_REVIEW_REQUIRED", (f"Decision confidence is {cr.get('confidence_pct')}%, below the {em.CONFIDENCE_THRESHOLD}% threshold. "
+            return False, "EVIDENCE_REVIEW_REQUIRED", (f"Decision confidence is {cr.get('confidence_pct')}%, below the {em.confidence_threshold()}% threshold. "
                                                       "A second person must review the evidence before this can be approved.")
         rb = (cr.get("reviewed_by") or {}).get("user_id")
         if cr.get("state") == "confirmed" and rb and rb == user.user_id:
@@ -234,7 +235,7 @@ def sod_block(case: Dict[str, Any], user) -> Dict[str, Any]:
     viewer_is_maker = bool(maker and user and maker["user_id"] == user.user_id)
     if not maker:
         return {"status": "n/a", "text": "No maker on this case (system-routed). Approver rules still apply.", "maker": None, "viewer_is_maker": False}
-    ok, msg = check_can_approve(role=user.role if role_of(user) not in ("SUPERVISOR", "AUDIT_RISK", "OPERATOR") else get_persona("APR-3191").role,
+    ok, msg = check_can_approve(role=user.role if role_of(user) not in ("SUPERVISOR", "AUDIT_RISK", "OPERATOR", "POLICY_OWNER") else get_persona("APR-3191").role,
                                 amount=0.0, queue="Repair", user_id=user.user_id, persona=user, maker_id=case.get("maker_id"))
     failed = ("Segregation" in msg) if not ok else False
     if viewer_is_maker:

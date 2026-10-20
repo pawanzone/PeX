@@ -13,6 +13,7 @@ class UserRole(str, Enum):
     ADMIN = "ADMIN"
     SUPERVISOR = "SUPERVISOR"
     AUDIT_RISK = "AUDIT_RISK"
+    POLICY_OWNER = "POLICY_OWNER"
 
 class ApprovalAction(str, Enum):
     APPROVE = "APPROVE"

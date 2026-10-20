@@ -7,6 +7,7 @@ export type UserRole =
   | "OPERATOR"
   | "OPERATIONS_APPROVER"
   | "COMPLIANCE_APPROVER"
+  | "POLICY_OWNER"
   | "RISK_APPROVER"
   | "ADMIN";
 

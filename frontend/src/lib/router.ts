@@ -2,8 +2,8 @@
  *  #/compliance, #/compliance/case/<id>, #/batches, #/batches/<id>, #/audit, #/admin/<section>. */
 import { useEffect, useState, useCallback } from "react";
 
-export type Area = "dashboard" | "home" | "worklist" | "approvals" | "compliance" | "batches" | "audit" | "admin";
-export const AREAS: Area[] = ["dashboard", "home", "worklist", "approvals", "compliance", "batches", "audit", "admin"];
+export type Area = "dashboard" | "home" | "worklist" | "approvals" | "compliance" | "batches" | "audit" | "admin" | "policy";
+export const AREAS: Area[] = ["dashboard", "home", "worklist", "approvals", "compliance", "batches", "audit", "admin", "policy"];
 
 export interface Route {
   area: Area;
@@ -50,6 +50,7 @@ export const routes = {
   batches: () => "#/batches",
   batch: (id: string) => `#/batches/${e(id)}`,
   audit: (query?: Record<string, string>) => `#/audit${q(query)}`,
+  policy: () => "#/policy",
   admin: (section = "integrations") => `#/admin/${e(section)}`,
   adminReference: (screen?: string) => `#/admin/reference${screen ? "/" + e(screen) : ""}`,
 };
