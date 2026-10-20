@@ -71,6 +71,7 @@ export interface CasePage {
   request_information?: RequestInfoDto | null; decision_form?: DecisionForm | null;
   handoff?: { handoff_id?: string; sent_at?: string; mode?: string; bank_comm?: string; awaiting?: string } | null;
   bank?: { reference?: string; confirmed_at?: string; clearing_system?: string } | null;
+  pii?: { masking: boolean; protected: boolean; can_reveal: boolean; revealed_until?: string | null; reveal_minutes: number; min_reason_length: number; reveal_endpoint: string; hide_endpoint: string } | null;
   confidence?: {
     profile: string; profile_id: string; family: string; family_name: string; coverage_pct: number; confidence_pct: number; raw_pct: number; penalty_pct: number;
     threshold: number; extra_approval: boolean; applies: boolean; label: string; reasons: string[]; gates_missing: string[]; standards: string;

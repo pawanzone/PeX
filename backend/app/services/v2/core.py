@@ -210,12 +210,12 @@ ROLE_LABELS = {
     "AUDIT_RISK": "Audit and Risk", "ADMIN": "Administrator",
 }
 PERMISSIONS: Dict[str, List[str]] = {
-    "OPERATOR": ["case.read", "case.work", "case.assign", "batch.upload"],
-    "SUPERVISOR": ["case.read", "case.work", "case.assign", "case.reassign", "audit.read", "batch.upload"],
-    "OPERATIONS_APPROVER": ["case.read", "case.approve", "stp.approve"],
-    "COMPLIANCE_APPROVER": ["case.read", "compliance.decide", "audit.read"],
-    "RISK_APPROVER": ["case.read", "case.approve", "stp.approve", "compliance.decide"],
-    "AUDIT_RISK": ["case.read", "audit.read", "audit.export"],
+    "OPERATOR": ["case.read", "case.work", "case.assign", "batch.upload", "pii.reveal"],
+    "SUPERVISOR": ["case.read", "case.work", "case.assign", "case.reassign", "audit.read", "batch.upload", "pii.reveal"],
+    "OPERATIONS_APPROVER": ["case.read", "case.approve", "stp.approve", "pii.reveal"],
+    "COMPLIANCE_APPROVER": ["case.read", "compliance.decide", "audit.read", "pii.reveal"],
+    "RISK_APPROVER": ["case.read", "case.approve", "stp.approve", "compliance.decide", "pii.reveal"],
+    "AUDIT_RISK": ["case.read", "audit.read", "audit.export", "pii.reveal"],
     "ADMIN": ["case.read", "case.approve", "audit.read", "audit.export", "admin.read", "admin.mode_change", "admin.mode_approve", "batch.upload"],
 }
 NAV = {

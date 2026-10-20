@@ -1,8 +1,12 @@
 """UI v2 API (/api/v2). Contract: docs/ui_v2_api_contract.md. All bank communication is SIMULATED."""
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, File, Header, Query, UploadFile
-from fastapi.responses import Response
+import json
+import re
+
+from fastapi import APIRouter, Depends, File, Header, Query, Request, UploadFile
+from fastapi.responses import JSONResponse, Response
+from fastapi.routing import APIRoute
 from pydantic import BaseModel
 
 from app.config import settings
@@ -21,7 +25,38 @@ from app.services.v2.core import (
 from app.services.data_loader import repo
 from app.services.v2 import logic as lg
 
-router = APIRouter()
+_CASE_ID = re.compile(r"PEX-[A-Za-z0-9]+-\d+")
+
+
+class PiiRoute(APIRoute):
+    """Every JSON answer passes the PII filter: tokens by default, real values only under an active audited reveal."""
+
+    def get_route_handler(self):
+        original = super().get_route_handler()
+
+        async def handler(request: Request):
+            resp = await original(request)
+            from app.services.v2 import pii
+            if not pii.enabled() or not str(resp.headers.get("content-type", "")).startswith("application/json"):
+                return resp
+            try:
+                from app.core.auth import resolve_user_id
+                uid = resolve_user_id(request.headers.get("authorization"))
+            except Exception:
+                uid = None
+            data = json.loads(resp.body)
+            masked = pii.mask_payload(data, uid, _CASE_ID.findall(request.url.path))
+            if masked is data:
+                return resp
+            out = JSONResponse(masked, status_code=resp.status_code)
+            for k, val in resp.headers.items():
+                if k.lower() not in ("content-length", "content-type"):
+                    out.headers[k] = val
+            return out
+        return handler
+
+
+router = APIRouter(route_class=PiiRoute)
 
 
 # ---- bodies (all optional so the API answers with its own 422 messages) --------------------------
@@ -256,6 +291,20 @@ def compliance_decision(case_id: str, body: ComplianceBody, user=Depends(writer_
 @router.post("/cases/{case_id}/confidence-review")
 def confidence_review(case_id: str, body: ConfidenceReviewBody, user=Depends(writer_user), idem: Optional[str] = Header(None, alias="Idempotency-Key")):
     return _idem(idem, user, lambda: ac.confidence_review(case_id, user, body.decision, body.comment))
+
+
+class RevealBody(BaseModel):
+    reason: Optional[str] = None
+
+
+@router.post("/cases/{case_id}/pii/reveal")
+def pii_reveal(case_id: str, body: RevealBody, user=Depends(current_user)):
+    return ac.pii_reveal(case_id, user, body.reason)
+
+
+@router.post("/cases/{case_id}/pii/hide")
+def pii_hide(case_id: str, user=Depends(current_user)):
+    return ac.pii_hide(case_id, user)
 
 
 @router.post("/cases/{case_id}/ping")

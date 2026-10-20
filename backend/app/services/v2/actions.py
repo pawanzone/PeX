@@ -20,6 +20,7 @@ from app.services.state_machine import IllegalTransition, transition_case
 from app.services.v2 import ext as xt
 from app.services.v2 import logic as lg
 from app.services.v2 import pages as pg
+from app.services.v2 import pii
 from app.services.v2.core import (
     V2Error, bad_state, invalid, not_found, now, iso, parse_ts, role_of, has_perm, require, person, ext_store, new_id,
     is_compliance, party_name, money, ROLE_LABELS,
@@ -466,6 +467,44 @@ def _gate_or_raise(case, user, for_decline: bool = False):
             except Exception:  # pragma: no cover
                 pass
         raise V2Error(status, code, msg)
+
+
+def pii_reveal(case_id: str, user, reason: Optional[str]) -> Dict[str, Any]:
+    """Show real names, IBANs and accounts on this case to the caller for a short window. Reason required; always audited."""
+    require(user, "pii.reveal")
+    if not pii.enabled():
+        raise bad_state("Personal-data masking is switched off, so there is nothing to reveal.")
+    case = _load(case_id)
+    ext = lg.ext_of(case)
+    r = _need(reason, "reason", "Reason")
+    if len(r) < pii.MIN_REASON:
+        raise invalid(f"Please give a reason of at least {pii.MIN_REASON} characters.", "reason")
+    t = now()
+    grants = list(ext.get("pii_reveals") or [])
+    grants.append({"user_id": user.user_id, "name": user.name, "reason": r[:300], "at": iso(t), "expires_at": iso(t + timedelta(minutes=pii.REVEAL_MINUTES))})
+    ext["pii_reveals"] = grants[-50:]
+    touch(case, ext)
+    xt.persist_ext(case_id, ext)
+    audit(case, user, "PII_ACCESS", "PII_REVEALED", f"{user.name} ({ROLE_LABELS.get(role_of(user), role_of(user))}) revealed personal data on {case_id} for {pii.REVEAL_MINUTES} minutes.",
+          ["PII reveal", "Reason recorded", "Time-limited"], before=lg.status_of(case), after=lg.status_of(case), reason=r[:300])
+    return result(case_id, user, f"Real values are shown to you for {pii.REVEAL_MINUTES} minutes. This access is logged.")
+
+
+def pii_hide(case_id: str, user) -> Dict[str, Any]:
+    require(user, "pii.reveal")
+    case = _load(case_id)
+    ext = lg.ext_of(case)
+    t = iso(now())
+    changed = False
+    for g in ext.get("pii_reveals") or []:
+        if g.get("user_id") == user.user_id and (parse_ts(g.get("expires_at")) or now()) > now():
+            g["expires_at"] = t
+            g["hidden_at"] = t
+            changed = True
+    if changed:
+        xt.persist_ext(case_id, ext)
+        audit(case, user, "PII_ACCESS", "PII_HIDDEN", f"{user.name} hid personal data on {case_id}.", ["PII reveal ended"], before=lg.status_of(case), after=lg.status_of(case))
+    return result(case_id, user, "Personal data is hidden again.")
 
 
 def confidence_review(case_id: str, user, decision: Optional[str], comment: Optional[str]) -> Dict[str, Any]:

@@ -68,7 +68,9 @@ def test_decision_page_has_change_highlight(client):
     pg = page(client, "PEX-INV-0001")
     ch = pg["change_summary"]
     assert ch["original"]["status"] == "Failed validation" and ch["proposed"]["status"] == "Passes validation"
-    assert ch["proposed"].get("highlight")
+    assert not ch["proposed"].get("highlight")  # values are tokens, so character positions are withheld
+    post(client, SUP, "/cases/PEX-INV-0001/pii/reveal", {"reason": "Comparing the IBAN character by character"})
+    assert page(client, "PEX-INV-0001")["change_summary"]["proposed"].get("highlight")
 
 
 def test_status_unknown_blocks_resend(client):
@@ -459,3 +461,59 @@ def test_low_confidence_case_can_still_be_returned_by_checker(client):
     post(client, MAKER, "/cases/PEX-LOW-0096/submit", {"handover_note": "x"})
     post(client, APPR, "/cases/PEX-LOW-0096/return", {"reason_code": "EVIDENCE_INSUFFICIENT", "comment": "Need client confirmation."})
     assert repo.get_case("PEX-LOW-0096")["status"] == "RETURNED_FOR_REWORK"
+
+
+# ------------------------------------------------------------------------------------------------------------------
+# PII: tokenised by default, audited and time-limited reveal
+# ------------------------------------------------------------------------------------------------------------------
+def _blob(client, uid, case_id="PEX-INV-0001"):
+    return json.dumps(page(client, case_id, uid))
+
+
+def test_names_and_ibans_are_tokenised_by_default(client):
+    c = repo.get_case("PEX-INV-0001")
+    name = c["creditor_party"]["party_name"]
+    blob = _blob(client, APPR)
+    assert name not in blob and "TOK-PARTY-" in blob
+    iban = c["creditor_account"]["iban"].replace(" ", "")
+    assert iban not in blob
+    pg_ = page(client, "PEX-INV-0001", APPR)
+    assert pg_["pii"]["protected"] is True and pg_["pii"]["can_reveal"] is True
+
+
+def test_lists_and_audit_are_tokenised_too(client):
+    name = repo.get_case("PEX-INV-0001")["creditor_party"]["party_name"]
+    wl = client.get("/api/v2/approvals", headers=H(APPR)).text
+    assert name not in wl
+    au_ = client.get("/api/v2/audit/events?case_id=PEX-INV-0001", headers=H(AUD)).text
+    assert name not in au_
+
+
+def test_reveal_needs_reason_is_audited_expires_and_is_per_person(client):
+    name = repo.get_case("PEX-INV-0001")["creditor_party"]["party_name"]
+    post(client, APPR, "/cases/PEX-INV-0001/pii/reveal", {"reason": "short"}, expect=422)
+    post(client, APPR, "/cases/PEX-INV-0001/pii/reveal", {"reason": "Checking beneficiary against the invoice"})
+    assert name in _blob(client, APPR)
+    assert name not in _blob(client, APPR2)                     # another approver still sees tokens
+    pg_ = page(client, "PEX-INV-0001", APPR)["pii"]
+    assert pg_["protected"] is False and pg_["revealed_until"]
+    ev = json.dumps(client.get("/api/v2/audit/events?case_id=PEX-INV-0001", headers=H(AUD)).json()).upper()
+    assert "PII_REVEALED" in ev
+    post(client, APPR, "/cases/PEX-INV-0001/pii/hide")
+    assert name not in _blob(client, APPR)
+    assert "PII_HIDDEN" in json.dumps(client.get("/api/v2/audit/events?case_id=PEX-INV-0001", headers=H(AUD)).json()).upper()
+
+
+def test_admin_cannot_reveal(client):
+    r = post(client, ADM, "/cases/PEX-INV-0001/pii/reveal", {"reason": "I would like to look at this"}, expect=403)
+    assert r["error"]["code"] in ("FORBIDDEN", "PERMISSION_DENIED") or r["error"]
+
+
+def test_reveal_expires(client):
+    from app.services.v2.core import ext_store
+    name = repo.get_case("PEX-INV-0001")["creditor_party"]["party_name"]
+    post(client, APPR, "/cases/PEX-INV-0001/pii/reveal", {"reason": "Checking beneficiary against the invoice"})
+    e = ext_store.get("PEX-INV-0001")
+    e["pii_reveals"][-1]["expires_at"] = "2000-01-01T00:00:00+00:00"
+    ext_store.put("PEX-INV-0001", e, persist=False)
+    assert name not in _blob(client, APPR)

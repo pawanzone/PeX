@@ -10,6 +10,7 @@ from app.services.data_loader import repo
 from app.services.outbound_port import operation_mode
 from app.services.v2 import logic as lg
 from app.services.v2 import ext as xt
+from app.services.v2 import pii
 from app.services.v2.core import (
     now, parse_ts, iso, hhmm, cutoff_obj, money, rail_obj, profile_code, profile_label, domain_of, is_compliance, party_name,
     account_str, role_of, has_perm, person, ROLE_LABELS, role_label_for, not_found, ext_store,
@@ -447,6 +448,7 @@ def case_page(case_id: str, user) -> Dict[str, Any]:
         "request_information": _request_info(case, ext) if variant in ("MISSING_INFO", "CONFLICT", "DECISION") else None,
         "recommendation": _recommendation(case, ext),
         "confidence": _confidence(case, ext, variant, user),
+        "pii": pii.page_block(case, ext, user),
         "journey": build_journey(case, ext, variant),
         "actions": build_actions(case, ext, variant, user),
         "blocked_actions": [],
