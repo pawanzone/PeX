@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { Check, Circle, Minus, ArrowRight, Lock, Clock, AlertTriangle } from "lucide-react";
 import type { StatusTone } from "../../lib/statusMeta";
 import { cn, StatusPill, CountdownText, Avatar, TONE } from "./primitives";
@@ -92,8 +93,10 @@ export interface ActionDef { id: string; label: string; onClick: () => void; kin
 /** Sticky bottom bar. Disabled actions must carry a reason (shown as text, not just a tooltip). */
 export const ActionBar: React.FC<{ actions: ActionDef[]; summary?: React.ReactNode; lockedNote?: React.ReactNode }> = ({ actions, summary, lockedNote }) => {
   const blocked = actions.filter((a) => a.disabled && a.disabledReason);
-  return (
-    <div className="sticky bottom-0 z-20 -mx-6 mt-6 bg-white/95 backdrop-blur border-t border-surface-line px-6 py-3">
+  const [dock, setDock] = useState<HTMLElement | null>(null);
+  useEffect(() => { setDock(document.getElementById("action-dock")); }, []);
+  const bar = (
+    <div className={cn("bg-white border-t border-surface-line px-6 py-3", dock ? "shadow-[0_-4px_8px_-6px_rgba(15,23,42,0.18)]" : "sticky bottom-0 z-20 -mx-6 mt-6")}>
       <div className="flex items-center gap-3 flex-wrap">
         {summary && <div className="text-sm text-pex-muted mr-auto">{summary}</div>}
         {!summary && <span className="mr-auto" />}
@@ -113,4 +116,5 @@ export const ActionBar: React.FC<{ actions: ActionDef[]; summary?: React.ReactNo
       {(blocked.length > 0 || lockedNote) && <div className="mt-2 text-xs text-pex-muted flex items-center gap-1.5"><Lock className="w-3 h-3" aria-hidden />{lockedNote ?? blocked.map((b) => `${b.label}: ${b.disabledReason}`).join(" · ")}</div>}
     </div>
   );
+  return dock ? createPortal(bar, dock) : bar;
 };

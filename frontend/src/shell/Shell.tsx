@@ -125,6 +125,8 @@ export const Shell: React.FC<{ render: (route: Route) => React.ReactNode }> = ({
             ? <Banner tone="amber" title="Not available for your role" action={<a className="text-sm font-medium underline" href="#/home">Go home</a>}>{persona.title} ({persona.role}) cannot open this area. Switch persona from the top right to see it.</Banner>
             : render(route)}
         </main>
+        {/* Bottom pane: page action bars are drawn here, outside the scrolling area, so nothing scrolls behind them. */}
+        <div id="action-dock" className="shrink-0 empty:hidden" />
       </div>
     </div>
   );

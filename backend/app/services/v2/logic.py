@@ -214,7 +214,8 @@ def approve_gate(case: Dict[str, Any], user, for_decline: bool = False) -> Tuple
     """Returns (allowed, code, message). `for_decline` skips the evidence-review hold (a checker may always return or reject)."""
     st = status_of(case)
     if not has_perm(user, "case.approve"):
-        return False, "FORBIDDEN", f"{ROLE_LABELS.get(role_of(user), role_of(user))} cannot approve repairs."
+        return False, "FORBIDDEN", ("You are not an approver, so you cannot approve this repair. Ask an approver (Operations or Risk) to review it. "
+                                   "If you prepared it, submit it for approval and an approver will pick it up.")
     if st not in PENDING:
         return False, "INVALID_STATE", f"Case is {st.replace('_', ' ').lower()}, not awaiting approval."
     ok, msg = check_can_approve(role=user.role, amount=float(case.get("amount") or 0), queue=str(case.get("queue") or "Repair"),

@@ -67,7 +67,8 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (pick) await switchTo(pick);
       setReady(true);
     })();
-    return onAuthProblem(() => { setPersona(null); setNote("Your session ended. Please sign in again."); });
+    // Only 401 (no valid sign-in) ends the session. 403 means "signed in but not allowed", and the screen that asked shows that message.
+    return onAuthProblem((status) => { if (status === 401) { setPersona(null); setNote("Your session ended. Please sign in again."); } });
   }, [switchTo]);
 
   return <Ctx.Provider value={{ personas, persona, ready, note, switchTo, signIn, signOut, epoch }}>{children}</Ctx.Provider>;
