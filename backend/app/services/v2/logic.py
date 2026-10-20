@@ -91,10 +91,31 @@ def confidence_of(case: Dict[str, Any], ext: Optional[Dict[str, Any]] = None) ->
             return None
     name, standards, items = em.PROFILES[code]
     ci = ext.get("confidence_inputs") or {}
-    states = {i["name"]: "PRESENT" for i in items}
     amb = float(ci.get("ambiguity", 0) or 0)
     es = evidence_state(ext)
     gates = [i for i in items if i["gate"]]
+    # Link each expected item to the check that covers it. When the case's checks can be linked, evidence nobody checked earns no
+    # credit: an item is present only if a check says so, or it is the payment instruction itself. When they cannot be linked
+    # (older fixture cases) the old assumption stands and the screen says so.
+    from app.services.v2 import dossier as _dossier
+    names = {i["name"] for i in items}
+    linked_rows = []
+    for r in ext.get("evidence") or []:
+        nm = r.get("item") or em.item_for(code, _dossier.kind_of(r))
+        if nm in names:
+            linked_rows.append((r, nm))
+    linked = bool(linked_rows)
+    states = {i["name"]: ("PRESENT" if (not linked or i["system"] == "EVENT") else "NOT_RUN") for i in items}
+    basis = {i["name"]: ("assumed" if not linked else ("instruction" if i["system"] == "EVENT" else "none")) for i in items}
+    cover: Dict[str, Dict[str, Any]] = {}
+    rank = {"PRESENT": 0, "MISSING": 1, "CONFLICT": 2}
+    for r, nm in linked_rows:
+        stt = str(r.get("status") or "")
+        new = "PRESENT" if stt in ("agree", "pass", "passed", "found") else ("CONFLICT" if stt in ("differs", "conflict") else "MISSING")
+        if basis[nm] != "check" or rank[new] > rank[states[nm]]:
+            states[nm] = new
+            cover[nm] = r
+        basis[nm] = "check"
     if es == "conflict" and gates:
         states[gates[0]["name"]] = "CONFLICT"
         amb = max(amb, 15.0)
@@ -124,7 +145,12 @@ def confidence_of(case: Dict[str, Any], ext: Optional[Dict[str, Any]] = None) ->
     res["applies"] = not is_compliance(case)
     res["items"] = [{"name": i["name"], "role": i["role"], "weight": i["weight"], "pillar": i["pillar"], "pillar_name": em.PILLAR_NAMES[i["pillar"]],
                      "gate": i["gate"], "state": states[i["name"]], "source_class": em.SYSTEMS[i["system"]][0],
-                     "source": em.SYSTEMS[i["system"]][1], "connection": em.SYSTEMS[i["system"]][2]} for i in items]
+                     "source": em.SYSTEMS[i["system"]][1], "connection": em.SYSTEMS[i["system"]][2],
+                     "basis": basis[i["name"]], "check_id": (cover.get(i["name"]) or {}).get("id"), "check": (cover.get(i["name"]) or {}).get("check")} for i in items]
+    res["linked"] = linked
+    res["checked"] = sum(1 for i in res["items"] if i["basis"] == "check")
+    res["from_instruction"] = sum(1 for i in res["items"] if i["basis"] == "instruction")
+    res["not_run"] = sum(1 for i in res["items"] if i["state"] == "NOT_RUN")
     return res
 
 

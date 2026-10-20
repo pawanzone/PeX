@@ -315,6 +315,14 @@ class _SimInvoice(Connector):         # client ERP / AP ledger (ERP)
         return {"InvNb": inv.get("number", ""), "CdtrAcct": {"Id": {"IBAN": inv.get("iban", "")}}}
 
 
+class _SimCore(Connector):            # core banking: account status (CORE)
+    key = "CORE"
+
+    def fetch(self, req, world):
+        a = world.get("account") or {}
+        return {"Acct": {"Sts": a.get("status", "OPEN"), "CanCredit": bool(a.get("can_credit", True))}}
+
+
 class _SimScreening(Connector):       # sanctions lists and licences (LISTS)
     key = "LISTS"
 
@@ -323,7 +331,7 @@ class _SimScreening(Connector):       # sanctions lists and licences (LISTS)
         return {"Hit": bool(s.get("hit")), "List": s.get("list", ""), "MatchedNm": s.get("name", ""), "Score": s.get("score", 0)}
 
 
-SIMULATED: Dict[str, Connector] = {c.key: c for c in (_SimMaster(), _SimVop(), _SimHistory(), _SimInvoice(), _SimScreening())}
+SIMULATED: Dict[str, Connector] = {c.key: c for c in (_SimMaster(), _SimVop(), _SimHistory(), _SimInvoice(), _SimScreening(), _SimCore())}
 REAL_ADAPTERS: Dict[str, Callable[[], Connector]] = {}
 
 
@@ -432,6 +440,14 @@ def check_invoice(case, world, rid, ts, source=None) -> Dict[str, Any]:
                 [_field("Invoice IBAN", inv_iban, "IBAN")], {"agrees_with_instruction": agrees})
 
 
+def check_core(case, world, rid, ts, source="Core banking (simulated)") -> Dict[str, Any]:
+    resp = get_connector("CORE").fetch({"iban": _iban(case)}, world)
+    sts, can = resp["Acct"]["Sts"], resp["Acct"]["CanCredit"]
+    ok = sts == "OPEN" and can
+    return _row(rid, "Beneficiary account status", "Account is open and can receive credits" if ok else f"Account status is {str(sts).lower()}", "CORE", source,
+                "Authoritative", "agree" if ok else "differs", "Agree" if ok else "Differs", ts, resp, [], {"status": sts, "can_credit": can})
+
+
 def check_screening(case, world, rid, ts, source="Sanctions screening (simulated)") -> Dict[str, Any]:
     resp = get_connector("LISTS").fetch({"name": _party(case, "creditor")}, world)
     hit = bool(resp["Hit"])
@@ -442,11 +458,13 @@ def check_screening(case, world, rid, ts, source="Sanctions screening (simulated
 
 
 KINDS = {"checksum": check_checksum, "directory": check_directory, "vop": check_vop, "history": check_history,
-         "invoice": check_invoice, "screening": check_screening}
+         "invoice": check_invoice, "screening": check_screening, "core": check_core}
 
 
 def run(kind: str, rid: str, case: Dict[str, Any], world: Dict[str, Any], ts: str, **kw) -> Dict[str, Any]:
-    return KINDS[kind](case, world, rid, ts, **kw)
+    r = KINDS[kind](case, world, rid, ts, **kw)
+    r.setdefault("kind", kind)
+    return r
 
 
 # ----------------------------------------------------------------------------------------------

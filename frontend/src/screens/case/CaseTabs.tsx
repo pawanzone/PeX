@@ -44,7 +44,15 @@ export const CaseTabs: React.FC<{ page: CasePage; confidence?: React.ReactNode }
     <section className="bg-surface-card rounded-card border border-surface-line shadow-card" aria-label="Case detail">
       <div className="px-3 pt-1"><Tabs tabs={tabs} value={cur} onChange={setTab} label="Case detail" /></div>
       <div role="tabpanel" className="p-4">
-        {cur === "evidence" && <EvidenceBlock page={page} bare />}
+        {cur === "evidence" && <>
+          <EvidenceBlock page={page} bare />
+          {page.confidence?.linked && (page.confidence.items ?? []).some((i) => i.state === "NOT_RUN") && (
+            <p className="mt-3 text-sm text-pex-muted">
+              <strong className="text-pex-ink">Expected for this error type but not run:</strong>{" "}
+              {page.confidence.items.filter((i) => i.state === "NOT_RUN").map((i) => i.name).join("; ")}. They add nothing to the confidence score.
+            </p>
+          )}
+        </>}
         {cur === "handover" && page.handover && <HandoverNote h={page.handover} caseId={page.case_id} />}
         {cur === "ai" && <div className="grid gap-4"><RecommendationBlock page={page} />{confidence}<AiSeen page={page} /></div>}
         {cur === "audit" && <Timeline caseId={page.case_id} />}

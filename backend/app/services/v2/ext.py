@@ -98,9 +98,16 @@ def pretty(t: Any) -> str:
 
 
 def row(rid: str, check: str, result: str, source: str, authority: str, status: str, label: str,
-        checked_at: Optional[str] = None, raw: Optional[dict] = None) -> Dict[str, Any]:
-    return {"id": rid, "check": check, "result": result, "source": source, "authority": authority, "status": status,
-            "status_label": label, "checked_at": checked_at or iso(now()), "can_view_source": True, "raw": raw or {}}
+        checked_at: Optional[str] = None, raw: Optional[dict] = None, kind: Optional[str] = None, item: Optional[str] = None) -> Dict[str, Any]:
+    """`kind` is the type of check (checksum, directory, vop, history, ...); `item` names the expected-evidence item it covers when the
+    kind alone does not say. Both let the AI view link its checklist to the checks that were run."""
+    r = {"id": rid, "check": check, "result": result, "source": source, "authority": authority, "status": status,
+         "status_label": label, "checked_at": checked_at or iso(now()), "can_view_source": True, "raw": raw or {}}
+    if kind:
+        r["kind"] = kind
+    if item:
+        r["item"] = item
+    return r
 
 
 def evidence_state_from_rows(rows: List[Dict[str, Any]], hint: Optional[str] = None) -> str:

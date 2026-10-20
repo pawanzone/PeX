@@ -415,6 +415,20 @@ def score(profile_name, states, ambiguity=0):
             "threshold": thr}
 
 
+# Which expected-evidence item a kind of check covers: the first item of the profile whose source system is one of these.
+KIND_SYSTEMS = {"checksum": ("IBANREG", "ISO"), "directory": ("SSI", "CUSTM"), "vop": ("COPVOP",), "history": ("ARCH",),
+                "invoice": ("ERP", "CLIENT"), "screening": ("LISTS", "AML"), "core": ("CORE",)}
+
+
+def item_for(code: str, kind: str):
+    items = PROFILES[code][2] if code in PROFILES else []
+    for sysk in KIND_SYSTEMS.get(kind, ()):
+        for i in items:
+            if i["system"] == sysk:
+                return i["name"]
+    return None
+
+
 if __name__ == "__main__":
     for pid, (n, _, items) in PROFILES.items():
         full = {i["name"]: "PRESENT" for i in items}

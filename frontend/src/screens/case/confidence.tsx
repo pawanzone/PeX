@@ -10,7 +10,7 @@ const field = "py-2 px-2.5 text-sm rounded-lg border border-surface-line bg-whit
 const primaryBtn = "px-4 py-2 text-sm font-medium rounded-lg bg-pex-primary text-white hover:bg-pex-primary-dark disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2";
 const SRC: Record<string, string> = { B: "Bank event", A: "Bank system (API)", X: "External" };
 const STATE: Record<string, { tone: "green" | "amber" | "red" | "grey"; label: string }> = {
-  PRESENT: { tone: "green", label: "Present" }, MISSING: { tone: "amber", label: "Missing" }, STALE: { tone: "amber", label: "Stale" }, CONFLICT: { tone: "red", label: "Conflict" },
+  PRESENT: { tone: "green", label: "Present" }, NOT_RUN: { tone: "grey", label: "Not run" }, MISSING: { tone: "amber", label: "Missing" }, STALE: { tone: "amber", label: "Stale" }, CONFLICT: { tone: "red", label: "Conflict" },
 };
 
 /** Decision confidence and evidence coverage for the case (rules-based; used by the 85% approval gate). */
@@ -75,12 +75,17 @@ export const ConfidenceBlock: React.FC<{ page: CasePage; run: Run }> = ({ page, 
           Evidence reviewed by {rv.reviewed_by?.name ?? "a reviewer"}. “{rv.comment}” A different approver must authorise.</div>
       )}
 
-      <button type="button" className="mt-3 text-sm text-pex-primary underline" onClick={() => setOpen(!open)} aria-expanded={open}>{open ? "Hide" : "Show"} evidence used ({c.items.length})</button>
+      <button type="button" className="mt-3 text-sm text-pex-primary underline" onClick={() => setOpen(!open)} aria-expanded={open}>{open ? "Hide" : "Show"} expected evidence ({c.items.length})</button>
+      <p className="mt-1 text-xs text-pex-muted">
+        {c.linked
+          ? <>{c.checked ?? 0} covered by a check that was run{(c.from_instruction ?? 0) > 0 ? ` · ${c.from_instruction} from the payment instruction itself` : ""}{(c.not_run ?? 0) > 0 ? ` · ${c.not_run} not run (no credit in the score)` : ""}.</>
+          : <>This case's checks are not linked to the checklist, so the items below are assumed and the score is indicative.</>}
+      </p>
       {open && (
         <div className="mt-2 overflow-x-auto rounded-lg border border-surface-line">
           <table className="w-full text-sm">
             <caption className="sr-only">Evidence items, source and weight</caption>
-            <thead><tr className="text-left text-xs text-pex-muted bg-slate-50 border-b border-surface-line">{["Evidence", "Source", "Weight", "State"].map((h) => <th key={h} scope="col" className="py-2 px-3 font-medium">{h}</th>)}</tr></thead>
+            <thead><tr className="text-left text-xs text-pex-muted bg-slate-50 border-b border-surface-line">{["Expected evidence", "Source", "Weight", "How it is covered"].map((h) => <th key={h} scope="col" className="py-2 px-3 font-medium">{h}</th>)}</tr></thead>
             <tbody>{c.items.map((i) => {
               const s = STATE[i.state] ?? STATE.MISSING;
               return (
@@ -88,7 +93,15 @@ export const ConfidenceBlock: React.FC<{ page: CasePage; run: Run }> = ({ page, 
                   <td className="py-2 px-3">{i.name}{i.gate && <span className="ml-2 text-[11px] text-pex-muted">must have</span>}</td>
                   <td className="py-2 px-3"><span className="text-xs text-pex-muted">{SRC[i.source_class]} · </span>{i.source}</td>
                   <td className="py-2 px-3 tabular-nums">{i.weight}</td>
-                  <td className="py-2 px-3"><StatusPill tone={s.tone}>{s.label}</StatusPill></td>
+                  <td className="py-2 px-3">
+                    {i.basis === "instruction"
+                      ? <StatusPill tone="green">In the instruction</StatusPill>
+                      : i.basis === "assumed"
+                        ? <StatusPill tone="grey">Assumed</StatusPill>
+                        : <StatusPill tone={s.tone}>{s.label}</StatusPill>}
+                    {i.basis === "check" && i.check && <div className="text-xs text-pex-muted mt-1">Check: {i.check}</div>}
+                    {i.state === "NOT_RUN" && <div className="text-xs text-pex-muted mt-1">Source available; not used for this case</div>}
+                  </td>
                 </tr>);
             })}</tbody>
           </table>

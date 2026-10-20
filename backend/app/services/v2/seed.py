@@ -57,8 +57,8 @@ def _drop_existing(case_id: str):
     repo._case_cache.pop(case_id, None)
 
 
-def _ev(rid, check, result, source, auth, status, label, ts):
-    return xt.row(rid, check, result, source, auth, status, label, ts)
+def _ev(rid, check, result, source, auth, status, label, ts, kind=None, item=None):
+    return xt.row(rid, check, result, source, auth, status, label, ts, kind=kind, item=item)
 
 
 def _case(case_id: str, code: str, amount: float, ccy: str, rail: str, status: str, queue: str, cp: str, cc: str, iban: str,
@@ -119,8 +119,10 @@ def seed_named() -> List[str]:
     # returns tokens and derived facts only (same interface a real connector will use).
     ok_rows = lambda m, case, bad_iban, good_iban, extra=(): [
         zone.run("checksum", "ev-1", case, {"checksum": {"original": bad_iban, "proposed": good_iban}}, ts(m), source="Payment instruction"),
-        _ev("ev-2", "Bank directory", "Bank code resolves to the named institution", "Bank directory", "Authoritative", "agree", "Agree", ts(m)),
+        _ev("ev-2", "Bank directory", "Bank code resolves to the named institution", "Bank directory", "Authoritative", "agree", "Agree", ts(m), kind="directory"),
         zone.run("history", "ev-3", case, {"checksum": {"original": bad_iban, "proposed": good_iban}, "history": {"count": 3, "same_account": 3}}, ts(m)),
+        zone.run("vop", "ev-4", case, {"account_holder": case["creditor_party"]["party_name"]}, ts(m)),
+        zone.run("core", "ev-5", case, {"account": {"status": "OPEN"}}, ts(m)),
         *extra]
 
     # ---- PEX-INV-0001: invalid IBAN, validated, submitted by Priya Nair with a handover note --------------------------------
@@ -166,9 +168,10 @@ def seed_named() -> List[str]:
     c = _case("PEX-BEN-0012", "DQ-03", 24300, "EUR", "SEPA", "INVESTIGATING", "Repair", "Valence Logistics SAS", "FR", "", "BNPAFRPP", 210, 55,
               "Beneficiary account details are incomplete.")
     _ingest(c)
-    rows = [_ev("ev-1", "Beneficiary name", "Present on the instruction", "Payment instruction", "Supporting", "agree", "Agree", ts(200)),
-            _ev("ev-2", "Beneficiary account", "No IBAN or account number on the instruction", "Payment instruction", "—", "missing", "Missing", ts(200)),
-            _ev("ev-3", "Beneficiary bank", "No BIC provided", "Payment instruction", "—", "missing", "Missing", ts(200)),
+    req_set = "Required-field set for corridor (R16 / scheme rules)"
+    rows = [_ev("ev-1", "Beneficiary name", "Present on the instruction", "Payment instruction", "Supporting", "agree", "Agree", ts(200), item="Original payload (parties present)"),
+            _ev("ev-2", "Beneficiary account", "No IBAN or account number on the instruction", "Payment instruction", "—", "missing", "Missing", ts(200), item=req_set),
+            _ev("ev-3", "Beneficiary bank", "No BIC provided", "Payment instruction", "—", "missing", "Missing", ts(200), item=req_set),
             _ev("ev-4", "Prior payments", "No earlier payments to this beneficiary", "Payment history", "—", "missing", "Missing", ts(200))]
     needed = {"rows": [{"item": "Beneficiary IBAN or account number", "status": "missing", "note": "Not on the instruction"},
                        {"item": "Beneficiary bank BIC", "status": "missing", "note": "Not on the instruction"},
@@ -303,7 +306,8 @@ def seed_named() -> List[str]:
     _ingest(c)
     ri = {"state": "sent", "method": "Email", "sent_at": ts(35), "reply_due": iso(t + timedelta(minutes=85)), "escalate_at": iso(t + timedelta(minutes=100)),
           "message": "Please send the sort code and account number for Pennine Foods Ltd.", "to": {"party": "Pennine Foods Ltd", "contact": "Accounts payable", "role": "Customer contact"}}
-    rows = [_ev("ev-1", "Beneficiary account", "No account number on the instruction", "Payment instruction", "—", "missing", "Missing", ts(130))]
+    rows = [_ev("ev-1", "Beneficiary account", "No account number on the instruction", "Payment instruction", "—", "missing", "Missing", ts(130),
+                item="Required-field set for corridor (R16 / scheme rules)")]
     _put(c["case_id"], _base_ext(c, rows, "missing", request_info=ri, assignee="OP-9022"))
     ids.append(c["case_id"])
     return ids

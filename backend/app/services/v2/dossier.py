@@ -28,14 +28,18 @@ CATALOG: Dict[str, Dict[str, str]] = {
                 "asked": "Which account does the supporting invoice show?"},
     "screening": {"system": "LISTS", "rule": "EV-SCR-01", "text": "A possible sanctions match stops the repair and routes the case to Compliance. Details are Compliance-only.",
                   "asked": "Does the payee match any sanctions or watch list?"},
+    "core": {"system": "CORE", "rule": "EV-ACC-01", "text": "The beneficiary account must be open and able to receive credits before a repair is proposed.",
+             "asked": "Is the beneficiary account open and active?"},
     "other": {"system": "EVENT", "rule": "EV-GEN-01", "text": "Evidence taken from the payment instruction itself is accepted as supplied and checked against other sources.",
               "asked": "What does the payment instruction say?"},
 }
-_NAMES = [("checksum", "checksum"), ("master directory", "directory"), ("account holder", "vop"), ("prior payments", "history"),
+_NAMES = [("account status", "core"), ("checksum", "checksum"), ("master directory", "directory"), ("account holder", "vop"), ("prior payments", "history"),
           ("invoice", "invoice"), ("sanction", "screening"), ("screening", "screening")]
 
 
 def kind_of(row: Dict[str, Any]) -> str:
+    if row.get("kind") in CATALOG:
+        return row["kind"]
     n = str(row.get("check") or "").lower()
     for frag, k in _NAMES:
         if frag in n:
@@ -54,7 +58,7 @@ def _query(kind: str, case: Dict[str, Any]) -> Dict[str, Any]:
     party, iban = zone.tok(zone._party(case, "creditor"), "PARTY"), zone.tok(zone._iban(case), "IBAN")
     ref = zone.tok(case.get("uetr") or case.get("case_id"), "REF")
     return {"checksum": {"iban": iban}, "directory": {"name": party, "iban": iban}, "vop": {"name": party, "iban": iban},
-            "history": {"iban": iban}, "invoice": {"reference": ref}, "screening": {"name": party}}.get(kind, {"reference": ref})
+            "history": {"iban": iban}, "core": {"iban": iban}, "invoice": {"reference": ref}, "screening": {"name": party}}.get(kind, {"reference": ref})
 
 
 def _latency(rid: str, kind: str) -> int:
