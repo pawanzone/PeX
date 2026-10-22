@@ -1,0 +1,22 @@
+{
+  "code": "DQ-05",
+  "name": "INVALID_ADDRESS_FORMAT",
+  "family": "DATA_QUALITY",
+  "version": 1,
+  "outcome": "REPAIR",
+  "stp": "POLICY_GATED",
+  "evidence": {
+    "mandatory": [
+      "ADDRESS_SCHEMA",
+      "GEODATA_VAULT"
+    ],
+    "min_confidence": 0.9
+  },
+  "checks": [],
+  "resolver": "dq05_invalid_address_format",
+  "authority_domain": "ACCOUNT_OWNERSHIP_BALANCE",
+  "action": "REPAIR_AND_RELEASE",
+  "approval": {
+    "when_not_stp": "MAKER_CHECKER"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "code": "CO-04",
+  "name": "RESTRICTED_CORRIDOR",
+  "family": "COMPLIANCE",
+  "version": 1,
+  "outcome": "REPAIR",
+  "stp": "ALLOWED",
+  "evidence": {
+    "mandatory": [
+      "GEOPOLITICAL_REGISTRY",
+      "OFAC_LICENSE_DB"
+    ],
+    "min_confidence": 0.98
+  },
+  "checks": [],
+  "resolver": "co04_restricted_corridor",
+  "authority_domain": "LEGAL_PROHIBITION",
+  "action": "REPAIR_AND_RELEASE",
+  "approval": {
+    "when_not_stp": "MAKER_CHECKER"
+  }
+}

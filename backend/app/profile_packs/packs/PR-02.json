@@ -1,0 +1,22 @@
+{
+  "code": "PR-02",
+  "name": "ROUTING_FAILURE",
+  "family": "PROCESSING",
+  "version": 1,
+  "outcome": "REPAIR",
+  "stp": "ALLOWED",
+  "evidence": {
+    "mandatory": [
+      "CORRESPONDENT_TABLE",
+      "NOSTRO_DIRECTORY"
+    ],
+    "min_confidence": 0.9
+  },
+  "checks": [],
+  "resolver": "pr02_routing_failure",
+  "authority_domain": "CLEARING_SETTLEMENT_STATUS",
+  "action": "REPAIR_AND_RELEASE",
+  "approval": {
+    "when_not_stp": "MAKER_CHECKER"
+  }
+}

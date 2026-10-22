@@ -1,0 +1,22 @@
+{
+  "code": "PR-01",
+  "name": "DUPLICATE_PAYMENT",
+  "family": "PROCESSING",
+  "version": 1,
+  "outcome": "REPAIR",
+  "stp": "ALLOWED",
+  "evidence": {
+    "mandatory": [
+      "PAYMENT_LEDGER",
+      "SETTLEMENT_HISTORY"
+    ],
+    "min_confidence": 0.95
+  },
+  "checks": [],
+  "resolver": "pr01_duplicate_payment",
+  "authority_domain": "CLEARING_SETTLEMENT_STATUS",
+  "action": "REPAIR_AND_RELEASE",
+  "approval": {
+    "when_not_stp": "MAKER_CHECKER"
+  }
+}

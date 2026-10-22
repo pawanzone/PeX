@@ -1,0 +1,22 @@
+{
+  "code": "ST-02",
+  "name": "ACCOUNT_CLOSED",
+  "family": "SETTLEMENT_RETURNS",
+  "version": 1,
+  "outcome": "REPAIR",
+  "stp": "ALLOWED",
+  "evidence": {
+    "mandatory": [
+      "AC04_RETURN_RECORD",
+      "DEBTOR_ESCROW"
+    ],
+    "min_confidence": 0.95
+  },
+  "checks": [],
+  "resolver": "st02_account_closed",
+  "authority_domain": "ACCOUNT_OWNERSHIP_BALANCE",
+  "action": "REPAIR_AND_RELEASE",
+  "approval": {
+    "when_not_stp": "MAKER_CHECKER"
+  }
+}

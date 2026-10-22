@@ -1,0 +1,22 @@
+{
+  "code": "TR-04",
+  "name": "FX_RATE_UNAVAILABLE",
+  "family": "CLIENT_TREASURY",
+  "version": 1,
+  "outcome": "REPAIR",
+  "stp": "ALLOWED",
+  "evidence": {
+    "mandatory": [
+      "FX_RATE_FEED",
+      "QUOTE_TOLERANCE_BAND"
+    ],
+    "min_confidence": 0.92
+  },
+  "checks": [],
+  "resolver": "tr04_fx_rate_unavailable",
+  "authority_domain": "CLEARING_SETTLEMENT_STATUS",
+  "action": "REPAIR_AND_RELEASE",
+  "approval": {
+    "when_not_stp": "MAKER_CHECKER"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "code": "DQ-04",
+  "name": "MISSING_REMITTANCE_INFO",
+  "family": "DATA_QUALITY",
+  "version": 1,
+  "outcome": "REPAIR",
+  "stp": "ALLOWED",
+  "evidence": {
+    "mandatory": [
+      "COMMERCIAL_INVOICE",
+      "PURCHASE_ORDER"
+    ],
+    "min_confidence": 0.85
+  },
+  "checks": [],
+  "resolver": "dq04_missing_remittance_info",
+  "authority_domain": "ACCOUNT_OWNERSHIP_BALANCE",
+  "action": "REPAIR_AND_RELEASE",
+  "approval": {
+    "when_not_stp": "MAKER_CHECKER"
+  }
+}

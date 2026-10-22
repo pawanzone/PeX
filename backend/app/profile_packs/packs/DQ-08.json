@@ -1,0 +1,22 @@
+{
+  "code": "DQ-08",
+  "name": "INVALID_ROUTING_CODE",
+  "family": "DATA_QUALITY",
+  "version": 1,
+  "outcome": "REPAIR",
+  "stp": "ALLOWED",
+  "evidence": {
+    "mandatory": [
+      "TRANSIT_DIRECTORY",
+      "CENTRAL_BANK_ROUTING"
+    ],
+    "min_confidence": 0.9
+  },
+  "checks": [],
+  "resolver": "dq08_invalid_routing_code",
+  "authority_domain": "ACCOUNT_OWNERSHIP_BALANCE",
+  "action": "REPAIR_AND_RELEASE",
+  "approval": {
+    "when_not_stp": "MAKER_CHECKER"
+  }
+}

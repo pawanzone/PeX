@@ -1,0 +1,22 @@
+{
+  "code": "TR-01",
+  "name": "KYC_EXPIRED",
+  "family": "CLIENT_TREASURY",
+  "version": 1,
+  "outcome": "REPAIR",
+  "stp": "ALLOWED",
+  "evidence": {
+    "mandatory": [
+      "KYC_RECORD",
+      "BENEFICIAL_OWNERSHIP"
+    ],
+    "min_confidence": 0.9
+  },
+  "checks": [],
+  "resolver": "tr01_kyc_expired",
+  "authority_domain": "ACCOUNT_OWNERSHIP_BALANCE",
+  "action": "REPAIR_AND_RELEASE",
+  "approval": {
+    "when_not_stp": "MAKER_CHECKER"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "code": "TR-08",
+  "name": "CREDIT_EXPOSURE_BREACH",
+  "family": "CLIENT_TREASURY",
+  "version": 1,
+  "outcome": "DECISION_SUPPORT",
+  "stp": "NEVER",
+  "evidence": {
+    "mandatory": [
+      "CREDIT_LINE_REGISTRY",
+      "COLLATERAL_MARGIN"
+    ],
+    "min_confidence": 0.92
+  },
+  "checks": [],
+  "resolver": "tr08_credit_exposure_breach",
+  "authority_domain": "ACCOUNT_OWNERSHIP_BALANCE",
+  "action": "REPAIR_AND_RELEASE",
+  "approval": {
+    "when_not_stp": "MAKER_CHECKER"
+  }
+}

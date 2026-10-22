@@ -1,0 +1,22 @@
+{
+  "code": "ST-06",
+  "name": "FUNDS_TRAPPED_AT_CORRESPONDENT",
+  "family": "SETTLEMENT_RETURNS",
+  "version": 1,
+  "outcome": "REPAIR",
+  "stp": "POLICY_GATED",
+  "evidence": {
+    "mandatory": [
+      "CAMT027_CLAIM",
+      "INTERMEDIARY_CORRESPONDENCE"
+    ],
+    "min_confidence": 0.9
+  },
+  "checks": [],
+  "resolver": "st06_funds_trapped_at_correspondent",
+  "authority_domain": "CLEARING_SETTLEMENT_STATUS",
+  "action": "REPAIR_AND_RELEASE",
+  "approval": {
+    "when_not_stp": "MAKER_CHECKER"
+  }
+}

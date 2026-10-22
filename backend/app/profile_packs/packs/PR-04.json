@@ -1,0 +1,22 @@
+{
+  "code": "PR-04",
+  "name": "CUTOFF_MISSED",
+  "family": "PROCESSING",
+  "version": 1,
+  "outcome": "REPAIR",
+  "stp": "ALLOWED",
+  "evidence": {
+    "mandatory": [
+      "RAIL_CUTOFF_SCHEDULE",
+      "TIME_STAMP_AUDIT"
+    ],
+    "min_confidence": 0.95
+  },
+  "checks": [],
+  "resolver": "pr04_cutoff_missed",
+  "authority_domain": "CLEARING_SETTLEMENT_STATUS",
+  "action": "REPAIR_AND_RELEASE",
+  "approval": {
+    "when_not_stp": "MAKER_CHECKER"
+  }
+}

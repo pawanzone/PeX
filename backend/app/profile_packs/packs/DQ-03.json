@@ -5,10 +5,18 @@
   "version": 1,
   "outcome": "REPAIR",
   "stp": "ALLOWED",
-  "evidence": {"mandatory": ["BENEFICIARY_PROFILE", "CLIENT_VAULT"], "min_confidence": 0.88},
-  "checks": ["directory", "core"],
+  "evidence": {
+    "mandatory": [
+      "BENEFICIARY_PROFILE",
+      "CLIENT_VAULT"
+    ],
+    "min_confidence": 0.88
+  },
+  "checks": [],
   "resolver": "dq03_missing_beneficiary",
   "authority_domain": "ACCOUNT_OWNERSHIP_BALANCE",
   "action": "REPAIR_AND_RELEASE",
-  "approval": {"when_not_stp": "MAKER_CHECKER"}
+  "approval": {
+    "when_not_stp": "MAKER_CHECKER"
+  }
 }

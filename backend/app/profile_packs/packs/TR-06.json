@@ -1,0 +1,22 @@
+{
+  "code": "TR-06",
+  "name": "LIMIT_BREACH",
+  "family": "CLIENT_TREASURY",
+  "version": 1,
+  "outcome": "REPAIR",
+  "stp": "ALLOWED",
+  "evidence": {
+    "mandatory": [
+      "EXPOSURE_INDEX",
+      "RM_EXCEPTION_MEMO"
+    ],
+    "min_confidence": 0.92
+  },
+  "checks": [],
+  "resolver": "tr06_limit_breach",
+  "authority_domain": "ACCOUNT_OWNERSHIP_BALANCE",
+  "action": "REPAIR_AND_RELEASE",
+  "approval": {
+    "when_not_stp": "MAKER_CHECKER"
+  }
+}

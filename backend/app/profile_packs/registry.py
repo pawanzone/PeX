@@ -12,6 +12,7 @@ logger = logging.getLogger("pex.profile_packs")
 PACK_DIR = Path(__file__).parent / "packs"
 _RESOLVERS: Dict[str, Callable[[ResolutionContext], ResolutionResult]] = {}
 _cache: Optional[Dict[str, ProfilePack]] = None
+_OFF = {"OFF", "NONE", "0", "FALSE"}
 
 
 def register_resolver(name: str):
@@ -55,11 +56,12 @@ def get_pack(code: str) -> Optional[ProfilePack]:
 
 
 def is_enabled(code: str) -> bool:
-    """On only when PEX_PROFILE_PACKS lists the profile (or *) AND a pack exists for it."""
-    raw = os.environ.get("PEX_PROFILE_PACKS", "")
+    """On by default for every profile that has a pack. PEX_PROFILE_PACKS narrows it to a list (DQ-03,PR-02)
+    or switches it off (off / none / 0 / false) to fall back to the legacy branches."""
+    raw = os.environ.get("PEX_PROFILE_PACKS", "*").strip()
     wanted = {p.strip().upper() for p in raw.split(",") if p.strip()}
     code = (code or "").upper()
-    if not wanted or get_pack(code) is None:
+    if not wanted or wanted & _OFF or get_pack(code) is None:
         return False
     return "*" in wanted or code in wanted
 

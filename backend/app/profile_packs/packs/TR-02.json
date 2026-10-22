@@ -1,0 +1,22 @@
+{
+  "code": "TR-02",
+  "name": "INSUFFICIENT_FUNDS",
+  "family": "CLIENT_TREASURY",
+  "version": 1,
+  "outcome": "REPAIR",
+  "stp": "ALLOWED",
+  "evidence": {
+    "mandatory": [
+      "DDA_LEDGER_BALANCE",
+      "DAYLIGHT_FACILITY"
+    ],
+    "min_confidence": 0.95
+  },
+  "checks": [],
+  "resolver": "tr02_insufficient_funds",
+  "authority_domain": "ACCOUNT_OWNERSHIP_BALANCE",
+  "action": "REPAIR_AND_RELEASE",
+  "approval": {
+    "when_not_stp": "MAKER_CHECKER"
+  }
+}

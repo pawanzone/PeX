@@ -1,0 +1,22 @@
+{
+  "code": "ST-01",
+  "name": "RETURNED_PAYMENT",
+  "family": "SETTLEMENT_RETURNS",
+  "version": 1,
+  "outcome": "REPAIR",
+  "stp": "ALLOWED",
+  "evidence": {
+    "mandatory": [
+      "RETURN_REASON_CODE",
+      "ORIGINAL_PAYMENT"
+    ],
+    "min_confidence": 0.9
+  },
+  "checks": [],
+  "resolver": "st01_returned_payment",
+  "authority_domain": "CLEARING_SETTLEMENT_STATUS",
+  "action": "REPAIR_AND_RELEASE",
+  "approval": {
+    "when_not_stp": "MAKER_CHECKER"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "code": "PR-07",
+  "name": "NETWORK_TIMEOUT",
+  "family": "PROCESSING",
+  "version": 1,
+  "outcome": "REPAIR",
+  "stp": "ALLOWED",
+  "evidence": {
+    "mandatory": [
+      "GPI_TRACKER_LOG",
+      "NETWORK_GATEWAY"
+    ],
+    "min_confidence": 0.92
+  },
+  "checks": [],
+  "resolver": "pr07_network_timeout",
+  "authority_domain": "QUEUE_PROCESSING_STATE",
+  "action": "REPAIR_AND_RELEASE",
+  "approval": {
+    "when_not_stp": "MAKER_CHECKER"
+  }
+}

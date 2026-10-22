@@ -72,9 +72,13 @@ def test_get_pack_unknown_code_is_none():
 
 
 # ---- flag ------------------------------------------------------------------------------------
-def test_flag_is_off_by_default(monkeypatch):
+def test_flag_is_on_by_default_and_can_be_switched_off(monkeypatch):
     monkeypatch.delenv("PEX_PROFILE_PACKS", raising=False)
-    assert registry.is_enabled("DQ-03") is False
+    assert registry.is_enabled("DQ-03") is True
+    assert registry.is_enabled("ZZ-99") is False  # no pack: legacy path
+    for off in ("off", "NONE", "0", "false"):
+        monkeypatch.setenv("PEX_PROFILE_PACKS", off)
+        assert registry.is_enabled("DQ-03") is False, off
 
 
 def test_flag_lists_specific_profiles(monkeypatch):
@@ -104,7 +108,7 @@ def test_resolver_that_raises_fails_closed(monkeypatch):
 
 
 def test_resolve_if_enabled_returns_none_when_flag_off(monkeypatch):
-    monkeypatch.delenv("PEX_PROFILE_PACKS", raising=False)
+    monkeypatch.setenv("PEX_PROFILE_PACKS", "off")
     assert registry.resolve_if_enabled("DQ-03", ResolutionContext(profile="DQ-03", pmt=None, evidence={}, envelope=None)) is None
 
 
@@ -145,6 +149,35 @@ def test_pack_path_is_actually_used_when_enabled(monkeypatch):
     snapshot(src)
     assert calls, "pack resolver was not called"
     calls.clear()
-    monkeypatch.delenv("PEX_PROFILE_PACKS")
+    monkeypatch.setenv("PEX_PROFILE_PACKS", "off")
     snapshot(src)
     assert not calls, "flag off must use the legacy branch"
+
+
+def test_all_goldens_reproduce_with_every_pack_on(monkeypatch):
+    """The strongest equivalence check: flag * over ALL frozen cases (fixtures with any file name)."""
+    from test_profile_goldens import CASES, snapshot, _load_goldens
+    monkeypatch.setenv("PEX_PROFILE_PACKS", "*")
+    gold = _load_goldens()
+    for name, src in CASES.items():
+        assert snapshot(src) == gold[name], name
+
+
+def test_every_pack_has_a_valid_authority_domain_and_a_registered_resolver():
+    from app.schemas.contracts.authority_schemas import QuestionDomain
+    packs = registry.load_packs()
+    assert len(packs) >= 28
+    for code, p in packs.items():
+        assert p.authority_domain in QuestionDomain.__members__, code
+        if p.resolver:
+            assert registry.get_resolver(p.resolver) is not None, code
+
+
+def test_never_straight_through_packs_never_stp_in_any_golden():
+    from test_profile_goldens import CASES, snapshot
+    never = {c for c, p in registry.load_packs().items() if p.stp.value == "NEVER"}
+    assert "TR-08" in never
+    for name, src in CASES.items():
+        code = name.split("/")[-1].split("_")[0].upper()
+        if code in never:
+            assert snapshot(src)["stp_eligible"] is False, name

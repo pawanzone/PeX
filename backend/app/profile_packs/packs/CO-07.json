@@ -1,0 +1,22 @@
+{
+  "code": "CO-07",
+  "name": "REGULATORY_REPORTING_REQUIRED",
+  "family": "COMPLIANCE",
+  "version": 1,
+  "outcome": "REPAIR",
+  "stp": "ALLOWED",
+  "evidence": {
+    "mandatory": [
+      "CUSTOMS_DECLARATION",
+      "TRADE_CONTRACT"
+    ],
+    "min_confidence": 0.92
+  },
+  "checks": [],
+  "resolver": "co07_regulatory_reporting_required",
+  "authority_domain": "LEGAL_PROHIBITION",
+  "action": "REPAIR_AND_RELEASE",
+  "approval": {
+    "when_not_stp": "MAKER_CHECKER"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "code": "TR-03",
+  "name": "NOSTRO_SHORTFALL",
+  "family": "CLIENT_TREASURY",
+  "version": 1,
+  "outcome": "REPAIR",
+  "stp": "ALLOWED",
+  "evidence": {
+    "mandatory": [
+      "NOSTRO_POSITION",
+      "INTRADAY_SWEEP_POOL"
+    ],
+    "min_confidence": 0.95
+  },
+  "checks": [],
+  "resolver": "tr03_nostro_shortfall",
+  "authority_domain": "ACCOUNT_OWNERSHIP_BALANCE",
+  "action": "REPAIR_AND_RELEASE",
+  "approval": {
+    "when_not_stp": "MAKER_CHECKER"
+  }
+}

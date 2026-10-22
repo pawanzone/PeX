@@ -1,0 +1,22 @@
+{
+  "code": "TR-05",
+  "name": "AUTHORIZATION_MISSING",
+  "family": "CLIENT_TREASURY",
+  "version": 1,
+  "outcome": "REPAIR",
+  "stp": "ALLOWED",
+  "evidence": {
+    "mandatory": [
+      "MANDATE_MATRIX",
+      "SIGNATURE_VAULT"
+    ],
+    "min_confidence": 0.9
+  },
+  "checks": [],
+  "resolver": "tr05_authorization_missing",
+  "authority_domain": "ACCOUNT_OWNERSHIP_BALANCE",
+  "action": "REPAIR_AND_RELEASE",
+  "approval": {
+    "when_not_stp": "MAKER_CHECKER"
+  }
+}

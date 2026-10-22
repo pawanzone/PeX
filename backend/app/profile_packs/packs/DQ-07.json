@@ -1,0 +1,22 @@
+{
+  "code": "DQ-07",
+  "name": "INVALID_ACCOUNT_NUMBER",
+  "family": "DATA_QUALITY",
+  "version": 1,
+  "outcome": "REPAIR",
+  "stp": "ALLOWED",
+  "evidence": {
+    "mandatory": [
+      "NATIONAL_CLEARING_MODULUS",
+      "ACCOUNT_DIRECTORY"
+    ],
+    "min_confidence": 0.88
+  },
+  "checks": [],
+  "resolver": "dq07_invalid_account_number",
+  "authority_domain": "ACCOUNT_OWNERSHIP_BALANCE",
+  "action": "REPAIR_AND_RELEASE",
+  "approval": {
+    "when_not_stp": "MAKER_CHECKER"
+  }
+}

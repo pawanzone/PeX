@@ -80,4 +80,5 @@ class ResolutionContext:
     evidence: Dict[str, Any]
     envelope: Any
     tenant_id: str = "DEFAULT_BANK"
+    policy: Any = None   # the active bank policy envelope
     extras: Dict[str, Any] = field(default_factory=dict)

@@ -1,0 +1,22 @@
+{
+  "code": "PR-06",
+  "name": "INTERMEDIARY_BANK_REJECTION",
+  "family": "PROCESSING",
+  "version": 1,
+  "outcome": "REPAIR",
+  "stp": "ALLOWED",
+  "evidence": {
+    "mandatory": [
+      "PACS002_NACK_RECORD",
+      "INTERMEDIARY_CONTRACT"
+    ],
+    "min_confidence": 0.9
+  },
+  "checks": [],
+  "resolver": "pr06_intermediary_bank_rejection",
+  "authority_domain": "CLEARING_SETTLEMENT_STATUS",
+  "action": "REPAIR_AND_RELEASE",
+  "approval": {
+    "when_not_stp": "MAKER_CHECKER"
+  }
+}

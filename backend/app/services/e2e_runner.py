@@ -174,7 +174,8 @@ class E2EExecutionHarness:
         # Profile packs (opt-in per profile via PEX_PROFILE_PACKS; default off = legacy branches below)
         _pack_res = profile_packs.resolve_if_enabled(
             profile, ResolutionContext(profile=profile, pmt=pmt, evidence=evidence_ctx, envelope=envelope,
-                                       tenant_id=getattr(e2e_input, "tenant_id", None) or "DEFAULT_BANK"))
+                                       tenant_id=getattr(e2e_input, "tenant_id", None) or "DEFAULT_BANK",
+                                       policy=active_policy))
         if _pack_res is not None:
             r_det, r_uniq, v_det = _pack_res.determined, _pack_res.unique, _pack_res.validated
             repaired_fields = _pack_res.repaired_fields
@@ -774,7 +775,10 @@ class E2EExecutionHarness:
                 resolution_basis = (resolution_basis + " " + " ".join(_eu.get("notes", []))).strip()
 
         # 4. Contextual Authority Validation (V_auth)
-        if "DQ" in profile or profile in ["ST-02", "ST-03", "TR-01", "TR-02", "TR-03", "TR-05", "TR-06", "TR-08"]:
+        _pk = profile_packs.get_pack(profile) if profile_packs.is_enabled(profile) else None
+        if _pk is not None:
+            q_domain = QuestionDomain[_pk.authority_domain]
+        elif "DQ" in profile or profile in ["ST-02", "ST-03", "TR-01", "TR-02", "TR-03", "TR-05", "TR-06", "TR-08"]:
             q_domain = QuestionDomain.ACCOUNT_OWNERSHIP_BALANCE
         elif profile in ["PR-08", "PR-07", "PR-09", "TR-07"]:
             q_domain = QuestionDomain.QUEUE_PROCESSING_STATE

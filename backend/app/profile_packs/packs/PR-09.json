@@ -1,0 +1,22 @@
+{
+  "code": "PR-09",
+  "name": "PAYMENT_HELD_FOR_REPAIR",
+  "family": "PROCESSING",
+  "version": 1,
+  "outcome": "REPAIR",
+  "stp": "ALLOWED",
+  "evidence": {
+    "mandatory": [
+      "CORE_BANKING_FLAG",
+      "OPERATIONS_NOTE"
+    ],
+    "min_confidence": 0.88
+  },
+  "checks": [],
+  "resolver": "pr09_payment_held_for_repair",
+  "authority_domain": "QUEUE_PROCESSING_STATE",
+  "action": "REPAIR_AND_RELEASE",
+  "approval": {
+    "when_not_stp": "MAKER_CHECKER"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "code": "PR-08",
+  "name": "QUEUE_PROCESSING_FAILURE",
+  "family": "PROCESSING",
+  "version": 1,
+  "outcome": "REPAIR",
+  "stp": "ALLOWED",
+  "evidence": {
+    "mandatory": [
+      "BROKER_DLQ_METADATA",
+      "TRANSACTION_STATE"
+    ],
+    "min_confidence": 0.95
+  },
+  "checks": [],
+  "resolver": "pr08_queue_processing_failure",
+  "authority_domain": "QUEUE_PROCESSING_STATE",
+  "action": "REPAIR_AND_RELEASE",
+  "approval": {
+    "when_not_stp": "MAKER_CHECKER"
+  }
+}

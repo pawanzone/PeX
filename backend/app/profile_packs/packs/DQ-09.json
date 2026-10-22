@@ -1,0 +1,22 @@
+{
+  "code": "DQ-09",
+  "name": "BENEFICIARY_NAME_MISMATCH",
+  "family": "DATA_QUALITY",
+  "version": 1,
+  "outcome": "REPAIR",
+  "stp": "ALLOWED",
+  "evidence": {
+    "mandatory": [
+      "COP_RECORD",
+      "COMPANY_REGISTRY"
+    ],
+    "min_confidence": 0.85
+  },
+  "checks": [],
+  "resolver": "dq09_beneficiary_name_mismatch",
+  "authority_domain": "ACCOUNT_OWNERSHIP_BALANCE",
+  "action": "REPAIR_AND_RELEASE",
+  "approval": {
+    "when_not_stp": "MAKER_CHECKER"
+  }
+}
