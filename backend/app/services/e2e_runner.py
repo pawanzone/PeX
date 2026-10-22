@@ -55,6 +55,8 @@ from app.adapters.reference.reference_bank_handoff_adapter import InMemoryBankHa
 from app.adapters.reference.reference_configuration_adapter import InMemoryConfigurationAdapter
 from app.adapters.reference.reference_health_adapter import InMemoryHealthReadinessAdapter
 from app.services.dynamic_config_resolver import DynamicEvidenceConfigResolver
+from app.profile_packs import registry as profile_packs
+from app.profile_packs.schema import ResolutionContext
 from app.services.engines import (
     account_master_engine,
     routing_clearing_engine,
@@ -169,7 +171,16 @@ class E2EExecutionHarness:
         repaired_fields = []
         resolution_basis = ""
 
-        if profile == "DQ-01":
+        # Profile packs (opt-in per profile via PEX_PROFILE_PACKS; default off = legacy branches below)
+        _pack_res = profile_packs.resolve_if_enabled(
+            profile, ResolutionContext(profile=profile, pmt=pmt, evidence=evidence_ctx, envelope=envelope,
+                                       tenant_id=getattr(e2e_input, "tenant_id", None) or "DEFAULT_BANK"))
+        if _pack_res is not None:
+            r_det, r_uniq, v_det = _pack_res.determined, _pack_res.unique, _pack_res.validated
+            repaired_fields = _pack_res.repaired_fields
+            resolution_rec = _pack_res.recommendation
+            resolution_basis = _pack_res.basis
+        elif profile == "DQ-01":
             # Invalid IBAN Repair logic
             orig_iban = pmt.creditor_account or ""
             target_iban = evidence_ctx.get("verified_iban") or evidence_ctx.get("core_dda_account")
