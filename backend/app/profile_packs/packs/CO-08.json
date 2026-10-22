@@ -1,0 +1,43 @@
+{
+  "code": "CO-08",
+  "name": "CUSTOMER_WATCHLIST_MATCH",
+  "family": "COMPLIANCE",
+  "version": 1,
+  "outcome": "DECISION_SUPPORT",
+  "stp": "NEVER",
+  "evidence": {
+    "mandatory": [
+      "INTERNAL_BLACKLIST",
+      "EXIT_MEMO"
+    ],
+    "min_confidence": 0.95,
+    "required": [
+      {
+        "type": "INTERNAL_BLACKLIST",
+        "tier": 1
+      },
+      {
+        "type": "EXIT_MEMO",
+        "tier": 3
+      }
+    ]
+  },
+  "checks": [
+    "screening"
+  ],
+  "resolver": null,
+  "authority_domain": "LEGAL_PROHIBITION",
+  "action": "INVESTIGATION_HOLD",
+  "approval": {
+    "when_not_stp": "COMPLIANCE_THEN_RISK"
+  },
+  "decision": {
+    "target_field": "internal_risk.watchlist_clearance",
+    "options": [
+      "INTERNAL_WATCHLIST_WAIVER_APPROVED",
+      "BLOCK_PER_EXIT_MEMO",
+      "ESCALATE_CREDIT_OFFICER"
+    ],
+    "reviewer_role": "COMPLIANCE_APPROVER"
+  }
+}

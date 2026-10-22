@@ -1,0 +1,37 @@
+{
+  "exception_id": "PEX-E2E-CO02-SUFF",
+  "profile_id": "CO-02",
+  "domain": "COMPLIANCE",
+  "error_code": "ERR_AML_ALERT",
+  "error_message": "Transaction velocity rule breach on debtor account.",
+  "payment_info": {
+    "payment_id": "PMT-2026-CO02-001",
+    "uetr": "UETR-CO02-SUFF-0001-A1",
+    "amount": 5500.0,
+    "currency": "GBP",
+    "clearing_rail": "CHAPS",
+    "value_date": "2026-10-08",
+    "debtor_name": "Apex Global Treasury",
+    "debtor_account": "GB82WEST12345612345678",
+    "debtor_agent_bic": "MIDLGB22XXX",
+    "creditor_name": "ACME INDUSTRIAL SUPPLIES LTD",
+    "creditor_account": "12345678",
+    "creditor_agent_bic": "MIDLGB22XXX",
+    "remittance_info": "INVOICE ACME-OCT-2026"
+  },
+  "bank_supplied_evidence": {
+    "velocity_index": {
+      "rolling_30d_volume_ratio": 3.1,
+      "seasonal_baseline_ratio": 2.8
+    },
+    "source_of_wealth": {
+      "cdd_refresh": "2026-06-02",
+      "audited_financials": "FY2025",
+      "trade_contract_ref": "TC-8841"
+    }
+  },
+  "external_authoritative_evidence": {},
+  "derived_evidence": {},
+  "evidence_provenance": "SYNTHETIC_TEST_FIXTURE",
+  "test_status": "TEST_ONLY"
+}

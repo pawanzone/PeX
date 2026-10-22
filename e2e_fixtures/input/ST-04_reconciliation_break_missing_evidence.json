@@ -1,0 +1,32 @@
+{
+  "exception_id": "PEX-E2E-ST04-MISS",
+  "profile_id": "ST-04",
+  "domain": "SETTLEMENT_RETURNS",
+  "error_code": "ERR_RECONCILIATION_BREAK",
+  "error_message": "Nostro statement does not agree with the ledger.",
+  "payment_info": {
+    "payment_id": "PMT-2026-ST04-001",
+    "uetr": "UETR-ST04-MISS-0001-A1",
+    "amount": 5500.0,
+    "currency": "GBP",
+    "clearing_rail": "CHAPS",
+    "value_date": "2026-10-08",
+    "debtor_name": "Apex Global Treasury",
+    "debtor_account": "GB82WEST12345612345678",
+    "debtor_agent_bic": "MIDLGB22XXX",
+    "creditor_name": "ACME INDUSTRIAL SUPPLIES LTD",
+    "creditor_account": "12345678",
+    "creditor_agent_bic": "MIDLGB22XXX",
+    "remittance_info": "INVOICE ACME-OCT-2026"
+  },
+  "bank_supplied_evidence": {
+    "camt053_statement": {
+      "closing_balance": 1250000.0,
+      "break_amount": 25.0
+    }
+  },
+  "external_authoritative_evidence": {},
+  "derived_evidence": {},
+  "evidence_provenance": "SYNTHETIC_TEST_FIXTURE",
+  "test_status": "TEST_ONLY"
+}

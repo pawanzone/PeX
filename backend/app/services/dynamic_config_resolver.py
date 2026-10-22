@@ -126,7 +126,11 @@ class DynamicEvidenceConfigResolver:
             "PR-09": [("PAYMENT_HUB_REPAIR_QUEUE", TrustTier.TIER_1_CORE_RECORD), ("SYNTAX_ERROR_SPECIFICATION", TrustTier.TIER_2_REGULATORY_SCHEME)],
             "CO-07": [("REGULATORY_PURPOSE_DIRECTORY", TrustTier.TIER_2_REGULATORY_SCHEME), ("CENTRAL_BANK_BOP_CODES", TrustTier.TIER_2_REGULATORY_SCHEME)],
         }
-        pairs = fallback_mandatory_map.get(profile_id, [("CORE_DDA_ACCOUNT", TrustTier.TIER_1_CORE_RECORD)])
+        # Profile packs own the evidence of newer profiles; the map above still decides for the older ones.
+        from app.profile_packs import registry as _packs
+        _pk = _packs.get_pack(profile_id) if _packs.is_enabled(profile_id) else None
+        _pack_pairs = [(r.type, TrustTier(r.tier)) for r in _pk.evidence.required] if _pk and _pk.evidence.required else None
+        pairs = fallback_mandatory_map.get(profile_id) or _pack_pairs or [("CORE_DDA_ACCOUNT", TrustTier.TIER_1_CORE_RECORD)]
         
         rules = [
             EvidenceRuleDefinition(

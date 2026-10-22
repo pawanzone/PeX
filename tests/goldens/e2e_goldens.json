@@ -1941,6 +1941,333 @@
   "stp_eligible": true,
   "warnings": []
  },
+ "input/CO-01_sanctions_suspected_missing_evidence": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "CO-01",
+  "domain": "COMPLIANCE",
+  "errors": [
+   "Evidence insufficient: missing mandatory ['WATCHLIST_MATCH'] / stale [] / contradictory []",
+   "Deterministic resolution could not be derived.",
+   "Resolution is ambiguous with multiple candidate matches.",
+   "Deterministic validation / checksum failed."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [
+   "WATCHLIST_MATCH"
+  ],
+  "evidence_status": "INSUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "SCREENING_RECORD"
+  ],
+  "exception_id": "PEX-E2E-CO01-MISS",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": false,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": false,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": false,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Evidence is incomplete for CO-01 (missing ['WATCHLIST_MATCH'], stale none, conflicting none). Gather it before COMPLIANCE_APPROVER decides.",
+  "resolution_recommendation": {
+   "action": "INVESTIGATION_HOLD",
+   "conflicting": [],
+   "evidence_complete": false,
+   "missing": [
+    "WATCHLIST_MATCH"
+   ],
+   "reason": "EVIDENCE_INCOMPLETE",
+   "target": "compliance_screening.disposition"
+  },
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Evidence insufficient: missing mandatory ['WATCHLIST_MATCH'] / stale [] / contradictory []; Deterministic resolution could not be derived.; Resolution is ambiguous with multiple candidate matches.; Deterministic validation / checksum failed.",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "input/CO-01_sanctions_suspected_sufficient": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "CO-01",
+  "domain": "COMPLIANCE",
+  "errors": [
+   "Deterministic resolution could not be derived."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "SCREENING_RECORD",
+   "WATCHLIST_MATCH"
+  ],
+  "exception_id": "PEX-E2E-CO01-SUFF",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Evidence is complete for CO-01. COMPLIANCE_APPROVER must choose a disposition for compliance_screening.disposition; PeX does not decide this and it is never straight-through.",
+  "resolution_recommendation": {
+   "action": "DECISION_REQUIRED",
+   "evidence_complete": true,
+   "options": [
+    "FALSE_POSITIVE_HOMONYM_CLEARED",
+    "TRUE_MATCH_CONFIRMED_BLOCK",
+    "ESCALATE_SENIOR_COMPLIANCE"
+   ],
+   "reviewer_role": "COMPLIANCE_APPROVER",
+   "target": "compliance_screening.disposition"
+  },
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Deterministic resolution could not be derived.",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "input/CO-02_aml_alert_missing_evidence": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "CO-02",
+  "domain": "COMPLIANCE",
+  "errors": [
+   "Evidence insufficient: missing mandatory ['SOURCE_OF_WEALTH'] / stale [] / contradictory []",
+   "Deterministic resolution could not be derived.",
+   "Resolution is ambiguous with multiple candidate matches.",
+   "Deterministic validation / checksum failed."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [
+   "SOURCE_OF_WEALTH"
+  ],
+  "evidence_status": "INSUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "VELOCITY_INDEX"
+  ],
+  "exception_id": "PEX-E2E-CO02-MISS",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": false,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": false,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": false,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Evidence is incomplete for CO-02 (missing ['SOURCE_OF_WEALTH'], stale none, conflicting none). Gather it before COMPLIANCE_APPROVER decides.",
+  "resolution_recommendation": {
+   "action": "INVESTIGATION_HOLD",
+   "conflicting": [],
+   "evidence_complete": false,
+   "missing": [
+    "SOURCE_OF_WEALTH"
+   ],
+   "reason": "EVIDENCE_INCOMPLETE",
+   "target": "compliance_screening.aml_disposition"
+  },
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Evidence insufficient: missing mandatory ['SOURCE_OF_WEALTH'] / stale [] / contradictory []; Deterministic resolution could not be derived.; Resolution is ambiguous with multiple candidate matches.; Deterministic validation / checksum failed.",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "input/CO-02_aml_alert_sufficient": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "CO-02",
+  "domain": "COMPLIANCE",
+  "errors": [
+   "Deterministic resolution could not be derived."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "VELOCITY_INDEX",
+   "SOURCE_OF_WEALTH"
+  ],
+  "exception_id": "PEX-E2E-CO02-SUFF",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Evidence is complete for CO-02. COMPLIANCE_APPROVER must choose a disposition for compliance_screening.aml_disposition; PeX does not decide this and it is never straight-through.",
+  "resolution_recommendation": {
+   "action": "DECISION_REQUIRED",
+   "evidence_complete": true,
+   "options": [
+    "EDD_VERIFIED_COMMERCIAL_TRADE",
+    "REQUEST_MORE_INFORMATION",
+    "ESCALATE_FOR_SAR_REVIEW"
+   ],
+   "reviewer_role": "COMPLIANCE_APPROVER",
+   "target": "compliance_screening.aml_disposition"
+  },
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Deterministic resolution could not be derived.",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "input/CO-03_pep_match_missing_evidence": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "CO-03",
+  "domain": "COMPLIANCE",
+  "errors": [
+   "Evidence insufficient: missing mandatory ['EDD_CERTIFICATE'] / stale [] / contradictory []",
+   "Deterministic resolution could not be derived.",
+   "Resolution is ambiguous with multiple candidate matches.",
+   "Deterministic validation / checksum failed."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [
+   "EDD_CERTIFICATE"
+  ],
+  "evidence_status": "INSUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "PEP_REGISTRY"
+  ],
+  "exception_id": "PEX-E2E-CO03-MISS",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": false,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": false,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": false,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Evidence is incomplete for CO-03 (missing ['EDD_CERTIFICATE'], stale none, conflicting none). Gather it before COMPLIANCE_APPROVER decides.",
+  "resolution_recommendation": {
+   "action": "INVESTIGATION_HOLD",
+   "conflicting": [],
+   "evidence_complete": false,
+   "missing": [
+    "EDD_CERTIFICATE"
+   ],
+   "reason": "EVIDENCE_INCOMPLETE",
+   "target": "compliance_screening.pep_clearance"
+  },
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Evidence insufficient: missing mandatory ['EDD_CERTIFICATE'] / stale [] / contradictory []; Deterministic resolution could not be derived.; Resolution is ambiguous with multiple candidate matches.; Deterministic validation / checksum failed.",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "input/CO-03_pep_match_sufficient": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "CO-03",
+  "domain": "COMPLIANCE",
+  "errors": [
+   "Deterministic resolution could not be derived."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "PEP_REGISTRY",
+   "EDD_CERTIFICATE"
+  ],
+  "exception_id": "PEX-E2E-CO03-SUFF",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Evidence is complete for CO-03. COMPLIANCE_APPROVER must choose a disposition for compliance_screening.pep_clearance; PeX does not decide this and it is never straight-through.",
+  "resolution_recommendation": {
+   "action": "DECISION_REQUIRED",
+   "evidence_complete": true,
+   "options": [
+    "PEP_EDD_CLEARED",
+    "PEP_REJECTED",
+    "ESCALATE_SENIOR_COMPLIANCE"
+   ],
+   "reviewer_role": "COMPLIANCE_APPROVER",
+   "target": "compliance_screening.pep_clearance"
+  },
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Deterministic resolution could not be derived.",
+  "stp_eligible": false,
+  "warnings": []
+ },
  "input/CO-04_restricted_corridor_prohibited": {
   "ai_confidence_score": 0.5,
   "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
@@ -2033,6 +2360,224 @@
   "resolution_status": "RESOLVED",
   "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff \u2227 R_det \u2227 R_uniq \u2227 V_det \u2227 V_auth \u2227 P_bank \u2227 C_comp \u2227 X_pre).",
   "stp_eligible": true,
+  "warnings": []
+ },
+ "input/CO-05_adverse_media_match_missing_evidence": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "CO-05",
+  "domain": "COMPLIANCE",
+  "errors": [
+   "Evidence insufficient: missing mandatory ['LEGAL_STATUS_CHECK'] / stale [] / contradictory []",
+   "Deterministic resolution could not be derived.",
+   "Resolution is ambiguous with multiple candidate matches.",
+   "Deterministic validation / checksum failed."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [
+   "LEGAL_STATUS_CHECK"
+  ],
+  "evidence_status": "INSUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "ADVERSE_MEDIA_REPORT"
+  ],
+  "exception_id": "PEX-E2E-CO05-MISS",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": false,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": false,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": false,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Evidence is incomplete for CO-05 (missing ['LEGAL_STATUS_CHECK'], stale none, conflicting none). Gather it before COMPLIANCE_APPROVER decides.",
+  "resolution_recommendation": {
+   "action": "INVESTIGATION_HOLD",
+   "conflicting": [],
+   "evidence_complete": false,
+   "missing": [
+    "LEGAL_STATUS_CHECK"
+   ],
+   "reason": "EVIDENCE_INCOMPLETE",
+   "target": "compliance_screening.adverse_media"
+  },
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Evidence insufficient: missing mandatory ['LEGAL_STATUS_CHECK'] / stale [] / contradictory []; Deterministic resolution could not be derived.; Resolution is ambiguous with multiple candidate matches.; Deterministic validation / checksum failed.",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "input/CO-05_adverse_media_match_sufficient": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "CO-05",
+  "domain": "COMPLIANCE",
+  "errors": [
+   "Deterministic resolution could not be derived."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "ADVERSE_MEDIA_REPORT",
+   "LEGAL_STATUS_CHECK"
+  ],
+  "exception_id": "PEX-E2E-CO05-SUFF",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Evidence is complete for CO-05. COMPLIANCE_APPROVER must choose a disposition for compliance_screening.adverse_media; PeX does not decide this and it is never straight-through.",
+  "resolution_recommendation": {
+   "action": "DECISION_REQUIRED",
+   "evidence_complete": true,
+   "options": [
+    "ADVERSE_MEDIA_CLEARED",
+    "RESTRICT_COUNTERPARTY",
+    "REFER_TO_SIU"
+   ],
+   "reviewer_role": "COMPLIANCE_APPROVER",
+   "target": "compliance_screening.adverse_media"
+  },
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Deterministic resolution could not be derived.",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "input/CO-06_high_risk_jurisdiction_missing_evidence": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "CO-06",
+  "domain": "COMPLIANCE",
+  "errors": [
+   "Evidence insufficient: missing mandatory ['NOSTRO_JUSTIFICATION'] / stale [] / contradictory []",
+   "Deterministic resolution could not be derived.",
+   "Resolution is ambiguous with multiple candidate matches.",
+   "Deterministic validation / checksum failed."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [
+   "NOSTRO_JUSTIFICATION"
+  ],
+  "evidence_status": "INSUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "FATF_INDEX"
+  ],
+  "exception_id": "PEX-E2E-CO06-MISS",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": false,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": false,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": false,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Evidence is incomplete for CO-06 (missing ['NOSTRO_JUSTIFICATION'], stale none, conflicting none). Gather it before COMPLIANCE_APPROVER decides.",
+  "resolution_recommendation": {
+   "action": "INVESTIGATION_HOLD",
+   "conflicting": [],
+   "evidence_complete": false,
+   "missing": [
+    "NOSTRO_JUSTIFICATION"
+   ],
+   "reason": "EVIDENCE_INCOMPLETE",
+   "target": "compliance_screening.fatf_clearance"
+  },
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Evidence insufficient: missing mandatory ['NOSTRO_JUSTIFICATION'] / stale [] / contradictory []; Deterministic resolution could not be derived.; Resolution is ambiguous with multiple candidate matches.; Deterministic validation / checksum failed.",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "input/CO-06_high_risk_jurisdiction_sufficient": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "CO-06",
+  "domain": "COMPLIANCE",
+  "errors": [
+   "Deterministic resolution could not be derived."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "FATF_INDEX",
+   "NOSTRO_JUSTIFICATION"
+  ],
+  "exception_id": "PEX-E2E-CO06-SUFF",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Evidence is complete for CO-06. COMPLIANCE_APPROVER must choose a disposition for compliance_screening.fatf_clearance; PeX does not decide this and it is never straight-through.",
+  "resolution_recommendation": {
+   "action": "DECISION_REQUIRED",
+   "evidence_complete": true,
+   "options": [
+    "FATF_ECDD_VERIFIED_TRANSACTION",
+    "RETURN_PAYMENT",
+    "FILE_REGULATORY_REPORT"
+   ],
+   "reviewer_role": "COMPLIANCE_APPROVER",
+   "target": "compliance_screening.fatf_clearance"
+  },
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Deterministic resolution could not be derived.",
+  "stp_eligible": false,
   "warnings": []
  },
  "input/CO-07_regulatory_reporting_missing_statutory": {
@@ -2157,6 +2702,115 @@
   "resolution_status": "RESOLVED",
   "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff \u2227 R_det \u2227 R_uniq \u2227 V_det \u2227 V_auth \u2227 P_bank \u2227 C_comp \u2227 X_pre).",
   "stp_eligible": true,
+  "warnings": []
+ },
+ "input/CO-08_customer_watchlist_match_missing_evidence": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "CO-08",
+  "domain": "COMPLIANCE",
+  "errors": [
+   "Evidence insufficient: missing mandatory ['EXIT_MEMO'] / stale [] / contradictory []",
+   "Deterministic resolution could not be derived.",
+   "Resolution is ambiguous with multiple candidate matches.",
+   "Deterministic validation / checksum failed."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [
+   "EXIT_MEMO"
+  ],
+  "evidence_status": "INSUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "INTERNAL_BLACKLIST"
+  ],
+  "exception_id": "PEX-E2E-CO08-MISS",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": false,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": false,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": false,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Evidence is incomplete for CO-08 (missing ['EXIT_MEMO'], stale none, conflicting none). Gather it before COMPLIANCE_APPROVER decides.",
+  "resolution_recommendation": {
+   "action": "INVESTIGATION_HOLD",
+   "conflicting": [],
+   "evidence_complete": false,
+   "missing": [
+    "EXIT_MEMO"
+   ],
+   "reason": "EVIDENCE_INCOMPLETE",
+   "target": "internal_risk.watchlist_clearance"
+  },
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Evidence insufficient: missing mandatory ['EXIT_MEMO'] / stale [] / contradictory []; Deterministic resolution could not be derived.; Resolution is ambiguous with multiple candidate matches.; Deterministic validation / checksum failed.",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "input/CO-08_customer_watchlist_match_sufficient": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "CO-08",
+  "domain": "COMPLIANCE",
+  "errors": [
+   "Deterministic resolution could not be derived."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "INTERNAL_BLACKLIST",
+   "EXIT_MEMO"
+  ],
+  "exception_id": "PEX-E2E-CO08-SUFF",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Evidence is complete for CO-08. COMPLIANCE_APPROVER must choose a disposition for internal_risk.watchlist_clearance; PeX does not decide this and it is never straight-through.",
+  "resolution_recommendation": {
+   "action": "DECISION_REQUIRED",
+   "evidence_complete": true,
+   "options": [
+    "INTERNAL_WATCHLIST_WAIVER_APPROVED",
+    "BLOCK_PER_EXIT_MEMO",
+    "ESCALATE_CREDIT_OFFICER"
+   ],
+   "reviewer_role": "COMPLIANCE_APPROVER",
+   "target": "internal_risk.watchlist_clearance"
+  },
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Deterministic resolution could not be derived.",
+  "stp_eligible": false,
   "warnings": []
  },
  "input/DQ-01_invalid_iban_missing_evidence": {
@@ -3837,6 +4491,224 @@
   "stp_eligible": true,
   "warnings": []
  },
+ "input/ST-04_reconciliation_break_missing_evidence": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "ST-04",
+  "domain": "SETTLEMENT_RETURNS",
+  "errors": [
+   "Evidence insufficient: missing mandatory ['SUBLEDGER_RECORD'] / stale [] / contradictory []",
+   "Deterministic resolution could not be derived.",
+   "Resolution is ambiguous with multiple candidate matches.",
+   "Deterministic validation / checksum failed."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [
+   "SUBLEDGER_RECORD"
+  ],
+  "evidence_status": "INSUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "CAMT053_STATEMENT"
+  ],
+  "exception_id": "PEX-E2E-ST04-MISS",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": false,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": false,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": false,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Evidence is incomplete for ST-04 (missing ['SUBLEDGER_RECORD'], stale none, conflicting none). Gather it before OPERATIONS_APPROVER decides.",
+  "resolution_recommendation": {
+   "action": "INVESTIGATION_HOLD",
+   "conflicting": [],
+   "evidence_complete": false,
+   "missing": [
+    "SUBLEDGER_RECORD"
+   ],
+   "reason": "EVIDENCE_INCOMPLETE",
+   "target": "ledger_reconciliation.adjustment"
+  },
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Evidence insufficient: missing mandatory ['SUBLEDGER_RECORD'] / stale [] / contradictory []; Deterministic resolution could not be derived.; Resolution is ambiguous with multiple candidate matches.; Deterministic validation / checksum failed.",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "input/ST-04_reconciliation_break_sufficient": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "ST-04",
+  "domain": "SETTLEMENT_RETURNS",
+  "errors": [
+   "Deterministic resolution could not be derived."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "CAMT053_STATEMENT",
+   "SUBLEDGER_RECORD"
+  ],
+  "exception_id": "PEX-E2E-ST04-SUFF",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Evidence is complete for ST-04. OPERATIONS_APPROVER must choose a disposition for ledger_reconciliation.adjustment; PeX does not decide this and it is never straight-through.",
+  "resolution_recommendation": {
+   "action": "DECISION_REQUIRED",
+   "evidence_complete": true,
+   "options": [
+    "POST_FEE_ADJUSTMENT_WITHIN_TOLERANCE",
+    "RAISE_INVESTIGATION_WITH_CORRESPONDENT",
+    "ESCALATE_TREASURY_OPERATIONS"
+   ],
+   "reviewer_role": "OPERATIONS_APPROVER",
+   "target": "ledger_reconciliation.adjustment"
+  },
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Deterministic resolution could not be derived.",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "input/ST-05_settlement_failure_missing_evidence": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "ST-05",
+  "domain": "SETTLEMENT_RETURNS",
+  "errors": [
+   "Evidence insufficient: missing mandatory ['DIGITAL_SIGNATURE_PROOF'] / stale [] / contradictory []",
+   "Deterministic resolution could not be derived.",
+   "Resolution is ambiguous with multiple candidate matches.",
+   "Deterministic validation / checksum failed."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [
+   "DIGITAL_SIGNATURE_PROOF"
+  ],
+  "evidence_status": "INSUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "RTGS_NACK_LOG"
+  ],
+  "exception_id": "PEX-E2E-ST05-MISS",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": false,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": false,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": false,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Evidence is incomplete for ST-05 (missing ['DIGITAL_SIGNATURE_PROOF'], stale none, conflicting none). Gather it before OPERATIONS_APPROVER decides.",
+  "resolution_recommendation": {
+   "action": "INVESTIGATION_HOLD",
+   "conflicting": [],
+   "evidence_complete": false,
+   "missing": [
+    "DIGITAL_SIGNATURE_PROOF"
+   ],
+   "reason": "EVIDENCE_INCOMPLETE",
+   "target": "settlement_finality.action"
+  },
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Evidence insufficient: missing mandatory ['DIGITAL_SIGNATURE_PROOF'] / stale [] / contradictory []; Deterministic resolution could not be derived.; Resolution is ambiguous with multiple candidate matches.; Deterministic validation / checksum failed.",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "input/ST-05_settlement_failure_sufficient": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "ST-05",
+  "domain": "SETTLEMENT_RETURNS",
+  "errors": [
+   "Deterministic resolution could not be derived."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "RTGS_NACK_LOG",
+   "DIGITAL_SIGNATURE_PROOF"
+  ],
+  "exception_id": "PEX-E2E-ST05-SUFF",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Evidence is complete for ST-05. OPERATIONS_APPROVER must choose a disposition for settlement_finality.action; PeX does not decide this and it is never straight-through.",
+  "resolution_recommendation": {
+   "action": "DECISION_REQUIRED",
+   "evidence_complete": true,
+   "options": [
+    "CONTINGENCY_CLEARING_WINDOW_DISPATCH",
+    "RECALL_AND_RETURN",
+    "ESCALATE_TO_SETTLEMENT_OPERATIONS"
+   ],
+   "reviewer_role": "OPERATIONS_APPROVER",
+   "target": "settlement_finality.action"
+  },
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Deterministic resolution could not be derived.",
+  "stp_eligible": false,
+  "warnings": []
+ },
  "input/ST-06_funds_trapped_inquiry": {
   "ai_confidence_score": 0.5,
   "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
@@ -3943,6 +4815,115 @@
   "resolution_recommendation": null,
   "resolution_status": "INVESTIGATION_REQUIRED",
   "stp_decision_reason": "Evidence insufficient: missing mandatory ['TRACKER_HOP_RECORD', 'DEBIT_CONFIRMATION_RECORD'] / stale [] / contradictory []; Deterministic resolution could not be derived.; Bank policy disallows autonomous STP: ['ST-06 Funds Trapped at Correspondent: Autonomous STP is strictly prohibited for transit breaks. Operations dual-authorization required.']",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "input/ST-07_unmatched_credit_missing_evidence": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "ST-07",
+  "domain": "SETTLEMENT_RETURNS",
+  "errors": [
+   "Evidence insufficient: missing mandatory ['SUSPENSE_CREDIT_ENTRY'] / stale [] / contradictory []",
+   "Deterministic resolution could not be derived.",
+   "Resolution is ambiguous with multiple candidate matches.",
+   "Deterministic validation / checksum failed."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [
+   "SUSPENSE_CREDIT_ENTRY"
+  ],
+  "evidence_status": "INSUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "CUSTOMER_NAME_VARIATION"
+  ],
+  "exception_id": "PEX-E2E-ST07-MISS",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": false,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": false,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": false,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Evidence is incomplete for ST-07 (missing ['SUSPENSE_CREDIT_ENTRY'], stale none, conflicting none). Gather it before OPERATIONS_APPROVER decides.",
+  "resolution_recommendation": {
+   "action": "INVESTIGATION_HOLD",
+   "conflicting": [],
+   "evidence_complete": false,
+   "missing": [
+    "SUSPENSE_CREDIT_ENTRY"
+   ],
+   "reason": "EVIDENCE_INCOMPLETE",
+   "target": "unmatched_credit.disposition"
+  },
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Evidence insufficient: missing mandatory ['SUSPENSE_CREDIT_ENTRY'] / stale [] / contradictory []; Deterministic resolution could not be derived.; Resolution is ambiguous with multiple candidate matches.; Deterministic validation / checksum failed.",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "input/ST-07_unmatched_credit_sufficient": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "ST-07",
+  "domain": "SETTLEMENT_RETURNS",
+  "errors": [
+   "Deterministic resolution could not be derived."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "CUSTOMER_NAME_VARIATION",
+   "SUSPENSE_CREDIT_ENTRY"
+  ],
+  "exception_id": "PEX-E2E-ST07-SUFF",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Evidence is complete for ST-07. OPERATIONS_APPROVER must choose a disposition for unmatched_credit.disposition; PeX does not decide this and it is never straight-through.",
+  "resolution_recommendation": {
+   "action": "DECISION_REQUIRED",
+   "evidence_complete": true,
+   "options": [
+    "ALLOCATE_TO_DEBTOR_RECEIVABLES_LEDGER",
+    "HOLD_IN_SUSPENSE",
+    "RETURN_TO_ORDERING_BANK"
+   ],
+   "reviewer_role": "OPERATIONS_APPROVER",
+   "target": "unmatched_credit.disposition"
+  },
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Deterministic resolution could not be derived.",
   "stp_eligible": false,
   "warnings": []
  },
@@ -4872,438 +5853,6 @@
   },
   "resolution_status": "RESOLVED",
   "stp_decision_reason": "Bank policy disallows autonomous STP: ['TR-08 Credit Exposure Breach: Autonomous STP is strictly prohibited. Senior Credit Officer dual-authorization required.']",
-  "stp_eligible": false,
-  "warnings": []
- },
- "nofixture/CO-01": {
-  "ai_confidence_score": 0.5,
-  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
-  "authority_status": "AUTHORITATIVE_CONFIRMED",
-  "bank_handoff_status": "MAKER_CHECKER_PENDING",
-  "bank_policy_status": "POLICY_PERMITTED",
-  "compliance_status": "COMPLIANCE_CLEARED",
-  "detected_profile_id": "CO-01",
-  "domain": "COMPLIANCE",
-  "errors": [
-   "Deterministic resolution could not be derived.",
-   "Resolution is ambiguous with multiple candidate matches.",
-   "Deterministic validation / checksum failed."
-  ],
-  "evidence_contradictions": [],
-  "evidence_missing": [],
-  "evidence_status": "SUFFICIENT",
-  "evidence_used": [
-   "INBOUND_PAYMENT_TELEMETRY",
-   "CLIENT_MASTER_RECORD",
-   "VERIFIED_CREDITOR_NAME",
-   "CORE_DDA_ACCOUNT",
-   "DEBTOR_ID",
-   "CREDITOR_HINT"
-  ],
-  "exception_id": "PROBE-CO-01",
-  "execution_owner": "BANK",
-  "hitl_required": true,
-  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
-  "predicate_breakdown": {
-   "c_comp": true,
-   "e_suff": true,
-   "p_bank": true,
-   "r_det": false,
-   "r_uniq": false,
-   "stp_formula_result": false,
-   "v_auth": true,
-   "v_det": false,
-   "x_pre": true
-  },
-  "repaired_fields": [],
-  "resolution_basis": "No deterministic resolution logic is registered for profile CO-01; routed to human review (fail closed).",
-  "resolution_recommendation": null,
-  "resolution_status": "INVESTIGATION_REQUIRED",
-  "stp_decision_reason": "Deterministic resolution could not be derived.; Resolution is ambiguous with multiple candidate matches.; Deterministic validation / checksum failed.",
-  "stp_eligible": false,
-  "warnings": []
- },
- "nofixture/CO-02": {
-  "ai_confidence_score": 0.5,
-  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
-  "authority_status": "AUTHORITATIVE_CONFIRMED",
-  "bank_handoff_status": "MAKER_CHECKER_PENDING",
-  "bank_policy_status": "POLICY_PERMITTED",
-  "compliance_status": "COMPLIANCE_CLEARED",
-  "detected_profile_id": "CO-02",
-  "domain": "COMPLIANCE",
-  "errors": [
-   "Deterministic resolution could not be derived.",
-   "Resolution is ambiguous with multiple candidate matches.",
-   "Deterministic validation / checksum failed."
-  ],
-  "evidence_contradictions": [],
-  "evidence_missing": [],
-  "evidence_status": "SUFFICIENT",
-  "evidence_used": [
-   "INBOUND_PAYMENT_TELEMETRY",
-   "CLIENT_MASTER_RECORD",
-   "VERIFIED_CREDITOR_NAME",
-   "CORE_DDA_ACCOUNT",
-   "DEBTOR_ID",
-   "CREDITOR_HINT"
-  ],
-  "exception_id": "PROBE-CO-02",
-  "execution_owner": "BANK",
-  "hitl_required": true,
-  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
-  "predicate_breakdown": {
-   "c_comp": true,
-   "e_suff": true,
-   "p_bank": true,
-   "r_det": false,
-   "r_uniq": false,
-   "stp_formula_result": false,
-   "v_auth": true,
-   "v_det": false,
-   "x_pre": true
-  },
-  "repaired_fields": [],
-  "resolution_basis": "No deterministic resolution logic is registered for profile CO-02; routed to human review (fail closed).",
-  "resolution_recommendation": null,
-  "resolution_status": "INVESTIGATION_REQUIRED",
-  "stp_decision_reason": "Deterministic resolution could not be derived.; Resolution is ambiguous with multiple candidate matches.; Deterministic validation / checksum failed.",
-  "stp_eligible": false,
-  "warnings": []
- },
- "nofixture/CO-03": {
-  "ai_confidence_score": 0.5,
-  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
-  "authority_status": "AUTHORITATIVE_CONFIRMED",
-  "bank_handoff_status": "MAKER_CHECKER_PENDING",
-  "bank_policy_status": "POLICY_PERMITTED",
-  "compliance_status": "COMPLIANCE_CLEARED",
-  "detected_profile_id": "CO-03",
-  "domain": "COMPLIANCE",
-  "errors": [
-   "Deterministic resolution could not be derived.",
-   "Resolution is ambiguous with multiple candidate matches.",
-   "Deterministic validation / checksum failed."
-  ],
-  "evidence_contradictions": [],
-  "evidence_missing": [],
-  "evidence_status": "SUFFICIENT",
-  "evidence_used": [
-   "INBOUND_PAYMENT_TELEMETRY",
-   "CLIENT_MASTER_RECORD",
-   "VERIFIED_CREDITOR_NAME",
-   "CORE_DDA_ACCOUNT",
-   "DEBTOR_ID",
-   "CREDITOR_HINT"
-  ],
-  "exception_id": "PROBE-CO-03",
-  "execution_owner": "BANK",
-  "hitl_required": true,
-  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
-  "predicate_breakdown": {
-   "c_comp": true,
-   "e_suff": true,
-   "p_bank": true,
-   "r_det": false,
-   "r_uniq": false,
-   "stp_formula_result": false,
-   "v_auth": true,
-   "v_det": false,
-   "x_pre": true
-  },
-  "repaired_fields": [],
-  "resolution_basis": "No deterministic resolution logic is registered for profile CO-03; routed to human review (fail closed).",
-  "resolution_recommendation": null,
-  "resolution_status": "INVESTIGATION_REQUIRED",
-  "stp_decision_reason": "Deterministic resolution could not be derived.; Resolution is ambiguous with multiple candidate matches.; Deterministic validation / checksum failed.",
-  "stp_eligible": false,
-  "warnings": []
- },
- "nofixture/CO-05": {
-  "ai_confidence_score": 0.5,
-  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
-  "authority_status": "AUTHORITATIVE_CONFIRMED",
-  "bank_handoff_status": "MAKER_CHECKER_PENDING",
-  "bank_policy_status": "POLICY_PERMITTED",
-  "compliance_status": "COMPLIANCE_CLEARED",
-  "detected_profile_id": "CO-05",
-  "domain": "COMPLIANCE",
-  "errors": [
-   "Deterministic resolution could not be derived.",
-   "Resolution is ambiguous with multiple candidate matches.",
-   "Deterministic validation / checksum failed."
-  ],
-  "evidence_contradictions": [],
-  "evidence_missing": [],
-  "evidence_status": "SUFFICIENT",
-  "evidence_used": [
-   "INBOUND_PAYMENT_TELEMETRY",
-   "CLIENT_MASTER_RECORD",
-   "VERIFIED_CREDITOR_NAME",
-   "CORE_DDA_ACCOUNT",
-   "DEBTOR_ID",
-   "CREDITOR_HINT"
-  ],
-  "exception_id": "PROBE-CO-05",
-  "execution_owner": "BANK",
-  "hitl_required": true,
-  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
-  "predicate_breakdown": {
-   "c_comp": true,
-   "e_suff": true,
-   "p_bank": true,
-   "r_det": false,
-   "r_uniq": false,
-   "stp_formula_result": false,
-   "v_auth": true,
-   "v_det": false,
-   "x_pre": true
-  },
-  "repaired_fields": [],
-  "resolution_basis": "No deterministic resolution logic is registered for profile CO-05; routed to human review (fail closed).",
-  "resolution_recommendation": null,
-  "resolution_status": "INVESTIGATION_REQUIRED",
-  "stp_decision_reason": "Deterministic resolution could not be derived.; Resolution is ambiguous with multiple candidate matches.; Deterministic validation / checksum failed.",
-  "stp_eligible": false,
-  "warnings": []
- },
- "nofixture/CO-06": {
-  "ai_confidence_score": 0.5,
-  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
-  "authority_status": "AUTHORITATIVE_CONFIRMED",
-  "bank_handoff_status": "MAKER_CHECKER_PENDING",
-  "bank_policy_status": "POLICY_PERMITTED",
-  "compliance_status": "COMPLIANCE_CLEARED",
-  "detected_profile_id": "CO-06",
-  "domain": "COMPLIANCE",
-  "errors": [
-   "Deterministic resolution could not be derived.",
-   "Resolution is ambiguous with multiple candidate matches.",
-   "Deterministic validation / checksum failed."
-  ],
-  "evidence_contradictions": [],
-  "evidence_missing": [],
-  "evidence_status": "SUFFICIENT",
-  "evidence_used": [
-   "INBOUND_PAYMENT_TELEMETRY",
-   "CLIENT_MASTER_RECORD",
-   "VERIFIED_CREDITOR_NAME",
-   "CORE_DDA_ACCOUNT",
-   "DEBTOR_ID",
-   "CREDITOR_HINT"
-  ],
-  "exception_id": "PROBE-CO-06",
-  "execution_owner": "BANK",
-  "hitl_required": true,
-  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
-  "predicate_breakdown": {
-   "c_comp": true,
-   "e_suff": true,
-   "p_bank": true,
-   "r_det": false,
-   "r_uniq": false,
-   "stp_formula_result": false,
-   "v_auth": true,
-   "v_det": false,
-   "x_pre": true
-  },
-  "repaired_fields": [],
-  "resolution_basis": "No deterministic resolution logic is registered for profile CO-06; routed to human review (fail closed).",
-  "resolution_recommendation": null,
-  "resolution_status": "INVESTIGATION_REQUIRED",
-  "stp_decision_reason": "Deterministic resolution could not be derived.; Resolution is ambiguous with multiple candidate matches.; Deterministic validation / checksum failed.",
-  "stp_eligible": false,
-  "warnings": []
- },
- "nofixture/CO-08": {
-  "ai_confidence_score": 0.5,
-  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
-  "authority_status": "AUTHORITATIVE_CONFIRMED",
-  "bank_handoff_status": "MAKER_CHECKER_PENDING",
-  "bank_policy_status": "POLICY_PERMITTED",
-  "compliance_status": "COMPLIANCE_CLEARED",
-  "detected_profile_id": "CO-08",
-  "domain": "COMPLIANCE",
-  "errors": [
-   "Deterministic resolution could not be derived.",
-   "Resolution is ambiguous with multiple candidate matches.",
-   "Deterministic validation / checksum failed."
-  ],
-  "evidence_contradictions": [],
-  "evidence_missing": [],
-  "evidence_status": "SUFFICIENT",
-  "evidence_used": [
-   "INBOUND_PAYMENT_TELEMETRY",
-   "CLIENT_MASTER_RECORD",
-   "VERIFIED_CREDITOR_NAME",
-   "CORE_DDA_ACCOUNT",
-   "DEBTOR_ID",
-   "CREDITOR_HINT"
-  ],
-  "exception_id": "PROBE-CO-08",
-  "execution_owner": "BANK",
-  "hitl_required": true,
-  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
-  "predicate_breakdown": {
-   "c_comp": true,
-   "e_suff": true,
-   "p_bank": true,
-   "r_det": false,
-   "r_uniq": false,
-   "stp_formula_result": false,
-   "v_auth": true,
-   "v_det": false,
-   "x_pre": true
-  },
-  "repaired_fields": [],
-  "resolution_basis": "No deterministic resolution logic is registered for profile CO-08; routed to human review (fail closed).",
-  "resolution_recommendation": null,
-  "resolution_status": "INVESTIGATION_REQUIRED",
-  "stp_decision_reason": "Deterministic resolution could not be derived.; Resolution is ambiguous with multiple candidate matches.; Deterministic validation / checksum failed.",
-  "stp_eligible": false,
-  "warnings": []
- },
- "nofixture/ST-04": {
-  "ai_confidence_score": 0.5,
-  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
-  "authority_status": "AUTHORITATIVE_CONFIRMED",
-  "bank_handoff_status": "MAKER_CHECKER_PENDING",
-  "bank_policy_status": "POLICY_PERMITTED",
-  "compliance_status": "COMPLIANCE_CLEARED",
-  "detected_profile_id": "ST-04",
-  "domain": "SETTLEMENT_RETURNS",
-  "errors": [
-   "Deterministic resolution could not be derived.",
-   "Resolution is ambiguous with multiple candidate matches.",
-   "Deterministic validation / checksum failed."
-  ],
-  "evidence_contradictions": [],
-  "evidence_missing": [],
-  "evidence_status": "SUFFICIENT",
-  "evidence_used": [
-   "INBOUND_PAYMENT_TELEMETRY",
-   "CLIENT_MASTER_RECORD",
-   "VERIFIED_CREDITOR_NAME",
-   "CORE_DDA_ACCOUNT",
-   "DEBTOR_ID",
-   "CREDITOR_HINT"
-  ],
-  "exception_id": "PROBE-ST-04",
-  "execution_owner": "BANK",
-  "hitl_required": true,
-  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
-  "predicate_breakdown": {
-   "c_comp": true,
-   "e_suff": true,
-   "p_bank": true,
-   "r_det": false,
-   "r_uniq": false,
-   "stp_formula_result": false,
-   "v_auth": true,
-   "v_det": false,
-   "x_pre": true
-  },
-  "repaired_fields": [],
-  "resolution_basis": "No deterministic resolution logic is registered for profile ST-04; routed to human review (fail closed).",
-  "resolution_recommendation": null,
-  "resolution_status": "INVESTIGATION_REQUIRED",
-  "stp_decision_reason": "Deterministic resolution could not be derived.; Resolution is ambiguous with multiple candidate matches.; Deterministic validation / checksum failed.",
-  "stp_eligible": false,
-  "warnings": []
- },
- "nofixture/ST-05": {
-  "ai_confidence_score": 0.5,
-  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
-  "authority_status": "AUTHORITATIVE_CONFIRMED",
-  "bank_handoff_status": "MAKER_CHECKER_PENDING",
-  "bank_policy_status": "POLICY_PERMITTED",
-  "compliance_status": "COMPLIANCE_CLEARED",
-  "detected_profile_id": "ST-05",
-  "domain": "SETTLEMENT_RETURNS",
-  "errors": [
-   "Deterministic resolution could not be derived.",
-   "Resolution is ambiguous with multiple candidate matches.",
-   "Deterministic validation / checksum failed."
-  ],
-  "evidence_contradictions": [],
-  "evidence_missing": [],
-  "evidence_status": "SUFFICIENT",
-  "evidence_used": [
-   "INBOUND_PAYMENT_TELEMETRY",
-   "CLIENT_MASTER_RECORD",
-   "VERIFIED_CREDITOR_NAME",
-   "CORE_DDA_ACCOUNT",
-   "DEBTOR_ID",
-   "CREDITOR_HINT"
-  ],
-  "exception_id": "PROBE-ST-05",
-  "execution_owner": "BANK",
-  "hitl_required": true,
-  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
-  "predicate_breakdown": {
-   "c_comp": true,
-   "e_suff": true,
-   "p_bank": true,
-   "r_det": false,
-   "r_uniq": false,
-   "stp_formula_result": false,
-   "v_auth": true,
-   "v_det": false,
-   "x_pre": true
-  },
-  "repaired_fields": [],
-  "resolution_basis": "No deterministic resolution logic is registered for profile ST-05; routed to human review (fail closed).",
-  "resolution_recommendation": null,
-  "resolution_status": "INVESTIGATION_REQUIRED",
-  "stp_decision_reason": "Deterministic resolution could not be derived.; Resolution is ambiguous with multiple candidate matches.; Deterministic validation / checksum failed.",
-  "stp_eligible": false,
-  "warnings": []
- },
- "nofixture/ST-07": {
-  "ai_confidence_score": 0.5,
-  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
-  "authority_status": "AUTHORITATIVE_CONFIRMED",
-  "bank_handoff_status": "MAKER_CHECKER_PENDING",
-  "bank_policy_status": "POLICY_PERMITTED",
-  "compliance_status": "COMPLIANCE_CLEARED",
-  "detected_profile_id": "ST-07",
-  "domain": "SETTLEMENT_RETURNS",
-  "errors": [
-   "Deterministic resolution could not be derived.",
-   "Resolution is ambiguous with multiple candidate matches.",
-   "Deterministic validation / checksum failed."
-  ],
-  "evidence_contradictions": [],
-  "evidence_missing": [],
-  "evidence_status": "SUFFICIENT",
-  "evidence_used": [
-   "INBOUND_PAYMENT_TELEMETRY",
-   "CLIENT_MASTER_RECORD",
-   "VERIFIED_CREDITOR_NAME",
-   "CORE_DDA_ACCOUNT",
-   "DEBTOR_ID",
-   "CREDITOR_HINT"
-  ],
-  "exception_id": "PROBE-ST-07",
-  "execution_owner": "BANK",
-  "hitl_required": true,
-  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
-  "predicate_breakdown": {
-   "c_comp": true,
-   "e_suff": true,
-   "p_bank": true,
-   "r_det": false,
-   "r_uniq": false,
-   "stp_formula_result": false,
-   "v_auth": true,
-   "v_det": false,
-   "x_pre": true
-  },
-  "repaired_fields": [],
-  "resolution_basis": "No deterministic resolution logic is registered for profile ST-07; routed to human review (fail closed).",
-  "resolution_recommendation": null,
-  "resolution_status": "INVESTIGATION_REQUIRED",
-  "stp_decision_reason": "Deterministic resolution could not be derived.; Resolution is ambiguous with multiple candidate matches.; Deterministic validation / checksum failed.",
   "stp_eligible": false,
   "warnings": []
  },

@@ -1,0 +1,33 @@
+{
+  "exception_id": "PEX-E2E-CO06-MISS",
+  "profile_id": "CO-06",
+  "domain": "COMPLIANCE",
+  "error_code": "ERR_HIGH_RISK_JURISDICTION",
+  "error_message": "Payment to a FATF greylist jurisdiction.",
+  "payment_info": {
+    "payment_id": "PMT-2026-CO06-001",
+    "uetr": "UETR-CO06-MISS-0001-A1",
+    "amount": 5500.0,
+    "currency": "GBP",
+    "clearing_rail": "CHAPS",
+    "value_date": "2026-10-08",
+    "debtor_name": "Apex Global Treasury",
+    "debtor_account": "GB82WEST12345612345678",
+    "debtor_agent_bic": "MIDLGB22XXX",
+    "creditor_name": "ACME INDUSTRIAL SUPPLIES LTD",
+    "creditor_account": "12345678",
+    "creditor_agent_bic": "MIDLGB22XXX",
+    "remittance_info": "INVOICE ACME-OCT-2026"
+  },
+  "bank_supplied_evidence": {
+    "fatf_index": {
+      "country": "TR",
+      "list": "GREY",
+      "risk_score": 62
+    }
+  },
+  "external_authoritative_evidence": {},
+  "derived_evidence": {},
+  "evidence_provenance": "SYNTHETIC_TEST_FIXTURE",
+  "test_status": "TEST_ONLY"
+}

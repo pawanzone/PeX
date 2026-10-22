@@ -66,11 +66,49 @@ def is_enabled(code: str) -> bool:
     return "*" in wanted or code in wanted
 
 
+def never_stp_reason(code: str) -> Optional[str]:
+    """Text to show when a pack forbids straight-through; None when it does not apply."""
+    if not is_enabled(code):
+        return None
+    pack = get_pack(code)
+    if pack is not None and str(getattr(pack.stp, "value", pack.stp)) == "NEVER":
+        return f"Profile {code} is never straight-through; a person must decide."
+    return None
+
+
+def _decision_support(pack: ProfilePack, ctx: ResolutionContext) -> ResolutionResult:
+    """Generic resolver for decision-support packs: reports evidence completeness and asks a named reviewer to
+    choose among the pack's options. It never picks an option and never repairs anything."""
+    env, d = ctx.envelope, pack.decision
+    missing = list(getattr(env, "missing_mandatory_types", None) or [])
+    stale = list(getattr(env, "stale_types", None) or [])
+    conflicting = list(getattr(env, "contradictions", None) or [])
+    if bool(getattr(env, "evidence_sufficient", False)):
+        return ResolutionResult(
+            determined=False, unique=True, validated=True,
+            recommendation={"action": "DECISION_REQUIRED", "target": d.target_field, "options": list(d.options),
+                            "reviewer_role": d.reviewer_role, "evidence_complete": True},
+            basis=(f"Evidence is complete for {pack.code}. {d.reviewer_role} must choose a disposition for "
+                   f"{d.target_field}; PeX does not decide this and it is never straight-through."))
+    return ResolutionResult(
+        determined=False, unique=False, validated=False,
+        recommendation={"action": "INVESTIGATION_HOLD", "reason": "EVIDENCE_INCOMPLETE", "target": d.target_field,
+                        "missing": missing + stale, "conflicting": conflicting, "evidence_complete": False},
+        basis=(f"Evidence is incomplete for {pack.code} (missing {missing or 'none'}, stale {stale or 'none'}, "
+               f"conflicting {conflicting or 'none'}). Gather it before {d.reviewer_role} decides."))
+
+
 def resolve_if_enabled(code: str, ctx: ResolutionContext) -> Optional[ResolutionResult]:
     """None means 'use the legacy path'. Anything wrong inside a pack fails closed to human review."""
     if not is_enabled(code):
         return None
     pack = get_pack(code)
+    if not pack.resolver and pack.decision is not None:
+        try:
+            return _decision_support(pack, ctx)
+        except Exception as exc:
+            logger.exception("decision support for %s failed", code)
+            return ResolutionResult(basis=f"Decision support for {code} failed ({type(exc).__name__}); failing closed to human review.")
     if not pack.resolver:
         return ResolutionResult(basis=f"{code} is a decision-support profile: evidence is gathered and a person decides (fail closed).")
     try:

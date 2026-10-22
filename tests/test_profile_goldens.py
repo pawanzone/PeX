@@ -29,13 +29,8 @@ _TS = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\
 # Python set literals print in arbitrary order: {'60329', '60311'}
 _SET = re.compile(r"\{('[^'{}]*'(?:, '[^'{}]*')+)\}")
 
-# Profiles with no resolution logic and no fixture. They must fail closed to human review.
-NO_FIXTURE = [
-    ("CO-01", "COMPLIANCE"), ("CO-02", "COMPLIANCE"), ("CO-03", "COMPLIANCE"), ("CO-05", "COMPLIANCE"),
-    ("CO-06", "COMPLIANCE"), ("CO-08", "COMPLIANCE"),
-    ("ST-04", "SETTLEMENT_RETURNS"), ("ST-05", "SETTLEMENT_RETURNS"),
-    ("ST-07", "SETTLEMENT_RETURNS"), ("ST-08", "SETTLEMENT_RETURNS"),
-]
+# The catch-all with no resolution logic and no fixture. It must fail closed to human review.
+NO_FIXTURE = [("ST-08", "SETTLEMENT_RETURNS")]   # general-exception catch-all: not in the 41-profile taxonomy
 _BASE_FIXTURE = ROOT / "e2e_fixtures" / "input" / "DQ-03_missing_beneficiary_sufficient.json"
 
 
@@ -99,7 +94,7 @@ def test_output_matches_golden(name):
 
 def test_snapshots_are_deterministic():
     """Two runs of the same input give the same snapshot (otherwise goldens would flake)."""
-    for name in ("input/TR-01_kyc_expired_sufficient", "input/ST-06_funds_trapped_inquiry", "nofixture/CO-01"):
+    for name in ("input/TR-01_kyc_expired_sufficient", "input/ST-06_funds_trapped_inquiry", "nofixture/ST-08"):
         assert snapshot(CASES[name]) == snapshot(CASES[name]), name
 
 

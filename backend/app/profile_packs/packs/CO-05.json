@@ -1,0 +1,43 @@
+{
+  "code": "CO-05",
+  "name": "ADVERSE_MEDIA_MATCH",
+  "family": "COMPLIANCE",
+  "version": 1,
+  "outcome": "DECISION_SUPPORT",
+  "stp": "NEVER",
+  "evidence": {
+    "mandatory": [
+      "ADVERSE_MEDIA_REPORT",
+      "LEGAL_STATUS_CHECK"
+    ],
+    "min_confidence": 0.88,
+    "required": [
+      {
+        "type": "ADVERSE_MEDIA_REPORT",
+        "tier": 3
+      },
+      {
+        "type": "LEGAL_STATUS_CHECK",
+        "tier": 2
+      }
+    ]
+  },
+  "checks": [
+    "screening"
+  ],
+  "resolver": null,
+  "authority_domain": "LEGAL_PROHIBITION",
+  "action": "INVESTIGATION_HOLD",
+  "approval": {
+    "when_not_stp": "COMPLIANCE_THEN_RISK"
+  },
+  "decision": {
+    "target_field": "compliance_screening.adverse_media",
+    "options": [
+      "ADVERSE_MEDIA_CLEARED",
+      "RESTRICT_COUNTERPARTY",
+      "REFER_TO_SIU"
+    ],
+    "reviewer_role": "COMPLIANCE_APPROVER"
+  }
+}

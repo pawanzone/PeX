@@ -1,0 +1,43 @@
+{
+  "code": "CO-03",
+  "name": "PEP_MATCH",
+  "family": "COMPLIANCE",
+  "version": 1,
+  "outcome": "DECISION_SUPPORT",
+  "stp": "NEVER",
+  "evidence": {
+    "mandatory": [
+      "PEP_REGISTRY",
+      "EDD_CERTIFICATE"
+    ],
+    "min_confidence": 0.92,
+    "required": [
+      {
+        "type": "PEP_REGISTRY",
+        "tier": 2
+      },
+      {
+        "type": "EDD_CERTIFICATE",
+        "tier": 3
+      }
+    ]
+  },
+  "checks": [
+    "screening"
+  ],
+  "resolver": null,
+  "authority_domain": "LEGAL_PROHIBITION",
+  "action": "INVESTIGATION_HOLD",
+  "approval": {
+    "when_not_stp": "COMPLIANCE_THEN_RISK"
+  },
+  "decision": {
+    "target_field": "compliance_screening.pep_clearance",
+    "options": [
+      "PEP_EDD_CLEARED",
+      "PEP_REJECTED",
+      "ESCALATE_SENIOR_COMPLIANCE"
+    ],
+    "reviewer_role": "COMPLIANCE_APPROVER"
+  }
+}

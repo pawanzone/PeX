@@ -1,0 +1,41 @@
+{
+  "code": "ST-04",
+  "name": "RECONCILIATION_BREAK",
+  "family": "SETTLEMENT_RETURNS",
+  "version": 1,
+  "outcome": "INVESTIGATION",
+  "stp": "NEVER",
+  "evidence": {
+    "mandatory": [
+      "CAMT053_STATEMENT",
+      "SUBLEDGER_RECORD"
+    ],
+    "min_confidence": 0.92,
+    "required": [
+      {
+        "type": "CAMT053_STATEMENT",
+        "tier": 1
+      },
+      {
+        "type": "SUBLEDGER_RECORD",
+        "tier": 1
+      }
+    ]
+  },
+  "checks": [],
+  "resolver": null,
+  "authority_domain": "CLEARING_SETTLEMENT_STATUS",
+  "action": "INVESTIGATION_HOLD",
+  "approval": {
+    "when_not_stp": "SINGLE"
+  },
+  "decision": {
+    "target_field": "ledger_reconciliation.adjustment",
+    "options": [
+      "POST_FEE_ADJUSTMENT_WITHIN_TOLERANCE",
+      "RAISE_INVESTIGATION_WITH_CORRESPONDENT",
+      "ESCALATE_TREASURY_OPERATIONS"
+    ],
+    "reviewer_role": "OPERATIONS_APPROVER"
+  }
+}

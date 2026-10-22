@@ -267,10 +267,14 @@ class E2EExecutionHarness:
             x_pre = (idemp_res.status.value in ["ACQUIRED", "ALREADY_EXECUTED"])
 
         # 8. Canonical 8-Predicate Conjunction:
-        stp_eligible = bool(e_suff and r_det and r_uniq and v_det and v_auth and p_bank and c_comp and x_pre)
+        _stp_base = bool(e_suff and r_det and r_uniq and v_det and v_auth and p_bank and c_comp and x_pre)
+        _never_reason = profile_packs.never_stp_reason(profile)   # a pack can forbid straight-through outright
+        stp_eligible = _stp_base and not _never_reason
 
         # Formulate Decision Reason
         denials = []
+        if _never_reason and _stp_base:
+            denials.append(_never_reason)
         if not e_suff:
             denials.append(f"Evidence insufficient: missing mandatory {envelope.missing_mandatory_types} / stale {envelope.stale_types} / contradictory {envelope.contradictions}")
         if not r_det:

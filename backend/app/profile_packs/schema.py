@@ -22,16 +22,34 @@ class StpMode(str, Enum):
 _CODE = re.compile(r"^(DQ|PR|CO|TR|ST)-\d{2}$")
 
 
+class RequiredEvidence(BaseModel):
+    """One piece of mandatory evidence the engine will ask for, and how much it is trusted (1 = core record ... 4 = advisory)."""
+    model_config = ConfigDict(extra="forbid")
+    type: str
+    tier: int = Field(ge=1, le=4)
+
+
 class EvidenceSpec(BaseModel):
     """Declared evidence. For now this mirrors the legacy profile spec (a test keeps them equal)."""
     model_config = ConfigDict(extra="forbid")
     mandatory: List[str] = Field(default_factory=list)
+    # What the engine actually requires when no tenant config is published. Empty = the legacy fallback map still
+    # decides (28 older packs, to be migrated).
+    required: List[RequiredEvidence] = Field(default_factory=list)
     min_confidence: Optional[float] = Field(default=None, ge=0, le=1)
 
 
 class ApprovalSpec(BaseModel):
     model_config = ConfigDict(extra="forbid")
     when_not_stp: str = "MAKER_CHECKER"   # MAKER_CHECKER | COMPLIANCE_THEN_RISK | SINGLE
+
+
+class DecisionSpec(BaseModel):
+    """For decision-support profiles: what a person is asked to decide, and by whom. PeX never picks an option."""
+    model_config = ConfigDict(extra="forbid")
+    target_field: str
+    options: List[str] = Field(min_length=2)
+    reviewer_role: str
 
 
 class ProfilePack(BaseModel):
@@ -48,6 +66,7 @@ class ProfilePack(BaseModel):
     authority_domain: str
     action: str = "REPAIR_AND_RELEASE"
     approval: ApprovalSpec = Field(default_factory=ApprovalSpec)
+    decision: Optional[DecisionSpec] = None
 
     @model_validator(mode="after")
     def _rules(self):
@@ -57,6 +76,8 @@ class ProfilePack(BaseModel):
             raise ValueError("a REPAIR pack needs a resolver")
         if self.outcome != Outcome.REPAIR and self.stp != StpMode.NEVER:
             raise ValueError("only REPAIR packs may allow straight-through; others must be stp NEVER")
+        if self.outcome != Outcome.REPAIR and not self.resolver and not self.decision:
+            raise ValueError("a non-repair pack needs a resolver or a decision spec")
         if self.outcome == Outcome.REPAIR and self.stp == StpMode.NEVER:
             raise ValueError("a REPAIR pack cannot be stp NEVER (use DECISION_SUPPORT)")
         return self

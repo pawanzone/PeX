@@ -1,0 +1,43 @@
+{
+  "code": "CO-02",
+  "name": "AML_ALERT",
+  "family": "COMPLIANCE",
+  "version": 1,
+  "outcome": "DECISION_SUPPORT",
+  "stp": "NEVER",
+  "evidence": {
+    "mandatory": [
+      "VELOCITY_INDEX",
+      "SOURCE_OF_WEALTH"
+    ],
+    "min_confidence": 0.9,
+    "required": [
+      {
+        "type": "VELOCITY_INDEX",
+        "tier": 1
+      },
+      {
+        "type": "SOURCE_OF_WEALTH",
+        "tier": 3
+      }
+    ]
+  },
+  "checks": [
+    "screening"
+  ],
+  "resolver": null,
+  "authority_domain": "LEGAL_PROHIBITION",
+  "action": "INVESTIGATION_HOLD",
+  "approval": {
+    "when_not_stp": "COMPLIANCE_THEN_RISK"
+  },
+  "decision": {
+    "target_field": "compliance_screening.aml_disposition",
+    "options": [
+      "EDD_VERIFIED_COMMERCIAL_TRADE",
+      "REQUEST_MORE_INFORMATION",
+      "ESCALATE_FOR_SAR_REVIEW"
+    ],
+    "reviewer_role": "COMPLIANCE_APPROVER"
+  }
+}

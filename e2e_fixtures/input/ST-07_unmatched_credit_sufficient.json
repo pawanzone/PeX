@@ -1,0 +1,37 @@
+{
+  "exception_id": "PEX-E2E-ST07-SUFF",
+  "profile_id": "ST-07",
+  "domain": "SETTLEMENT_RETURNS",
+  "error_code": "ERR_UNMATCHED_CREDIT",
+  "error_message": "Inbound credit on the nostro has no matching receivable.",
+  "payment_info": {
+    "payment_id": "PMT-2026-ST07-001",
+    "uetr": "UETR-ST07-SUFF-0001-A1",
+    "amount": 5500.0,
+    "currency": "GBP",
+    "clearing_rail": "CHAPS",
+    "value_date": "2026-10-08",
+    "debtor_name": "Apex Global Treasury",
+    "debtor_account": "GB82WEST12345612345678",
+    "debtor_agent_bic": "MIDLGB22XXX",
+    "creditor_name": "ACME INDUSTRIAL SUPPLIES LTD",
+    "creditor_account": "12345678",
+    "creditor_agent_bic": "MIDLGB22XXX",
+    "remittance_info": "INVOICE ACME-OCT-2026"
+  },
+  "bank_supplied_evidence": {
+    "customer_name_variation": {
+      "remitter": "ACME IND SUPPLIES",
+      "closest_customer": "ACME INDUSTRIAL SUPPLIES LTD",
+      "similarity": 0.91
+    },
+    "suspense_credit_entry": {
+      "suspense_account": "GL-2090",
+      "age_days": 2
+    }
+  },
+  "external_authoritative_evidence": {},
+  "derived_evidence": {},
+  "evidence_provenance": "SYNTHETIC_TEST_FIXTURE",
+  "test_status": "TEST_ONLY"
+}

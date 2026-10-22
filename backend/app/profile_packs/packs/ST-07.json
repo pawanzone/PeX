@@ -1,0 +1,41 @@
+{
+  "code": "ST-07",
+  "name": "UNMATCHED_CREDIT",
+  "family": "SETTLEMENT_RETURNS",
+  "version": 1,
+  "outcome": "INVESTIGATION",
+  "stp": "NEVER",
+  "evidence": {
+    "mandatory": [
+      "CUSTOMER_NAME_VARIATION",
+      "SUSPENSE_CREDIT_ENTRY"
+    ],
+    "min_confidence": 0.88,
+    "required": [
+      {
+        "type": "CUSTOMER_NAME_VARIATION",
+        "tier": 3
+      },
+      {
+        "type": "SUSPENSE_CREDIT_ENTRY",
+        "tier": 1
+      }
+    ]
+  },
+  "checks": [],
+  "resolver": null,
+  "authority_domain": "CLEARING_SETTLEMENT_STATUS",
+  "action": "INVESTIGATION_HOLD",
+  "approval": {
+    "when_not_stp": "SINGLE"
+  },
+  "decision": {
+    "target_field": "unmatched_credit.disposition",
+    "options": [
+      "ALLOCATE_TO_DEBTOR_RECEIVABLES_LEDGER",
+      "HOLD_IN_SUSPENSE",
+      "RETURN_TO_ORDERING_BANK"
+    ],
+    "reviewer_role": "OPERATIONS_APPROVER"
+  }
+}

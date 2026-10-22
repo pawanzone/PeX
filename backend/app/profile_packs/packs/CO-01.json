@@ -1,0 +1,43 @@
+{
+  "code": "CO-01",
+  "name": "SANCTIONS_SUSPECTED",
+  "family": "COMPLIANCE",
+  "version": 1,
+  "outcome": "DECISION_SUPPORT",
+  "stp": "NEVER",
+  "evidence": {
+    "mandatory": [
+      "SCREENING_RECORD",
+      "WATCHLIST_MATCH"
+    ],
+    "min_confidence": 0.98,
+    "required": [
+      {
+        "type": "SCREENING_RECORD",
+        "tier": 2
+      },
+      {
+        "type": "WATCHLIST_MATCH",
+        "tier": 2
+      }
+    ]
+  },
+  "checks": [
+    "screening"
+  ],
+  "resolver": null,
+  "authority_domain": "LEGAL_PROHIBITION",
+  "action": "INVESTIGATION_HOLD",
+  "approval": {
+    "when_not_stp": "COMPLIANCE_THEN_RISK"
+  },
+  "decision": {
+    "target_field": "compliance_screening.disposition",
+    "options": [
+      "FALSE_POSITIVE_HOMONYM_CLEARED",
+      "TRUE_MATCH_CONFIRMED_BLOCK",
+      "ESCALATE_SENIOR_COMPLIANCE"
+    ],
+    "reviewer_role": "COMPLIANCE_APPROVER"
+  }
+}

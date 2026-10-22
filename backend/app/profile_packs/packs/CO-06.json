@@ -1,0 +1,43 @@
+{
+  "code": "CO-06",
+  "name": "HIGH_RISK_JURISDICTION",
+  "family": "COMPLIANCE",
+  "version": 1,
+  "outcome": "DECISION_SUPPORT",
+  "stp": "NEVER",
+  "evidence": {
+    "mandatory": [
+      "FATF_INDEX",
+      "NOSTRO_JUSTIFICATION"
+    ],
+    "min_confidence": 0.9,
+    "required": [
+      {
+        "type": "FATF_INDEX",
+        "tier": 2
+      },
+      {
+        "type": "NOSTRO_JUSTIFICATION",
+        "tier": 1
+      }
+    ]
+  },
+  "checks": [
+    "screening"
+  ],
+  "resolver": null,
+  "authority_domain": "LEGAL_PROHIBITION",
+  "action": "INVESTIGATION_HOLD",
+  "approval": {
+    "when_not_stp": "COMPLIANCE_THEN_RISK"
+  },
+  "decision": {
+    "target_field": "compliance_screening.fatf_clearance",
+    "options": [
+      "FATF_ECDD_VERIFIED_TRANSACTION",
+      "RETURN_PAYMENT",
+      "FILE_REGULATORY_REPORT"
+    ],
+    "reviewer_role": "COMPLIANCE_APPROVER"
+  }
+}

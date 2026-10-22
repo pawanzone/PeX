@@ -1,0 +1,41 @@
+{
+  "code": "ST-05",
+  "name": "SETTLEMENT_FAILURE",
+  "family": "SETTLEMENT_RETURNS",
+  "version": 1,
+  "outcome": "INVESTIGATION",
+  "stp": "NEVER",
+  "evidence": {
+    "mandatory": [
+      "RTGS_NACK_LOG",
+      "DIGITAL_SIGNATURE_PROOF"
+    ],
+    "min_confidence": 0.92,
+    "required": [
+      {
+        "type": "RTGS_NACK_LOG",
+        "tier": 1
+      },
+      {
+        "type": "DIGITAL_SIGNATURE_PROOF",
+        "tier": 2
+      }
+    ]
+  },
+  "checks": [],
+  "resolver": null,
+  "authority_domain": "CLEARING_SETTLEMENT_STATUS",
+  "action": "INVESTIGATION_HOLD",
+  "approval": {
+    "when_not_stp": "SINGLE"
+  },
+  "decision": {
+    "target_field": "settlement_finality.action",
+    "options": [
+      "CONTINGENCY_CLEARING_WINDOW_DISPATCH",
+      "RECALL_AND_RETURN",
+      "ESCALATE_TO_SETTLEMENT_OPERATIONS"
+    ],
+    "reviewer_role": "OPERATIONS_APPROVER"
+  }
+}

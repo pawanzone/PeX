@@ -1,0 +1,33 @@
+{
+  "exception_id": "PEX-E2E-CO03-MISS",
+  "profile_id": "CO-03",
+  "domain": "COMPLIANCE",
+  "error_code": "ERR_PEP_MATCH",
+  "error_message": "Beneficiary director matched against PEP registry.",
+  "payment_info": {
+    "payment_id": "PMT-2026-CO03-001",
+    "uetr": "UETR-CO03-MISS-0001-A1",
+    "amount": 5500.0,
+    "currency": "GBP",
+    "clearing_rail": "CHAPS",
+    "value_date": "2026-10-08",
+    "debtor_name": "Apex Global Treasury",
+    "debtor_account": "GB82WEST12345612345678",
+    "debtor_agent_bic": "MIDLGB22XXX",
+    "creditor_name": "ACME INDUSTRIAL SUPPLIES LTD",
+    "creditor_account": "12345678",
+    "creditor_agent_bic": "MIDLGB22XXX",
+    "remittance_info": "INVOICE ACME-OCT-2026"
+  },
+  "bank_supplied_evidence": {
+    "pep_registry": {
+      "match_type": "FAMILY_MEMBER",
+      "tier": 3,
+      "current_office": false
+    }
+  },
+  "external_authoritative_evidence": {},
+  "derived_evidence": {},
+  "evidence_provenance": "SYNTHETIC_TEST_FIXTURE",
+  "test_status": "TEST_ONLY"
+}

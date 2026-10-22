@@ -41,7 +41,8 @@ def test_decision_support_pack_without_resolver_is_valid():
     p = ProfilePack(**pack(code="CO-01", name="SANCTIONS_SUSPECTED", family="COMPLIANCE", outcome="DECISION_SUPPORT",
                            stp="NEVER", resolver=None, checks=["screening"],
                            authority_domain="LEGAL_PROHIBITION", action="INVESTIGATION_HOLD",
-                           approval={"when_not_stp": "COMPLIANCE_THEN_RISK"}))
+                           approval={"when_not_stp": "COMPLIANCE_THEN_RISK"},
+                           decision={"target_field": "x.y", "options": ["A", "B"], "reviewer_role": "COMPLIANCE_APPROVER"}))
     assert p.resolver is None
 
 
@@ -166,7 +167,7 @@ def test_all_goldens_reproduce_with_every_pack_on(monkeypatch):
 def test_every_pack_has_a_valid_authority_domain_and_a_registered_resolver():
     from app.schemas.contracts.authority_schemas import QuestionDomain
     packs = registry.load_packs()
-    assert len(packs) >= 28
+    assert len(packs) >= 37
     for code, p in packs.items():
         assert p.authority_domain in QuestionDomain.__members__, code
         if p.resolver:
