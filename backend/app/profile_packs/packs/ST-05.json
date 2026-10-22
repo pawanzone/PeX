@@ -6,10 +6,6 @@
   "outcome": "INVESTIGATION",
   "stp": "NEVER",
   "evidence": {
-    "mandatory": [
-      "RTGS_NACK_LOG",
-      "DIGITAL_SIGNATURE_PROOF"
-    ],
     "min_confidence": 0.92,
     "required": [
       {

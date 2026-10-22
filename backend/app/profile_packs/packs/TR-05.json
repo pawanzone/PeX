@@ -6,11 +6,22 @@
   "outcome": "REPAIR",
   "stp": "ALLOWED",
   "evidence": {
-    "mandatory": [
-      "MANDATE_MATRIX",
-      "SIGNATURE_VAULT"
-    ],
-    "min_confidence": 0.9
+    "min_confidence": 0.9,
+    "required": [
+      {
+        "type": "CORPORATE_MANDATE_RECORD",
+        "tier": 1
+      },
+      {
+        "type": "SECONDARY_SIGNATORY_RECORD",
+        "tier": 1
+      },
+      {
+        "type": "PORTAL_CALLBACK_RECORD",
+        "tier": 1,
+        "mandatory": false
+      }
+    ]
   },
   "checks": [],
   "resolver": "tr05_authorization_missing",

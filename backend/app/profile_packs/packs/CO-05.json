@@ -6,10 +6,6 @@
   "outcome": "DECISION_SUPPORT",
   "stp": "NEVER",
   "evidence": {
-    "mandatory": [
-      "ADVERSE_MEDIA_REPORT",
-      "LEGAL_STATUS_CHECK"
-    ],
     "min_confidence": 0.88,
     "required": [
       {

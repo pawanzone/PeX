@@ -253,6 +253,7 @@ def policies() -> Dict[str, Any]:
 def exception_types() -> Dict[str, Any]:
     c2e, _ = _maps()
     from app.services.profile_engine import PROFILE_SPECS
+    from app.services.v2.core import pack_mandatory_evidence
     counts: Dict[str, int] = {}
     for c in repo._case_cache.values():
         if lg.status_of(c) not in lg.DONE:
@@ -270,6 +271,6 @@ def exception_types() -> Dict[str, Any]:
         elif dom == "SETTLEMENT_RETURNS":
             ok, note = False, "Returns and recalls need investigator review."
         items.append({"code": code, "label": SHORT_LABELS.get(enum.value, enum.value), "title": spec.get("title"), "domain": dom, "queue": spec.get("default_queue"),
-                      "stp_permissible": ok, "stp_note": note, "mandatory_evidence": spec.get("mandatory_evidence", []), "open_cases": counts.get(code, 0)})
+                      "stp_permissible": ok, "stp_note": note, "mandatory_evidence": (pack_mandatory_evidence(code) if pack_mandatory_evidence(code) is not None else spec.get("mandatory_evidence", [])), "open_cases": counts.get(code, 0)})
     items.sort(key=lambda i: i["code"])
     return {"total": len(items), "items": items}

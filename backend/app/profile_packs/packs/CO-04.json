@@ -6,11 +6,17 @@
   "outcome": "REPAIR",
   "stp": "ALLOWED",
   "evidence": {
-    "mandatory": [
-      "GEOPOLITICAL_REGISTRY",
-      "OFAC_LICENSE_DB"
-    ],
-    "min_confidence": 0.98
+    "min_confidence": 0.98,
+    "required": [
+      {
+        "type": "SANCTIONS_WATCHLIST",
+        "tier": 2
+      },
+      {
+        "type": "CORRIDOR_POLICY_MATRIX",
+        "tier": 2
+      }
+    ]
   },
   "checks": [],
   "resolver": "co04_restricted_corridor",

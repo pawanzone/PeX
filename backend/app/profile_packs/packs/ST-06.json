@@ -6,11 +6,17 @@
   "outcome": "REPAIR",
   "stp": "POLICY_GATED",
   "evidence": {
-    "mandatory": [
-      "CAMT027_CLAIM",
-      "INTERMEDIARY_CORRESPONDENCE"
-    ],
-    "min_confidence": 0.9
+    "min_confidence": 0.9,
+    "required": [
+      {
+        "type": "TRACKER_HOP_RECORD",
+        "tier": 1
+      },
+      {
+        "type": "DEBIT_CONFIRMATION_RECORD",
+        "tier": 1
+      }
+    ]
   },
   "checks": [],
   "resolver": "st06_funds_trapped_at_correspondent",

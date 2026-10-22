@@ -6,11 +6,21 @@
   "outcome": "DECISION_SUPPORT",
   "stp": "NEVER",
   "evidence": {
-    "mandatory": [
-      "CREDIT_LINE_REGISTRY",
-      "COLLATERAL_MARGIN"
-    ],
-    "min_confidence": 0.92
+    "min_confidence": 0.92,
+    "required": [
+      {
+        "type": "COUNTERPARTY_EXPOSURE_RECORD",
+        "tier": 1
+      },
+      {
+        "type": "CREDIT_FACILITY_AGREEMENT",
+        "tier": 1
+      },
+      {
+        "type": "ENTERPRISE_RISK_RATING",
+        "tier": 1
+      }
+    ]
   },
   "checks": [],
   "resolver": "tr08_credit_exposure_breach",

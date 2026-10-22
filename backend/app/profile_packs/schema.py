@@ -27,16 +27,23 @@ class RequiredEvidence(BaseModel):
     model_config = ConfigDict(extra="forbid")
     type: str
     tier: int = Field(ge=1, le=4)
+    mandatory: bool = True   # False = asked for when available, never blocks
 
 
 class EvidenceSpec(BaseModel):
-    """Declared evidence. For now this mirrors the legacy profile spec (a test keeps them equal)."""
+    """The single source of the evidence a profile asks for (types, trust tiers, order). A bank's published
+    configuration may override it; with nothing published this is what runs."""
     model_config = ConfigDict(extra="forbid")
-    mandatory: List[str] = Field(default_factory=list)
-    # What the engine actually requires when no tenant config is published. Empty = the legacy fallback map still
-    # decides (28 older packs, to be migrated).
     required: List[RequiredEvidence] = Field(default_factory=list)
     min_confidence: Optional[float] = Field(default=None, ge=0, le=1)
+
+    @property
+    def mandatory_types(self) -> List[str]:
+        return [e.type for e in self.required if e.mandatory]
+
+    @property
+    def optional_types(self) -> List[str]:
+        return [e.type for e in self.required if not e.mandatory]
 
 
 class ApprovalSpec(BaseModel):

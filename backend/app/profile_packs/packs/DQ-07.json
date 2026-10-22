@@ -6,11 +6,17 @@
   "outcome": "REPAIR",
   "stp": "ALLOWED",
   "evidence": {
-    "mandatory": [
-      "NATIONAL_CLEARING_MODULUS",
-      "ACCOUNT_DIRECTORY"
-    ],
-    "min_confidence": 0.88
+    "min_confidence": 0.88,
+    "required": [
+      {
+        "type": "CORE_DDA_MASTER",
+        "tier": 1
+      },
+      {
+        "type": "ACCOUNT_STRUCTURE_RULES",
+        "tier": 2
+      }
+    ]
   },
   "checks": [],
   "resolver": "dq07_invalid_account_number",

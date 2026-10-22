@@ -6,10 +6,6 @@
   "outcome": "DECISION_SUPPORT",
   "stp": "NEVER",
   "evidence": {
-    "mandatory": [
-      "FATF_INDEX",
-      "NOSTRO_JUSTIFICATION"
-    ],
     "min_confidence": 0.9,
     "required": [
       {

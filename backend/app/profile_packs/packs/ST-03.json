@@ -6,11 +6,25 @@
   "outcome": "REPAIR",
   "stp": "ALLOWED",
   "evidence": {
-    "mandatory": [
-      "AC06_LEGAL_BLOCK",
-      "REVERSAL_LEDGER"
-    ],
-    "min_confidence": 0.95
+    "min_confidence": 0.95,
+    "required": [
+      {
+        "type": "CORE_ACCOUNT_RESTRICTION_FLAG",
+        "tier": 1
+      },
+      {
+        "type": "LEGAL_FREEZE_DOSSIER",
+        "tier": 1
+      },
+      {
+        "type": "INWARD_PAYMENT_RECORD",
+        "tier": 1
+      },
+      {
+        "type": "SUSPENSE_LEDGER_MATRIX",
+        "tier": 1
+      }
+    ]
   },
   "checks": [],
   "resolver": "st03_beneficiary_account_frozen",

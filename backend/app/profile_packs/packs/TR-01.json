@@ -6,11 +6,17 @@
   "outcome": "REPAIR",
   "stp": "ALLOWED",
   "evidence": {
-    "mandatory": [
-      "KYC_RECORD",
-      "BENEFICIAL_OWNERSHIP"
-    ],
-    "min_confidence": 0.9
+    "min_confidence": 0.9,
+    "required": [
+      {
+        "type": "CUSTOMER_KYC_RECORD",
+        "tier": 1
+      },
+      {
+        "type": "CORPORATE_STANDING_RECORD",
+        "tier": 1
+      }
+    ]
   },
   "checks": [],
   "resolver": "tr01_kyc_expired",

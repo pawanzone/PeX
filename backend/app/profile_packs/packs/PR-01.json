@@ -6,11 +6,17 @@
   "outcome": "REPAIR",
   "stp": "ALLOWED",
   "evidence": {
-    "mandatory": [
-      "PAYMENT_LEDGER",
-      "SETTLEMENT_HISTORY"
-    ],
-    "min_confidence": 0.95
+    "min_confidence": 0.95,
+    "required": [
+      {
+        "type": "HISTORICAL_PAYMENT_JOURNAL",
+        "tier": 1
+      },
+      {
+        "type": "SETTLEMENT_LEDGER",
+        "tier": 1
+      }
+    ]
   },
   "checks": [],
   "resolver": "pr01_duplicate_payment",

@@ -6,11 +6,17 @@
   "outcome": "REPAIR",
   "stp": "ALLOWED",
   "evidence": {
-    "mandatory": [
-      "TRANSIT_DIRECTORY",
-      "CENTRAL_BANK_ROUTING"
-    ],
-    "min_confidence": 0.9
+    "min_confidence": 0.9,
+    "required": [
+      {
+        "type": "FEDLINE_ROUTING_DIRECTORY",
+        "tier": 2
+      },
+      {
+        "type": "ROUTING_SYNTAX_MASTER",
+        "tier": 2
+      }
+    ]
   },
   "checks": [],
   "resolver": "dq08_invalid_routing_code",

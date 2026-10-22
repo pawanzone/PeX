@@ -6,11 +6,17 @@
   "outcome": "REPAIR",
   "stp": "ALLOWED",
   "evidence": {
-    "mandatory": [
-      "COP_RECORD",
-      "COMPANY_REGISTRY"
-    ],
-    "min_confidence": 0.85
+    "min_confidence": 0.85,
+    "required": [
+      {
+        "type": "CORE_ACCOUNT_TITLE",
+        "tier": 1
+      },
+      {
+        "type": "VERIFICATION_OF_PAYEE_CONFIRMATION",
+        "tier": 2
+      }
+    ]
   },
   "checks": [],
   "resolver": "dq09_beneficiary_name_mismatch",

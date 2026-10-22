@@ -6,10 +6,6 @@
   "outcome": "INVESTIGATION",
   "stp": "NEVER",
   "evidence": {
-    "mandatory": [
-      "CUSTOMER_NAME_VARIATION",
-      "SUSPENSE_CREDIT_ENTRY"
-    ],
     "min_confidence": 0.88,
     "required": [
       {

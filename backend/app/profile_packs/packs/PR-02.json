@@ -6,11 +6,17 @@
   "outcome": "REPAIR",
   "stp": "ALLOWED",
   "evidence": {
-    "mandatory": [
-      "CORRESPONDENT_TABLE",
-      "NOSTRO_DIRECTORY"
-    ],
-    "min_confidence": 0.9
+    "min_confidence": 0.9,
+    "required": [
+      {
+        "type": "ROUTING_DIRECTORY_AUTHORITY",
+        "tier": 2
+      },
+      {
+        "type": "BANK_DESIGNATED_SSI",
+        "tier": 1
+      }
+    ]
   },
   "checks": [],
   "resolver": "pr02_routing_failure",

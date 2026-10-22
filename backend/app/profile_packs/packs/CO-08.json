@@ -6,10 +6,6 @@
   "outcome": "DECISION_SUPPORT",
   "stp": "NEVER",
   "evidence": {
-    "mandatory": [
-      "INTERNAL_BLACKLIST",
-      "EXIT_MEMO"
-    ],
     "min_confidence": 0.95,
     "required": [
       {

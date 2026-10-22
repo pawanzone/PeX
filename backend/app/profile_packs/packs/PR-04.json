@@ -6,11 +6,21 @@
   "outcome": "REPAIR",
   "stp": "ALLOWED",
   "evidence": {
-    "mandatory": [
-      "RAIL_CUTOFF_SCHEDULE",
-      "TIME_STAMP_AUDIT"
-    ],
-    "min_confidence": 0.95
+    "min_confidence": 0.95,
+    "required": [
+      {
+        "type": "RAIL_OPERATING_CALENDAR",
+        "tier": 2
+      },
+      {
+        "type": "RAIL_CUTOFF_SCHEDULE",
+        "tier": 2
+      },
+      {
+        "type": "BANK_CUTOFF_POLICY",
+        "tier": 2
+      }
+    ]
   },
   "checks": [],
   "resolver": "pr04_cutoff_missed",

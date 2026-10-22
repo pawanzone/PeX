@@ -6,10 +6,6 @@
   "outcome": "DECISION_SUPPORT",
   "stp": "NEVER",
   "evidence": {
-    "mandatory": [
-      "VELOCITY_INDEX",
-      "SOURCE_OF_WEALTH"
-    ],
     "min_confidence": 0.9,
     "required": [
       {

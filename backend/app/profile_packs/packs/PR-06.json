@@ -6,11 +6,25 @@
   "outcome": "REPAIR",
   "stp": "ALLOWED",
   "evidence": {
-    "mandatory": [
-      "PACS002_NACK_RECORD",
-      "INTERMEDIARY_CONTRACT"
-    ],
-    "min_confidence": 0.9
+    "min_confidence": 0.9,
+    "required": [
+      {
+        "type": "INWARD_REJECTION_ADVICE",
+        "tier": 1
+      },
+      {
+        "type": "OUTBOUND_PAYMENT_RECORD",
+        "tier": 1
+      },
+      {
+        "type": "CORRESPONDENT_SSI_DIRECTORY",
+        "tier": 2
+      },
+      {
+        "type": "RAIL_CUTOFF_SCHEDULE",
+        "tier": 2
+      }
+    ]
   },
   "checks": [],
   "resolver": "pr06_intermediary_bank_rejection",

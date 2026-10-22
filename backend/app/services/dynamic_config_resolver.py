@@ -107,36 +107,19 @@ class DynamicEvidenceConfigResolver:
 
     def _create_canonical_fallback(self, tenant_id: str, profile_id: str) -> BankEvidenceRequiredConfig:
         """Generates canonical baseline configuration if none is explicitly published."""
-        fallback_mandatory_map = {
-            # Phase 2 Profiles
-            "DQ-01": [("CORE_DDA_ACCOUNT", TrustTier.TIER_1_CORE_RECORD), ("ROUTING_DIRECTORY", TrustTier.TIER_2_REGULATORY_SCHEME)],
-            "DQ-08": [("FEDLINE_ROUTING_DIRECTORY", TrustTier.TIER_2_REGULATORY_SCHEME), ("ROUTING_SYNTAX_MASTER", TrustTier.TIER_2_REGULATORY_SCHEME)],
-            "PR-01": [("HISTORICAL_PAYMENT_JOURNAL", TrustTier.TIER_1_CORE_RECORD), ("SETTLEMENT_LEDGER", TrustTier.TIER_1_CORE_RECORD)],
-            "PR-08": [("STREAMING_BROKER_JOURNAL", TrustTier.TIER_1_CORE_RECORD), ("DLQ_RECORD", TrustTier.TIER_1_CORE_RECORD)],
-            "ST-01": [("INWARD_PACS004_RETURN", TrustTier.TIER_1_CORE_RECORD), ("ORIGINAL_DEBIT_RECORD", TrustTier.TIER_1_CORE_RECORD)],
-            "CO-04": [("SANCTIONS_WATCHLIST", TrustTier.TIER_2_REGULATORY_SCHEME), ("CORRIDOR_POLICY_MATRIX", TrustTier.TIER_2_REGULATORY_SCHEME)],
-            # Wave 1 Profiles
-            "DQ-03": [("CLIENT_MASTER_RECORD", TrustTier.TIER_1_CORE_RECORD), ("ACCOUNT_STATEMENT", TrustTier.TIER_1_CORE_RECORD)],
-            "DQ-04": [("INVOICE_BILLING_RECORD", TrustTier.TIER_1_CORE_RECORD), ("PURCHASE_ORDER_DOC", TrustTier.TIER_2_REGULATORY_SCHEME)],
-            "DQ-07": [("CORE_DDA_MASTER", TrustTier.TIER_1_CORE_RECORD), ("ACCOUNT_STRUCTURE_RULES", TrustTier.TIER_2_REGULATORY_SCHEME)],
-            "DQ-09": [("CORE_ACCOUNT_TITLE", TrustTier.TIER_1_CORE_RECORD), ("VERIFICATION_OF_PAYEE_CONFIRMATION", TrustTier.TIER_2_REGULATORY_SCHEME)],
-            "PR-02": [("ROUTING_DIRECTORY_AUTHORITY", TrustTier.TIER_2_REGULATORY_SCHEME), ("BANK_DESIGNATED_SSI", TrustTier.TIER_1_CORE_RECORD)],
-            "PR-04": [("RAIL_OPERATING_CALENDAR", TrustTier.TIER_2_REGULATORY_SCHEME), ("RAIL_CUTOFF_SCHEDULE", TrustTier.TIER_2_REGULATORY_SCHEME)],
-            "PR-07": [("GATEWAY_SOCKET_STATE", TrustTier.TIER_1_CORE_RECORD), ("IDEMPOTENCY_LEDGER_LOCK", TrustTier.TIER_1_CORE_RECORD)],
-            "PR-09": [("PAYMENT_HUB_REPAIR_QUEUE", TrustTier.TIER_1_CORE_RECORD), ("SYNTAX_ERROR_SPECIFICATION", TrustTier.TIER_2_REGULATORY_SCHEME)],
-            "CO-07": [("REGULATORY_PURPOSE_DIRECTORY", TrustTier.TIER_2_REGULATORY_SCHEME), ("CENTRAL_BANK_BOP_CODES", TrustTier.TIER_2_REGULATORY_SCHEME)],
-        }
-        # Profile packs own the evidence of newer profiles; the map above still decides for the older ones.
+        # Profile packs own the evidence of every profile; unknown profiles get the core account record only.
         from app.profile_packs import registry as _packs
         _pk = _packs.get_pack(profile_id) if _packs.is_enabled(profile_id) else None
-        _pack_pairs = [(r.type, TrustTier(r.tier)) for r in _pk.evidence.required] if _pk and _pk.evidence.required else None
-        pairs = fallback_mandatory_map.get(profile_id) or _pack_pairs or [("CORE_DDA_ACCOUNT", TrustTier.TIER_1_CORE_RECORD)]
-        
+        if _pk and _pk.evidence.required:
+            triples = [(r.type, TrustTier(r.tier), r.mandatory) for r in _pk.evidence.required]
+        else:
+            triples = [("CORE_DDA_ACCOUNT", TrustTier.TIER_1_CORE_RECORD, True)]
+
         rules = [
             EvidenceRuleDefinition(
                 rule_id=f"RULE-{profile_id}-{i+1:02d}",
                 evidence_type=ev_type,
-                mandatory=True,
+                mandatory=mandatory,
                 min_trust_tier=tier,
                 condition_expression=None,
                 acquisition_modes=[
@@ -147,7 +130,7 @@ class DynamicEvidenceConfigResolver:
                 freshness_ttl_seconds=86400,
                 description=f"Standard mandatory baseline for {ev_type}"
             )
-            for i, (ev_type, tier) in enumerate(pairs)
+            for i, (ev_type, tier, mandatory) in enumerate(triples)
         ]
 
         return BankEvidenceRequiredConfig(

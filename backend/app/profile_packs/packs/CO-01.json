@@ -6,10 +6,6 @@
   "outcome": "DECISION_SUPPORT",
   "stp": "NEVER",
   "evidence": {
-    "mandatory": [
-      "SCREENING_RECORD",
-      "WATCHLIST_MATCH"
-    ],
     "min_confidence": 0.98,
     "required": [
       {

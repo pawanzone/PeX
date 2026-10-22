@@ -181,7 +181,17 @@ def profile_spec(profile: Any) -> Dict[str, Any]:
     c2e, _ = _maps()
     code = profile_code(profile)
     enum = c2e.get(code)
-    return PROFILE_SPECS.get(enum, {}) if enum else {}
+    spec = PROFILE_SPECS.get(enum, {}) if enum else {}
+    types = pack_mandatory_evidence(code)
+    # The profile pack is the source of the evidence a profile asks for; the legacy spec only supplies the rest.
+    return {**spec, "mandatory_evidence": types} if types is not None else spec
+
+
+def pack_mandatory_evidence(code: str):
+    """Mandatory evidence types declared by the profile's pack, or None when the profile has no pack."""
+    from app.profile_packs import registry
+    pk = registry.get_pack(code) if registry.is_enabled(code) else None
+    return pk.evidence.mandatory_types if pk and pk.evidence.required else None
 
 
 def domain_of(case: Dict[str, Any]) -> str:

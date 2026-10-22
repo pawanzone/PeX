@@ -6,11 +6,17 @@
   "outcome": "REPAIR",
   "stp": "ALLOWED",
   "evidence": {
-    "mandatory": [
-      "BROKER_DLQ_METADATA",
-      "TRANSACTION_STATE"
-    ],
-    "min_confidence": 0.95
+    "min_confidence": 0.95,
+    "required": [
+      {
+        "type": "STREAMING_BROKER_JOURNAL",
+        "tier": 1
+      },
+      {
+        "type": "DLQ_RECORD",
+        "tier": 1
+      }
+    ]
   },
   "checks": [],
   "resolver": "pr08_queue_processing_failure",

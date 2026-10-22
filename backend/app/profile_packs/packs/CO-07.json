@@ -6,11 +6,21 @@
   "outcome": "REPAIR",
   "stp": "ALLOWED",
   "evidence": {
-    "mandatory": [
-      "CUSTOMS_DECLARATION",
-      "TRADE_CONTRACT"
-    ],
-    "min_confidence": 0.92
+    "min_confidence": 0.92,
+    "required": [
+      {
+        "type": "REGULATORY_PURPOSE_DIRECTORY",
+        "tier": 2
+      },
+      {
+        "type": "CENTRAL_BANK_BOP_CODES",
+        "tier": 2
+      },
+      {
+        "type": "STATUTORY_REPORTING_RULE",
+        "tier": 2
+      }
+    ]
   },
   "checks": [],
   "resolver": "co07_regulatory_reporting_required",

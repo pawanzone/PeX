@@ -20,7 +20,7 @@ def test_pack_declares_a_human_decision(code):
     assert p.stp.value == "NEVER"
     assert p.outcome.value in ("DECISION_SUPPORT", "INVESTIGATION")
     assert p.resolver is None and p.decision is not None
-    assert [r.type for r in p.evidence.required] == p.evidence.mandatory   # what runs equals what is declared
+    assert p.evidence.mandatory_types   # what runs is what is declared (see test_evidence_single_source)
     assert len(p.decision.options) >= 3 and p.decision.target_field
     assert p.decision.reviewer_role == ("COMPLIANCE_APPROVER" if code in COMPLIANCE else "OPERATIONS_APPROVER")
 

@@ -6,11 +6,21 @@
   "outcome": "REPAIR",
   "stp": "ALLOWED",
   "evidence": {
-    "mandatory": [
-      "FX_RATE_FEED",
-      "QUOTE_TOLERANCE_BAND"
-    ],
-    "min_confidence": 0.92
+    "min_confidence": 0.92,
+    "required": [
+      {
+        "type": "OFFICIAL_FX_RATE_FEED",
+        "tier": 2
+      },
+      {
+        "type": "FX_SPREAD_POLICY_MATRIX",
+        "tier": 1
+      },
+      {
+        "type": "INWARD_PAYMENT_RECORD",
+        "tier": 1
+      }
+    ]
   },
   "checks": [],
   "resolver": "tr04_fx_rate_unavailable",

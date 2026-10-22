@@ -6,11 +6,18 @@
   "outcome": "REPAIR",
   "stp": "ALLOWED",
   "evidence": {
-    "mandatory": [
-      "BENEFICIARY_PROFILE",
-      "CLIENT_VAULT"
-    ],
-    "min_confidence": 0.88
+    "min_confidence": 0.88,
+    "required": [
+      {
+        "type": "CLIENT_MASTER_RECORD",
+        "tier": 1
+      },
+      {
+        "type": "ACCOUNT_STATEMENT",
+        "tier": 1,
+        "mandatory": false
+      }
+    ]
   },
   "checks": [],
   "resolver": "dq03_missing_beneficiary",

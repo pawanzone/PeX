@@ -6,11 +6,17 @@
   "outcome": "REPAIR",
   "stp": "ALLOWED",
   "evidence": {
-    "mandatory": [
-      "CORE_BANKING_FLAG",
-      "OPERATIONS_NOTE"
-    ],
-    "min_confidence": 0.88
+    "min_confidence": 0.88,
+    "required": [
+      {
+        "type": "PAYMENT_HUB_REPAIR_QUEUE",
+        "tier": 1
+      },
+      {
+        "type": "SYNTAX_ERROR_SPECIFICATION",
+        "tier": 2
+      }
+    ]
   },
   "checks": [],
   "resolver": "pr09_payment_held_for_repair",

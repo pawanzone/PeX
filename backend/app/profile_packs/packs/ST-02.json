@@ -6,11 +6,21 @@
   "outcome": "REPAIR",
   "stp": "ALLOWED",
   "evidence": {
-    "mandatory": [
-      "AC04_RETURN_RECORD",
-      "DEBTOR_ESCROW"
-    ],
-    "min_confidence": 0.95
+    "min_confidence": 0.95,
+    "required": [
+      {
+        "type": "CORE_DDA_ACCOUNT_STATUS",
+        "tier": 1
+      },
+      {
+        "type": "INWARD_PAYMENT_RECORD",
+        "tier": 1
+      },
+      {
+        "type": "CLEARING_RETURN_SCHEDULE",
+        "tier": 2
+      }
+    ]
   },
   "checks": [],
   "resolver": "st02_account_closed",

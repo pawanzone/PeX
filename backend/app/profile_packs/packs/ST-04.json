@@ -6,10 +6,6 @@
   "outcome": "INVESTIGATION",
   "stp": "NEVER",
   "evidence": {
-    "mandatory": [
-      "CAMT053_STATEMENT",
-      "SUBLEDGER_RECORD"
-    ],
     "min_confidence": 0.92,
     "required": [
       {

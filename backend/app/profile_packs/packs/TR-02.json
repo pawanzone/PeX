@@ -6,11 +6,22 @@
   "outcome": "REPAIR",
   "stp": "ALLOWED",
   "evidence": {
-    "mandatory": [
-      "DDA_LEDGER_BALANCE",
-      "DAYLIGHT_FACILITY"
-    ],
-    "min_confidence": 0.95
+    "min_confidence": 0.95,
+    "required": [
+      {
+        "type": "CORE_DDA_BALANCE_RECORD",
+        "tier": 1
+      },
+      {
+        "type": "INTRADAY_RESERVATION_SCHEDULE",
+        "tier": 1
+      },
+      {
+        "type": "CLEARING_PENDING_CREDITS",
+        "tier": 2,
+        "mandatory": false
+      }
+    ]
   },
   "checks": [],
   "resolver": "tr02_insufficient_funds",

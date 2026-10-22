@@ -6,10 +6,6 @@
   "outcome": "DECISION_SUPPORT",
   "stp": "NEVER",
   "evidence": {
-    "mandatory": [
-      "PEP_REGISTRY",
-      "EDD_CERTIFICATE"
-    ],
     "min_confidence": 0.92,
     "required": [
       {

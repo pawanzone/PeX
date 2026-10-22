@@ -9,7 +9,7 @@ from app.profile_packs.schema import ProfilePack, ResolutionResult, ResolutionCo
 BASE = {
     "code": "DQ-03", "name": "MISSING_BENEFICIARY_DATA", "family": "DATA_QUALITY", "version": 1,
     "outcome": "REPAIR", "stp": "ALLOWED",
-    "evidence": {"mandatory": ["BENEFICIARY_PROFILE", "CLIENT_VAULT"], "min_confidence": 0.88},
+    "evidence": {"required": [{"type": "BENEFICIARY_PROFILE", "tier": 1}, {"type": "CLIENT_VAULT", "tier": 1}], "min_confidence": 0.88},
     "checks": ["directory", "core"], "resolver": "dq03_missing_beneficiary",
     "authority_domain": "ACCOUNT_OWNERSHIP_BALANCE", "action": "REPAIR_AND_RELEASE",
     "approval": {"when_not_stp": "MAKER_CHECKER"},
@@ -114,12 +114,11 @@ def test_resolve_if_enabled_returns_none_when_flag_off(monkeypatch):
 
 
 # ---- consistency with the legacy profile spec (until that spec is generated from packs) -------
-def test_pack_evidence_matches_legacy_profile_spec():
+def test_pack_matches_legacy_profile_spec_except_evidence():
     from app.services.profile_engine import PROFILE_SPECS
     from app.services.file_watcher import PROFILE_CODE_TO_ENUM
     for code, p in registry.load_packs().items():
         spec = PROFILE_SPECS[PROFILE_CODE_TO_ENUM[code]]
-        assert p.evidence.mandatory == spec["mandatory_evidence"], code
         assert p.evidence.min_confidence == spec["min_confidence"], code
         assert p.name == PROFILE_CODE_TO_ENUM[code].name, code
 

@@ -6,11 +6,17 @@
   "outcome": "REPAIR",
   "stp": "ALLOWED",
   "evidence": {
-    "mandatory": [
-      "RETURN_REASON_CODE",
-      "ORIGINAL_PAYMENT"
-    ],
-    "min_confidence": 0.9
+    "min_confidence": 0.9,
+    "required": [
+      {
+        "type": "INWARD_PACS004_RETURN",
+        "tier": 1
+      },
+      {
+        "type": "ORIGINAL_DEBIT_RECORD",
+        "tier": 1
+      }
+    ]
   },
   "checks": [],
   "resolver": "st01_returned_payment",

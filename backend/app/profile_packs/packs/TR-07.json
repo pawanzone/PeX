@@ -6,11 +6,22 @@
   "outcome": "REPAIR",
   "stp": "ALLOWED",
   "evidence": {
-    "mandatory": [
-      "CENTRAL_BANK_BUFFER",
-      "NETTING_SCHEDULE"
-    ],
-    "min_confidence": 0.94
+    "min_confidence": 0.94,
+    "required": [
+      {
+        "type": "CLEARING_LIQUIDITY_RESERVE",
+        "tier": 1
+      },
+      {
+        "type": "SETTLEMENT_QUEUE_STATUS",
+        "tier": 2
+      },
+      {
+        "type": "PACING_RETRY_POLICY",
+        "tier": 1,
+        "mandatory": false
+      }
+    ]
   },
   "checks": [],
   "resolver": "tr07_liquidity_constraint",

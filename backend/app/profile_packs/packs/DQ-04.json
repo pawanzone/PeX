@@ -6,11 +6,18 @@
   "outcome": "REPAIR",
   "stp": "ALLOWED",
   "evidence": {
-    "mandatory": [
-      "COMMERCIAL_INVOICE",
-      "PURCHASE_ORDER"
-    ],
-    "min_confidence": 0.85
+    "min_confidence": 0.85,
+    "required": [
+      {
+        "type": "INVOICE_BILLING_RECORD",
+        "tier": 1
+      },
+      {
+        "type": "PURCHASE_ORDER_DOC",
+        "tier": 2,
+        "mandatory": false
+      }
+    ]
   },
   "checks": [],
   "resolver": "dq04_missing_remittance_info",

@@ -6,11 +6,18 @@
   "outcome": "REPAIR",
   "stp": "POLICY_GATED",
   "evidence": {
-    "mandatory": [
-      "ADDRESS_SCHEMA",
-      "GEODATA_VAULT"
-    ],
-    "min_confidence": 0.9
+    "min_confidence": 0.9,
+    "required": [
+      {
+        "type": "CREDITOR_POSTAL_ADDRESS",
+        "tier": 3
+      },
+      {
+        "type": "CORE_ADDRESS_MASTER",
+        "tier": 1,
+        "mandatory": false
+      }
+    ]
   },
   "checks": [],
   "resolver": "dq05_invalid_address_format",

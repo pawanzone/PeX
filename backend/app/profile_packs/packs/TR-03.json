@@ -6,11 +6,22 @@
   "outcome": "REPAIR",
   "stp": "ALLOWED",
   "evidence": {
-    "mandatory": [
-      "NOSTRO_POSITION",
-      "INTRADAY_SWEEP_POOL"
-    ],
-    "min_confidence": 0.95
+    "min_confidence": 0.95,
+    "required": [
+      {
+        "type": "NOSTRO_POSITION_STATEMENT",
+        "tier": 1
+      },
+      {
+        "type": "PENDING_CORRESPONDENT_CREDITS",
+        "tier": 2
+      },
+      {
+        "type": "INTERBANK_SWEEP_FACILITY",
+        "tier": 1,
+        "mandatory": false
+      }
+    ]
   },
   "checks": [],
   "resolver": "tr03_nostro_shortfall",

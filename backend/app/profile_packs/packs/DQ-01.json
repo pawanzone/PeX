@@ -6,11 +6,17 @@
   "outcome": "REPAIR",
   "stp": "ALLOWED",
   "evidence": {
-    "mandatory": [
-      "BENEFICIARY_PROFILE",
-      "ACCOUNT_DIRECTORY"
-    ],
-    "min_confidence": 0.85
+    "min_confidence": 0.85,
+    "required": [
+      {
+        "type": "CORE_DDA_ACCOUNT",
+        "tier": 1
+      },
+      {
+        "type": "ROUTING_DIRECTORY",
+        "tier": 2
+      }
+    ]
   },
   "checks": [],
   "resolver": "dq01_invalid_iban",
