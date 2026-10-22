@@ -1,0 +1,5358 @@
+{
+ "eur/cbpr_dq05_de_ambiguous_postcode": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "DQ-05",
+  "domain": "DATA_QUALITY",
+  "errors": [
+   "Resolution is ambiguous with multiple candidate matches."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "CREDITOR_POSTAL_ADDRESS"
+  ],
+  "exception_id": "PEX-EUR-CBPR-DQ05-DE-AMBIGUOUS-POSTCODE",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": true,
+   "r_uniq": false,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [
+   {
+    "field_path": "creditor.postal_address",
+    "original_value": "<PstlAdr><AdrLine>Bahnhofstrasse 42</AdrLine><AdrLine>60329 / 60311 Frankfurt</AdrLine><Ctry>DE</Ctry></PstlAdr>",
+    "repaired_value": {
+     "address_lines": [],
+     "building_number": "42",
+     "country_code": "DE",
+     "post_code": "60329",
+     "street_name": "Bahnhofstrasse",
+     "town_name": "Frankfurt"
+    }
+   }
+  ],
+  "resolution_basis": "Ambiguous address interpretation: Multiple conflicting postal codes detected in address stream: {'60311', '60329'}",
+  "resolution_recommendation": {
+   "action": "STRUCTURE_POSTAL_ADDRESS",
+   "iso20022_xml": "<PstlAdr>\n  <StrtNm>Bahnhofstrasse</StrtNm>\n  <BldgNb>42</BldgNb>\n  <PstCd>60329</PstCd>\n  <TwnNm>Frankfurt</TwnNm>\n  <Ctry>DE</Ctry>\n</PstlAdr>",
+   "structured": {
+    "address_lines": [],
+    "building_number": "42",
+    "country_code": "DE",
+    "post_code": "60329",
+    "street_name": "Bahnhofstrasse",
+    "town_name": "Frankfurt"
+   }
+  },
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Resolution is ambiguous with multiple candidate matches.",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "eur/cbpr_dq05_de_unstructured": {
+  "ai_confidence_score": 0.98,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "DQ-05",
+  "domain": "DATA_QUALITY",
+  "errors": [],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "CREDITOR_POSTAL_ADDRESS"
+  ],
+  "exception_id": "PEX-EUR-CBPR-DQ05-DE-UNSTRUCTURED",
+  "execution_owner": "BANK",
+  "hitl_required": false,
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": true,
+   "r_uniq": true,
+   "stp_formula_result": true,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [
+   {
+    "field_path": "creditor.postal_address",
+    "original_value": "<PstlAdr><AdrLine>Bahnhofstrasse 42</AdrLine><AdrLine>60329 Frankfurt am Main</AdrLine><Ctry>DE</Ctry></PstlAdr>",
+    "repaired_value": {
+     "address_lines": [],
+     "building_number": "42",
+     "country_code": "DE",
+     "post_code": "60329",
+     "street_name": "Bahnhofstrasse",
+     "town_name": "Frankfurt"
+    }
+   }
+  ],
+  "resolution_basis": "Unstructured postal address converted to ISO 20022 / CBPR+ structured fields (Frankfurt, DE 60329); semantic invariants preserved.",
+  "resolution_recommendation": {
+   "action": "STRUCTURE_POSTAL_ADDRESS",
+   "iso20022_xml": "<PstlAdr>\n  <StrtNm>Bahnhofstrasse</StrtNm>\n  <BldgNb>42</BldgNb>\n  <PstCd>60329</PstCd>\n  <TwnNm>Frankfurt</TwnNm>\n  <Ctry>DE</Ctry>\n</PstlAdr>",
+   "structured": {
+    "address_lines": [],
+    "building_number": "42",
+    "country_code": "DE",
+    "post_code": "60329",
+    "street_name": "Bahnhofstrasse",
+    "town_name": "Frankfurt"
+   }
+  },
+  "resolution_status": "RESOLVED",
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff \u2227 R_det \u2227 R_uniq \u2227 V_det \u2227 V_auth \u2227 P_bank \u2227 C_comp \u2227 X_pre).",
+  "stp_eligible": true,
+  "warnings": []
+ },
+ "eur/cbpr_dq05_es_unstructured": {
+  "ai_confidence_score": 0.98,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "DQ-05",
+  "domain": "DATA_QUALITY",
+  "errors": [],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "CREDITOR_POSTAL_ADDRESS"
+  ],
+  "exception_id": "PEX-EUR-CBPR-DQ05-ES-UNSTRUCTURED",
+  "execution_owner": "BANK",
+  "hitl_required": false,
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": true,
+   "r_uniq": true,
+   "stp_formula_result": true,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [
+   {
+    "field_path": "creditor.postal_address",
+    "original_value": "<PstlAdr><AdrLine>Calle Mayor 5</AdrLine><AdrLine>28013 Madrid</AdrLine><Ctry>ES</Ctry></PstlAdr>",
+    "repaired_value": {
+     "address_lines": [],
+     "building_number": "5",
+     "country_code": "ES",
+     "post_code": "28013",
+     "street_name": "Calle Mayor",
+     "town_name": "Madrid"
+    }
+   }
+  ],
+  "resolution_basis": "Unstructured postal address converted to ISO 20022 / CBPR+ structured fields (Madrid, ES 28013); semantic invariants preserved.",
+  "resolution_recommendation": {
+   "action": "STRUCTURE_POSTAL_ADDRESS",
+   "iso20022_xml": "<PstlAdr>\n  <StrtNm>Calle Mayor</StrtNm>\n  <BldgNb>5</BldgNb>\n  <PstCd>28013</PstCd>\n  <TwnNm>Madrid</TwnNm>\n  <Ctry>ES</Ctry>\n</PstlAdr>",
+   "structured": {
+    "address_lines": [],
+    "building_number": "5",
+    "country_code": "ES",
+    "post_code": "28013",
+    "street_name": "Calle Mayor",
+    "town_name": "Madrid"
+   }
+  },
+  "resolution_status": "RESOLVED",
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff \u2227 R_det \u2227 R_uniq \u2227 V_det \u2227 V_auth \u2227 P_bank \u2227 C_comp \u2227 X_pre).",
+  "stp_eligible": true,
+  "warnings": []
+ },
+ "eur/cbpr_dq05_fr_unstructured": {
+  "ai_confidence_score": 0.98,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "DQ-05",
+  "domain": "DATA_QUALITY",
+  "errors": [],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "CREDITOR_POSTAL_ADDRESS"
+  ],
+  "exception_id": "PEX-EUR-CBPR-DQ05-FR-UNSTRUCTURED",
+  "execution_owner": "BANK",
+  "hitl_required": false,
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": true,
+   "r_uniq": true,
+   "stp_formula_result": true,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [
+   {
+    "field_path": "creditor.postal_address",
+    "original_value": "<PstlAdr><AdrLine>12 Rue de la Paix</AdrLine><AdrLine>75002 Paris</AdrLine><Ctry>FR</Ctry></PstlAdr>",
+    "repaired_value": {
+     "address_lines": [],
+     "building_number": "12",
+     "country_code": "FR",
+     "post_code": "75002",
+     "street_name": "Rue de la Paix",
+     "town_name": "Paris"
+    }
+   }
+  ],
+  "resolution_basis": "Unstructured postal address converted to ISO 20022 / CBPR+ structured fields (Paris, FR 75002); semantic invariants preserved.",
+  "resolution_recommendation": {
+   "action": "STRUCTURE_POSTAL_ADDRESS",
+   "iso20022_xml": "<PstlAdr>\n  <StrtNm>Rue de la Paix</StrtNm>\n  <BldgNb>12</BldgNb>\n  <PstCd>75002</PstCd>\n  <TwnNm>Paris</TwnNm>\n  <Ctry>FR</Ctry>\n</PstlAdr>",
+   "structured": {
+    "address_lines": [],
+    "building_number": "12",
+    "country_code": "FR",
+    "post_code": "75002",
+    "street_name": "Rue de la Paix",
+    "town_name": "Paris"
+   }
+  },
+  "resolution_status": "RESOLVED",
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff \u2227 R_det \u2227 R_uniq \u2227 V_det \u2227 V_auth \u2227 P_bank \u2227 C_comp \u2227 X_pre).",
+  "stp_eligible": true,
+  "warnings": []
+ },
+ "eur/cbpr_dq05_it_unstructured": {
+  "ai_confidence_score": 0.98,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "DQ-05",
+  "domain": "DATA_QUALITY",
+  "errors": [],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "CREDITOR_POSTAL_ADDRESS"
+  ],
+  "exception_id": "PEX-EUR-CBPR-DQ05-IT-UNSTRUCTURED",
+  "execution_owner": "BANK",
+  "hitl_required": false,
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": true,
+   "r_uniq": true,
+   "stp_formula_result": true,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [
+   {
+    "field_path": "creditor.postal_address",
+    "original_value": "<PstlAdr><AdrLine>Via Roma 10</AdrLine><AdrLine>10121 Torino</AdrLine><Ctry>IT</Ctry></PstlAdr>",
+    "repaired_value": {
+     "address_lines": [],
+     "building_number": "10",
+     "country_code": "IT",
+     "post_code": "10121",
+     "street_name": "Via Roma",
+     "town_name": "Torino"
+    }
+   }
+  ],
+  "resolution_basis": "Unstructured postal address converted to ISO 20022 / CBPR+ structured fields (Torino, IT 10121); semantic invariants preserved.",
+  "resolution_recommendation": {
+   "action": "STRUCTURE_POSTAL_ADDRESS",
+   "iso20022_xml": "<PstlAdr>\n  <StrtNm>Via Roma</StrtNm>\n  <BldgNb>10</BldgNb>\n  <PstCd>10121</PstCd>\n  <TwnNm>Torino</TwnNm>\n  <Ctry>IT</Ctry>\n</PstlAdr>",
+   "structured": {
+    "address_lines": [],
+    "building_number": "10",
+    "country_code": "IT",
+    "post_code": "10121",
+    "street_name": "Via Roma",
+    "town_name": "Torino"
+   }
+  },
+  "resolution_status": "RESOLVED",
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff \u2227 R_det \u2227 R_uniq \u2227 V_det \u2227 V_auth \u2227 P_bank \u2227 C_comp \u2227 X_pre).",
+  "stp_eligible": true,
+  "warnings": []
+ },
+ "eur/cbpr_dq05_missing_address_evidence": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "DQ-05",
+  "domain": "DATA_QUALITY",
+  "errors": [
+   "Evidence insufficient: missing mandatory ['CREDITOR_POSTAL_ADDRESS'] / stale [] / contradictory []",
+   "Deterministic resolution could not be derived.",
+   "Resolution is ambiguous with multiple candidate matches.",
+   "Deterministic validation / checksum failed."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [
+   "CREDITOR_POSTAL_ADDRESS"
+  ],
+  "evidence_status": "INSUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY"
+  ],
+  "exception_id": "PEX-EUR-CBPR-DQ05-MISSING-ADDRESS-EVIDENCE",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": false,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": false,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": false,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "No inbound creditor postal address text (creditor_postal_address) to structure.",
+  "resolution_recommendation": null,
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Evidence insufficient: missing mandatory ['CREDITOR_POSTAL_ADDRESS'] / stale [] / contradictory []; Deterministic resolution could not be derived.; Resolution is ambiguous with multiple candidate matches.; Deterministic validation / checksum failed.",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "eur/cbpr_dq05_nl_unstructured": {
+  "ai_confidence_score": 0.98,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "DQ-05",
+  "domain": "DATA_QUALITY",
+  "errors": [],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "CREDITOR_POSTAL_ADDRESS"
+  ],
+  "exception_id": "PEX-EUR-CBPR-DQ05-NL-UNSTRUCTURED",
+  "execution_owner": "BANK",
+  "hitl_required": false,
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": true,
+   "r_uniq": true,
+   "stp_formula_result": true,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [
+   {
+    "field_path": "creditor.postal_address",
+    "original_value": "<PstlAdr><AdrLine>Keizersgracht 123</AdrLine><AdrLine>1015 CJ Amsterdam</AdrLine><Ctry>NL</Ctry></PstlAdr>",
+    "repaired_value": {
+     "address_lines": [],
+     "building_number": "123",
+     "country_code": "NL",
+     "post_code": "1015 CJ",
+     "street_name": "Keizersgracht",
+     "town_name": "Amsterdam"
+    }
+   }
+  ],
+  "resolution_basis": "Unstructured postal address converted to ISO 20022 / CBPR+ structured fields (Amsterdam, NL 1015 CJ); semantic invariants preserved.",
+  "resolution_recommendation": {
+   "action": "STRUCTURE_POSTAL_ADDRESS",
+   "iso20022_xml": "<PstlAdr>\n  <StrtNm>Keizersgracht</StrtNm>\n  <BldgNb>123</BldgNb>\n  <PstCd>1015 CJ</PstCd>\n  <TwnNm>Amsterdam</TwnNm>\n  <Ctry>NL</Ctry>\n</PstlAdr>",
+   "structured": {
+    "address_lines": [],
+    "building_number": "123",
+    "country_code": "NL",
+    "post_code": "1015 CJ",
+    "street_name": "Keizersgracht",
+    "town_name": "Amsterdam"
+   }
+  },
+  "resolution_status": "RESOLVED",
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff \u2227 R_det \u2227 R_uniq \u2227 V_det \u2227 V_auth \u2227 P_bank \u2227 C_comp \u2227 X_pre).",
+  "stp_eligible": true,
+  "warnings": []
+ },
+ "eur/cbpr_dq05_untraceable_components": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "DQ-05",
+  "domain": "DATA_QUALITY",
+  "errors": [
+   "Deterministic resolution could not be derived.",
+   "Resolution is ambiguous with multiple candidate matches.",
+   "Deterministic validation / checksum failed."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "CREDITOR_POSTAL_ADDRESS"
+  ],
+  "exception_id": "PEX-EUR-CBPR-DQ05-UNTRACEABLE-COMPONENTS",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": false,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": false,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Structured street 'Industrial Park Road' is not traceable to the inbound address text and no bank address master was supplied; refusing to infer (fail closed).",
+  "resolution_recommendation": null,
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Deterministic resolution could not be derived.; Resolution is ambiguous with multiple candidate matches.; Deterministic validation / checksum failed.",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "eur/eu_vop_close_match": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "DQ-09",
+  "domain": "DATA_QUALITY",
+  "errors": [
+   "Deterministic resolution could not be derived. EU VoP CLOSE_MATCH: the payer must be shown the registered name and confirm before proceeding; PeX must not silently align the beneficiary title.",
+   "Deterministic validation / checksum failed."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "CORE_ACCOUNT_TITLE",
+   "VERIFICATION_OF_PAYEE_CONFIRMATION"
+  ],
+  "exception_id": "PEX-EUR-EU-VOP-CLOSE-MATCH",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": false,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "EU VoP CLOSE_MATCH: the payer must be shown the registered name and confirm before proceeding; PeX must not silently align the beneficiary title.",
+  "resolution_recommendation": {
+   "action": "REQUEST_PAYER_CONFIRMATION_OF_VOP_NAME",
+   "execution_owner": "BANK",
+   "route": "HUMAN_REVIEW"
+  },
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Deterministic resolution could not be derived. EU VoP CLOSE_MATCH: the payer must be shown the registered name and confirm before proceeding; PeX must not silently align the beneficiary title.; Deterministic validation / checksum failed.",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "eur/eu_vop_no_match": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "DQ-09",
+  "domain": "DATA_QUALITY",
+  "errors": [
+   "Deterministic resolution could not be derived. EU VoP NO_MATCH: warn the payer; do not release without explicit payer decision.",
+   "Deterministic validation / checksum failed."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "CORE_ACCOUNT_TITLE",
+   "VERIFICATION_OF_PAYEE_CONFIRMATION"
+  ],
+  "exception_id": "PEX-EUR-EU-VOP-NO-MATCH",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": false,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "EU VoP NO_MATCH: warn the payer; do not release without explicit payer decision.",
+  "resolution_recommendation": {
+   "action": "HOLD_AND_WARN_PAYER_VOP_NO_MATCH",
+   "execution_owner": "BANK",
+   "route": "HUMAN_REVIEW"
+  },
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Deterministic resolution could not be derived. EU VoP NO_MATCH: warn the payer; do not release without explicit payer decision.; Deterministic validation / checksum failed.",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "eur/eu_vop_not_possible": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "DQ-09",
+  "domain": "DATA_QUALITY",
+  "errors": [
+   "Deterministic resolution could not be derived. EU VoP result 'NOT_POSSIBLE' (NOT_POSSIBLE/unavailable): human decision required.",
+   "Deterministic validation / checksum failed."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "CORE_ACCOUNT_TITLE",
+   "VERIFICATION_OF_PAYEE_CONFIRMATION"
+  ],
+  "exception_id": "PEX-EUR-EU-VOP-NOT-POSSIBLE",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": false,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "EU VoP result 'NOT_POSSIBLE' (NOT_POSSIBLE/unavailable): human decision required.",
+  "resolution_recommendation": {
+   "action": "HUMAN_REVIEW_VOP_NOT_POSSIBLE",
+   "execution_owner": "BANK",
+   "route": "HUMAN_REVIEW"
+  },
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Deterministic resolution could not be derived. EU VoP result 'NOT_POSSIBLE' (NOT_POSSIBLE/unavailable): human decision required.; Deterministic validation / checksum failed.",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "eur/inst_dq01_over_limit": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_BLOCKED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "DQ-01",
+  "domain": "DATA_QUALITY",
+  "errors": [
+   "Deterministic resolution could not be derived. Amount 150000.00 exceeds the SCT Inst limit EUR 100,000; cannot complete as instant.",
+   "Bank policy disallows autonomous STP: ['Amount ($150,000.00) exceeds bank policy STP threshold ($100,000.00).']"
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "CORE_DDA_ACCOUNT",
+   "VERIFIED_IBAN",
+   "ROUTING_DIRECTORY",
+   "MOD97_CALCULATED_CHECKSUM",
+   "INBOUND_TRANSPOSITION_DETECTED"
+  ],
+  "exception_id": "PEX-EUR-INST-DQ01-OVER-LIMIT",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": false,
+   "r_det": false,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [
+   {
+    "field_path": "creditor_account.iban",
+    "original_value": "DE37370404041291102859",
+    "repaired_value": "DE37370400441291102859"
+   }
+  ],
+  "resolution_basis": "Amount 150000.00 exceeds the SCT Inst limit EUR 100,000; cannot complete as instant.",
+  "resolution_recommendation": {
+   "action": "CONVERT_TO_SCT_OR_RETURN_REVIEW",
+   "execution_owner": "BANK",
+   "route": "HUMAN_REVIEW"
+  },
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Deterministic resolution could not be derived. Amount 150000.00 exceeds the SCT Inst limit EUR 100,000; cannot complete as instant.; Bank policy disallows autonomous STP: ['Amount ($150,000.00) exceeds bank policy STP threshold ($100,000.00).']",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "eur/inst_dq01_within_limit": {
+  "ai_confidence_score": 0.98,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "DQ-01",
+  "domain": "DATA_QUALITY",
+  "errors": [],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "CORE_DDA_ACCOUNT",
+   "VERIFIED_IBAN",
+   "ROUTING_DIRECTORY",
+   "MOD97_CALCULATED_CHECKSUM",
+   "INBOUND_TRANSPOSITION_DETECTED"
+  ],
+  "exception_id": "PEX-EUR-INST-DQ01-WITHIN-LIMIT",
+  "execution_owner": "BANK",
+  "hitl_required": false,
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": true,
+   "r_uniq": true,
+   "stp_formula_result": true,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [
+   {
+    "field_path": "creditor_account.iban",
+    "original_value": "DE50760260090906593976",
+    "repaired_value": "DE50760260009906593976"
+   }
+  ],
+  "resolution_basis": "IBAN MOD-97 check digit validated against the SEPA_INST routing directory.",
+  "resolution_recommendation": {
+   "action": "SUBSTITUTE_FIELD",
+   "target": "creditor_account.iban",
+   "value": "DE50760260009906593976"
+  },
+  "resolution_status": "RESOLVED",
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff \u2227 R_det \u2227 R_uniq \u2227 V_det \u2227 V_auth \u2227 P_bank \u2227 C_comp \u2227 X_pre).",
+  "stp_eligible": true,
+  "warnings": []
+ },
+ "eur/inst_dq01_wrong_currency": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "DQ-01",
+  "domain": "DATA_QUALITY",
+  "errors": [
+   "Deterministic resolution could not be derived. SEPA Instant is EUR only (got GBP)."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "CORE_DDA_ACCOUNT",
+   "VERIFIED_IBAN",
+   "ROUTING_DIRECTORY",
+   "MOD97_CALCULATED_CHECKSUM",
+   "INBOUND_TRANSPOSITION_DETECTED"
+  ],
+  "exception_id": "PEX-EUR-INST-DQ01-WRONG-CURRENCY",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [
+   {
+    "field_path": "creditor_account.iban",
+    "original_value": "DE77107000002912808458",
+    "repaired_value": "DE77100700002912808458"
+   }
+  ],
+  "resolution_basis": "SEPA Instant is EUR only (got GBP).",
+  "resolution_recommendation": {
+   "action": "RETURN_OR_REROUTE_REVIEW",
+   "execution_owner": "BANK",
+   "route": "HUMAN_REVIEW"
+  },
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Deterministic resolution could not be derived. SEPA Instant is EUR only (got GBP).",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "eur/inst_pr04_cutoff_not_applicable": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "PR-04",
+  "domain": "PROCESSING",
+  "errors": [
+   "Deterministic resolution could not be derived. SEPA Instant is 24/7/365: no cut-off to miss and a payment cannot be held for repair (value-date roll / hold not applicable). Reject or return decision needed."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "RAIL_OPERATING_CALENDAR",
+   "RAIL_CUTOFF_SCHEDULE",
+   "BANK_CUTOFF_POLICY"
+  ],
+  "exception_id": "PEX-EUR-INST-PR04-CUTOFF-NOT-APPLICABLE",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [
+   {
+    "field_path": "payment.value_date",
+    "original_value": "2026-10-20",
+    "repaired_value": "2026-10-21"
+   }
+  ],
+  "resolution_basis": "SEPA Instant is 24/7/365: no cut-off to miss and a payment cannot be held for repair (value-date roll / hold not applicable). Reject or return decision needed.",
+  "resolution_recommendation": {
+   "action": "REJECT_OR_RETURN_REVIEW_NO_HOLD",
+   "execution_owner": "BANK",
+   "route": "HUMAN_REVIEW"
+  },
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Deterministic resolution could not be derived. SEPA Instant is 24/7/365: no cut-off to miss and a payment cannot be held for repair (value-date roll / hold not applicable). Reject or return decision needed.",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "eur/inst_pr07_timeout_exceeded": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "PR-07",
+  "domain": "PROCESSING",
+  "errors": [
+   "Deterministic resolution could not be derived. SCT Inst 10-second timeout exceeded (12400 ms). The beneficiary PSP may already have credited: no blind retry, no hold - status inquiry and return/reject review."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "GATEWAY_SOCKET_STATE",
+   "IDEMPOTENCY_LEDGER_LOCK",
+   "RETRY_BUDGET_RECORD",
+   "SCHEME_ELAPSED_MS"
+  ],
+  "exception_id": "PEX-EUR-INST-PR07-TIMEOUT-EXCEEDED",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "SCT Inst 10-second timeout exceeded (12400 ms). The beneficiary PSP may already have credited: no blind retry, no hold - status inquiry and return/reject review.",
+  "resolution_recommendation": {
+   "action": "STATUS_INQUIRY_AND_RETURN_REVIEW",
+   "execution_owner": "BANK",
+   "route": "HUMAN_REVIEW"
+  },
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Deterministic resolution could not be derived. SCT Inst 10-second timeout exceeded (12400 ms). The beneficiary PSP may already have credited: no blind retry, no hold - status inquiry and return/reject review.",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "eur/inst_pr07_unknown_timeout_state": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "PR-07",
+  "domain": "PROCESSING",
+  "errors": [
+   "Deterministic resolution could not be derived. SCT Inst timeout state unknown (no scheme_elapsed_ms evidence): cannot prove a retry is safe."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "GATEWAY_SOCKET_STATE",
+   "IDEMPOTENCY_LEDGER_LOCK",
+   "RETRY_BUDGET_RECORD"
+  ],
+  "exception_id": "PEX-EUR-INST-PR07-UNKNOWN-TIMEOUT-STATE",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "SCT Inst timeout state unknown (no scheme_elapsed_ms evidence): cannot prove a retry is safe.",
+  "resolution_recommendation": {
+   "action": "STATUS_INQUIRY_BEFORE_ANY_RETRY",
+   "execution_owner": "BANK",
+   "route": "HUMAN_REVIEW"
+  },
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Deterministic resolution could not be derived. SCT Inst timeout state unknown (no scheme_elapsed_ms evidence): cannot prove a retry is safe.",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "eur/inst_pr07_within_window": {
+  "ai_confidence_score": 0.98,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "PR-07",
+  "domain": "PROCESSING",
+  "errors": [],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "GATEWAY_SOCKET_STATE",
+   "IDEMPOTENCY_LEDGER_LOCK",
+   "RETRY_BUDGET_RECORD",
+   "SCHEME_ELAPSED_MS"
+  ],
+  "exception_id": "PEX-EUR-INST-PR07-WITHIN-WINDOW",
+  "execution_owner": "BANK",
+  "hitl_required": false,
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": true,
+   "r_uniq": true,
+   "stp_formula_result": true,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Gateway healthy (1.5ms). Safe idempotent retry approved (Attempt 1/3).",
+  "resolution_recommendation": {
+   "action": "IDEMPOTENT_GATEWAY_RETRY",
+   "payment_uetr": "e31f0b44-0746-4814-a9f7-d734250e0c17",
+   "retry_attempt": 1,
+   "target_gateway": "GW-PRIMARY"
+  },
+  "resolution_status": "RESOLVED",
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff \u2227 R_det \u2227 R_uniq \u2227 V_det \u2227 V_auth \u2227 P_bank \u2227 C_comp \u2227 X_pre).",
+  "stp_eligible": true,
+  "warnings": []
+ },
+ "eur/inst_pr09_hold_not_allowed": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "PR-09",
+  "domain": "PROCESSING",
+  "errors": [
+   "Deterministic resolution could not be derived. SEPA Instant is 24/7/365: no cut-off to miss and a payment cannot be held for repair (value-date roll / hold not applicable). Reject or return decision needed.",
+   "Deterministic validation / checksum failed."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "PAYMENT_HUB_REPAIR_QUEUE",
+   "SYNTAX_ERROR_SPECIFICATION"
+  ],
+  "exception_id": "PEX-EUR-INST-PR09-HOLD-NOT-ALLOWED",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": false,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "SEPA Instant is 24/7/365: no cut-off to miss and a payment cannot be held for repair (value-date roll / hold not applicable). Reject or return decision needed.",
+  "resolution_recommendation": {
+   "action": "REJECT_OR_RETURN_REVIEW_NO_HOLD",
+   "execution_owner": "BANK",
+   "route": "HUMAN_REVIEW"
+  },
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Deterministic resolution could not be derived. SEPA Instant is 24/7/365: no cut-off to miss and a payment cannot be held for repair (value-date roll / hold not applicable). Reject or return decision needed.; Deterministic validation / checksum failed.",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "eur/sct_dq01_de_contradictory": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "DQ-01",
+  "domain": "DATA_QUALITY",
+  "errors": [
+   "Evidence insufficient: missing mandatory ['CORE_DDA_ACCOUNT', 'ROUTING_DIRECTORY'] / stale [] / contradictory ['CORE_DDA_ACCOUNT', 'VERIFIED_IBAN', 'SSI_DIRECTORY_ACCOUNT', 'ROUTING_DIRECTORY']",
+   "Resolution is ambiguous due to contradictory evidence (CORE_DDA_ACCOUNT, VERIFIED_IBAN, SSI_DIRECTORY_ACCOUNT, ROUTING_DIRECTORY)."
+  ],
+  "evidence_contradictions": [
+   "CORE_DDA_ACCOUNT",
+   "VERIFIED_IBAN",
+   "SSI_DIRECTORY_ACCOUNT",
+   "ROUTING_DIRECTORY"
+  ],
+  "evidence_missing": [
+   "CORE_DDA_ACCOUNT",
+   "ROUTING_DIRECTORY"
+  ],
+  "evidence_status": "CONTRADICTORY",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY"
+  ],
+  "exception_id": "PEX-EUR-SCT-DQ01-DE-CONTRADICTORY",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": false,
+   "p_bank": true,
+   "r_det": true,
+   "r_uniq": false,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [
+   {
+    "field_path": "creditor_account.iban",
+    "original_value": "DE50500105171498939494",
+    "repaired_value": "DE50500105171948939494"
+   }
+  ],
+  "resolution_basis": "Contradictory evidence detected (CORE_DDA_ACCOUNT, VERIFIED_IBAN, SSI_DIRECTORY_ACCOUNT, ROUTING_DIRECTORY); resolution is ambiguous. Routing to Human-in-the-Loop.",
+  "resolution_recommendation": {
+   "action": "INVESTIGATION_HOLD",
+   "candidate_value": "DE50500105171948939494",
+   "reason": "CONTRADICTORY_EVIDENCE",
+   "target": "creditor_account.iban"
+  },
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Evidence insufficient: missing mandatory ['CORE_DDA_ACCOUNT', 'ROUTING_DIRECTORY'] / stale [] / contradictory ['CORE_DDA_ACCOUNT', 'VERIFIED_IBAN', 'SSI_DIRECTORY_ACCOUNT', 'ROUTING_DIRECTORY']; Resolution is ambiguous due to contradictory evidence (CORE_DDA_ACCOUNT, VERIFIED_IBAN, SSI_DIRECTORY_ACCOUNT, ROUTING_DIRECTORY).",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "eur/sct_dq01_de_missing_core_dda": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "DQ-01",
+  "domain": "DATA_QUALITY",
+  "errors": [
+   "Evidence insufficient: missing mandatory ['CORE_DDA_ACCOUNT'] / stale [] / contradictory []",
+   "Deterministic resolution could not be derived.",
+   "Resolution is ambiguous with multiple candidate matches.",
+   "Deterministic validation / checksum failed."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [
+   "CORE_DDA_ACCOUNT"
+  ],
+  "evidence_status": "INSUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "ROUTING_DIRECTORY"
+  ],
+  "exception_id": "PEX-EUR-SCT-DQ01-DE-MISSING-CORE-DDA",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": false,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": false,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": false,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Unable to derive valid MOD-97 IBAN checksum.",
+  "resolution_recommendation": null,
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Evidence insufficient: missing mandatory ['CORE_DDA_ACCOUNT'] / stale [] / contradictory []; Deterministic resolution could not be derived.; Resolution is ambiguous with multiple candidate matches.; Deterministic validation / checksum failed.",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "eur/sct_dq01_de_transposition": {
+  "ai_confidence_score": 0.98,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "DQ-01",
+  "domain": "DATA_QUALITY",
+  "errors": [],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "CORE_DDA_ACCOUNT",
+   "VERIFIED_IBAN",
+   "ROUTING_DIRECTORY",
+   "MOD97_CALCULATED_CHECKSUM",
+   "INBOUND_TRANSPOSITION_DETECTED"
+  ],
+  "exception_id": "PEX-EUR-SCT-DQ01-DE-TRANSPOSITION",
+  "execution_owner": "BANK",
+  "hitl_required": false,
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": true,
+   "r_uniq": true,
+   "stp_formula_result": true,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [
+   {
+    "field_path": "creditor_account.iban",
+    "original_value": "DE36760206009730911417",
+    "repaired_value": "DE36760260009730911417"
+   }
+  ],
+  "resolution_basis": "IBAN MOD-97 check digit validated against the SEPA_SCT routing directory.",
+  "resolution_recommendation": {
+   "action": "SUBSTITUTE_FIELD",
+   "target": "creditor_account.iban",
+   "value": "DE36760260009730911417"
+  },
+  "resolution_status": "RESOLVED",
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff \u2227 R_det \u2227 R_uniq \u2227 V_det \u2227 V_auth \u2227 P_bank \u2227 C_comp \u2227 X_pre).",
+  "stp_eligible": true,
+  "warnings": []
+ },
+ "eur/sct_dq01_es_transposition": {
+  "ai_confidence_score": 0.98,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "DQ-01",
+  "domain": "DATA_QUALITY",
+  "errors": [],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "CORE_DDA_ACCOUNT",
+   "VERIFIED_IBAN",
+   "ROUTING_DIRECTORY",
+   "MOD97_CALCULATED_CHECKSUM",
+   "INBOUND_TRANSPOSITION_DETECTED"
+  ],
+  "exception_id": "PEX-EUR-SCT-DQ01-ES-TRANSPOSITION",
+  "execution_owner": "BANK",
+  "hitl_required": false,
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": true,
+   "r_uniq": true,
+   "stp_formula_result": true,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [
+   {
+    "field_path": "creditor_account.iban",
+    "original_value": "ES2701825656000107981933",
+    "repaired_value": "ES2701825566000107981933"
+   }
+  ],
+  "resolution_basis": "IBAN MOD-97 check digit validated against the SEPA_SCT routing directory.",
+  "resolution_recommendation": {
+   "action": "SUBSTITUTE_FIELD",
+   "target": "creditor_account.iban",
+   "value": "ES2701825566000107981933"
+  },
+  "resolution_status": "RESOLVED",
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff \u2227 R_det \u2227 R_uniq \u2227 V_det \u2227 V_auth \u2227 P_bank \u2227 C_comp \u2227 X_pre).",
+  "stp_eligible": true,
+  "warnings": []
+ },
+ "eur/sct_dq01_fr_transposition": {
+  "ai_confidence_score": 0.98,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "DQ-01",
+  "domain": "DATA_QUALITY",
+  "errors": [],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "CORE_DDA_ACCOUNT",
+   "VERIFIED_IBAN",
+   "ROUTING_DIRECTORY",
+   "MOD97_CALCULATED_CHECKSUM",
+   "INBOUND_TRANSPOSITION_DETECTED"
+  ],
+  "exception_id": "PEX-EUR-SCT-DQ01-FR-TRANSPOSITION",
+  "execution_owner": "BANK",
+  "hitl_required": false,
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": true,
+   "r_uniq": true,
+   "stp_formula_result": true,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [
+   {
+    "field_path": "creditor_account.iban",
+    "original_value": "FR7630006000118716896784650",
+    "repaired_value": "FR7630006000118716897684650"
+   }
+  ],
+  "resolution_basis": "IBAN MOD-97 check digit validated against the SEPA_SCT routing directory.",
+  "resolution_recommendation": {
+   "action": "SUBSTITUTE_FIELD",
+   "target": "creditor_account.iban",
+   "value": "FR7630006000118716897684650"
+  },
+  "resolution_status": "RESOLVED",
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff \u2227 R_det \u2227 R_uniq \u2227 V_det \u2227 V_auth \u2227 P_bank \u2227 C_comp \u2227 X_pre).",
+  "stp_eligible": true,
+  "warnings": []
+ },
+ "eur/sct_dq01_it_transposition": {
+  "ai_confidence_score": 0.98,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "DQ-01",
+  "domain": "DATA_QUALITY",
+  "errors": [],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "CORE_DDA_ACCOUNT",
+   "VERIFIED_IBAN",
+   "ROUTING_DIRECTORY",
+   "MOD97_CALCULATED_CHECKSUM",
+   "INBOUND_TRANSPOSITION_DETECTED"
+  ],
+  "exception_id": "PEX-EUR-SCT-DQ01-IT-TRANSPOSITION",
+  "execution_owner": "BANK",
+  "hitl_required": false,
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": true,
+   "r_uniq": true,
+   "stp_formula_result": true,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [
+   {
+    "field_path": "creditor_account.iban",
+    "original_value": "IT87X0306099606016105500875",
+    "repaired_value": "IT87X0306909606016105500875"
+   }
+  ],
+  "resolution_basis": "IBAN MOD-97 check digit validated against the SEPA_SCT routing directory.",
+  "resolution_recommendation": {
+   "action": "SUBSTITUTE_FIELD",
+   "target": "creditor_account.iban",
+   "value": "IT87X0306909606016105500875"
+  },
+  "resolution_status": "RESOLVED",
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff \u2227 R_det \u2227 R_uniq \u2227 V_det \u2227 V_auth \u2227 P_bank \u2227 C_comp \u2227 X_pre).",
+  "stp_eligible": true,
+  "warnings": []
+ },
+ "eur/sct_dq01_nl_transposition": {
+  "ai_confidence_score": 0.98,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "DQ-01",
+  "domain": "DATA_QUALITY",
+  "errors": [],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "CORE_DDA_ACCOUNT",
+   "VERIFIED_IBAN",
+   "ROUTING_DIRECTORY",
+   "MOD97_CALCULATED_CHECKSUM",
+   "INBOUND_TRANSPOSITION_DETECTED"
+  ],
+  "exception_id": "PEX-EUR-SCT-DQ01-NL-TRANSPOSITION",
+  "execution_owner": "BANK",
+  "hitl_required": false,
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": true,
+   "r_uniq": true,
+   "stp_formula_result": true,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [
+   {
+    "field_path": "creditor_account.iban",
+    "original_value": "NL42ABNA0029787354",
+    "repaired_value": "NL42ABNA0029787534"
+   }
+  ],
+  "resolution_basis": "IBAN MOD-97 check digit validated against the SEPA_SCT routing directory.",
+  "resolution_recommendation": {
+   "action": "SUBSTITUTE_FIELD",
+   "target": "creditor_account.iban",
+   "value": "NL42ABNA0029787534"
+  },
+  "resolution_status": "RESOLVED",
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff \u2227 R_det \u2227 R_uniq \u2227 V_det \u2227 V_auth \u2227 P_bank \u2227 C_comp \u2227 X_pre).",
+  "stp_eligible": true,
+  "warnings": []
+ },
+ "eur/sepa_return_ac01": {
+  "ai_confidence_score": 0.98,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "ST-01",
+  "domain": "SETTLEMENT_RETURNS",
+  "errors": [],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "ORIGINAL_DEBIT_RECORD",
+   "ORIGINAL_DEBIT_POSTED",
+   "INWARD_PACS004_RETURN",
+   "AMOUNT_CURRENCY_MATCH"
+  ],
+  "exception_id": "PEX-EUR-SEPA-RETURN-AC01",
+  "execution_owner": "BANK",
+  "hitl_required": false,
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": true,
+   "r_uniq": true,
+   "stp_formula_result": true,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [
+   {
+    "amount": 2800.0,
+    "currency": "EUR",
+    "field_path": "debtor_account.recredit_amount"
+   }
+  ],
+  "resolution_basis": "Inward pacs.004 return matched with posted debit. Preparing debtor ledger re-credit. SEPA return AC01 -> ST-01-style handling: IncorrectAccountNumber: return of funds; re-credit debtor once the original debit is verified.",
+  "resolution_recommendation": {
+   "action": "RECREDIT_DEBTOR_LEDGER_AND_REQUEST_CORRECT_ACCOUNT",
+   "amount": 2800.0,
+   "currency": "EUR",
+   "handling": "ST-01"
+  },
+  "resolution_status": "RESOLVED",
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff \u2227 R_det \u2227 R_uniq \u2227 V_det \u2227 V_auth \u2227 P_bank \u2227 C_comp \u2227 X_pre).",
+  "stp_eligible": true,
+  "warnings": []
+ },
+ "eur/sepa_return_ac04": {
+  "ai_confidence_score": 0.98,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "ST-01",
+  "domain": "SETTLEMENT_RETURNS",
+  "errors": [],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "ORIGINAL_DEBIT_RECORD",
+   "ORIGINAL_DEBIT_POSTED",
+   "INWARD_PACS004_RETURN",
+   "AMOUNT_CURRENCY_MATCH"
+  ],
+  "exception_id": "PEX-EUR-SEPA-RETURN-AC04",
+  "execution_owner": "BANK",
+  "hitl_required": false,
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": true,
+   "r_uniq": true,
+   "stp_formula_result": true,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [
+   {
+    "amount": 2800.0,
+    "currency": "EUR",
+    "field_path": "debtor_account.recredit_amount"
+   }
+  ],
+  "resolution_basis": "Inward pacs.004 return matched with posted debit. Preparing debtor ledger re-credit. SEPA return AC04 -> ST-02-style handling: ClosedAccountNumber: re-credit debtor, flag beneficiary account as closed; never resend to the same account.",
+  "resolution_recommendation": {
+   "action": "RECREDIT_DEBTOR_LEDGER_AND_FLAG_BENEFICIARY_ACCOUNT_CLOSED",
+   "amount": 2800.0,
+   "currency": "EUR",
+   "handling": "ST-02"
+  },
+  "resolution_status": "RESOLVED",
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff \u2227 R_det \u2227 R_uniq \u2227 V_det \u2227 V_auth \u2227 P_bank \u2227 C_comp \u2227 X_pre).",
+  "stp_eligible": true,
+  "warnings": []
+ },
+ "eur/sepa_return_ac04_original_not_found": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "ST-01",
+  "domain": "SETTLEMENT_RETURNS",
+  "errors": [
+   "Evidence insufficient: missing mandatory ['ORIGINAL_DEBIT_RECORD'] / stale [] / contradictory []",
+   "Deterministic resolution could not be derived.",
+   "Resolution is ambiguous with multiple candidate matches.",
+   "Deterministic validation / checksum failed."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [
+   "ORIGINAL_DEBIT_RECORD"
+  ],
+  "evidence_status": "INSUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "INWARD_PACS004_RETURN",
+   "ORIGINAL_DEBIT_POSTED"
+  ],
+  "exception_id": "PEX-EUR-SEPA-RETURN-AC04-ORIGINAL-NOT-FOUND",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": false,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": false,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": false,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Original payment debit not found or unposted in ledger.",
+  "resolution_recommendation": null,
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Evidence insufficient: missing mandatory ['ORIGINAL_DEBIT_RECORD'] / stale [] / contradictory []; Deterministic resolution could not be derived.; Resolution is ambiguous with multiple candidate matches.; Deterministic validation / checksum failed.",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "eur/sepa_return_ac06": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "ST-01",
+  "domain": "SETTLEMENT_RETURNS",
+  "errors": [
+   "Deterministic resolution could not be derived. Return reason AC06 requires a human decision (BlockedAccount: may be legally or sanctions driven - never autonomous.)"
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "ORIGINAL_DEBIT_RECORD",
+   "ORIGINAL_DEBIT_POSTED",
+   "INWARD_PACS004_RETURN",
+   "AMOUNT_CURRENCY_MATCH"
+  ],
+  "exception_id": "PEX-EUR-SEPA-RETURN-AC06",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [
+   {
+    "amount": 2800.0,
+    "currency": "EUR",
+    "field_path": "debtor_account.recredit_amount"
+   }
+  ],
+  "resolution_basis": "Return reason AC06 requires a human decision (BlockedAccount: may be legally or sanctions driven - never autonomous.)",
+  "resolution_recommendation": {
+   "action": "HOLD_FOR_COMPLIANCE_REVIEW_BLOCKED_ACCOUNT",
+   "execution_owner": "BANK",
+   "route": "HUMAN_REVIEW"
+  },
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Deterministic resolution could not be derived. Return reason AC06 requires a human decision (BlockedAccount: may be legally or sanctions driven - never autonomous.)",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "eur/sepa_return_am04": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "ST-01",
+  "domain": "SETTLEMENT_RETURNS",
+  "errors": [
+   "Deterministic resolution could not be derived. Return reason AM04 requires a human decision (InsufficientFunds: needs a human to confirm which side lacked funds and whether to represent.)"
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "ORIGINAL_DEBIT_RECORD",
+   "ORIGINAL_DEBIT_POSTED",
+   "INWARD_PACS004_RETURN",
+   "AMOUNT_CURRENCY_MATCH"
+  ],
+  "exception_id": "PEX-EUR-SEPA-RETURN-AM04",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [
+   {
+    "amount": 2800.0,
+    "currency": "EUR",
+    "field_path": "debtor_account.recredit_amount"
+   }
+  ],
+  "resolution_basis": "Return reason AM04 requires a human decision (InsufficientFunds: needs a human to confirm which side lacked funds and whether to represent.)",
+  "resolution_recommendation": {
+   "action": "HUMAN_REVIEW_INSUFFICIENT_FUNDS_RETURN",
+   "execution_owner": "BANK",
+   "route": "HUMAN_REVIEW"
+  },
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Deterministic resolution could not be derived. Return reason AM04 requires a human decision (InsufficientFunds: needs a human to confirm which side lacked funds and whether to represent.)",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "eur/sepa_return_ms03": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "ST-01",
+  "domain": "SETTLEMENT_RETURNS",
+  "errors": [
+   "Deterministic resolution could not be derived. Return reason MS03 requires a human decision (NotSpecifiedReasonAgentGenerated: reason unknown - investigate with the counterparty bank before any re-credit.)"
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "ORIGINAL_DEBIT_RECORD",
+   "ORIGINAL_DEBIT_POSTED",
+   "INWARD_PACS004_RETURN",
+   "AMOUNT_CURRENCY_MATCH"
+  ],
+  "exception_id": "PEX-EUR-SEPA-RETURN-MS03",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [
+   {
+    "amount": 2800.0,
+    "currency": "EUR",
+    "field_path": "debtor_account.recredit_amount"
+   }
+  ],
+  "resolution_basis": "Return reason MS03 requires a human decision (NotSpecifiedReasonAgentGenerated: reason unknown - investigate with the counterparty bank before any re-credit.)",
+  "resolution_recommendation": {
+   "action": "HUMAN_REVIEW_REASON_NOT_SPECIFIED",
+   "execution_owner": "BANK",
+   "route": "HUMAN_REVIEW"
+  },
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Deterministic resolution could not be derived. Return reason MS03 requires a human decision (NotSpecifiedReasonAgentGenerated: reason unknown - investigate with the counterparty bank before any re-credit.)",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "eur/sepa_return_rr04": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "ST-01",
+  "domain": "SETTLEMENT_RETURNS",
+  "errors": [
+   "Deterministic resolution could not be derived. Return reason RR04 requires a human decision (RegulatoryReason: statutory reason - compliance decision required.)"
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "ORIGINAL_DEBIT_RECORD",
+   "ORIGINAL_DEBIT_POSTED",
+   "INWARD_PACS004_RETURN",
+   "AMOUNT_CURRENCY_MATCH"
+  ],
+  "exception_id": "PEX-EUR-SEPA-RETURN-RR04",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [
+   {
+    "amount": 2800.0,
+    "currency": "EUR",
+    "field_path": "debtor_account.recredit_amount"
+   }
+  ],
+  "resolution_basis": "Return reason RR04 requires a human decision (RegulatoryReason: statutory reason - compliance decision required.)",
+  "resolution_recommendation": {
+   "action": "ROUTE_TO_COMPLIANCE_REGULATORY_REASON",
+   "execution_owner": "BANK",
+   "route": "HUMAN_REVIEW"
+  },
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Deterministic resolution could not be derived. Return reason RR04 requires a human decision (RegulatoryReason: statutory reason - compliance decision required.)",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "eur/sepa_return_xx99": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "ST-01",
+  "domain": "SETTLEMENT_RETURNS",
+  "errors": [
+   "Deterministic resolution could not be derived. Unrecognised or missing SEPA return reason code 'XX99': fail closed."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "ORIGINAL_DEBIT_RECORD",
+   "ORIGINAL_DEBIT_POSTED",
+   "INWARD_PACS004_RETURN",
+   "AMOUNT_CURRENCY_MATCH"
+  ],
+  "exception_id": "PEX-EUR-SEPA-RETURN-XX99",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [
+   {
+    "amount": 2800.0,
+    "currency": "EUR",
+    "field_path": "debtor_account.recredit_amount"
+   }
+  ],
+  "resolution_basis": "Unrecognised or missing SEPA return reason code 'XX99': fail closed.",
+  "resolution_recommendation": {
+   "action": "HUMAN_REVIEW_UNKNOWN_RETURN_REASON",
+   "execution_owner": "BANK",
+   "route": "HUMAN_REVIEW"
+  },
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Deterministic resolution could not be derived. Unrecognised or missing SEPA return reason code 'XX99': fail closed.",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "eur/t2_pr04_cutoff_policy_blocked": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "PR-04",
+  "domain": "PROCESSING",
+  "errors": [
+   "Deterministic resolution could not be derived.",
+   "Deterministic validation / checksum failed."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "RAIL_OPERATING_CALENDAR",
+   "RAIL_CUTOFF_SCHEDULE",
+   "BANK_CUTOFF_POLICY"
+  ],
+  "exception_id": "PEX-EUR-T2-PR04-CUTOFF-POLICY-BLOCKED",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": false,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Rail T2 cutoff time: 16:00 UTC (Buffer: 15m).; Bank policy W1-POL-02 disallows autonomous value-date rolls without explicit client authorization.",
+  "resolution_recommendation": null,
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Deterministic resolution could not be derived.; Deterministic validation / checksum failed.",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "eur/t2_pr04_cutoff_roll_allowed": {
+  "ai_confidence_score": 0.98,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "PR-04",
+  "domain": "PROCESSING",
+  "errors": [],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "RAIL_OPERATING_CALENDAR",
+   "RAIL_CUTOFF_SCHEDULE",
+   "BANK_CUTOFF_POLICY"
+  ],
+  "exception_id": "PEX-EUR-T2-PR04-CUTOFF-ROLL-ALLOWED",
+  "execution_owner": "BANK",
+  "hitl_required": false,
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": true,
+   "r_uniq": true,
+   "stp_formula_result": true,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [
+   {
+    "field_path": "payment.value_date",
+    "original_value": "2026-10-20",
+    "repaired_value": "2026-10-21"
+   }
+  ],
+  "resolution_basis": "Rail T2 cutoff time: 16:00 UTC (Buffer: 15m).; Recalculated value date from 2026-10-20 to 2026-10-21 (T+1 business day).",
+  "resolution_recommendation": {
+   "action": "ADJUST_VALUE_DATE",
+   "clearing_rail": "T2",
+   "days_rolled": 1,
+   "original_value_date": "2026-10-20",
+   "value_date": "2026-10-21"
+  },
+  "resolution_status": "RESOLVED",
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff \u2227 R_det \u2227 R_uniq \u2227 V_det \u2227 V_auth \u2227 P_bank \u2227 C_comp \u2227 X_pre).",
+  "stp_eligible": true,
+  "warnings": []
+ },
+ "input/CO-04_restricted_corridor_prohibited": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "SANCTIONS_HOLD",
+  "detected_profile_id": "CO-04",
+  "domain": "COMPLIANCE",
+  "errors": [
+   "Deterministic resolution could not be derived.",
+   "Resolution is ambiguous with multiple candidate matches.",
+   "Deterministic validation / checksum failed.",
+   "Compliance screening gate flagged entity on ['OFAC_SDN_LIST_2026', 'EU_CONSOLIDATED_FINANCIAL_SANCTIONS']"
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "CORRIDOR_POLICY_MATRIX",
+   "OFAC_LICENSE_EXEMPTION_VERIFIED",
+   "SANCTIONS_WATCHLIST",
+   "CREDITOR_COUNTRY"
+  ],
+  "exception_id": "PEX-E2E-CO04-BLOCK",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": false,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": false,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": false,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Mandatory statutory corridor restriction without verified licensing exemption.",
+  "resolution_recommendation": null,
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Deterministic resolution could not be derived.; Resolution is ambiguous with multiple candidate matches.; Deterministic validation / checksum failed.; Compliance screening gate flagged entity on ['OFAC_SDN_LIST_2026', 'EU_CONSOLIDATED_FINANCIAL_SANCTIONS']",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "input/CO-04_restricted_corridor_sufficient": {
+  "ai_confidence_score": 0.98,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "CO-04",
+  "domain": "COMPLIANCE",
+  "errors": [],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "CORRIDOR_POLICY_MATRIX",
+   "OFAC_LICENSE_EXEMPTION_VERIFIED",
+   "SANCTIONS_WATCHLIST",
+   "CORRIDOR_CLEARANCE_CODE"
+  ],
+  "exception_id": "PEX-E2E-CO04-SUFF",
+  "execution_owner": "BANK",
+  "hitl_required": false,
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": true,
+   "r_uniq": true,
+   "stp_formula_result": true,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Corridor restricted under general policy, but specific OFAC general license exemption verified.",
+  "resolution_recommendation": {
+   "action": "RELEASE_CORRIDOR_HOLD",
+   "license_id": "OFAC-GL-58A"
+  },
+  "resolution_status": "RESOLVED",
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff \u2227 R_det \u2227 R_uniq \u2227 V_det \u2227 V_auth \u2227 P_bank \u2227 C_comp \u2227 X_pre).",
+  "stp_eligible": true,
+  "warnings": []
+ },
+ "input/CO-07_regulatory_reporting_missing_statutory": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_BLOCKED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "CO-07",
+  "domain": "COMPLIANCE",
+  "errors": [
+   "Evidence insufficient: missing mandatory ['REGULATORY_PURPOSE_DIRECTORY', 'CENTRAL_BANK_BOP_CODES', 'STATUTORY_REPORTING_RULE'] / stale [] / contradictory []",
+   "Deterministic resolution could not be derived.",
+   "Deterministic validation / checksum failed.",
+   "Bank policy disallows autonomous STP: ['Amount ($75,000.00) exceeds fast-lane batch threshold ($25,000.00).', 'Currency BRL is not supported by bank policy.']"
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [
+   "REGULATORY_PURPOSE_DIRECTORY",
+   "CENTRAL_BANK_BOP_CODES",
+   "STATUTORY_REPORTING_RULE"
+  ],
+  "evidence_status": "INSUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "MISSING_STATUTORY_LICENSE",
+   "UNMAPPED_STATUTORY_CORRIDOR",
+   "DESTINATION_COUNTRY",
+   "TRADE_CATEGORY"
+  ],
+  "exception_id": "PEX-E2E-CO07-MISSINGSTAT",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": false,
+   "p_bank": false,
+   "r_det": false,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": false,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Mandatory statutory documentation or central bank declaration missing. Compliance hold in HITL.",
+  "resolution_recommendation": null,
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Evidence insufficient: missing mandatory ['REGULATORY_PURPOSE_DIRECTORY', 'CENTRAL_BANK_BOP_CODES', 'STATUTORY_REPORTING_RULE'] / stale [] / contradictory []; Deterministic resolution could not be derived.; Deterministic validation / checksum failed.; Bank policy disallows autonomous STP: ['Amount ($75,000.00) exceeds fast-lane batch threshold ($25,000.00).', 'Currency BRL is not supported by bank policy.']",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "input/CO-07_regulatory_reporting_sufficient": {
+  "ai_confidence_score": 0.98,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "CO-07",
+  "domain": "COMPLIANCE",
+  "errors": [],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "REGULATORY_PURPOSE_DIRECTORY",
+   "CENTRAL_BANK_BOP_CODES",
+   "STATUTORY_REPORTING_RULE",
+   "DESTINATION_COUNTRY",
+   "TRADE_CATEGORY"
+  ],
+  "exception_id": "PEX-E2E-CO07-SUFF",
+  "execution_owner": "BANK",
+  "hitl_required": false,
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": true,
+   "r_uniq": true,
+   "stp_formula_result": true,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [
+   {
+    "field_path": "regulatory_reporting",
+    "repaired_value": {
+     "RgltryRptg": {
+      "Authrty": {
+       "AuthrtyNm": "BANCO_CENTRAL_DO_BRASIL"
+      },
+      "DbtCdtRptgInd": "BOTH",
+      "Dtls": {
+       "Cd": "BOP-BR-101",
+       "Inf": "Cross-border goods import declaration code"
+      }
+     }
+    }
+   }
+  ],
+  "resolution_basis": "Derived statutory declaration for BANCO_CENTRAL_DO_BRASIL (Code: BOP-BR-101, Statute: BACEN Circular 3691).",
+  "resolution_recommendation": {
+   "RgltryRptg": {
+    "Authrty": {
+     "AuthrtyNm": "BANCO_CENTRAL_DO_BRASIL"
+    },
+    "DbtCdtRptgInd": "BOTH",
+    "Dtls": {
+     "Cd": "BOP-BR-101",
+     "Inf": "Cross-border goods import declaration code"
+    }
+   },
+   "action": "POPULATE_REGULATORY_REPORTING"
+  },
+  "resolution_status": "RESOLVED",
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff \u2227 R_det \u2227 R_uniq \u2227 V_det \u2227 V_auth \u2227 P_bank \u2227 C_comp \u2227 X_pre).",
+  "stp_eligible": true,
+  "warnings": []
+ },
+ "input/DQ-01_invalid_iban_missing_evidence": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "DQ-01",
+  "domain": "DATA_QUALITY",
+  "errors": [
+   "Evidence insufficient: missing mandatory ['CORE_DDA_ACCOUNT'] / stale [] / contradictory []",
+   "Deterministic resolution could not be derived.",
+   "Resolution is ambiguous with multiple candidate matches.",
+   "Deterministic validation / checksum failed."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [
+   "CORE_DDA_ACCOUNT"
+  ],
+  "evidence_status": "INSUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "ROUTING_DIRECTORY"
+  ],
+  "exception_id": "PEX-E2E-DQ01-MISS",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": false,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": false,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": false,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Unable to derive valid MOD-97 IBAN checksum.",
+  "resolution_recommendation": null,
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Evidence insufficient: missing mandatory ['CORE_DDA_ACCOUNT'] / stale [] / contradictory []; Deterministic resolution could not be derived.; Resolution is ambiguous with multiple candidate matches.; Deterministic validation / checksum failed.",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "input/DQ-01_invalid_iban_sufficient": {
+  "ai_confidence_score": 0.98,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "DQ-01",
+  "domain": "DATA_QUALITY",
+  "errors": [],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "CORE_DDA_ACCOUNT",
+   "VERIFIED_IBAN",
+   "ROUTING_DIRECTORY",
+   "MOD97_CALCULATED_CHECKSUM",
+   "INBOUND_TRANSPOSITION_DETECTED"
+  ],
+  "exception_id": "PEX-E2E-DQ01-SUFF",
+  "execution_owner": "BANK",
+  "hitl_required": false,
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": true,
+   "r_uniq": true,
+   "stp_formula_result": true,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [
+   {
+    "field_path": "creditor_account.iban",
+    "original_value": "GB29MIDL40051512345678",
+    "repaired_value": "GB29MIDL40051512345679"
+   }
+  ],
+  "resolution_basis": "IBAN MOD-97 check digit validated against the CHAPS routing directory.",
+  "resolution_recommendation": {
+   "action": "SUBSTITUTE_FIELD",
+   "target": "creditor_account.iban",
+   "value": "GB29MIDL40051512345679"
+  },
+  "resolution_status": "RESOLVED",
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff \u2227 R_det \u2227 R_uniq \u2227 V_det \u2227 V_auth \u2227 P_bank \u2227 C_comp \u2227 X_pre).",
+  "stp_eligible": true,
+  "warnings": []
+ },
+ "input/DQ-03_missing_beneficiary_ambiguous": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "DQ-03",
+  "domain": "DATA_QUALITY",
+  "errors": [
+   "Evidence insufficient: missing mandatory ['CLIENT_MASTER_RECORD'] / stale [] / contradictory []",
+   "Deterministic resolution could not be derived.",
+   "Resolution is ambiguous with multiple candidate matches.",
+   "Deterministic validation / checksum failed."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [
+   "CLIENT_MASTER_RECORD"
+  ],
+  "evidence_status": "INSUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "AMBIGUOUS_BENEFICIARY_MATCHES",
+   "MULTIPLE_MATCHING_PROFILES",
+   "DEBTOR_ID",
+   "CREDITOR_HINT"
+  ],
+  "exception_id": "PEX-E2E-DQ03-AMBIG",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": false,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": false,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": false,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Multiple matching beneficiary records identified in directory. Disambiguation required in HITL.",
+  "resolution_recommendation": null,
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Evidence insufficient: missing mandatory ['CLIENT_MASTER_RECORD'] / stale [] / contradictory []; Deterministic resolution could not be derived.; Resolution is ambiguous with multiple candidate matches.; Deterministic validation / checksum failed.",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "input/DQ-03_missing_beneficiary_sufficient": {
+  "ai_confidence_score": 0.98,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "DQ-03",
+  "domain": "DATA_QUALITY",
+  "errors": [],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "CLIENT_MASTER_RECORD",
+   "VERIFIED_CREDITOR_NAME",
+   "CORE_DDA_ACCOUNT",
+   "DEBTOR_ID",
+   "CREDITOR_HINT"
+  ],
+  "exception_id": "PEX-E2E-DQ03-SUFF",
+  "execution_owner": "BANK",
+  "hitl_required": false,
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": true,
+   "r_uniq": true,
+   "stp_formula_result": true,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [
+   {
+    "field_path": "creditor.name",
+    "repaired_value": "ACME INDUSTRIAL SUPPLIES LTD"
+   }
+  ],
+  "resolution_basis": "Retrieved authoritative creditor entity title 'ACME INDUSTRIAL SUPPLIES LTD' from Core DDA.",
+  "resolution_recommendation": {
+   "action": "POPULATE_BENEFICIARY_DATA",
+   "creditor_name": "ACME INDUSTRIAL SUPPLIES LTD",
+   "postal_address": {
+    "city": "London",
+    "country": "GB",
+    "postal_code": "EC1A 1BB",
+    "street": "10 Commercial Rd"
+   },
+   "tax_id": "GB123456789"
+  },
+  "resolution_status": "RESOLVED",
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff \u2227 R_det \u2227 R_uniq \u2227 V_det \u2227 V_auth \u2227 P_bank \u2227 C_comp \u2227 X_pre).",
+  "stp_eligible": true,
+  "warnings": []
+ },
+ "input/DQ-04_missing_remittance_sufficient": {
+  "ai_confidence_score": 0.98,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "DQ-04",
+  "domain": "DATA_QUALITY",
+  "errors": [],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "INVOICE_BILLING_RECORD",
+   "INVOICE_REFERENCE_NUMBER"
+  ],
+  "exception_id": "PEX-E2E-DQ04-SUFF",
+  "execution_owner": "BANK",
+  "hitl_required": false,
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": true,
+   "r_uniq": true,
+   "stp_formula_result": true,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [
+   {
+    "field_path": "remittance_info.structured",
+    "repaired_value": {
+     "RmtInf": {
+      "Strd": {
+       "CdtrRefInf": {
+        "Ref": "CINV-ACME-4401"
+       },
+       "RfrdDocAmt": {
+        "DuePyblAmt": 45000.0,
+        "RmtdAmt": 45000.0
+       },
+       "RfrdDocInf": {
+        "Nb": "INV-2026-US-4401",
+        "RltdDt": "2026-10-05",
+        "Tp": {
+         "CdOrPrtry": {
+          "Cd": "CINV"
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  ],
+  "resolution_basis": "Retrieved authoritative invoice document 'INV-2026-US-4401' from ERP directory.",
+  "resolution_recommendation": {
+   "RmtInf": {
+    "Strd": {
+     "CdtrRefInf": {
+      "Ref": "CINV-ACME-4401"
+     },
+     "RfrdDocAmt": {
+      "DuePyblAmt": 45000.0,
+      "RmtdAmt": 45000.0
+     },
+     "RfrdDocInf": {
+      "Nb": "INV-2026-US-4401",
+      "RltdDt": "2026-10-05",
+      "Tp": {
+       "CdOrPrtry": {
+        "Cd": "CINV"
+       }
+      }
+     }
+    }
+   },
+   "action": "POPULATE_STRUCTURED_REMITTANCE"
+  },
+  "resolution_status": "RESOLVED",
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff \u2227 R_det \u2227 R_uniq \u2227 V_det \u2227 V_auth \u2227 P_bank \u2227 C_comp \u2227 X_pre).",
+  "stp_eligible": true,
+  "warnings": []
+ },
+ "input/DQ-04_missing_remittance_unparseable": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_BLOCKED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "DQ-04",
+  "domain": "DATA_QUALITY",
+  "errors": [
+   "Evidence insufficient: missing mandatory ['INVOICE_BILLING_RECORD'] / stale [] / contradictory []",
+   "Deterministic resolution could not be derived.",
+   "Deterministic validation / checksum failed.",
+   "Bank policy disallows autonomous STP: ['Amount ($45,000.00) exceeds fast-lane batch threshold ($25,000.00).']"
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [
+   "INVOICE_BILLING_RECORD"
+  ],
+  "evidence_status": "INSUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "UNPARSEABLE_REMITTANCE_DOCUMENT"
+  ],
+  "exception_id": "PEX-E2E-DQ04-UNPARSE",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": false,
+   "p_bank": false,
+   "r_det": false,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": false,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Invoice document is corrupted or unparseable. PeX HITL document review required.",
+  "resolution_recommendation": null,
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Evidence insufficient: missing mandatory ['INVOICE_BILLING_RECORD'] / stale [] / contradictory []; Deterministic resolution could not be derived.; Deterministic validation / checksum failed.; Bank policy disallows autonomous STP: ['Amount ($45,000.00) exceeds fast-lane batch threshold ($25,000.00).']",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "input/DQ-07_invalid_account_not_found": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "DQ-07",
+  "domain": "DATA_QUALITY",
+  "errors": [
+   "Evidence insufficient: missing mandatory ['CORE_DDA_MASTER', 'ACCOUNT_STRUCTURE_RULES'] / stale [] / contradictory []",
+   "Deterministic resolution could not be derived.",
+   "Deterministic validation / checksum failed."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [
+   "CORE_DDA_MASTER",
+   "ACCOUNT_STRUCTURE_RULES"
+  ],
+  "evidence_status": "INSUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "VERIFIED_ACCOUNT_NUMBER"
+  ],
+  "exception_id": "PEX-E2E-DQ07-NOTFOUND",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": false,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": false,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Account number '00000000' does not exist in Core Banking DDA.",
+  "resolution_recommendation": null,
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Evidence insufficient: missing mandatory ['CORE_DDA_MASTER', 'ACCOUNT_STRUCTURE_RULES'] / stale [] / contradictory []; Deterministic resolution could not be derived.; Deterministic validation / checksum failed.",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "input/DQ-07_invalid_account_sufficient": {
+  "ai_confidence_score": 0.98,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "DQ-07",
+  "domain": "DATA_QUALITY",
+  "errors": [],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "CORE_DDA_MASTER",
+   "ACCOUNT_STRUCTURE_RULES",
+   "VERIFIED_ACCOUNT_NUMBER"
+  ],
+  "exception_id": "PEX-E2E-DQ07-SUFF",
+  "execution_owner": "BANK",
+  "hitl_required": false,
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": true,
+   "r_uniq": true,
+   "stp_formula_result": true,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [
+   {
+    "field_path": "creditor_account.account_number",
+    "original_value": "87654321",
+    "repaired_value": "87654321"
+   }
+  ],
+  "resolution_basis": "Account '87654321' validated against Core DDA master (title: 'GLOBAL LOGISTICS GMBH').",
+  "resolution_recommendation": {
+   "account_number": "87654321",
+   "account_title": "GLOBAL LOGISTICS GMBH",
+   "action": "SUBSTITUTE_ACCOUNT_NUMBER",
+   "currency": "EUR"
+  },
+  "resolution_status": "RESOLVED",
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff \u2227 R_det \u2227 R_uniq \u2227 V_det \u2227 V_auth \u2227 P_bank \u2227 C_comp \u2227 X_pre).",
+  "stp_eligible": true,
+  "warnings": []
+ },
+ "input/DQ-08_invalid_routing_contradictory": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "DQ-08",
+  "domain": "DATA_QUALITY",
+  "errors": [
+   "Resolution is ambiguous with multiple candidate matches."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "ROUTING_SYNTAX_MASTER",
+   "FEDLINE_ROUTING_DIRECTORY",
+   "VALID_ROUTING_CODE",
+   "AMBIGUOUS_ROUTING_MATCHES"
+  ],
+  "exception_id": "PEX-E2E-DQ08-AMBIG",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": true,
+   "r_uniq": false,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [
+   {
+    "field_path": "creditor_agent.aba_routing",
+    "original_value": "021000020",
+    "repaired_value": "021000021"
+   }
+  ],
+  "resolution_basis": "ABA routing transit check digit validated via FedLine directory.",
+  "resolution_recommendation": {
+   "action": "SUBSTITUTE_FIELD",
+   "target": "creditor_agent.aba_routing",
+   "value": "021000021"
+  },
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Resolution is ambiguous with multiple candidate matches.",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "input/DQ-08_invalid_routing_sufficient": {
+  "ai_confidence_score": 0.98,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "DQ-08",
+  "domain": "DATA_QUALITY",
+  "errors": [],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "ROUTING_SYNTAX_MASTER",
+   "FEDLINE_ROUTING_DIRECTORY",
+   "VALID_ROUTING_CODE",
+   "INBOUND_ROUTING_CODE",
+   "ABA_WEIGHT_ALGORITHM_RESULT"
+  ],
+  "exception_id": "PEX-E2E-DQ08-SUFF",
+  "execution_owner": "BANK",
+  "hitl_required": false,
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": true,
+   "r_uniq": true,
+   "stp_formula_result": true,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [
+   {
+    "field_path": "creditor_agent.aba_routing",
+    "original_value": "021000020",
+    "repaired_value": "021000021"
+   }
+  ],
+  "resolution_basis": "ABA routing transit check digit validated via FedLine directory.",
+  "resolution_recommendation": {
+   "action": "SUBSTITUTE_FIELD",
+   "target": "creditor_agent.aba_routing",
+   "value": "021000021"
+  },
+  "resolution_status": "RESOLVED",
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff \u2227 R_det \u2227 R_uniq \u2227 V_det \u2227 V_auth \u2227 P_bank \u2227 C_comp \u2227 X_pre).",
+  "stp_eligible": true,
+  "warnings": []
+ },
+ "input/DQ-09_beneficiary_name_mismatch_no_match": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "DQ-09",
+  "domain": "DATA_QUALITY",
+  "errors": [
+   "Deterministic resolution could not be derived.",
+   "Deterministic validation / checksum failed."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "CORE_ACCOUNT_TITLE",
+   "VERIFICATION_OF_PAYEE_CONFIRMATION"
+  ],
+  "exception_id": "PEX-E2E-DQ09-NOMATCH",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": false,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "VoP evaluation score: 0.2545 against authoritative title 'SIEMENS AG INDUSTRIAL POWER'.; Name match score (0.25) below acceptable threshold (0.85). Route to HITL.",
+  "resolution_recommendation": null,
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Deterministic resolution could not be derived.; Deterministic validation / checksum failed.",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "input/DQ-09_beneficiary_name_mismatch_sufficient": {
+  "ai_confidence_score": 0.98,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "DQ-09",
+  "domain": "DATA_QUALITY",
+  "errors": [],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "CORE_ACCOUNT_TITLE",
+   "VERIFICATION_OF_PAYEE_CONFIRMATION"
+  ],
+  "exception_id": "PEX-E2E-DQ09-SUFF",
+  "execution_owner": "BANK",
+  "hitl_required": false,
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": true,
+   "r_uniq": true,
+   "stp_formula_result": true,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [
+   {
+    "field_path": "creditor.name",
+    "original_value": "SIEMENS INDUSTRIAL POWER",
+    "repaired_value": "SIEMENS AG INDUSTRIAL POWER"
+   }
+  ],
+  "resolution_basis": "VoP evaluation score: 0.9412 against authoritative title 'SIEMENS AG INDUSTRIAL POWER'.; Close match band (0.94 >= 0.85). Policy permits deterministic title alignment.",
+  "resolution_recommendation": {
+   "action": "ALIGN_BENEFICIARY_TITLE",
+   "creditor_name": "SIEMENS AG INDUSTRIAL POWER",
+   "original_name": "SIEMENS INDUSTRIAL POWER",
+   "vop_score": 0.9412
+  },
+  "resolution_status": "RESOLVED",
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff \u2227 R_det \u2227 R_uniq \u2227 V_det \u2227 V_auth \u2227 P_bank \u2227 C_comp \u2227 X_pre).",
+  "stp_eligible": true,
+  "warnings": []
+ },
+ "input/PR-01_duplicate_payment_missing_history": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "PR-01",
+  "domain": "PROCESSING",
+  "errors": [
+   "Evidence insufficient: missing mandatory ['SETTLEMENT_LEDGER'] / stale [] / contradictory []",
+   "Deterministic resolution could not be derived.",
+   "Resolution is ambiguous with multiple candidate matches.",
+   "Deterministic validation / checksum failed."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [
+   "SETTLEMENT_LEDGER"
+  ],
+  "evidence_status": "INSUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "HISTORICAL_PAYMENT_JOURNAL"
+  ],
+  "exception_id": "PEX-E2E-PR01-MISS",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": false,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": false,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": false,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "No matching original transaction record found in settlement journal.",
+  "resolution_recommendation": null,
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Evidence insufficient: missing mandatory ['SETTLEMENT_LEDGER'] / stale [] / contradictory []; Deterministic resolution could not be derived.; Resolution is ambiguous with multiple candidate matches.; Deterministic validation / checksum failed.",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "input/PR-01_duplicate_payment_sufficient": {
+  "ai_confidence_score": 0.98,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "PR-01",
+  "domain": "PROCESSING",
+  "errors": [],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "SETTLEMENT_LEDGER",
+   "HISTORICAL_PAYMENT_JOURNAL",
+   "ORIGINAL_PAYMENT_ID",
+   "EXACT_HASH_MATCH"
+  ],
+  "exception_id": "PEX-E2E-PR01-SUFF",
+  "execution_owner": "BANK",
+  "hitl_required": false,
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": true,
+   "r_uniq": true,
+   "stp_formula_result": true,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Confirmed duplicate transmission of settled payment PMT-ORIG-<ID>. Suppressing duplicate wire.",
+  "resolution_recommendation": {
+   "action": "SUPPRESS_DUPLICATE_AND_NOTIFY",
+   "original_payment_id": "PMT-ORIG-<ID>"
+  },
+  "resolution_status": "RESOLVED",
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff \u2227 R_det \u2227 R_uniq \u2227 V_det \u2227 V_auth \u2227 P_bank \u2227 C_comp \u2227 X_pre).",
+  "stp_eligible": true,
+  "warnings": []
+ },
+ "input/PR-02_routing_failure_sufficient": {
+  "ai_confidence_score": 0.98,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "PR-02",
+  "domain": "PROCESSING",
+  "errors": [],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "ROUTING_DIRECTORY_AUTHORITY",
+   "BANK_DESIGNATED_SSI"
+  ],
+  "exception_id": "PEX-E2E-PR02-SUFF",
+  "execution_owner": "BANK",
+  "hitl_required": false,
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": true,
+   "r_uniq": true,
+   "stp_formula_result": true,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [
+   {
+    "field_path": "creditor_agent.bic",
+    "repaired_value": "CHASUS33XXX"
+   }
+  ],
+  "resolution_basis": "Resolved route via FEDWIRE (intermediary=DIRECT, settlement_id=FED-<ID>-MAIN).",
+  "resolution_recommendation": {
+   "action": "UPDATE_CLEARING_ROUTE",
+   "clearing_rail": "FEDWIRE",
+   "clearing_system_member_id": "021000021",
+   "intermediary_agent_bic": null,
+   "settlement_account": "FED-<ID>-MAIN"
+  },
+  "resolution_status": "RESOLVED",
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff \u2227 R_det \u2227 R_uniq \u2227 V_det \u2227 V_auth \u2227 P_bank \u2227 C_comp \u2227 X_pre).",
+  "stp_eligible": true,
+  "warnings": []
+ },
+ "input/PR-02_routing_failure_unreachable": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "PR-02",
+  "domain": "PROCESSING",
+  "errors": [
+   "Evidence insufficient: missing mandatory ['BANK_DESIGNATED_SSI'] / stale [] / contradictory []",
+   "Deterministic resolution could not be derived.",
+   "Deterministic validation / checksum failed."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [
+   "BANK_DESIGNATED_SSI"
+  ],
+  "evidence_status": "INSUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "ROUTING_DIRECTORY_AUTHORITY"
+  ],
+  "exception_id": "PEX-E2E-PR02-UNREACH",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": false,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": false,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Routing resolution failed: INVALID_BIC_OR_UNREACHABLE_CLEARING_PATH",
+  "resolution_recommendation": null,
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Evidence insufficient: missing mandatory ['BANK_DESIGNATED_SSI'] / stale [] / contradictory []; Deterministic resolution could not be derived.; Deterministic validation / checksum failed.",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "input/PR-04_cutoff_missed_policy_blocked": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "PR-04",
+  "domain": "PROCESSING",
+  "errors": [
+   "Deterministic resolution could not be derived.",
+   "Deterministic validation / checksum failed."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "RAIL_OPERATING_CALENDAR",
+   "RAIL_CUTOFF_SCHEDULE",
+   "BANK_CUTOFF_POLICY"
+  ],
+  "exception_id": "PEX-E2E-PR04-POLICYBLOCK",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": false,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Rail FEDWIRE cutoff time: 22:00 UTC (Buffer: 15m).; Bank policy W1-POL-02 disallows autonomous value-date rolls without explicit client authorization.",
+  "resolution_recommendation": null,
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Deterministic resolution could not be derived.; Deterministic validation / checksum failed.",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "input/PR-04_cutoff_missed_sufficient": {
+  "ai_confidence_score": 0.98,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "PR-04",
+  "domain": "PROCESSING",
+  "errors": [],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "RAIL_OPERATING_CALENDAR",
+   "RAIL_CUTOFF_SCHEDULE",
+   "BANK_CUTOFF_POLICY"
+  ],
+  "exception_id": "PEX-E2E-PR04-SUFF",
+  "execution_owner": "BANK",
+  "hitl_required": false,
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": true,
+   "r_uniq": true,
+   "stp_formula_result": true,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [
+   {
+    "field_path": "payment.value_date",
+    "original_value": "2026-10-08",
+    "repaired_value": "2026-10-09"
+   }
+  ],
+  "resolution_basis": "Rail FEDWIRE cutoff time: 22:00 UTC (Buffer: 15m).; Recalculated value date from 2026-10-08 to 2026-10-09 (T+1 business day).",
+  "resolution_recommendation": {
+   "action": "ADJUST_VALUE_DATE",
+   "clearing_rail": "FEDWIRE",
+   "days_rolled": 1,
+   "original_value_date": "2026-10-08",
+   "value_date": "2026-10-09"
+  },
+  "resolution_status": "RESOLVED",
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff \u2227 R_det \u2227 R_uniq \u2227 V_det \u2227 V_auth \u2227 P_bank \u2227 C_comp \u2227 X_pre).",
+  "stp_eligible": true,
+  "warnings": []
+ },
+ "input/PR-06_intermediary_bank_rejection_sufficient": {
+  "ai_confidence_score": 0.98,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "PR-06",
+  "domain": "PROCESSING",
+  "errors": [],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "REJECTION_REFERENCE",
+   "ORIGINAL_INTERMEDIARY_BIC",
+   "VERIFIED_ALTERNATE_INTERMEDIARY_BIC",
+   "INWARD_REJECTION_ADVICE",
+   "OUTBOUND_PAYMENT_RECORD",
+   "CORRESPONDENT_SSI_DIRECTORY",
+   "RAIL_CUTOFF_SCHEDULE",
+   "CORRESPONDENT_GATEWAY_REJECTION_PROOF",
+   "RECOMMENDED_ACTION",
+   "ALTERNATE_BIC"
+  ],
+  "exception_id": "PEX-E2E-PR06-SUFF",
+  "execution_owner": "BANK",
+  "hitl_required": false,
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": true,
+   "r_uniq": true,
+   "stp_formula_result": true,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [
+   {
+    "field_path": "intermediary_agent.bic",
+    "repaired_value": "CHASUS33XXX"
+   }
+  ],
+  "resolution_basis": "Authoritative rejection from BNPAFRPPXXX confirmed (code: RC01, category: ROUTING_UNREACHABLE).; Correlated rejection to original payment PMT-2026-PR06-001 (UETR: UETR-PR06-SUFF-0001-A1) with 100% confidence.; Resolved viable alternate correspondent hop: CHASUS33XXX (Clearing Rail: SWIFT_CBPR+).",
+  "resolution_recommendation": {
+   "clearing_rail": "SWIFT_CBPR+",
+   "intermediary_agent_bic": "CHASUS33XXX",
+   "original_intermediary_bic": "BNPAFRPPXXX",
+   "rejection_reference": "REJ-2026-PR06-001",
+   "resolution_action": "REROUTE_VIA_ALTERNATE_CORRESPONDENT"
+  },
+  "resolution_status": "RESOLVED",
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff \u2227 R_det \u2227 R_uniq \u2227 V_det \u2227 V_auth \u2227 P_bank \u2227 C_comp \u2227 X_pre).",
+  "stp_eligible": true,
+  "warnings": []
+ },
+ "input/PR-06_intermediary_bank_rejection_unverified_telemetry": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "PR-06",
+  "domain": "PROCESSING",
+  "errors": [
+   "Deterministic resolution could not be derived.",
+   "Deterministic validation / checksum failed."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "IS_TELEMETRY_ONLY",
+   "INWARD_REJECTION_ADVICE",
+   "OUTBOUND_PAYMENT_RECORD",
+   "CORRESPONDENT_SSI_DIRECTORY",
+   "RAIL_CUTOFF_SCHEDULE",
+   "INVESTIGATION_STATUS"
+  ],
+  "exception_id": "PEX-E2E-PR06-NEG",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": false,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Rejection state based solely on raw network telemetry (socket/TCP timeout). Telemetry is not authoritative rejection advice.",
+  "resolution_recommendation": null,
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Deterministic resolution could not be derived.; Deterministic validation / checksum failed.",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "input/PR-07_network_timeout_idempotency_collision": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "PR-07",
+  "domain": "PROCESSING",
+  "errors": [
+   "Deterministic resolution could not be derived.",
+   "Deterministic validation / checksum failed."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "GATEWAY_SOCKET_STATE",
+   "IDEMPOTENCY_LEDGER_LOCK",
+   "RETRY_BUDGET_RECORD"
+  ],
+  "exception_id": "PEX-E2E-PR07-IDEMPCOLLISION",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": false,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Payment 9f1e2d3c-4b5a-6789-0123-abcdef070002 confirmed settled on remote clearing rail. Retry forbidden (duplicate prevention).",
+  "resolution_recommendation": null,
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Deterministic resolution could not be derived.; Deterministic validation / checksum failed.",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "input/PR-07_network_timeout_sufficient": {
+  "ai_confidence_score": 0.98,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "PR-07",
+  "domain": "PROCESSING",
+  "errors": [],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "GATEWAY_SOCKET_STATE",
+   "IDEMPOTENCY_LEDGER_LOCK",
+   "RETRY_BUDGET_RECORD"
+  ],
+  "exception_id": "PEX-E2E-PR07-SUFF",
+  "execution_owner": "BANK",
+  "hitl_required": false,
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": true,
+   "r_uniq": true,
+   "stp_formula_result": true,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Gateway healthy (1.5ms). Safe idempotent retry approved (Attempt 1/3).",
+  "resolution_recommendation": {
+   "action": "IDEMPOTENT_GATEWAY_RETRY",
+   "payment_uetr": "9f1e2d3c-4b5a-6789-0123-abcdef070001",
+   "retry_attempt": 1,
+   "target_gateway": "GW-PRIMARY"
+  },
+  "resolution_status": "RESOLVED",
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff \u2227 R_det \u2227 R_uniq \u2227 V_det \u2227 V_auth \u2227 P_bank \u2227 C_comp \u2227 X_pre).",
+  "stp_eligible": true,
+  "warnings": []
+ },
+ "input/PR-08_queue_failure_broker_unreachable": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "UNAVAILABLE",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "PR-08",
+  "domain": "PROCESSING",
+  "errors": [
+   "Evidence insufficient: missing mandatory ['STREAMING_BROKER_JOURNAL'] / stale [] / contradictory []",
+   "Deterministic resolution could not be derived.",
+   "Resolution is ambiguous with multiple candidate matches.",
+   "Deterministic validation / checksum failed.",
+   "Authoritative source validation failed: Simulated authority timeout / 503 unavailable."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [
+   "STREAMING_BROKER_JOURNAL"
+  ],
+  "evidence_status": "INSUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "DLQ_RECORD",
+   "SIMULATE_AUTHORITY_UNAVAILABLE",
+   "BROKER_DEADLOCKED"
+  ],
+  "exception_id": "PEX-E2E-PR08-FAIL",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": false,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": false,
+   "stp_formula_result": false,
+   "v_auth": false,
+   "v_det": false,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Message broker offline or partition corrupt.",
+  "resolution_recommendation": null,
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Evidence insufficient: missing mandatory ['STREAMING_BROKER_JOURNAL'] / stale [] / contradictory []; Deterministic resolution could not be derived.; Resolution is ambiguous with multiple candidate matches.; Deterministic validation / checksum failed.; Authoritative source validation failed: Simulated authority timeout / 503 unavailable.",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "input/PR-08_queue_failure_sufficient": {
+  "ai_confidence_score": 0.98,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "PR-08",
+  "domain": "PROCESSING",
+  "errors": [],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "DLQ_RECORD",
+   "STREAMING_BROKER_JOURNAL",
+   "BROKER_DEADLOCKED"
+  ],
+  "exception_id": "PEX-E2E-PR08-SUFF",
+  "execution_owner": "BANK",
+  "hitl_required": false,
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": true,
+   "r_uniq": true,
+   "stp_formula_result": true,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Queue partition lock cleared and poison state re-enqueued for clean transit.",
+  "resolution_recommendation": {
+   "action": "RESET_BROKER_PARTITION_AND_RETRY",
+   "target_queue": "FEDWIRE_OUTBOUND"
+  },
+  "resolution_status": "RESOLVED",
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff \u2227 R_det \u2227 R_uniq \u2227 V_det \u2227 V_auth \u2227 P_bank \u2227 C_comp \u2227 X_pre).",
+  "stp_eligible": true,
+  "warnings": []
+ },
+ "input/PR-09_payment_held_for_repair_sufficient": {
+  "ai_confidence_score": 0.98,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "PR-09",
+  "domain": "PROCESSING",
+  "errors": [],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "PAYMENT_HUB_REPAIR_QUEUE",
+   "SYNTAX_ERROR_SPECIFICATION"
+  ],
+  "exception_id": "PEX-E2E-PR09-SUFF",
+  "execution_owner": "BANK",
+  "hitl_required": false,
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": true,
+   "r_uniq": true,
+   "stp_formula_result": true,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [
+   {
+    "field_path": "payment_hub.queue_action",
+    "repaired_value": "RELEASE_AFTER_SYNTAX_VALIDATION"
+   }
+  ],
+  "resolution_basis": "Payment hub queue status: 'HELD_IN_REPAIR' (Syntax Error: ERR_SYNTAX_TAG_UNCLOSED).; Repair syntax validated against payment hub schema. Release envelope prepared for bank execution.",
+  "resolution_recommendation": {
+   "action": "RELEASE_FROM_REPAIR_QUEUE",
+   "repaired_fields": [
+    {
+     "field_path": "GrpHdr.CreDtTm",
+     "status": "SYNTAX_NORMALIZED"
+    }
+   ],
+   "repaired_payload": "<Document xmlns=\"urn:iso:std:iso:20022:tech:xsd:pacs.008.001.08\"><PmtId>9f1e2d3c-4b5a-6789-0123-abcdef090001</PmtId></Document>"
+  },
+  "resolution_status": "RESOLVED",
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff \u2227 R_det \u2227 R_uniq \u2227 V_det \u2227 V_auth \u2227 P_bank \u2227 C_comp \u2227 X_pre).",
+  "stp_eligible": true,
+  "warnings": []
+ },
+ "input/PR-09_payment_held_for_repair_unresolved_syntax": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "PR-09",
+  "domain": "PROCESSING",
+  "errors": [
+   "Evidence insufficient: missing mandatory ['SYNTAX_ERROR_SPECIFICATION'] / stale [] / contradictory []",
+   "Deterministic resolution could not be derived.",
+   "Deterministic validation / checksum failed."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [
+   "SYNTAX_ERROR_SPECIFICATION"
+  ],
+  "evidence_status": "INSUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "PAYMENT_HUB_REPAIR_QUEUE",
+   "UNRESOLVED_SYNTAX_ERROR"
+  ],
+  "exception_id": "PEX-E2E-PR09-UNRESOLVED",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": false,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": false,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Payment hub queue status: 'HELD_IN_REPAIR' (Syntax Error: ERR_SYNTAX_TAG_UNCLOSED).; Syntax error in repair item could not be resolved automatically. PeX HITL repair required.",
+  "resolution_recommendation": null,
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Evidence insufficient: missing mandatory ['SYNTAX_ERROR_SPECIFICATION'] / stale [] / contradictory []; Deterministic resolution could not be derived.; Deterministic validation / checksum failed.",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "input/ST-01_returned_payment_missing_original": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "ST-01",
+  "domain": "SETTLEMENT_RETURNS",
+  "errors": [
+   "Evidence insufficient: missing mandatory ['ORIGINAL_DEBIT_RECORD'] / stale [] / contradictory []",
+   "Deterministic resolution could not be derived.",
+   "Resolution is ambiguous with multiple candidate matches.",
+   "Deterministic validation / checksum failed."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [
+   "ORIGINAL_DEBIT_RECORD"
+  ],
+  "evidence_status": "INSUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "INWARD_PACS004_RETURN",
+   "ORIGINAL_DEBIT_POSTED"
+  ],
+  "exception_id": "PEX-E2E-ST01-MISS",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": false,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": false,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": false,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Original payment debit not found or unposted in ledger.",
+  "resolution_recommendation": null,
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Evidence insufficient: missing mandatory ['ORIGINAL_DEBIT_RECORD'] / stale [] / contradictory []; Deterministic resolution could not be derived.; Resolution is ambiguous with multiple candidate matches.; Deterministic validation / checksum failed.",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "input/ST-01_returned_payment_sufficient": {
+  "ai_confidence_score": 0.98,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "ST-01",
+  "domain": "SETTLEMENT_RETURNS",
+  "errors": [],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "ORIGINAL_DEBIT_RECORD",
+   "ORIGINAL_DEBIT_POSTED",
+   "INWARD_PACS004_RETURN",
+   "AMOUNT_CURRENCY_MATCH"
+  ],
+  "exception_id": "PEX-E2E-ST01-SUFF",
+  "execution_owner": "BANK",
+  "hitl_required": false,
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": true,
+   "r_uniq": true,
+   "stp_formula_result": true,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [
+   {
+    "amount": 2800.0,
+    "currency": "EUR",
+    "field_path": "debtor_account.recredit_amount"
+   }
+  ],
+  "resolution_basis": "Inward pacs.004 return matched with posted debit. Preparing debtor ledger re-credit.",
+  "resolution_recommendation": {
+   "action": "RECREDIT_DEBTOR_LEDGER",
+   "amount": 2800.0,
+   "currency": "EUR"
+  },
+  "resolution_status": "RESOLVED",
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff \u2227 R_det \u2227 R_uniq \u2227 V_det \u2227 V_auth \u2227 P_bank \u2227 C_comp \u2227 X_pre).",
+  "stp_eligible": true,
+  "warnings": []
+ },
+ "input/ST-02_account_closed_contradictory": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "ST-02",
+  "domain": "SETTLEMENT_RETURNS",
+  "errors": [
+   "Evidence insufficient: missing mandatory ['CORE_DDA_ACCOUNT_STATUS'] / stale [] / contradictory ['CONTRADICTORY_ACCOUNT_STATUS', 'CORE_DDA_ACCOUNT_STATUS']",
+   "Deterministic resolution could not be derived.",
+   "Resolution is ambiguous due to contradictory evidence (CONTRADICTORY_ACCOUNT_STATUS, CORE_DDA_ACCOUNT_STATUS).",
+   "Deterministic validation / checksum failed."
+  ],
+  "evidence_contradictions": [
+   "CONTRADICTORY_ACCOUNT_STATUS",
+   "CORE_DDA_ACCOUNT_STATUS"
+  ],
+  "evidence_missing": [
+   "CORE_DDA_ACCOUNT_STATUS"
+  ],
+  "evidence_status": "CONTRADICTORY",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "AUTONOMOUS_REPLACEMENT_ATTEMPT",
+   "INWARD_PAYMENT_RECORD",
+   "CLEARING_RETURN_SCHEDULE",
+   "INVESTIGATION_STATUS"
+  ],
+  "exception_id": "PEX-E2E-ST02-NEG",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": false,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": false,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": false,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Contradictory account status signals between Core DDA and auxiliary directory. PeX fails closed to HITL.",
+  "resolution_recommendation": null,
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Evidence insufficient: missing mandatory ['CORE_DDA_ACCOUNT_STATUS'] / stale [] / contradictory ['CONTRADICTORY_ACCOUNT_STATUS', 'CORE_DDA_ACCOUNT_STATUS']; Deterministic resolution could not be derived.; Resolution is ambiguous due to contradictory evidence (CONTRADICTORY_ACCOUNT_STATUS, CORE_DDA_ACCOUNT_STATUS).; Deterministic validation / checksum failed.",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "input/ST-02_account_closed_sufficient": {
+  "ai_confidence_score": 0.98,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "ST-02",
+  "domain": "SETTLEMENT_RETURNS",
+  "errors": [],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "CORE_DDA_ACCOUNT_STATUS",
+   "INWARD_PAYMENT_RECORD",
+   "CLEARING_RETURN_SCHEDULE",
+   "CORE_DDA_SIGNED_CLOSED_STATUS",
+   "TARGET_DISPOSITION",
+   "RETURN_CODE"
+  ],
+  "exception_id": "PEX-E2E-ST02-SUFF",
+  "execution_owner": "BANK",
+  "hitl_required": false,
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": true,
+   "r_uniq": true,
+   "stp_formula_result": true,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [
+   {
+    "field_path": "settlement_return.reason",
+    "repaired_value": "AC04"
+   }
+  ],
+  "resolution_basis": "Authoritative closed status confirmed for account '99887700' in Core DDA.; Compiled compliant settlement return package RET-FEDWIRE-<ID> (Reason: AC04, Rail: FEDWIRE).",
+  "resolution_recommendation": {
+   "creditor_nostro_account": "GL-1010-FEDWIRE-NOSTRO",
+   "currency": "USD",
+   "debtor_recredit_account": "GL-1090-RETURN-SETTLEMENT",
+   "generated_at": "<TS>",
+   "is_fully_balanced": true,
+   "original_payment_id": "PMT-2026-ST02-001",
+   "original_uetr": "UETR-ST02-SUFF-0001-A1",
+   "return_amount": 12400.0,
+   "return_id": "RET-FEDWIRE-<ID>",
+   "return_mechanism": "pacs.004_or_rail_return",
+   "return_reason_code": "AC04",
+   "return_reason_narrative": "Account closed / terminated in Core DDA.",
+   "target_clearing_rail": "FEDWIRE"
+  },
+  "resolution_status": "RESOLVED",
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff \u2227 R_det \u2227 R_uniq \u2227 V_det \u2227 V_auth \u2227 P_bank \u2227 C_comp \u2227 X_pre).",
+  "stp_eligible": true,
+  "warnings": []
+ },
+ "input/ST-03_account_frozen_conflicting_order": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_BLOCKED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "ST-03",
+  "domain": "SETTLEMENT_RETURNS",
+  "errors": [
+   "Evidence insufficient: missing mandatory ['CORE_ACCOUNT_RESTRICTION_FLAG', 'LEGAL_FREEZE_DOSSIER'] / stale [] / contradictory ['CONFLICTING_LEGAL_ORDERS', 'CORE_ACCOUNT_RESTRICTION_FLAG', 'LEGAL_FREEZE_DOSSIER']",
+   "Deterministic resolution could not be derived.",
+   "Resolution is ambiguous due to contradictory evidence (CONFLICTING_LEGAL_ORDERS, CORE_ACCOUNT_RESTRICTION_FLAG, LEGAL_FREEZE_DOSSIER).",
+   "Deterministic validation / checksum failed.",
+   "Bank policy disallows autonomous STP: ['Amount ($28,000.00) exceeds fast-lane batch threshold ($25,000.00).']"
+  ],
+  "evidence_contradictions": [
+   "CONFLICTING_LEGAL_ORDERS",
+   "CORE_ACCOUNT_RESTRICTION_FLAG",
+   "LEGAL_FREEZE_DOSSIER"
+  ],
+  "evidence_missing": [
+   "CORE_ACCOUNT_RESTRICTION_FLAG",
+   "LEGAL_FREEZE_DOSSIER"
+  ],
+  "evidence_status": "CONTRADICTORY",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "ACCOUNT_NUMBER",
+   "INWARD_PAYMENT_RECORD",
+   "SUSPENSE_LEDGER_MATRIX",
+   "INVESTIGATION_STATUS"
+  ],
+  "exception_id": "PEX-E2E-ST03-NEG",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": false,
+   "p_bank": false,
+   "r_det": false,
+   "r_uniq": false,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": false,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Authoritative restriction confirmed: POST_NO_CREDITS (issuing authority: BANK_CORE). Credit posting is prohibited.; Conflicting judicial orders on record (e.g., competing state vs federal garnishment). Route to Legal Officer.; Legal freeze dossier validation failed: Conflicting legal orders detected.",
+  "resolution_recommendation": null,
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Evidence insufficient: missing mandatory ['CORE_ACCOUNT_RESTRICTION_FLAG', 'LEGAL_FREEZE_DOSSIER'] / stale [] / contradictory ['CONFLICTING_LEGAL_ORDERS', 'CORE_ACCOUNT_RESTRICTION_FLAG', 'LEGAL_FREEZE_DOSSIER']; Deterministic resolution could not be derived.; Resolution is ambiguous due to contradictory evidence (CONFLICTING_LEGAL_ORDERS, CORE_ACCOUNT_RESTRICTION_FLAG, LEGAL_FREEZE_DOSSIER).; Deterministic validation / checksum failed.; Bank policy disallows autonomous STP: ['Amount ($28,000.00) exceeds fast-lane batch threshold ($25,000.00).']",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "input/ST-03_account_frozen_sufficient": {
+  "ai_confidence_score": 0.98,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "ST-03",
+  "domain": "SETTLEMENT_RETURNS",
+  "errors": [],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "ACCOUNT_NUMBER",
+   "CORE_ACCOUNT_RESTRICTION_FLAG",
+   "LEGAL_FREEZE_DOSSIER",
+   "INWARD_PAYMENT_RECORD",
+   "SUSPENSE_LEDGER_MATRIX",
+   "LEGAL_REGISTRY_ORDER_VERIFICATION",
+   "PERMITTED_RESOLUTION",
+   "RETURN_REASON"
+  ],
+  "exception_id": "PEX-E2E-ST03-SUFF",
+  "execution_owner": "BANK",
+  "hitl_required": false,
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": true,
+   "r_uniq": true,
+   "stp_formula_result": true,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [
+   {
+    "field_path": "settlement_return.reason",
+    "repaired_value": "PNC"
+   }
+  ],
+  "resolution_basis": "Authoritative restriction confirmed: POST_NO_CREDITS (issuing authority: NEW_YORK_SUPREME_COURT). Credit posting is prohibited.; Validated legal dossier DOS-2026-NY-9912 (COURT_INJUNCTION, court: 'New York State Supreme Court', docket: 'Index No. 650123/2026'). Permitted disposition: RETURN_TO_ORDERING_INSTITUTION.; Compiled compliant settlement return package RET-FEDWIRE-<ID> (Reason: PNC, Rail: FEDWIRE).",
+  "resolution_recommendation": {
+   "creditor_nostro_account": "GL-1010-FEDWIRE-NOSTRO",
+   "currency": "USD",
+   "debtor_recredit_account": "GL-1090-RETURN-SETTLEMENT",
+   "generated_at": "<TS>",
+   "is_fully_balanced": true,
+   "original_payment_id": "PMT-2026-ST03-001",
+   "original_uetr": "UETR-ST03-SUFF-0001-A1",
+   "return_amount": 18000.0,
+   "return_id": "RET-FEDWIRE-<ID>",
+   "return_mechanism": "pacs.004_or_rail_return",
+   "return_reason_code": "PNC",
+   "return_reason_narrative": "Account subject to active credit restriction (POST_NO_CREDITS).",
+   "target_clearing_rail": "FEDWIRE"
+  },
+  "resolution_status": "RESOLVED",
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff \u2227 R_det \u2227 R_uniq \u2227 V_det \u2227 V_auth \u2227 P_bank \u2227 C_comp \u2227 X_pre).",
+  "stp_eligible": true,
+  "warnings": []
+ },
+ "input/ST-06_funds_trapped_inquiry": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_BLOCKED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "ST-06",
+  "domain": "SETTLEMENT_RETURNS",
+  "errors": [
+   "Bank policy disallows autonomous STP: ['ST-06 Funds Trapped at Correspondent: Autonomous STP is strictly prohibited for transit breaks. Operations dual-authorization required.']"
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "INTERMEDIARY_BIC",
+   "TRACKER_HOP_RECORD",
+   "DEBIT_CONFIRMATION_RECORD",
+   "RESOLUTION_ACTION"
+  ],
+  "exception_id": "PEX-E2E-ST06-INQ",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": false,
+   "r_det": true,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [
+   {
+    "field_path": "transit_investigation.status",
+    "repaired_value": "DISPATCH_CAMT_056_INTERMEDIARY_INQUIRY"
+   }
+  ],
+  "resolution_basis": "Generated CAMT_056 inquiry INQ-<ID> for intermediary DEUTDEDDXXX (hold: 180.0m). Autonomous STP prohibited (Group 4 Transit Break); assigned to Bank Operations.",
+  "resolution_recommendation": {
+   "autonomous_stp_prohibited": true,
+   "execution_owner": "BANK",
+   "inquiry_reference": "INQ-<ID>",
+   "inquiry_type": "CAMT_056",
+   "investigation_id": "INV-TRAP-<ID>",
+   "rationale": "Funds confirmed debited and held at intermediary DEUTDEDDXXX beyond inquiry threshold; structured CAMT_056 inquiry generated under bank-owned operations review.",
+   "status": "DISPATCH_CAMT_056_INTERMEDIARY_INQUIRY",
+   "target_intermediary_bic": "DEUTDEDDXXX",
+   "uetr": "UETR-ST06-SUFF"
+  },
+  "resolution_status": "RESOLVED",
+  "stp_decision_reason": "Bank policy disallows autonomous STP: ['ST-06 Funds Trapped at Correspondent: Autonomous STP is strictly prohibited for transit breaks. Operations dual-authorization required.']",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "input/ST-06_funds_trapped_telemetry_missing": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_BLOCKED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "ST-06",
+  "domain": "SETTLEMENT_RETURNS",
+  "errors": [
+   "Evidence insufficient: missing mandatory ['TRACKER_HOP_RECORD', 'DEBIT_CONFIRMATION_RECORD'] / stale [] / contradictory []",
+   "Deterministic resolution could not be derived.",
+   "Bank policy disallows autonomous STP: ['ST-06 Funds Trapped at Correspondent: Autonomous STP is strictly prohibited for transit breaks. Operations dual-authorization required.']"
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [
+   "TRACKER_HOP_RECORD",
+   "DEBIT_CONFIRMATION_RECORD"
+  ],
+  "evidence_status": "INSUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "INTERMEDIARY_BIC",
+   "TRACKER_HOP_RECORD_STALE",
+   "RESOLUTION_ACTION"
+  ],
+  "exception_id": "PEX-E2E-ST06-TELMISS",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": false,
+   "p_bank": false,
+   "r_det": false,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "No authoritative SWIFT gpi tracker hop telemetry found for UETR UETR-ST06-MISSING-TEL.",
+  "resolution_recommendation": null,
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Evidence insufficient: missing mandatory ['TRACKER_HOP_RECORD', 'DEBIT_CONFIRMATION_RECORD'] / stale [] / contradictory []; Deterministic resolution could not be derived.; Bank policy disallows autonomous STP: ['ST-06 Funds Trapped at Correspondent: Autonomous STP is strictly prohibited for transit breaks. Operations dual-authorization required.']",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "input/TR-01_kyc_expired_distressed": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_BLOCKED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "TR-01",
+  "domain": "CLIENT_TREASURY",
+  "errors": [
+   "Deterministic resolution could not be derived.",
+   "Bank policy disallows autonomous STP: ['Amount ($85,000.00) exceeds fast-lane batch threshold ($25,000.00).']"
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "CLIENT_ID",
+   "CUSTOMER_KYC_RECORD",
+   "CORPORATE_STANDING_RECORD",
+   "RESOLUTION_ACTION"
+  ],
+  "exception_id": "PEX-E2E-TR01-DIST",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": false,
+   "r_det": false,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Client CLI-DISTRESSED-02 has an active SAR or regulatory query on file. Provisional waiver strictly prohibited.",
+  "resolution_recommendation": null,
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Deterministic resolution could not be derived.; Bank policy disallows autonomous STP: ['Amount ($85,000.00) exceeds fast-lane batch threshold ($25,000.00).']",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "input/TR-01_kyc_expired_sufficient": {
+  "ai_confidence_score": 0.98,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "TR-01",
+  "domain": "CLIENT_TREASURY",
+  "errors": [],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "CLIENT_ID",
+   "CUSTOMER_KYC_RECORD",
+   "CORPORATE_STANDING_RECORD",
+   "RESOLUTION_ACTION"
+  ],
+  "exception_id": "PEX-E2E-TR01-SUFF",
+  "execution_owner": "BANK",
+  "hitl_required": false,
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": true,
+   "r_uniq": true,
+   "stp_formula_result": true,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [
+   {
+    "field_path": "customer_kyc.provisional_status",
+    "repaired_value": "WAIVER_ACTIVE_30_DAYS"
+   }
+  ],
+  "resolution_basis": "Provisional 30-day KYC waiver WVR-KYC-<ID> granted for CLI-CORP-001 under SOP-302. Documentation refresh confirmed in progress.",
+  "resolution_recommendation": {
+   "client_id": "CLI-CORP-001",
+   "execution_owner": "BANK",
+   "expiry_timestamp": "<TS>",
+   "provisional_status": "WAIVER_ACTIVE_30_DAYS",
+   "rationale": "Provisional 30-day KYC processing waiver granted under SOP-302 for CLI-CORP-001.",
+   "waiver_duration_days": 30,
+   "waiver_id": "WVR-KYC-<ID>"
+  },
+  "resolution_status": "RESOLVED",
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff \u2227 R_det \u2227 R_uniq \u2227 V_det \u2227 V_auth \u2227 P_bank \u2227 C_comp \u2227 X_pre).",
+  "stp_eligible": true,
+  "warnings": []
+ },
+ "input/TR-02_insufficient_funds_deficit": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_BLOCKED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "TR-02",
+  "domain": "CLIENT_TREASURY",
+  "errors": [
+   "Deterministic resolution could not be derived.",
+   "Bank policy disallows autonomous STP: ['Amount ($50,000.00) exceeds fast-lane batch threshold ($25,000.00).']"
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "DEBTOR_ACCOUNT",
+   "CORE_DDA_BALANCE_RECORD",
+   "INTRADAY_RESERVATION_SCHEDULE",
+   "DEFICIT_DETECTED"
+  ],
+  "exception_id": "PEX-E2E-TR02-DEFICIT",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": false,
+   "r_det": false,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Account ACCT-DEFICIT-USD-002 has persistent deficit ($49,500.00) without qualifying pending credits. Fails closed to HITL/Return.",
+  "resolution_recommendation": null,
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Deterministic resolution could not be derived.; Bank policy disallows autonomous STP: ['Amount ($50,000.00) exceeds fast-lane batch threshold ($25,000.00).']",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "input/TR-02_insufficient_funds_sufficient": {
+  "ai_confidence_score": 0.98,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "TR-02",
+  "domain": "CLIENT_TREASURY",
+  "errors": [],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "DEBTOR_ACCOUNT",
+   "CORE_DDA_BALANCE_RECORD",
+   "INTRADAY_RESERVATION_SCHEDULE",
+   "RESOLUTION_ACTION"
+  ],
+  "exception_id": "PEX-E2E-TR02-SUFF",
+  "execution_owner": "BANK",
+  "hitl_required": false,
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": true,
+   "r_uniq": true,
+   "stp_formula_result": true,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [
+   {
+    "field_path": "treasury.reservation_id",
+    "repaired_value": "RES-<ID>"
+   }
+  ],
+  "resolution_basis": "Account ACCT-CORP-USD-001 has sufficient available balance ($450,000.00 >= $5,000.00).",
+  "resolution_recommendation": {
+   "account_number": "ACCT-CORP-USD-001",
+   "currency": "USD",
+   "execution_owner": "BANK",
+   "instructed_amount": 5000.0,
+   "reservation_id": "RES-<ID>",
+   "resolution_action": "FUNDS_RESERVED_RELEASE_PAYMENT"
+  },
+  "resolution_status": "RESOLVED",
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff \u2227 R_det \u2227 R_uniq \u2227 V_det \u2227 V_auth \u2227 P_bank \u2227 C_comp \u2227 X_pre).",
+  "stp_eligible": true,
+  "warnings": []
+ },
+ "input/TR-03_nostro_shortfall_sufficient": {
+  "ai_confidence_score": 0.98,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "TR-03",
+  "domain": "CLIENT_TREASURY",
+  "errors": [],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "NOSTRO_BIC",
+   "NOSTRO_POSITION_STATEMENT",
+   "PENDING_CORRESPONDENT_CREDITS",
+   "RESOLUTION_ACTION"
+  ],
+  "exception_id": "PEX-E2E-TR03-SUFF",
+  "execution_owner": "BANK",
+  "hitl_required": false,
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": true,
+   "r_uniq": true,
+   "stp_formula_result": true,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Nostro position for BNPAFRPPXXX is sufficient (50,000.00 EUR >= 8,000.00 EUR).",
+  "resolution_recommendation": {
+   "currency": "EUR",
+   "execution_owner": "BANK",
+   "instructed_amount": 8000.0,
+   "nostro_bic": "BNPAFRPPXXX",
+   "resolution_action": "NOSTRO_POSITION_VERIFIED_RELEASE"
+  },
+  "resolution_status": "RESOLVED",
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff \u2227 R_det \u2227 R_uniq \u2227 V_det \u2227 V_auth \u2227 P_bank \u2227 C_comp \u2227 X_pre).",
+  "stp_eligible": true,
+  "warnings": []
+ },
+ "input/TR-03_nostro_shortfall_unfunded": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_BLOCKED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "TR-03",
+  "domain": "CLIENT_TREASURY",
+  "errors": [
+   "Deterministic resolution could not be derived.",
+   "Bank policy disallows autonomous STP: ['High-value amount ($750,000.00) exceeds dual-auth threshold ($250,000.00).', 'Amount ($750,000.00) exceeds bank policy STP threshold ($100,000.00).']"
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "NOSTRO_BIC",
+   "NOSTRO_POSITION_STATEMENT",
+   "PENDING_CORRESPONDENT_CREDITS",
+   "SHORTFALL_DETECTED"
+  ],
+  "exception_id": "PEX-E2E-TR03-UNFUNDED",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": false,
+   "r_det": false,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Nostro shortfall (700,000.00 EUR) cannot be covered automatically. Escalating to Treasury Desk.",
+  "resolution_recommendation": null,
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Deterministic resolution could not be derived.; Bank policy disallows autonomous STP: ['High-value amount ($750,000.00) exceeds dual-auth threshold ($250,000.00).', 'Amount ($750,000.00) exceeds bank policy STP threshold ($100,000.00).']",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "input/TR-04_fx_rate_unavailable_stale": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "TR-04",
+  "domain": "CLIENT_TREASURY",
+  "errors": [
+   "Deterministic resolution could not be derived."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "CURRENCY_PAIR",
+   "SETTLEMENT_CURRENCY",
+   "OFFICIAL_FX_RATE_FEED",
+   "FX_SPREAD_POLICY_MATRIX",
+   "INWARD_PAYMENT_RECORD",
+   "RATE_STALE"
+  ],
+  "exception_id": "PEX-E2E-TR04-STALE",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "FX quote for USD/JPY is stale or inactive (age: 120.0s > max 60.0s, is_live=False). Fails closed.",
+  "resolution_recommendation": null,
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Deterministic resolution could not be derived.",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "input/TR-04_fx_rate_unavailable_sufficient": {
+  "ai_confidence_score": 0.98,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "TR-04",
+  "domain": "CLIENT_TREASURY",
+  "errors": [],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "CURRENCY_PAIR",
+   "SETTLEMENT_CURRENCY",
+   "OFFICIAL_FX_RATE_FEED",
+   "FX_SPREAD_POLICY_MATRIX",
+   "INWARD_PAYMENT_RECORD",
+   "APPLIED_RATE",
+   "SETTLEMENT_AMOUNT"
+  ],
+  "exception_id": "PEX-E2E-TR04-SUFF",
+  "execution_owner": "BANK",
+  "hitl_required": false,
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": true,
+   "r_uniq": true,
+   "stp_formula_result": true,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [
+   {
+    "field_path": "payment.fx_applied_rate",
+    "repaired_value": 1.085
+   },
+   {
+    "field_path": "payment.settlement_amount",
+    "repaired_value": 8137.5
+   }
+  ],
+  "resolution_basis": "Successfully booked rate 1.0850 for EUR/USD. Settlement: 8,137.50 USD.",
+  "resolution_recommendation": {
+   "applied_rate": 1.085,
+   "booking_id": "FXBOOK-<ID>",
+   "currency_pair": "EUR/USD",
+   "execution_owner": "BANK",
+   "instructed_amount": 7500.0,
+   "instructed_currency": "EUR",
+   "quote_timestamp": "<TS>",
+   "settlement_amount": 8137.5,
+   "settlement_currency": "USD"
+  },
+  "resolution_status": "RESOLVED",
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff \u2227 R_det \u2227 R_uniq \u2227 V_det \u2227 V_auth \u2227 P_bank \u2227 C_comp \u2227 X_pre).",
+  "stp_eligible": true,
+  "warnings": []
+ },
+ "input/TR-05_authorization_missing_sufficient": {
+  "ai_confidence_score": 0.98,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "TR-05",
+  "domain": "CLIENT_TREASURY",
+  "errors": [],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "DEBTOR_ACCOUNT",
+   "PRIMARY_SIGNATORY_ID",
+   "SECONDARY_SIGNATORY_ID",
+   "CORPORATE_MANDATE_RECORD",
+   "SECONDARY_SIGNATORY_RECORD",
+   "PORTAL_CALLBACK_RECORD",
+   "RESOLUTION_ACTION"
+  ],
+  "exception_id": "PEX-E2E-TR05-SUFF",
+  "execution_owner": "BANK",
+  "hitl_required": false,
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": true,
+   "r_uniq": true,
+   "stp_formula_result": true,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [
+   {
+    "field_path": "mandate_authorization.status",
+    "repaired_value": "DUAL_AUTHORIZATION_VERIFIED"
+   }
+  ],
+  "resolution_basis": "Dual authorization AUTH-MAND-<ID> verified for mandate MAND-CORP-001. Signatories: SIG-PRIMARY-01 (Primary), SIG-CLASS-A-99 (CLASS_A, MFA verified).",
+  "resolution_recommendation": {
+   "authorization_id": "AUTH-MAND-<ID>",
+   "authorization_status": "DUAL_AUTHORIZATION_VERIFIED",
+   "execution_owner": "BANK",
+   "mandate_id": "MAND-CORP-001",
+   "primary_signatory_id": "SIG-PRIMARY-01",
+   "rationale": "Dual authorization verified for mandate MAND-CORP-001 via secondary digital signature (SIG-CLASS-A-99).",
+   "secondary_signatory_id": "SIG-CLASS-A-99"
+  },
+  "resolution_status": "RESOLVED",
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff \u2227 R_det \u2227 R_uniq \u2227 V_det \u2227 V_auth \u2227 P_bank \u2227 C_comp \u2227 X_pre).",
+  "stp_eligible": true,
+  "warnings": []
+ },
+ "input/TR-05_authorization_missing_unapproved": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_BLOCKED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "TR-05",
+  "domain": "CLIENT_TREASURY",
+  "errors": [
+   "Deterministic resolution could not be derived.",
+   "Bank policy disallows autonomous STP: ['High-value amount ($350,000.00) exceeds dual-auth threshold ($250,000.00).', 'Amount ($350,000.00) exceeds bank policy STP threshold ($100,000.00).']"
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "DEBTOR_ACCOUNT",
+   "SECONDARY_SIGNATORY_ID",
+   "CORPORATE_MANDATE_RECORD",
+   "SECONDARY_SIGNATORY_RECORD",
+   "PORTAL_CALLBACK_RECORD",
+   "RESOLUTION_ACTION"
+  ],
+  "exception_id": "PEX-E2E-TR05-UNAPP",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": false,
+   "r_det": false,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Secondary signature status is PENDING. Dual authorization incomplete.",
+  "resolution_recommendation": null,
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Deterministic resolution could not be derived.; Bank policy disallows autonomous STP: ['High-value amount ($350,000.00) exceeds dual-auth threshold ($250,000.00).', 'Amount ($350,000.00) exceeds bank policy STP threshold ($100,000.00).']",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "input/TR-06_limit_breach_hard_waiver": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_BLOCKED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "TR-06",
+  "domain": "CLIENT_TREASURY",
+  "errors": [
+   "Bank policy disallows autonomous STP: ['High-value amount ($250,000.00) exceeds dual-auth threshold ($250,000.00).', 'Amount ($250,000.00) exceeds bank policy STP threshold ($100,000.00).']"
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "LIMIT_ID",
+   "CLIENT_ID",
+   "LIMIT_UTILIZATION_RECORD",
+   "CLIENT_LIMIT_AGREEMENT",
+   "WAIVER_REQUIRED"
+  ],
+  "exception_id": "PEX-E2E-TR06-WAIVER",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": false,
+   "r_det": true,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [
+   {
+    "field_path": "treasury.limit_pacing",
+    "repaired_value": {
+     "current_attempt": 1,
+     "execution_owner": "BANK",
+     "max_retry_attempts": 2,
+     "next_evaluation_time": "<TS>",
+     "pacing_interval_seconds": 1800.0,
+     "pacing_reason": "Pacing queued until intraday limit reset cycle at <TS>",
+     "schedule_id": "PACE-LIM-<ID>",
+     "target_profile": "TR-06"
+    }
+   }
+  ],
+  "resolution_basis": "Limit LIM-BREACHED-01 breached by $240,000.00. Scheduling intraday reset pacing.",
+  "resolution_recommendation": {
+   "breached_amount": 240000.0,
+   "currency": "USD",
+   "dossier_id": "DOS-LIM-<ID>",
+   "execution_owner": "BANK",
+   "limit_id": "LIM-BREACHED-01",
+   "pacing_schedule": {
+    "current_attempt": 1,
+    "execution_owner": "BANK",
+    "max_retry_attempts": 2,
+    "next_evaluation_time": "<TS>",
+    "pacing_interval_seconds": 1800.0,
+    "pacing_reason": "Pacing queued until intraday limit reset cycle at <TS>",
+    "schedule_id": "PACE-LIM-<ID>",
+    "target_profile": "TR-06"
+   },
+   "requires_credit_approver": true,
+   "utilization_percentage": 146.0
+  },
+  "resolution_status": "RESOLVED",
+  "stp_decision_reason": "Bank policy disallows autonomous STP: ['High-value amount ($250,000.00) exceeds dual-auth threshold ($250,000.00).', 'Amount ($250,000.00) exceeds bank policy STP threshold ($100,000.00).']",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "input/TR-06_limit_breach_sufficient": {
+  "ai_confidence_score": 0.98,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "TR-06",
+  "domain": "CLIENT_TREASURY",
+  "errors": [],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "LIMIT_ID",
+   "CLIENT_ID",
+   "LIMIT_UTILIZATION_RECORD",
+   "CLIENT_LIMIT_AGREEMENT",
+   "OPERATIONAL_RESET_SCHEDULE",
+   "RESOLUTION_ACTION"
+  ],
+  "exception_id": "PEX-E2E-TR06-SUFF",
+  "execution_owner": "BANK",
+  "hitl_required": false,
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": true,
+   "r_uniq": true,
+   "stp_formula_result": true,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Transaction within operational limit LIM-DAILY-CORP-01 (Headroom: $150,000.00 >= $9,000.00).",
+  "resolution_recommendation": {
+   "currency": "USD",
+   "execution_owner": "BANK",
+   "instructed_amount": 9000.0,
+   "limit_id": "LIM-DAILY-CORP-01",
+   "resolution_action": "LIMIT_HEADROOM_CONFIRMED_RELEASE"
+  },
+  "resolution_status": "RESOLVED",
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff \u2227 R_det \u2227 R_uniq \u2227 V_det \u2227 V_auth \u2227 P_bank \u2227 C_comp \u2227 X_pre).",
+  "stp_eligible": true,
+  "warnings": []
+ },
+ "input/TR-07_liquidity_constraint_exhausted": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_BLOCKED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "TR-07",
+  "domain": "CLIENT_TREASURY",
+  "errors": [
+   "Bank policy disallows autonomous STP: ['High-value amount ($2,000,000.00) exceeds dual-auth threshold ($250,000.00).', 'Amount ($2,000,000.00) exceeds bank policy STP threshold ($100,000.00).']"
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "CLEARING_CONTEXT",
+   "CLEARING_LIQUIDITY_RESERVE",
+   "SETTLEMENT_QUEUE_STATUS",
+   "LIQUIDITY_EXHAUSTED"
+  ],
+  "exception_id": "PEX-E2E-TR07-EXHAUSTED",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": false,
+   "r_det": true,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [
+   {
+    "field_path": "treasury.liquidity_pacing",
+    "repaired_value": {
+     "current_attempt": 1,
+     "execution_owner": "BANK",
+     "max_retry_attempts": 3,
+     "next_evaluation_time": "<TS>",
+     "pacing_interval_seconds": 600.0,
+     "pacing_reason": "Pacing queue delay of 600.0s for clearing context TARGET2",
+     "schedule_id": "PACE-LIQ-<ID>",
+     "target_profile": "TR-07"
+    }
+   }
+  ],
+  "resolution_basis": "Clearing context TARGET2 constrained (Queue depth: 42). Scheduling liquidity pacing delay (600.0s).",
+  "resolution_recommendation": {
+   "clearing_context": "TARGET2",
+   "currency": "EUR",
+   "execution_owner": "BANK",
+   "instructed_amount": 2000000.0,
+   "pacing_schedule": {
+    "current_attempt": 1,
+    "execution_owner": "BANK",
+    "max_retry_attempts": 3,
+    "next_evaluation_time": "<TS>",
+    "pacing_interval_seconds": 600.0,
+    "pacing_reason": "Pacing queue delay of 600.0s for clearing context TARGET2",
+    "schedule_id": "PACE-LIQ-<ID>",
+    "target_profile": "TR-07"
+   },
+   "resolution_action": "QUEUE_FOR_LIQUIDITY_PACING_RELEASE"
+  },
+  "resolution_status": "RESOLVED",
+  "stp_decision_reason": "Bank policy disallows autonomous STP: ['High-value amount ($2,000,000.00) exceeds dual-auth threshold ($250,000.00).', 'Amount ($2,000,000.00) exceeds bank policy STP threshold ($100,000.00).']",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "input/TR-07_liquidity_constraint_sufficient": {
+  "ai_confidence_score": 0.98,
+  "approval_requirement": "NONE_AUTONOMOUS_STP",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "BANK_HANDOFF_READY",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "TR-07",
+  "domain": "CLIENT_TREASURY",
+  "errors": [],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "CLEARING_CONTEXT",
+   "CLEARING_LIQUIDITY_RESERVE",
+   "SETTLEMENT_QUEUE_STATUS",
+   "RESOLUTION_ACTION"
+  ],
+  "exception_id": "PEX-E2E-TR07-SUFF",
+  "execution_owner": "BANK",
+  "hitl_required": false,
+  "next_action": "DISPATCH_TO_BANK_GATEWAY",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": true,
+   "r_uniq": true,
+   "stp_formula_result": true,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Clearing context FEDWIRE has sufficient liquidity headroom ($40,000,000.00 >= buffer).",
+  "resolution_recommendation": {
+   "clearing_context": "FEDWIRE",
+   "currency": "USD",
+   "execution_owner": "BANK",
+   "instructed_amount": 9500.0,
+   "resolution_action": "LIQUIDITY_BUFFER_VERIFIED_RELEASE"
+  },
+  "resolution_status": "RESOLVED",
+  "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff \u2227 R_det \u2227 R_uniq \u2227 V_det \u2227 V_auth \u2227 P_bank \u2227 C_comp \u2227 X_pre).",
+  "stp_eligible": true,
+  "warnings": []
+ },
+ "input/TR-08_credit_exposure_breach_distressed": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_BLOCKED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "TR-08",
+  "domain": "CLIENT_TREASURY",
+  "errors": [
+   "Bank policy disallows autonomous STP: ['TR-08 Credit Exposure Breach: Autonomous STP is strictly prohibited. Senior Credit Officer dual-authorization required.']"
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "COUNTERPARTY_ID",
+   "COUNTERPARTY_EXPOSURE_RECORD",
+   "CREDIT_FACILITY_AGREEMENT",
+   "ENTERPRISE_RISK_RATING",
+   "DISTRESSED_RATING",
+   "EXCESS_EXPOSURE"
+  ],
+  "exception_id": "PEX-E2E-TR08-DISTRESSED",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": false,
+   "r_det": true,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [
+   {
+    "field_path": "compliance.credit_dossier_id",
+    "repaired_value": "DOS-CREDIT-<ID>"
+   }
+  ],
+  "resolution_basis": "TR-08 Credit Exposure Breach: Autonomous STP is STRICTLY PROHIBITED under bank credit governance.; Counterparty CPTY-DISTRESSED-01 has distressed credit rating (SUB_INVESTMENT). Escalating for immediate freeze review.; Assembled Credit Risk Dossier DOS-CREDIT-<ID> (Drawn: $1,200,000.00 / Limit: $1,000,000.00, Excess: $500,000.00). Requires Senior Credit Officer sign-off.",
+  "resolution_recommendation": {
+   "autonomous_stp_prohibited": true,
+   "counterparty_id": "CPTY-DISTRESSED-01",
+   "currency": "USD",
+   "decision_record": null,
+   "dossier_id": "DOS-CREDIT-<ID>",
+   "execution_owner": "BANK",
+   "exposure_record": {
+    "authority_source": "ENTERPRISE_CREDIT_RISK_SYSTEM",
+    "counterparty_bic": "DISTUS33XXX",
+    "counterparty_id": "CPTY-DISTRESSED-01",
+    "credit_rating": "SUB_INVESTMENT",
+    "currency": "USD",
+    "current_drawn_exposure": 1200000.0,
+    "is_authoritative": true,
+    "is_breached": true,
+    "total_facility_limit": 1000000.0
+   },
+   "facility_record": {
+    "approval_tier_required": "SENIOR_CREDIT_OFFICER",
+    "borrower_entity": "CPTY-CORP-ALPHA",
+    "collateral_coverage_ratio": 1.25,
+    "expiry_date": null,
+    "facility_id": "FAC-ALPHA-01",
+    "facility_type": "REVOLVING_CREDIT"
+   },
+   "requested_amount": 500000.0
+  },
+  "resolution_status": "RESOLVED",
+  "stp_decision_reason": "Bank policy disallows autonomous STP: ['TR-08 Credit Exposure Breach: Autonomous STP is strictly prohibited. Senior Credit Officer dual-authorization required.']",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "input/TR-08_credit_exposure_breach_dossier": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_BLOCKED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "TR-08",
+  "domain": "CLIENT_TREASURY",
+  "errors": [
+   "Bank policy disallows autonomous STP: ['TR-08 Credit Exposure Breach: Autonomous STP is strictly prohibited. Senior Credit Officer dual-authorization required.']"
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "COUNTERPARTY_ID",
+   "FACILITY_ID",
+   "COUNTERPARTY_EXPOSURE_RECORD",
+   "CREDIT_FACILITY_AGREEMENT",
+   "ENTERPRISE_RISK_RATING",
+   "EXCESS_EXPOSURE",
+   "REQUIRES_CREDIT_ADJUDICATION"
+  ],
+  "exception_id": "PEX-E2E-TR08-DOSSIER",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": false,
+   "r_det": true,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [
+   {
+    "field_path": "compliance.credit_dossier_id",
+    "repaired_value": "DOS-CREDIT-<ID>"
+   }
+  ],
+  "resolution_basis": "TR-08 Credit Exposure Breach: Autonomous STP is STRICTLY PROHIBITED under bank credit governance.; Assembled Credit Risk Dossier DOS-CREDIT-<ID> (Drawn: $9,500,000.00 / Limit: $10,000,000.00, Excess: $250,000.00). Requires Senior Credit Officer sign-off.",
+  "resolution_recommendation": {
+   "autonomous_stp_prohibited": true,
+   "counterparty_id": "CPTY-CORP-ALPHA",
+   "currency": "USD",
+   "decision_record": null,
+   "dossier_id": "DOS-CREDIT-<ID>",
+   "execution_owner": "BANK",
+   "exposure_record": {
+    "authority_source": "ENTERPRISE_CREDIT_RISK_SYSTEM",
+    "counterparty_bic": "ALPHUS33XXX",
+    "counterparty_id": "CPTY-CORP-ALPHA",
+    "credit_rating": "AA",
+    "currency": "USD",
+    "current_drawn_exposure": 9500000.0,
+    "is_authoritative": true,
+    "is_breached": false,
+    "total_facility_limit": 10000000.0
+   },
+   "facility_record": {
+    "approval_tier_required": "SENIOR_CREDIT_OFFICER",
+    "borrower_entity": "CPTY-CORP-ALPHA",
+    "collateral_coverage_ratio": 1.25,
+    "expiry_date": null,
+    "facility_id": "FAC-ALPHA-01",
+    "facility_type": "REVOLVING_CREDIT"
+   },
+   "requested_amount": 750000.0
+  },
+  "resolution_status": "RESOLVED",
+  "stp_decision_reason": "Bank policy disallows autonomous STP: ['TR-08 Credit Exposure Breach: Autonomous STP is strictly prohibited. Senior Credit Officer dual-authorization required.']",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "nofixture/CO-01": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "CO-01",
+  "domain": "COMPLIANCE",
+  "errors": [
+   "Deterministic resolution could not be derived.",
+   "Resolution is ambiguous with multiple candidate matches.",
+   "Deterministic validation / checksum failed."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "CLIENT_MASTER_RECORD",
+   "VERIFIED_CREDITOR_NAME",
+   "CORE_DDA_ACCOUNT",
+   "DEBTOR_ID",
+   "CREDITOR_HINT"
+  ],
+  "exception_id": "PROBE-CO-01",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": false,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": false,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "No deterministic resolution logic is registered for profile CO-01; routed to human review (fail closed).",
+  "resolution_recommendation": null,
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Deterministic resolution could not be derived.; Resolution is ambiguous with multiple candidate matches.; Deterministic validation / checksum failed.",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "nofixture/CO-02": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "CO-02",
+  "domain": "COMPLIANCE",
+  "errors": [
+   "Deterministic resolution could not be derived.",
+   "Resolution is ambiguous with multiple candidate matches.",
+   "Deterministic validation / checksum failed."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "CLIENT_MASTER_RECORD",
+   "VERIFIED_CREDITOR_NAME",
+   "CORE_DDA_ACCOUNT",
+   "DEBTOR_ID",
+   "CREDITOR_HINT"
+  ],
+  "exception_id": "PROBE-CO-02",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": false,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": false,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "No deterministic resolution logic is registered for profile CO-02; routed to human review (fail closed).",
+  "resolution_recommendation": null,
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Deterministic resolution could not be derived.; Resolution is ambiguous with multiple candidate matches.; Deterministic validation / checksum failed.",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "nofixture/CO-03": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "CO-03",
+  "domain": "COMPLIANCE",
+  "errors": [
+   "Deterministic resolution could not be derived.",
+   "Resolution is ambiguous with multiple candidate matches.",
+   "Deterministic validation / checksum failed."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "CLIENT_MASTER_RECORD",
+   "VERIFIED_CREDITOR_NAME",
+   "CORE_DDA_ACCOUNT",
+   "DEBTOR_ID",
+   "CREDITOR_HINT"
+  ],
+  "exception_id": "PROBE-CO-03",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": false,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": false,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "No deterministic resolution logic is registered for profile CO-03; routed to human review (fail closed).",
+  "resolution_recommendation": null,
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Deterministic resolution could not be derived.; Resolution is ambiguous with multiple candidate matches.; Deterministic validation / checksum failed.",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "nofixture/CO-05": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "CO-05",
+  "domain": "COMPLIANCE",
+  "errors": [
+   "Deterministic resolution could not be derived.",
+   "Resolution is ambiguous with multiple candidate matches.",
+   "Deterministic validation / checksum failed."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "CLIENT_MASTER_RECORD",
+   "VERIFIED_CREDITOR_NAME",
+   "CORE_DDA_ACCOUNT",
+   "DEBTOR_ID",
+   "CREDITOR_HINT"
+  ],
+  "exception_id": "PROBE-CO-05",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": false,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": false,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "No deterministic resolution logic is registered for profile CO-05; routed to human review (fail closed).",
+  "resolution_recommendation": null,
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Deterministic resolution could not be derived.; Resolution is ambiguous with multiple candidate matches.; Deterministic validation / checksum failed.",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "nofixture/CO-06": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "CO-06",
+  "domain": "COMPLIANCE",
+  "errors": [
+   "Deterministic resolution could not be derived.",
+   "Resolution is ambiguous with multiple candidate matches.",
+   "Deterministic validation / checksum failed."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "CLIENT_MASTER_RECORD",
+   "VERIFIED_CREDITOR_NAME",
+   "CORE_DDA_ACCOUNT",
+   "DEBTOR_ID",
+   "CREDITOR_HINT"
+  ],
+  "exception_id": "PROBE-CO-06",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": false,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": false,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "No deterministic resolution logic is registered for profile CO-06; routed to human review (fail closed).",
+  "resolution_recommendation": null,
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Deterministic resolution could not be derived.; Resolution is ambiguous with multiple candidate matches.; Deterministic validation / checksum failed.",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "nofixture/CO-08": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "CO-08",
+  "domain": "COMPLIANCE",
+  "errors": [
+   "Deterministic resolution could not be derived.",
+   "Resolution is ambiguous with multiple candidate matches.",
+   "Deterministic validation / checksum failed."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "CLIENT_MASTER_RECORD",
+   "VERIFIED_CREDITOR_NAME",
+   "CORE_DDA_ACCOUNT",
+   "DEBTOR_ID",
+   "CREDITOR_HINT"
+  ],
+  "exception_id": "PROBE-CO-08",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": false,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": false,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "No deterministic resolution logic is registered for profile CO-08; routed to human review (fail closed).",
+  "resolution_recommendation": null,
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Deterministic resolution could not be derived.; Resolution is ambiguous with multiple candidate matches.; Deterministic validation / checksum failed.",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "nofixture/ST-04": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "ST-04",
+  "domain": "SETTLEMENT_RETURNS",
+  "errors": [
+   "Deterministic resolution could not be derived.",
+   "Resolution is ambiguous with multiple candidate matches.",
+   "Deterministic validation / checksum failed."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "CLIENT_MASTER_RECORD",
+   "VERIFIED_CREDITOR_NAME",
+   "CORE_DDA_ACCOUNT",
+   "DEBTOR_ID",
+   "CREDITOR_HINT"
+  ],
+  "exception_id": "PROBE-ST-04",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": false,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": false,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "No deterministic resolution logic is registered for profile ST-04; routed to human review (fail closed).",
+  "resolution_recommendation": null,
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Deterministic resolution could not be derived.; Resolution is ambiguous with multiple candidate matches.; Deterministic validation / checksum failed.",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "nofixture/ST-05": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "ST-05",
+  "domain": "SETTLEMENT_RETURNS",
+  "errors": [
+   "Deterministic resolution could not be derived.",
+   "Resolution is ambiguous with multiple candidate matches.",
+   "Deterministic validation / checksum failed."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "CLIENT_MASTER_RECORD",
+   "VERIFIED_CREDITOR_NAME",
+   "CORE_DDA_ACCOUNT",
+   "DEBTOR_ID",
+   "CREDITOR_HINT"
+  ],
+  "exception_id": "PROBE-ST-05",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": false,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": false,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "No deterministic resolution logic is registered for profile ST-05; routed to human review (fail closed).",
+  "resolution_recommendation": null,
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Deterministic resolution could not be derived.; Resolution is ambiguous with multiple candidate matches.; Deterministic validation / checksum failed.",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "nofixture/ST-07": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "ST-07",
+  "domain": "SETTLEMENT_RETURNS",
+  "errors": [
+   "Deterministic resolution could not be derived.",
+   "Resolution is ambiguous with multiple candidate matches.",
+   "Deterministic validation / checksum failed."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "CLIENT_MASTER_RECORD",
+   "VERIFIED_CREDITOR_NAME",
+   "CORE_DDA_ACCOUNT",
+   "DEBTOR_ID",
+   "CREDITOR_HINT"
+  ],
+  "exception_id": "PROBE-ST-07",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": false,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": false,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "No deterministic resolution logic is registered for profile ST-07; routed to human review (fail closed).",
+  "resolution_recommendation": null,
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Deterministic resolution could not be derived.; Resolution is ambiguous with multiple candidate matches.; Deterministic validation / checksum failed.",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "nofixture/ST-08": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "ST-08",
+  "domain": "SETTLEMENT_RETURNS",
+  "errors": [
+   "Deterministic resolution could not be derived.",
+   "Resolution is ambiguous with multiple candidate matches.",
+   "Deterministic validation / checksum failed."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [],
+  "evidence_status": "SUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "CLIENT_MASTER_RECORD",
+   "VERIFIED_CREDITOR_NAME",
+   "CORE_DDA_ACCOUNT",
+   "DEBTOR_ID",
+   "CREDITOR_HINT"
+  ],
+  "exception_id": "PROBE-ST-08",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": true,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": false,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": false,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "No deterministic resolution logic is registered for profile ST-08; routed to human review (fail closed).",
+  "resolution_recommendation": null,
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Deterministic resolution could not be derived.; Resolution is ambiguous with multiple candidate matches.; Deterministic validation / checksum failed.",
+  "stp_eligible": false,
+  "warnings": []
+ }
+}
