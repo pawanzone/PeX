@@ -1,0 +1,42 @@
+{
+  "exception_id": "PEX-E2E-ST02-NEG-MISSING-EVIDENCE",
+  "profile_id": "ST-02",
+  "domain": "SETTLEMENT_RETURNS",
+  "error_code": "ERR_ACCOUNT_STATUS_CONTRADICTORY",
+  "error_message": "Contradictory account status signals: Core DDA indicates closed but external directory indicates active; or unauthorized replacement attempted.",
+  "payment_info": {
+    "payment_id": "PMT-2026-ST02-002",
+    "uetr": "UETR-ST02-NEG-0002-A2",
+    "amount": 12400.0,
+    "currency": "USD",
+    "clearing_rail": "FEDWIRE",
+    "value_date": "2026-10-08",
+    "debtor_name": "Pacific Rim Trading",
+    "debtor_account": "US99PACIFIC12345678",
+    "debtor_agent_bic": "CHASUS33XXX",
+    "creditor_name": "Pacific Rim Trading Corp",
+    "creditor_account": "99887700",
+    "creditor_agent_bic": "CHASUS33XXX",
+    "remittance_info": "DIVIDEND DISTRIBUTION Q3"
+  },
+  "bank_supplied_evidence": {
+    "contradictory_account_status": true,
+    "autonomous_replacement_attempt": true,
+    "inward_payment_record": {
+      "payment_id": "PMT-2026-ST02-002",
+      "uetr": "UETR-ST02-NEG-0002-A2",
+      "amount": 12400.0,
+      "currency": "USD"
+    },
+    "clearing_return_schedule": {
+      "clearing_rail": "FEDWIRE",
+      "status": "ACTIVE"
+    }
+  },
+  "external_authoritative_evidence": {},
+  "derived_evidence": {
+    "investigation_status": "CONTRADICTORY_SIGNALS_ROUTE_TO_HITL"
+  },
+  "evidence_provenance": "SYNTHETIC_TEST_FIXTURE",
+  "test_status": "TEST_ONLY"
+}

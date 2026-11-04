@@ -1,0 +1,39 @@
+{
+  "exception_id": "PEX-E2E-TR01-DIST-MISSING-EVIDENCE",
+  "profile_id": "TR-01",
+  "domain": "CLIENT_TREASURY",
+  "error_code": "ERR_KYC_EXPIRED",
+  "error_message": "Customer KYC documentation expired without active refresh or regulatory clearance.",
+  "payment_info": {
+    "payment_id": "PMT-2026-TR01-002",
+    "uetr": "UETR-TR01-DIST-0002-B1",
+    "amount": 85000.0,
+    "currency": "USD",
+    "clearing_rail": "FEDWIRE",
+    "value_date": "2026-10-15",
+    "debtor_name": "CLI-DISTRESSED-02",
+    "debtor_account": "ACCT-DIST-USD-002",
+    "debtor_agent_bic": "CHASUS33XXX",
+    "creditor_name": "Offshore Holdings Inc",
+    "creditor_account": "11223344",
+    "creditor_agent_bic": "DEUTDEDDXXX",
+    "remittance_info": "CONSULTING FEES TR-01"
+  },
+  "bank_supplied_evidence": {
+    "client_id": "CLI-DISTRESSED-02",
+    "corporate_standing_record": {
+      "client_id": "CLI-DISTRESSED-02",
+      "tier_rating": "RETAIL",
+      "credit_score": 520,
+      "relationship_tenure_years": 1,
+      "has_active_sar_or_regulatory_query": true,
+      "clearing_corridor_risk": "HIGH"
+    }
+  },
+  "external_authoritative_evidence": {},
+  "derived_evidence": {
+    "resolution_action": "PROVISIONAL_WAIVER_PROHIBITED"
+  },
+  "evidence_provenance": "SYNTHETIC_TEST_FIXTURE",
+  "test_status": "TEST_ONLY"
+}

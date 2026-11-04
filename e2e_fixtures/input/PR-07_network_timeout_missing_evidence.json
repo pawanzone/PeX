@@ -1,0 +1,37 @@
+{
+  "exception_id": "PEX-E2E-PR07-IDEMPCOLLISION-MISSING-EVIDENCE",
+  "profile_id": "PR-07",
+  "domain": "PROCESSING",
+  "error_code": "ERR_NETWORK_SOCKET_TIMEOUT",
+  "error_message": "Clearing socket connection timed out during pacs.008 transmission.",
+  "payment_info": {
+    "payment_id": "PMT-2026-PR07-002",
+    "uetr": "9f1e2d3c-4b5a-6789-0123-abcdef070002",
+    "amount": 9100.0,
+    "currency": "USD",
+    "clearing_rail": "FEDWIRE",
+    "value_date": "2026-10-08",
+    "debtor_name": "Apex Global Treasury (US)",
+    "debtor_account": "US11APEX9988770100",
+    "debtor_agent_bic": "CHASUS33XXX",
+    "creditor_name": "Pacific Rim Trading Corp",
+    "creditor_account": "99887766",
+    "creditor_agent_bic": "CHASUS33XXX",
+    "remittance_info": "EQUIPMENT SUPPLY RETRY"
+  },
+  "bank_supplied_evidence": {
+    "idempotency_ledger_lock": {
+      "lock_status": "LOCKED_BY_OTHER",
+      "lock_key": "IDEMP-PR07-COLLISION"
+    },
+    "retry_budget_record": {
+      "max_retries": 3,
+      "retries_exhausted": 3,
+      "can_retry": false
+    }
+  },
+  "external_authoritative_evidence": {},
+  "derived_evidence": {},
+  "evidence_provenance": "SYNTHETIC_TEST_FIXTURE",
+  "test_status": "TEST_ONLY"
+}

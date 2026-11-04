@@ -2268,6 +2268,56 @@
   "stp_eligible": false,
   "warnings": []
  },
+ "input/CO-04_restricted_corridor_missing_evidence": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "SANCTIONS_HOLD",
+  "detected_profile_id": "CO-04",
+  "domain": "COMPLIANCE",
+  "errors": [
+   "Evidence insufficient: missing mandatory ['SANCTIONS_WATCHLIST'] / stale [] / contradictory []",
+   "Deterministic resolution could not be derived.",
+   "Resolution is ambiguous with multiple candidate matches.",
+   "Deterministic validation / checksum failed.",
+   "Compliance screening gate flagged entity on ['OFAC_SDN_LIST_2026', 'EU_CONSOLIDATED_FINANCIAL_SANCTIONS']"
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [
+   "SANCTIONS_WATCHLIST"
+  ],
+  "evidence_status": "INSUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "CORRIDOR_POLICY_MATRIX",
+   "OFAC_LICENSE_EXEMPTION_VERIFIED",
+   "CREDITOR_COUNTRY"
+  ],
+  "exception_id": "PEX-E2E-CO04-BLOCK-MISSING-EVIDENCE",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": false,
+   "e_suff": false,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": false,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": false,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Mandatory statutory corridor restriction without verified licensing exemption.",
+  "resolution_recommendation": null,
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Evidence insufficient: missing mandatory ['SANCTIONS_WATCHLIST'] / stale [] / contradictory []; Deterministic resolution could not be derived.; Resolution is ambiguous with multiple candidate matches.; Deterministic validation / checksum failed.; Compliance screening gate flagged entity on ['OFAC_SDN_LIST_2026', 'EU_CONSOLIDATED_FINANCIAL_SANCTIONS']",
+  "stp_eligible": false,
+  "warnings": []
+ },
  "input/CO-04_restricted_corridor_prohibited": {
   "ai_confidence_score": 0.5,
   "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
@@ -3885,6 +3935,63 @@
   "stp_eligible": true,
   "warnings": []
  },
+ "input/DQ-08_invalid_routing_code_missing_evidence": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "DQ-08",
+  "domain": "DATA_QUALITY",
+  "errors": [
+   "Evidence insufficient: missing mandatory ['FEDLINE_ROUTING_DIRECTORY'] / stale [] / contradictory []",
+   "Resolution is ambiguous with multiple candidate matches."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [
+   "FEDLINE_ROUTING_DIRECTORY"
+  ],
+  "evidence_status": "INSUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "ROUTING_SYNTAX_MASTER",
+   "VALID_ROUTING_CODE",
+   "AMBIGUOUS_ROUTING_MATCHES"
+  ],
+  "exception_id": "PEX-E2E-DQ08-AMBIG-MISSING-EVIDENCE",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": false,
+   "p_bank": true,
+   "r_det": true,
+   "r_uniq": false,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [
+   {
+    "field_path": "creditor_agent.aba_routing",
+    "original_value": "021000020",
+    "repaired_value": "021000021"
+   }
+  ],
+  "resolution_basis": "ABA routing transit check digit validated via FedLine directory.",
+  "resolution_recommendation": {
+   "action": "SUBSTITUTE_FIELD",
+   "target": "creditor_agent.aba_routing",
+   "value": "021000021"
+  },
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Evidence insufficient: missing mandatory ['FEDLINE_ROUTING_DIRECTORY'] / stale [] / contradictory []; Resolution is ambiguous with multiple candidate matches.",
+  "stp_eligible": false,
+  "warnings": []
+ },
  "input/DQ-08_invalid_routing_contradictory": {
   "ai_confidence_score": 0.5,
   "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
@@ -3992,6 +4099,52 @@
   "resolution_status": "RESOLVED",
   "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff \u2227 R_det \u2227 R_uniq \u2227 V_det \u2227 V_auth \u2227 P_bank \u2227 C_comp \u2227 X_pre).",
   "stp_eligible": true,
+  "warnings": []
+ },
+ "input/DQ-09_beneficiary_name_mismatch_missing_evidence": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "DQ-09",
+  "domain": "DATA_QUALITY",
+  "errors": [
+   "Evidence insufficient: missing mandatory ['CORE_ACCOUNT_TITLE'] / stale [] / contradictory []",
+   "Deterministic resolution could not be derived.",
+   "Deterministic validation / checksum failed."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [
+   "CORE_ACCOUNT_TITLE"
+  ],
+  "evidence_status": "INSUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "VERIFICATION_OF_PAYEE_CONFIRMATION"
+  ],
+  "exception_id": "PEX-E2E-DQ09-NOMATCH-MISSING-EVIDENCE",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": false,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": false,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "VoP evaluation score: 0.2545 against authoritative title 'SIEMENS AG INDUSTRIAL POWER'.; Name match score (0.25) below acceptable threshold (0.85). Route to HITL.",
+  "resolution_recommendation": null,
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Evidence insufficient: missing mandatory ['CORE_ACCOUNT_TITLE'] / stale [] / contradictory []; Deterministic resolution could not be derived.; Deterministic validation / checksum failed.",
+  "stp_eligible": false,
   "warnings": []
  },
  "input/DQ-09_beneficiary_name_mismatch_no_match": {
@@ -4474,6 +4627,53 @@
   "stp_eligible": false,
   "warnings": []
  },
+ "input/PR-04_cutoff_missed_missing_evidence": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "PR-04",
+  "domain": "PROCESSING",
+  "errors": [
+   "Evidence insufficient: missing mandatory ['RAIL_OPERATING_CALENDAR'] / stale [] / contradictory []",
+   "Deterministic resolution could not be derived.",
+   "Deterministic validation / checksum failed."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [
+   "RAIL_OPERATING_CALENDAR"
+  ],
+  "evidence_status": "INSUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "RAIL_CUTOFF_SCHEDULE",
+   "BANK_CUTOFF_POLICY"
+  ],
+  "exception_id": "PEX-E2E-PR04-POLICYBLOCK-MISSING-EVIDENCE",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": false,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": false,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Rail FEDWIRE cutoff time: 22:00 UTC (Buffer: 15m).; Bank policy W1-POL-02 disallows autonomous value-date rolls without explicit client authorization.",
+  "resolution_recommendation": null,
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Evidence insufficient: missing mandatory ['RAIL_OPERATING_CALENDAR'] / stale [] / contradictory []; Deterministic resolution could not be derived.; Deterministic validation / checksum failed.",
+  "stp_eligible": false,
+  "warnings": []
+ },
  "input/PR-04_cutoff_missed_policy_blocked": {
   "ai_confidence_score": 0.5,
   "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
@@ -4766,6 +4966,69 @@
   "stp_eligible": true,
   "warnings": []
  },
+ "input/PR-06_intermediary_bank_rejection_missing_evidence": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "PR-06",
+  "domain": "PROCESSING",
+  "errors": [
+   "Evidence insufficient: missing mandatory ['INWARD_REJECTION_ADVICE'] / stale [] / contradictory []"
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [
+   "INWARD_REJECTION_ADVICE"
+  ],
+  "evidence_status": "INSUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "REJECTION_REFERENCE",
+   "ORIGINAL_INTERMEDIARY_BIC",
+   "VERIFIED_ALTERNATE_INTERMEDIARY_BIC",
+   "OUTBOUND_PAYMENT_RECORD",
+   "CORRESPONDENT_SSI_DIRECTORY",
+   "RAIL_CUTOFF_SCHEDULE",
+   "CORRESPONDENT_GATEWAY_REJECTION_PROOF",
+   "RECOMMENDED_ACTION",
+   "ALTERNATE_BIC"
+  ],
+  "exception_id": "PEX-E2E-PR06-SUFF-MISSING-EVIDENCE",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": false,
+   "p_bank": true,
+   "r_det": true,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [
+   {
+    "field_path": "intermediary_agent.bic",
+    "repaired_value": "CHASUS33XXX"
+   }
+  ],
+  "resolution_basis": "Authoritative rejection from BNPAFRPPXXX confirmed (code: RC01, category: ROUTING_UNREACHABLE).; Correlated rejection to original payment PMT-2026-PR06-001 (UETR: UETR-PR06-SUFF-0001-A1) with 100% confidence.; Resolved viable alternate correspondent hop: CHASUS33XXX (Clearing Rail: SWIFT_CBPR+).",
+  "resolution_recommendation": {
+   "clearing_rail": "SWIFT_CBPR+",
+   "intermediary_agent_bic": "CHASUS33XXX",
+   "original_intermediary_bic": "BNPAFRPPXXX",
+   "rejection_reference": "REJ-2026-PR06-001",
+   "resolution_action": "REROUTE_VIA_ALTERNATE_CORRESPONDENT"
+  },
+  "resolution_status": "RESOLVED",
+  "stp_decision_reason": "Evidence insufficient: missing mandatory ['INWARD_REJECTION_ADVICE'] / stale [] / contradictory []",
+  "stp_eligible": false,
+  "warnings": []
+ },
  "input/PR-06_intermediary_bank_rejection_sufficient": {
   "ai_confidence_score": 0.98,
   "approval_requirement": "NONE_AUTONOMOUS_STP",
@@ -4916,6 +5179,53 @@
   "resolution_recommendation": null,
   "resolution_status": "INVESTIGATION_REQUIRED",
   "stp_decision_reason": "Deterministic resolution could not be derived.; Deterministic validation / checksum failed.",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "input/PR-07_network_timeout_missing_evidence": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "PR-07",
+  "domain": "PROCESSING",
+  "errors": [
+   "Evidence insufficient: missing mandatory ['GATEWAY_SOCKET_STATE'] / stale [] / contradictory []",
+   "Deterministic resolution could not be derived.",
+   "Deterministic validation / checksum failed."
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [
+   "GATEWAY_SOCKET_STATE"
+  ],
+  "evidence_status": "INSUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "IDEMPOTENCY_LEDGER_LOCK",
+   "RETRY_BUDGET_RECORD"
+  ],
+  "exception_id": "PEX-E2E-PR07-IDEMPCOLLISION-MISSING-EVIDENCE",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": false,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": false,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Payment 9f1e2d3c-4b5a-6789-0123-abcdef070002 confirmed settled on remote clearing rail. Retry forbidden (duplicate prevention).",
+  "resolution_recommendation": null,
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Evidence insufficient: missing mandatory ['GATEWAY_SOCKET_STATE'] / stale [] / contradictory []; Deterministic resolution could not be derived.; Deterministic validation / checksum failed.",
   "stp_eligible": false,
   "warnings": []
  },
@@ -5317,6 +5627,110 @@
   "stp_eligible": false,
   "warnings": []
  },
+ "input/ST-02_account_closed_missing_evidence": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "ST-02",
+  "domain": "SETTLEMENT_RETURNS",
+  "errors": [
+   "Evidence insufficient: missing mandatory ['CORE_DDA_ACCOUNT_STATUS'] / stale [] / contradictory ['CONTRADICTORY_ACCOUNT_STATUS']",
+   "Deterministic resolution could not be derived.",
+   "Resolution is ambiguous due to contradictory evidence (CONTRADICTORY_ACCOUNT_STATUS).",
+   "Deterministic validation / checksum failed."
+  ],
+  "evidence_contradictions": [
+   "CONTRADICTORY_ACCOUNT_STATUS"
+  ],
+  "evidence_missing": [
+   "CORE_DDA_ACCOUNT_STATUS"
+  ],
+  "evidence_status": "CONTRADICTORY",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "AUTONOMOUS_REPLACEMENT_ATTEMPT",
+   "INWARD_PAYMENT_RECORD",
+   "CLEARING_RETURN_SCHEDULE",
+   "INVESTIGATION_STATUS"
+  ],
+  "exception_id": "PEX-E2E-ST02-NEG-MISSING-EVIDENCE",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": false,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": false,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": false,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Contradictory account status signals between Core DDA and auxiliary directory. PeX fails closed to HITL.",
+  "resolution_recommendation": null,
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Evidence insufficient: missing mandatory ['CORE_DDA_ACCOUNT_STATUS'] / stale [] / contradictory ['CONTRADICTORY_ACCOUNT_STATUS']; Deterministic resolution could not be derived.; Resolution is ambiguous due to contradictory evidence (CONTRADICTORY_ACCOUNT_STATUS).; Deterministic validation / checksum failed.",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "input/ST-02_account_closed_status_missing_with_conflict": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "ST-02",
+  "domain": "SETTLEMENT_RETURNS",
+  "errors": [
+   "Evidence insufficient: missing mandatory ['CORE_DDA_ACCOUNT_STATUS'] / stale [] / contradictory ['CONTRADICTORY_ACCOUNT_STATUS']",
+   "Deterministic resolution could not be derived.",
+   "Resolution is ambiguous due to contradictory evidence (CONTRADICTORY_ACCOUNT_STATUS).",
+   "Deterministic validation / checksum failed."
+  ],
+  "evidence_contradictions": [
+   "CONTRADICTORY_ACCOUNT_STATUS"
+  ],
+  "evidence_missing": [
+   "CORE_DDA_ACCOUNT_STATUS"
+  ],
+  "evidence_status": "CONTRADICTORY",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "AUTONOMOUS_REPLACEMENT_ATTEMPT",
+   "INWARD_PAYMENT_RECORD",
+   "CLEARING_RETURN_SCHEDULE",
+   "INVESTIGATION_STATUS"
+  ],
+  "exception_id": "PEX-E2E-ST02-NEG-MISSING-EVIDENCE",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": false,
+   "p_bank": true,
+   "r_det": false,
+   "r_uniq": false,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": false,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Contradictory account status signals between Core DDA and auxiliary directory. PeX fails closed to HITL.",
+  "resolution_recommendation": null,
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Evidence insufficient: missing mandatory ['CORE_DDA_ACCOUNT_STATUS'] / stale [] / contradictory ['CONTRADICTORY_ACCOUNT_STATUS']; Deterministic resolution could not be derived.; Resolution is ambiguous due to contradictory evidence (CONTRADICTORY_ACCOUNT_STATUS).; Deterministic validation / checksum failed.",
+  "stp_eligible": false,
+  "warnings": []
+ },
  "input/ST-02_account_closed_sufficient": {
   "ai_confidence_score": 0.98,
   "approval_requirement": "NONE_AUTONOMOUS_STP",
@@ -5501,6 +5915,116 @@
   "resolution_status": "RESOLVED",
   "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff \u2227 R_det \u2227 R_uniq \u2227 V_det \u2227 V_auth \u2227 P_bank \u2227 C_comp \u2227 X_pre).",
   "stp_eligible": true,
+  "warnings": []
+ },
+ "input/ST-03_beneficiary_account_frozen_missing_evidence": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_BLOCKED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "ST-03",
+  "domain": "SETTLEMENT_RETURNS",
+  "errors": [
+   "Evidence insufficient: missing mandatory ['CORE_ACCOUNT_RESTRICTION_FLAG', 'LEGAL_FREEZE_DOSSIER'] / stale [] / contradictory ['CONFLICTING_LEGAL_ORDERS', 'LEGAL_FREEZE_DOSSIER']",
+   "Deterministic resolution could not be derived.",
+   "Resolution is ambiguous due to contradictory evidence (CONFLICTING_LEGAL_ORDERS, LEGAL_FREEZE_DOSSIER).",
+   "Deterministic validation / checksum failed.",
+   "Bank policy disallows autonomous STP: ['Amount ($28,000.00) exceeds fast-lane batch threshold ($25,000.00).']"
+  ],
+  "evidence_contradictions": [
+   "CONFLICTING_LEGAL_ORDERS",
+   "LEGAL_FREEZE_DOSSIER"
+  ],
+  "evidence_missing": [
+   "CORE_ACCOUNT_RESTRICTION_FLAG",
+   "LEGAL_FREEZE_DOSSIER"
+  ],
+  "evidence_status": "CONTRADICTORY",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "ACCOUNT_NUMBER",
+   "INWARD_PAYMENT_RECORD",
+   "SUSPENSE_LEDGER_MATRIX",
+   "INVESTIGATION_STATUS"
+  ],
+  "exception_id": "PEX-E2E-ST03-NEG-MISSING-EVIDENCE",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": false,
+   "p_bank": false,
+   "r_det": false,
+   "r_uniq": false,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": false,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Authoritative restriction confirmed: POST_NO_CREDITS (issuing authority: NEW_YORK_SUPREME_COURT). Credit posting is prohibited.; Conflicting judicial orders on record (e.g., competing state vs federal garnishment). Route to Legal Officer.; Legal freeze dossier validation failed: Conflicting legal orders detected.",
+  "resolution_recommendation": null,
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Evidence insufficient: missing mandatory ['CORE_ACCOUNT_RESTRICTION_FLAG', 'LEGAL_FREEZE_DOSSIER'] / stale [] / contradictory ['CONFLICTING_LEGAL_ORDERS', 'LEGAL_FREEZE_DOSSIER']; Deterministic resolution could not be derived.; Resolution is ambiguous due to contradictory evidence (CONFLICTING_LEGAL_ORDERS, LEGAL_FREEZE_DOSSIER).; Deterministic validation / checksum failed.; Bank policy disallows autonomous STP: ['Amount ($28,000.00) exceeds fast-lane batch threshold ($25,000.00).']",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "input/ST-03_beneficiary_account_frozen_restriction_missing_with_conflict": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_BLOCKED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "ST-03",
+  "domain": "SETTLEMENT_RETURNS",
+  "errors": [
+   "Evidence insufficient: missing mandatory ['CORE_ACCOUNT_RESTRICTION_FLAG', 'LEGAL_FREEZE_DOSSIER'] / stale [] / contradictory ['CONFLICTING_LEGAL_ORDERS', 'LEGAL_FREEZE_DOSSIER']",
+   "Deterministic resolution could not be derived.",
+   "Resolution is ambiguous due to contradictory evidence (CONFLICTING_LEGAL_ORDERS, LEGAL_FREEZE_DOSSIER).",
+   "Deterministic validation / checksum failed.",
+   "Bank policy disallows autonomous STP: ['Amount ($28,000.00) exceeds fast-lane batch threshold ($25,000.00).']"
+  ],
+  "evidence_contradictions": [
+   "CONFLICTING_LEGAL_ORDERS",
+   "LEGAL_FREEZE_DOSSIER"
+  ],
+  "evidence_missing": [
+   "CORE_ACCOUNT_RESTRICTION_FLAG",
+   "LEGAL_FREEZE_DOSSIER"
+  ],
+  "evidence_status": "CONTRADICTORY",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "ACCOUNT_NUMBER",
+   "INWARD_PAYMENT_RECORD",
+   "SUSPENSE_LEDGER_MATRIX",
+   "INVESTIGATION_STATUS"
+  ],
+  "exception_id": "PEX-E2E-ST03-NEG-MISSING-EVIDENCE",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": false,
+   "p_bank": false,
+   "r_det": false,
+   "r_uniq": false,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": false,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Authoritative restriction confirmed: POST_NO_CREDITS (issuing authority: NEW_YORK_SUPREME_COURT). Credit posting is prohibited.; Conflicting judicial orders on record (e.g., competing state vs federal garnishment). Route to Legal Officer.; Legal freeze dossier validation failed: Conflicting legal orders detected.",
+  "resolution_recommendation": null,
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Evidence insufficient: missing mandatory ['CORE_ACCOUNT_RESTRICTION_FLAG', 'LEGAL_FREEZE_DOSSIER'] / stale [] / contradictory ['CONFLICTING_LEGAL_ORDERS', 'LEGAL_FREEZE_DOSSIER']; Deterministic resolution could not be derived.; Resolution is ambiguous due to contradictory evidence (CONFLICTING_LEGAL_ORDERS, LEGAL_FREEZE_DOSSIER).; Deterministic validation / checksum failed.; Bank policy disallows autonomous STP: ['Amount ($28,000.00) exceeds fast-lane batch threshold ($25,000.00).']",
+  "stp_eligible": false,
   "warnings": []
  },
  "input/ST-04_reconciliation_break_missing_evidence": {
@@ -5985,6 +6509,54 @@
   "stp_eligible": false,
   "warnings": []
  },
+ "input/TR-01_kyc_expired_missing_evidence": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_BLOCKED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "TR-01",
+  "domain": "CLIENT_TREASURY",
+  "errors": [
+   "Evidence insufficient: missing mandatory ['CUSTOMER_KYC_RECORD'] / stale [] / contradictory []",
+   "Deterministic resolution could not be derived.",
+   "Bank policy disallows autonomous STP: ['Amount ($85,000.00) exceeds fast-lane batch threshold ($25,000.00).']"
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [
+   "CUSTOMER_KYC_RECORD"
+  ],
+  "evidence_status": "INSUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "CLIENT_ID",
+   "CORPORATE_STANDING_RECORD",
+   "RESOLUTION_ACTION"
+  ],
+  "exception_id": "PEX-E2E-TR01-DIST-MISSING-EVIDENCE",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": false,
+   "p_bank": false,
+   "r_det": false,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Client CLI-DISTRESSED-02 has an active SAR or regulatory query on file. Provisional waiver strictly prohibited.",
+  "resolution_recommendation": null,
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Evidence insufficient: missing mandatory ['CUSTOMER_KYC_RECORD'] / stale [] / contradictory []; Deterministic resolution could not be derived.; Bank policy disallows autonomous STP: ['Amount ($85,000.00) exceeds fast-lane batch threshold ($25,000.00).']",
+  "stp_eligible": false,
+  "warnings": []
+ },
  "input/TR-01_kyc_expired_sufficient": {
   "ai_confidence_score": 0.98,
   "approval_requirement": "NONE_AUTONOMOUS_STP",
@@ -6087,6 +6659,54 @@
   "stp_eligible": false,
   "warnings": []
  },
+ "input/TR-02_insufficient_funds_missing_evidence": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_BLOCKED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "TR-02",
+  "domain": "CLIENT_TREASURY",
+  "errors": [
+   "Evidence insufficient: missing mandatory ['CORE_DDA_BALANCE_RECORD'] / stale [] / contradictory []",
+   "Deterministic resolution could not be derived.",
+   "Bank policy disallows autonomous STP: ['Amount ($50,000.00) exceeds fast-lane batch threshold ($25,000.00).']"
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [
+   "CORE_DDA_BALANCE_RECORD"
+  ],
+  "evidence_status": "INSUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "DEBTOR_ACCOUNT",
+   "INTRADAY_RESERVATION_SCHEDULE",
+   "DEFICIT_DETECTED"
+  ],
+  "exception_id": "PEX-E2E-TR02-DEFICIT-MISSING-EVIDENCE",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": false,
+   "p_bank": false,
+   "r_det": false,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Account ACCT-DEFICIT-USD-002 has persistent deficit ($49,500.00) without qualifying pending credits. Fails closed to HITL/Return.",
+  "resolution_recommendation": null,
+  "resolution_status": "INVESTIGATION_REQUIRED",
+  "stp_decision_reason": "Evidence insufficient: missing mandatory ['CORE_DDA_BALANCE_RECORD'] / stale [] / contradictory []; Deterministic resolution could not be derived.; Bank policy disallows autonomous STP: ['Amount ($50,000.00) exceeds fast-lane batch threshold ($25,000.00).']",
+  "stp_eligible": false,
+  "warnings": []
+ },
  "input/TR-02_insufficient_funds_sufficient": {
   "ai_confidence_score": 0.98,
   "approval_requirement": "NONE_AUTONOMOUS_STP",
@@ -6140,6 +6760,58 @@
   "resolution_status": "RESOLVED",
   "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff \u2227 R_det \u2227 R_uniq \u2227 V_det \u2227 V_auth \u2227 P_bank \u2227 C_comp \u2227 X_pre).",
   "stp_eligible": true,
+  "warnings": []
+ },
+ "input/TR-03_nostro_shortfall_missing_evidence": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "TR-03",
+  "domain": "CLIENT_TREASURY",
+  "errors": [
+   "Evidence insufficient: missing mandatory ['NOSTRO_POSITION_STATEMENT'] / stale [] / contradictory []"
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [
+   "NOSTRO_POSITION_STATEMENT"
+  ],
+  "evidence_status": "INSUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "NOSTRO_BIC",
+   "PENDING_CORRESPONDENT_CREDITS",
+   "RESOLUTION_ACTION"
+  ],
+  "exception_id": "PEX-E2E-TR03-SUFF-MISSING-EVIDENCE",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": false,
+   "p_bank": true,
+   "r_det": true,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [],
+  "resolution_basis": "Nostro position for BNPAFRPPXXX is sufficient (50,000.00 EUR >= 8,000.00 EUR).",
+  "resolution_recommendation": {
+   "currency": "EUR",
+   "execution_owner": "BANK",
+   "instructed_amount": 8000.0,
+   "nostro_bic": "BNPAFRPPXXX",
+   "resolution_action": "NOSTRO_POSITION_VERIFIED_RELEASE"
+  },
+  "resolution_status": "RESOLVED",
+  "stp_decision_reason": "Evidence insufficient: missing mandatory ['NOSTRO_POSITION_STATEMENT'] / stale [] / contradictory []",
+  "stp_eligible": false,
   "warnings": []
  },
  "input/TR-03_nostro_shortfall_sufficient": {
@@ -6234,6 +6906,74 @@
   "resolution_recommendation": null,
   "resolution_status": "INVESTIGATION_REQUIRED",
   "stp_decision_reason": "Deterministic resolution could not be derived.; Bank policy disallows autonomous STP: ['High-value amount ($750,000.00) exceeds dual-auth threshold ($250,000.00).', 'Amount ($750,000.00) exceeds bank policy STP threshold ($100,000.00).']",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "input/TR-04_fx_rate_unavailable_missing_evidence": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "TR-04",
+  "domain": "CLIENT_TREASURY",
+  "errors": [
+   "Evidence insufficient: missing mandatory ['FX_SPREAD_POLICY_MATRIX'] / stale [] / contradictory []"
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [
+   "FX_SPREAD_POLICY_MATRIX"
+  ],
+  "evidence_status": "INSUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "CURRENCY_PAIR",
+   "SETTLEMENT_CURRENCY",
+   "OFFICIAL_FX_RATE_FEED",
+   "INWARD_PAYMENT_RECORD",
+   "APPLIED_RATE",
+   "SETTLEMENT_AMOUNT"
+  ],
+  "exception_id": "PEX-E2E-TR04-SUFF-MISSING-EVIDENCE",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": false,
+   "p_bank": true,
+   "r_det": true,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [
+   {
+    "field_path": "payment.fx_applied_rate",
+    "repaired_value": 1.085
+   },
+   {
+    "field_path": "payment.settlement_amount",
+    "repaired_value": 8137.5
+   }
+  ],
+  "resolution_basis": "Successfully booked rate 1.0850 for EUR/USD. Settlement: 8,137.50 USD.",
+  "resolution_recommendation": {
+   "applied_rate": 1.085,
+   "booking_id": "FXBOOK-<ID>",
+   "currency_pair": "EUR/USD",
+   "execution_owner": "BANK",
+   "instructed_amount": 7500.0,
+   "instructed_currency": "EUR",
+   "quote_timestamp": "<TS>",
+   "settlement_amount": 8137.5,
+   "settlement_currency": "USD"
+  },
+  "resolution_status": "RESOLVED",
+  "stp_decision_reason": "Evidence insufficient: missing mandatory ['FX_SPREAD_POLICY_MATRIX'] / stale [] / contradictory []",
   "stp_eligible": false,
   "warnings": []
  },
@@ -6534,6 +7274,86 @@
   "stp_eligible": false,
   "warnings": []
  },
+ "input/TR-06_limit_breach_missing_evidence": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_BLOCKED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "TR-06",
+  "domain": "CLIENT_TREASURY",
+  "errors": [
+   "Evidence insufficient: missing mandatory ['LIMIT_UTILIZATION_RECORD'] / stale [] / contradictory []",
+   "Bank policy disallows autonomous STP: ['High-value amount ($250,000.00) exceeds dual-auth threshold ($250,000.00).', 'Amount ($250,000.00) exceeds bank policy STP threshold ($100,000.00).']"
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [
+   "LIMIT_UTILIZATION_RECORD"
+  ],
+  "evidence_status": "INSUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "LIMIT_ID",
+   "CLIENT_ID",
+   "CLIENT_LIMIT_AGREEMENT",
+   "WAIVER_REQUIRED"
+  ],
+  "exception_id": "PEX-E2E-TR06-WAIVER-MISSING-EVIDENCE",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": false,
+   "p_bank": false,
+   "r_det": true,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [
+   {
+    "field_path": "treasury.limit_pacing",
+    "repaired_value": {
+     "current_attempt": 1,
+     "execution_owner": "BANK",
+     "max_retry_attempts": 2,
+     "next_evaluation_time": "<TS>",
+     "pacing_interval_seconds": 1800.0,
+     "pacing_reason": "Pacing queued until intraday limit reset cycle at <TS>",
+     "schedule_id": "PACE-LIM-<ID>",
+     "target_profile": "TR-06"
+    }
+   }
+  ],
+  "resolution_basis": "Limit LIM-BREACHED-01 breached by $240,000.00. Scheduling intraday reset pacing.",
+  "resolution_recommendation": {
+   "breached_amount": 240000.0,
+   "currency": "USD",
+   "dossier_id": "DOS-LIM-<ID>",
+   "execution_owner": "BANK",
+   "limit_id": "LIM-BREACHED-01",
+   "pacing_schedule": {
+    "current_attempt": 1,
+    "execution_owner": "BANK",
+    "max_retry_attempts": 2,
+    "next_evaluation_time": "<TS>",
+    "pacing_interval_seconds": 1800.0,
+    "pacing_reason": "Pacing queued until intraday limit reset cycle at <TS>",
+    "schedule_id": "PACE-LIM-<ID>",
+    "target_profile": "TR-06"
+   },
+   "requires_credit_approver": true,
+   "utilization_percentage": 146.0
+  },
+  "resolution_status": "RESOLVED",
+  "stp_decision_reason": "Evidence insufficient: missing mandatory ['LIMIT_UTILIZATION_RECORD'] / stale [] / contradictory []; Bank policy disallows autonomous STP: ['High-value amount ($250,000.00) exceeds dual-auth threshold ($250,000.00).', 'Amount ($250,000.00) exceeds bank policy STP threshold ($100,000.00).']",
+  "stp_eligible": false,
+  "warnings": []
+ },
  "input/TR-06_limit_breach_sufficient": {
   "ai_confidence_score": 0.98,
   "approval_requirement": "NONE_AUTONOMOUS_STP",
@@ -6657,6 +7477,83 @@
   },
   "resolution_status": "RESOLVED",
   "stp_decision_reason": "Bank policy disallows autonomous STP: ['High-value amount ($2,000,000.00) exceeds dual-auth threshold ($250,000.00).', 'Amount ($2,000,000.00) exceeds bank policy STP threshold ($100,000.00).']",
+  "stp_eligible": false,
+  "warnings": []
+ },
+ "input/TR-07_liquidity_constraint_missing_evidence": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_BLOCKED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "TR-07",
+  "domain": "CLIENT_TREASURY",
+  "errors": [
+   "Evidence insufficient: missing mandatory ['CLEARING_LIQUIDITY_RESERVE'] / stale [] / contradictory []",
+   "Bank policy disallows autonomous STP: ['High-value amount ($2,000,000.00) exceeds dual-auth threshold ($250,000.00).', 'Amount ($2,000,000.00) exceeds bank policy STP threshold ($100,000.00).']"
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [
+   "CLEARING_LIQUIDITY_RESERVE"
+  ],
+  "evidence_status": "INSUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "CLEARING_CONTEXT",
+   "SETTLEMENT_QUEUE_STATUS",
+   "LIQUIDITY_EXHAUSTED"
+  ],
+  "exception_id": "PEX-E2E-TR07-EXHAUSTED-MISSING-EVIDENCE",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": false,
+   "p_bank": false,
+   "r_det": true,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [
+   {
+    "field_path": "treasury.liquidity_pacing",
+    "repaired_value": {
+     "current_attempt": 1,
+     "execution_owner": "BANK",
+     "max_retry_attempts": 3,
+     "next_evaluation_time": "<TS>",
+     "pacing_interval_seconds": 600.0,
+     "pacing_reason": "Pacing queue delay of 600.0s for clearing context TARGET2",
+     "schedule_id": "PACE-LIQ-<ID>",
+     "target_profile": "TR-07"
+    }
+   }
+  ],
+  "resolution_basis": "Clearing context TARGET2 constrained (Queue depth: 42). Scheduling liquidity pacing delay (600.0s).",
+  "resolution_recommendation": {
+   "clearing_context": "TARGET2",
+   "currency": "EUR",
+   "execution_owner": "BANK",
+   "instructed_amount": 2000000.0,
+   "pacing_schedule": {
+    "current_attempt": 1,
+    "execution_owner": "BANK",
+    "max_retry_attempts": 3,
+    "next_evaluation_time": "<TS>",
+    "pacing_interval_seconds": 600.0,
+    "pacing_reason": "Pacing queue delay of 600.0s for clearing context TARGET2",
+    "schedule_id": "PACE-LIQ-<ID>",
+    "target_profile": "TR-07"
+   },
+   "resolution_action": "QUEUE_FOR_LIQUIDITY_PACING_RELEASE"
+  },
+  "resolution_status": "RESOLVED",
+  "stp_decision_reason": "Evidence insufficient: missing mandatory ['CLEARING_LIQUIDITY_RESERVE'] / stale [] / contradictory []; Bank policy disallows autonomous STP: ['High-value amount ($2,000,000.00) exceeds dual-auth threshold ($250,000.00).', 'Amount ($2,000,000.00) exceeds bank policy STP threshold ($100,000.00).']",
   "stp_eligible": false,
   "warnings": []
  },

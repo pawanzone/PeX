@@ -1,0 +1,60 @@
+{
+  "exception_id": "PEX-E2E-PR06-SUFF-MISSING-EVIDENCE",
+  "profile_id": "PR-06",
+  "domain": "PROCESSING",
+  "error_code": "ERR_INTERMEDIARY_REJECTION",
+  "error_message": "Intermediary institution formally rejected outbound wire instruction via RC01 notice.",
+  "payment_info": {
+    "payment_id": "PMT-2026-PR06-001",
+    "uetr": "UETR-PR06-SUFF-0001-A1",
+    "amount": 18500.0,
+    "currency": "USD",
+    "clearing_rail": "SWIFT_CBPR+",
+    "value_date": "2026-10-08",
+    "debtor_name": "Apex Global Treasury",
+    "debtor_account": "US11APEX9988770001",
+    "debtor_agent_bic": "BNPAFRPPXXX",
+    "creditor_name": "Atlas Marine Logistics",
+    "creditor_account": "99887766",
+    "creditor_agent_bic": "DEUTDEDDXXX",
+    "remittance_info": "SUPPLIER PAYMENT REF 8812"
+  },
+  "bank_supplied_evidence": {
+    "rejection_reference": "REJ-2026-PR06-001",
+    "original_intermediary_bic": "BNPAFRPPXXX",
+    "verified_alternate_intermediary_bic": "CHASUS33XXX",
+    "outbound_payment_record": {
+      "payment_id": "PMT-2026-PR06-001",
+      "uetr": "UETR-PR06-SUFF-0001-A1",
+      "amount": 18500.0,
+      "currency": "USD",
+      "status": "IN_FLIGHT_DISPATCHED"
+    },
+    "correspondent_ssi_directory": {
+      "counterparty_bic": "DEUTDEDDXXX",
+      "currency": "USD",
+      "primary_intermediary": "BNPAFRPPXXX",
+      "secondary_intermediary": "CHASUS33XXX",
+      "status": "ACTIVE"
+    },
+    "rail_cutoff_schedule": {
+      "rail_code": "SWIFT_CBPR+",
+      "currency": "USD",
+      "cutoff_utc": "23:59",
+      "is_open": true
+    }
+  },
+  "external_authoritative_evidence": {
+    "correspondent_gateway_rejection_proof": {
+      "gateway_source": "SWIFT_FIN_GATEWAY_SPI",
+      "status": "CONFIRMED_REJECTION",
+      "signature": "SHA256-CORR-GATEWAY-SIG-8812"
+    }
+  },
+  "derived_evidence": {
+    "recommended_action": "REROUTE_VIA_ALTERNATE_CORRESPONDENT",
+    "alternate_bic": "CHASUS33XXX"
+  },
+  "evidence_provenance": "SYNTHETIC_TEST_FIXTURE",
+  "test_status": "TEST_ONLY"
+}
