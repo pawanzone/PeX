@@ -42,3 +42,12 @@ batch_io/
 scratch/*.db
 test_isolated.db
 pex_demo.db
+
+backend/pex_enterprise.db-wal
+*.db-wal
+*.db-shm
+.fuse_hidden*
+scratch/old_db/
+scratch/*.tgz
+scratch/patch*.py
+scratch/*.txt
