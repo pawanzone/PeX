@@ -1,0 +1,99 @@
+{
+  "exception_id": "PEX-E2E-DQ06-MISS",
+  "profile_id": "DQ-06",
+  "domain": "DATA_QUALITY",
+  "error_code": "ERR_MISSING_PURPOSE_CODE",
+  "error_message": "pacs.008 has no usable purpose code.",
+  "payment_info": {
+    "payment_id": "PMT-2026-DQ06-MISS",
+    "uetr": "UETR-DQ06-MISS-0001-A1",
+    "amount": 22000.0,
+    "currency": "EUR",
+    "clearing_rail": "SWIFT_CBPR+",
+    "value_date": "2026-10-08",
+    "debtor_name": "Originating Corp Inc",
+    "debtor_account": "GB82WEST12345678901234",
+    "debtor_agent_bic": "WESTGB2LXXX",
+    "creditor_name": "Bavarian Industrial AG",
+    "creditor_account": "DE89370400440532013000",
+    "creditor_agent_bic": "COBADEDDXXX",
+    "remittance_info": "Invoice INV-2026-4455 Industrial Parts"
+  },
+  "bank_supplied_evidence": {
+    "RAW_PAYLOAD": {
+      "raw_text": "<Document xmlns=\"urn:iso:std:iso:20022:tech:xsd:pacs.008.001.08\"><FIToFICstmrCdtTrf><CdtTrfTxInf><Dbtr><Nm>Originating Corp Inc</Nm></Dbtr><Cdtr><Nm>Bavarian Industrial AG</Nm></Cdtr><RmtInf><Ustrd>Invoice 4455 supply of industrial goods</Ustrd></RmtInf></CdtTrfTxInf></FIToFICstmrCdtTrf></Document>"
+    },
+    "REMITTANCE_INFORMATION": {
+      "remittance_text": "Invoice 4455 supply of industrial goods"
+    },
+    "PAYMENT_CONTEXT": {
+      "corridor_id": "EUR-SEPA",
+      "currency": "EUR",
+      "debtor_name": "Originating Corp Inc",
+      "creditor_name": "Bavarian Industrial AG"
+    },
+    "BANK_PURPOSE_DICTIONARY": {
+      "entity_id": "CP-BAVARIAN-01",
+      "entity_name": "Bavarian Industrial AG",
+      "authorized_purpose_codes": [
+        "GDSV",
+        "SUPP",
+        "IVPT",
+        "COMM"
+      ],
+      "prohibited_purpose_codes": [
+        "SALA",
+        "PENS",
+        "CHAR"
+      ],
+      "default_purpose_code": "GDSV",
+      "is_authorized": true,
+      "provider": "BANK_PURPOSE_POLICY_STORE (DEMO/SYNTHETIC)",
+      "freshness_seconds": 86400
+    },
+    "CORRIDOR_RULES": {
+      "corridor_id": "EUR-SEPA",
+      "currency": "EUR",
+      "is_purpose_mandatory": false,
+      "allowed_purpose_codes": [
+        "GDSV",
+        "SCVE",
+        "SUPP",
+        "COMM",
+        "IVPT",
+        "SALA",
+        "PAYR",
+        "BONU",
+        "PENS",
+        "TAXS",
+        "DIVI",
+        "RENT",
+        "INSU",
+        "CHAR",
+        "TREA",
+        "UBIL",
+        "LOAN",
+        "EDUC",
+        "MDCP"
+      ],
+      "prohibited_purpose_codes": [
+        "GAMB"
+      ],
+      "is_corridor_active": true,
+      "provider": "BANK_CORRIDOR_POLICY_STORE (DEMO/SYNTHETIC)",
+      "freshness_seconds": 86400
+    }
+  },
+  "external_authoritative_evidence": {
+    "APPLICABLE_PURPOSE_CODE_SET": {
+      "code_set_version": "ExternalCodeSets_2023",
+      "code_count": 100
+    }
+  },
+  "derived_evidence": {},
+  "evidence_provenance": "SYNTHETIC_TEST_FIXTURE",
+  "test_status": "TEST_ONLY",
+  "raw_payload": {
+    "raw_text": "<Document xmlns=\"urn:iso:std:iso:20022:tech:xsd:pacs.008.001.08\"><FIToFICstmrCdtTrf><CdtTrfTxInf><Dbtr><Nm>Originating Corp Inc</Nm></Dbtr><Cdtr><Nm>Bavarian Industrial AG</Nm></Cdtr><RmtInf><Ustrd>Invoice 4455 supply of industrial goods</Ustrd></RmtInf></CdtTrfTxInf></FIToFICstmrCdtTrf></Document>"
+  }
+}

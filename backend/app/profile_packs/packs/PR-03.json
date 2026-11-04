@@ -1,0 +1,28 @@
+{
+  "code": "PR-03",
+  "name": "ISO20022_VALIDATION_ERROR",
+  "family": "PROCESSING",
+  "version": 1,
+  "outcome": "REPAIR",
+  "stp": "ALLOWED",
+  "evidence": {
+    "min_confidence": 0.94,
+    "required": [
+      {
+        "type": "RAW_PAYLOAD",
+        "tier": 1
+      },
+      {
+        "type": "ISO20022_SCHEMA_SPEC",
+        "tier": 2
+      }
+    ]
+  },
+  "checks": [],
+  "resolver": "pr03_iso20022_structure",
+  "authority_domain": "ACCOUNT_OWNERSHIP_BALANCE",
+  "action": "REPAIR_AND_RELEASE",
+  "approval": {
+    "when_not_stp": "MAKER_CHECKER"
+  }
+}

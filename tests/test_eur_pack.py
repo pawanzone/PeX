@@ -147,9 +147,9 @@ def test_dq05_fail_closed_cases():
 
 
 # ---------------------------------------------------------------- unrelated hardening found while building the pack
-def test_unregistered_profile_fails_closed():
+def test_unregistered_profile_fails_closed():  # ST-08 (general exception) is the only code with no pack
     """Before: unknown profiles got r_det=r_uniq=v_det=True and reached STP with any default mandatory evidence."""
-    rec = {"exception_id": "PEX-EUR-UNREG-1", "profile_id": "DQ-06", "domain": "DATA_QUALITY", "error_code": "E", "error_message": "m",
+    rec = {"exception_id": "PEX-EUR-UNREG-1", "profile_id": "ST-08", "domain": "SETTLEMENT", "error_code": "E", "error_message": "m",
            "payment_info": {"payment_id": "P-UNREG", "uetr": "5c1f6a8e-2d34-4b57-9a10-0e5a7b3c9d11", "amount": 500.0, "currency": "EUR",
                             "clearing_rail": "SEPA_SCT", "debtor_name": "A", "creditor_name": "B"},
            "bank_supplied_evidence": {"core_dda_account": "DE89370400440532013000"},

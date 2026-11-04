@@ -1,0 +1,66 @@
+{
+  "exception_id": "PEX-E2E-DQ02-NOSC",
+  "profile_id": "DQ-02",
+  "domain": "DATA_QUALITY",
+  "error_code": "ERR_INVALID_BIC",
+  "error_message": "Creditor agent BIC LEHMUS33XXX rejected by the clearing rail on pacs.008.",
+  "payment_info": {
+    "payment_id": "PMT-2026-DQ02-NOSC",
+    "uetr": "UETR-DQ02-NOSC-0001-A1",
+    "amount": 22000.0,
+    "currency": "EUR",
+    "clearing_rail": "SWIFT_CBPR+",
+    "value_date": "2026-10-08",
+    "debtor_name": "Originating Corp Inc",
+    "debtor_account": "GB82WEST12345678901234",
+    "debtor_agent_bic": "WESTGB2LXXX",
+    "creditor_name": "Bavarian Industrial AG",
+    "creditor_account": "DE89370400440532013000",
+    "creditor_agent_bic": "LEHMUS33XXX",
+    "remittance_info": "Invoice INV-2026-4455 Industrial Parts"
+  },
+  "bank_supplied_evidence": {
+    "ORIGINAL_BIC_RECORD": {
+      "bic_code": "LEHMUS33XXX"
+    },
+    "BANK_COUNTERPARTY_SSI": {
+      "counterparty_id": "CP-GLOBAL-001",
+      "mandated_bic": null,
+      "allowed_bics": [
+        "DEUTDEDDFXX",
+        "COBADEDDXXX",
+        "BNPAFRPPXXX",
+        "DRESDEFFXXX",
+        "AMROFRPPXXX",
+        "LOCADE22XXX",
+        "LEHMUS33XXX"
+      ],
+      "is_authorized": true
+    }
+  },
+  "external_authoritative_evidence": {
+    "BIC_REFERENCE_DIRECTORY": {
+      "bic_code": "LEHMUS33XXX",
+      "status": "INACTIVE",
+      "institution_name": "Lehman Brothers Inc (Defunct)",
+      "country_code": "US",
+      "location_code": "US33",
+      "branch_code": "XXX",
+      "is_head_office": true,
+      "successor_bics": [],
+      "supported_rails": [],
+      "provider": "SWIFTREF_DIRECTORY_PROVIDER (SYNTHETIC FIXTURE)"
+    },
+    "TARGET_RAIL_ROUTING_SPEC": {
+      "target_rail": "SWIFT_CBPR+",
+      "corridor": "EUR_CROSSBORDER",
+      "direct_participant_required": false
+    }
+  },
+  "derived_evidence": {},
+  "evidence_provenance": "SYNTHETIC_TEST_FIXTURE",
+  "test_status": "TEST_ONLY",
+  "raw_payload": {
+    "raw_text": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Document xmlns=\"urn:iso:std:iso:20022:tech:xsd:pacs.008.001.08\">\n  <FIToFICstmrCdtTrf>\n    <GrpHdr>\n      <MsgId>MSG-2026-DQ02-001</MsgId>\n      <CreDtTm>2026-10-07T10:00:00Z</CreDtTm>\n      <NbOfTxs>1</NbOfTxs>\n    </GrpHdr>\n    <CdtTrfTxInf>\n      <PmtId>\n        <EndToEndId>E2E-DQ02-112233</EndToEndId>\n        <UETR>dd11ee22-33ff-44aa-55bb-66cc77889900</UETR>\n      </PmtId>\n      <IntrBkSttlmAmt Ccy=\"EUR\">22000.00</IntrBkSttlmAmt>\n      <Dbtr>\n        <Nm>Originating Corp Inc</Nm>\n      </Dbtr>\n      <DbtrAcct>\n        <Id><IBAN>GB82WEST12345678901234</IBAN></Id>\n      </DbtrAcct>\n      <CdtrAgt>\n        <FinInstnId>\n          <BICFI>LEHMUS33XXX</BICFI>\n        </FinInstnId>\n      </CdtrAgt>\n      <Cdtr>\n        <Nm>Bavarian Industrial AG</Nm>\n      </Cdtr>\n      <CdtrAcct>\n        <Id><IBAN>DE89370400440532013000</IBAN></Id>\n      </CdtrAcct>\n      <RmtInf>\n        <Ustrd>Invoice #INV-2026-4455 Industrial Parts</Ustrd>\n      </RmtInf>\n    </CdtTrfTxInf>\n  </FIToFICstmrCdtTrf>\n</Document>"
+  }
+}

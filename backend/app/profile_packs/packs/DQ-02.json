@@ -1,0 +1,36 @@
+{
+  "code": "DQ-02",
+  "name": "INVALID_BIC",
+  "family": "DATA_QUALITY",
+  "version": 1,
+  "outcome": "REPAIR",
+  "stp": "ALLOWED",
+  "evidence": {
+    "min_confidence": 0.9,
+    "required": [
+      {
+        "type": "ORIGINAL_BIC_RECORD",
+        "tier": 1
+      },
+      {
+        "type": "BIC_REFERENCE_DIRECTORY",
+        "tier": 2
+      },
+      {
+        "type": "BANK_COUNTERPARTY_SSI",
+        "tier": 1
+      },
+      {
+        "type": "TARGET_RAIL_ROUTING_SPEC",
+        "tier": 2
+      }
+    ]
+  },
+  "checks": [],
+  "resolver": "dq02_bic_engine",
+  "authority_domain": "ACCOUNT_OWNERSHIP_BALANCE",
+  "action": "REPAIR_AND_RELEASE",
+  "approval": {
+    "when_not_stp": "MAKER_CHECKER"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "code": "PR-05",
+  "name": "CORRUPTED_MESSAGE_FORMAT",
+  "family": "PROCESSING",
+  "version": 1,
+  "outcome": "REPAIR",
+  "stp": "ALLOWED",
+  "evidence": {
+    "min_confidence": 0.92,
+    "required": [
+      {
+        "type": "RAW_PAYLOAD_BYTES",
+        "tier": 1
+      },
+      {
+        "type": "TARGET_SCHEME_CHARSET_SPEC",
+        "tier": 2
+      },
+      {
+        "type": "BANK_TRANSLITERATION_POLICY",
+        "tier": 1
+      }
+    ]
+  },
+  "checks": [],
+  "resolver": "pr05_character_encoding",
+  "authority_domain": "ACCOUNT_OWNERSHIP_BALANCE",
+  "action": "REPAIR_AND_RELEASE",
+  "approval": {
+    "when_not_stp": "MAKER_CHECKER"
+  }
+}

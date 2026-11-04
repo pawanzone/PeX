@@ -1,0 +1,50 @@
+{
+  "code": "DQ-06",
+  "name": "MISSING_PURPOSE_CODE",
+  "family": "DATA_QUALITY",
+  "version": 1,
+  "outcome": "REPAIR",
+  "stp": "ALLOWED",
+  "evidence": {
+    "min_confidence": 0.92,
+    "required": [
+      {
+        "type": "RAW_PAYLOAD",
+        "tier": 1
+      },
+      {
+        "type": "REMITTANCE_INFORMATION",
+        "tier": 1
+      },
+      {
+        "type": "PURPOSE_CODE_FIELD",
+        "tier": 1
+      },
+      {
+        "type": "PAYMENT_CONTEXT",
+        "tier": 1
+      },
+      {
+        "type": "APPLICABLE_PURPOSE_CODE_SET",
+        "tier": 2
+      },
+      {
+        "type": "BANK_PURPOSE_DICTIONARY",
+        "tier": 1,
+        "mandatory": false
+      },
+      {
+        "type": "CORRIDOR_RULES",
+        "tier": 1,
+        "mandatory": false
+      }
+    ]
+  },
+  "checks": [],
+  "resolver": "dq06_purpose_code",
+  "authority_domain": "ACCOUNT_OWNERSHIP_BALANCE",
+  "action": "REPAIR_AND_RELEASE",
+  "approval": {
+    "when_not_stp": "MAKER_CHECKER"
+  }
+}

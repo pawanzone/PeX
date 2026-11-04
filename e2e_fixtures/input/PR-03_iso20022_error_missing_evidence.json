@@ -1,0 +1,34 @@
+{
+  "exception_id": "PEX-E2E-PR03-MISS",
+  "profile_id": "PR-03",
+  "domain": "PROCESSING",
+  "error_code": "ERR_ISO20022_VALIDATION",
+  "error_message": "pacs.008 rejected: element sequence does not follow the schema.",
+  "payment_info": {
+    "payment_id": "PMT-2026-PR03-MISS",
+    "uetr": "UETR-PR03-MISS-0001-A1",
+    "amount": 22000.0,
+    "currency": "EUR",
+    "clearing_rail": "SWIFT_CBPR+",
+    "value_date": "2026-10-08",
+    "debtor_name": "Originating Corp Inc",
+    "debtor_account": "GB82WEST12345678901234",
+    "debtor_agent_bic": "WESTGB2LXXX",
+    "creditor_name": "Bavarian Industrial AG",
+    "creditor_account": "DE89370400440532013000",
+    "creditor_agent_bic": "COBADEDDXXX",
+    "remittance_info": "Invoice INV-2026-4455 Industrial Parts"
+  },
+  "bank_supplied_evidence": {
+    "RAW_PAYLOAD": {
+      "raw_text": "<FIToFICstmrCdtTrf><CdtTrfTxInf><IntrBkSttlmAmt Ccy=\"EUR\">22000.00</IntrBkSttlmAmt><Dbtr><Nm>Originating Corp Inc</Nm></Dbtr><Cdtr><Nm>Bavarian Industrial AG</Nm></Cdtr></CdtTrfTxInf><GrpHdr><MsgId>MSG-1</MsgId><NbOfTxs>1</NbOfTxs></GrpHdr></FIToFICstmrCdtTrf>"
+    }
+  },
+  "external_authoritative_evidence": {},
+  "derived_evidence": {},
+  "evidence_provenance": "SYNTHETIC_TEST_FIXTURE",
+  "test_status": "TEST_ONLY",
+  "raw_payload": {
+    "raw_text": "<FIToFICstmrCdtTrf><CdtTrfTxInf><IntrBkSttlmAmt Ccy=\"EUR\">22000.00</IntrBkSttlmAmt><Dbtr><Nm>Originating Corp Inc</Nm></Dbtr><Cdtr><Nm>Bavarian Industrial AG</Nm></Cdtr></CdtTrfTxInf><GrpHdr><MsgId>MSG-1</MsgId><NbOfTxs>1</NbOfTxs></GrpHdr></FIToFICstmrCdtTrf>"
+  }
+}

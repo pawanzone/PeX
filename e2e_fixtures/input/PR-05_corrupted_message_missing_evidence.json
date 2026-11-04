@@ -1,0 +1,39 @@
+{
+  "exception_id": "PEX-E2E-PR05-MISS",
+  "profile_id": "PR-05",
+  "domain": "PROCESSING",
+  "error_code": "ERR_CORRUPTED_MESSAGE",
+  "error_message": "Message contains characters the target scheme does not accept.",
+  "payment_info": {
+    "payment_id": "PMT-2026-PR05-MISS",
+    "uetr": "UETR-PR05-MISS-0001-A1",
+    "amount": 22000.0,
+    "currency": "EUR",
+    "clearing_rail": "SWIFT_CBPR+",
+    "value_date": "2026-10-08",
+    "debtor_name": "Originating Corp Inc",
+    "debtor_account": "GB82WEST12345678901234",
+    "debtor_agent_bic": "WESTGB2LXXX",
+    "creditor_name": "Bavarian Industrial AG",
+    "creditor_account": "DE89370400440532013000",
+    "creditor_agent_bic": "COBADEDDXXX",
+    "remittance_info": "Invoice INV-2026-4455 Industrial Parts"
+  },
+  "bank_supplied_evidence": {
+    "RAW_PAYLOAD_BYTES": {
+      "raw_text": "<Document><Cdtr><Nm>M\u00fcller GmbH</Nm></Cdtr></Document>"
+    }
+  },
+  "external_authoritative_evidence": {
+    "TARGET_SCHEME_CHARSET_SPEC": {
+      "target_scheme": "SWIFT_CBPR_XSET",
+      "spec_version": "CBPR+_XSET_ZSET_2026"
+    }
+  },
+  "derived_evidence": {},
+  "evidence_provenance": "SYNTHETIC_TEST_FIXTURE",
+  "test_status": "TEST_ONLY",
+  "raw_payload": {
+    "raw_text": "<Document><Cdtr><Nm>M\u00fcller GmbH</Nm></Cdtr></Document>"
+  }
+}

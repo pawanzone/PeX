@@ -176,7 +176,8 @@ class E2EExecutionHarness:
         _pack_res = profile_packs.resolve_if_enabled(
             profile, ResolutionContext(profile=profile, pmt=pmt, evidence=evidence_ctx, envelope=envelope,
                                        tenant_id=getattr(e2e_input, "tenant_id", None) or "DEFAULT_BANK",
-                                       policy=active_policy))
+                                       policy=active_policy,
+                                       extras={"raw_payload": e2e_input.raw_payload, "metadata": e2e_input.processing_metadata}))
         if _pack_res is not None:
             r_det, r_uniq, v_det = _pack_res.determined, _pack_res.unique, _pack_res.validated
             repaired_fields = _pack_res.repaired_fields
