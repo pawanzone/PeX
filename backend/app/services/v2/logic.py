@@ -35,7 +35,8 @@ def ext_of(case: Dict[str, Any]) -> Dict[str, Any]:
 def is_dual(case: Dict[str, Any]) -> bool:
     from app.services.v2 import policy
     # The profile pack can demand two steps (compliance, then risk); the amount rule only ever adds to that.
-    pack_two_step = (ext_of(case).get("approval_requirement") == "COMPLIANCE_THEN_RISK_SIGN_OFF")
+    from app.services import approval_routing
+    pack_two_step = approval_routing.pack_requires_two_steps(case)
     return (float(case.get("amount") or 0) >= policy.get("dual_auth_amount") or bool(case.get("dual_auth_required"))
             or status_of(case) == "AWAITING_SECOND_APPROVAL" or pack_two_step)
 
@@ -252,6 +253,11 @@ def approve_gate(case: Dict[str, Any], user, for_decline: bool = False) -> Tuple
     if not ok:
         code = "SOD_VIOLATION" if "Segregation" in msg else ("LIMIT_EXCEEDED" if "limit" in msg.lower() else "FORBIDDEN")
         return False, code, msg
+    if not for_decline:
+        from app.services import approval_routing
+        why = approval_routing.step_role_violation(case, user.role, 2 if st == "AWAITING_SECOND_APPROVAL" else 1)
+        if why:
+            return False, "FORBIDDEN", why
     ext0 = ext_of(case)
     if not for_decline:
         cr = ext0.get("confidence_review") or {}

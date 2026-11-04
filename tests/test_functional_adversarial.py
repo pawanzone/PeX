@@ -248,7 +248,11 @@ def test_sanctions_pep_hit_isolation():
     
     ok, msg, rec, stage = approval_engine.process_approval_action(sub, approver_id="CMP-4420")
     assert ok is True
-    assert stage == LifecycleStage.APPROVED
+    # Sanctions (CO-01) is compliance-then-risk by its profile pack: compliance clearing is step one, a Risk Approver finishes it.
+    assert stage == LifecycleStage.AWAITING_SECOND_APPROVAL
+    ok2, msg2, rec2, stage2 = approval_engine.process_approval_action(
+        ApprovalSubmission(case_id=exc.case_id, action=ApprovalAction.APPROVE, comments="Risk sign-off"), approver_id="RSK-7714")
+    assert ok2 is True and stage2 == LifecycleStage.APPROVED
 
 def test_missing_mandatory_fields_handling():
     """Invalid Case: Missing mandatory evidence or account structures handled safely."""

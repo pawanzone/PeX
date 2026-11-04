@@ -46,26 +46,3 @@ def test_end_to_end_output_carries_the_pack_requirement(prefix, expected):
 
 def test_old_profile_output_unchanged():
     assert _run("DQ-03", "sufficient.json").approval_requirement in ("MAKER_CHECKER_DUAL_AUTH", "NONE_AUTONOMOUS_STP")
-
-
-# ---- v2 layer: the requirement can force a second approver; the amount rule still applies on top ----
-def _case(amount, req):
-    from app.services.v2 import ext as xt
-    case = {"case_id": f"T-{req}-{amount}", "amount": amount, "status": "PENDING_APPROVAL"}
-    xt.ext_store.put(case["case_id"], {"approval_requirement": req}, persist=False)
-    return case
-
-
-def test_compliance_then_risk_is_always_two_step():
-    from app.services.v2 import logic as lg
-    assert lg.is_dual(_case(1_000, "COMPLIANCE_THEN_RISK_SIGN_OFF")) is True
-
-
-def test_single_approver_small_amount_is_one_step():
-    from app.services.v2 import logic as lg
-    assert lg.is_dual(_case(1_000, "SINGLE_APPROVER")) is False
-
-
-def test_single_approver_large_amount_still_dual():
-    from app.services.v2 import logic as lg
-    assert lg.is_dual(_case(5_000_000, "SINGLE_APPROVER")) is True

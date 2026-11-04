@@ -9,6 +9,7 @@ from app.core.security import check_can_approve, get_persona
 from app.services.data_loader import repo
 from app.services.rule_engine import rule_engine
 from app.services.state_machine import transition_case
+from app.services import approval_routing
 from app.config import settings
 
 class ApprovalEngine:
@@ -53,9 +54,17 @@ class ApprovalEngine:
         # Dynamically evaluate active business rules & dual authorization policies
         active_rules = repo.get_policy_rules(status="ACTIVE")
         policy_eval = rule_engine.evaluate_case_policies(case, active_rules)
-        dual_auth = policy_eval.get("dual_auth_required", False)
+        # The profile pack can demand two steps (compliance, then risk); the policy/amount rule only adds to that.
+        dual_auth = bool(policy_eval.get("dual_auth_required", False)) or approval_routing.pack_requires_two_steps(case)
         
         existing_approvals = repo.approvals.get(submission.case_id, [])
+
+        _approving = submission.action in [ApprovalAction.APPROVE, ApprovalAction.CLEAR_FALSE_POSITIVE, ApprovalAction.GRANT_KYC_WAIVER, ApprovalAction.MODIFY]
+        if _approving:
+            _step = 2 if current_status in [LifecycleStage.AWAITING_SECOND_APPROVAL, LifecycleStage.AWAITING_SECOND_APPROVAL.value] else 1
+            _why = approval_routing.step_role_violation(case, approver.role, _step)
+            if _why:
+                return False, _why, None, current_status
 
         if submission.action in [ApprovalAction.APPROVE, ApprovalAction.CLEAR_FALSE_POSITIVE, ApprovalAction.GRANT_KYC_WAIVER, ApprovalAction.MODIFY]:
             if current_status in [LifecycleStage.PENDING_APPROVAL, LifecycleStage.PENDING_APPROVAL.value]:
