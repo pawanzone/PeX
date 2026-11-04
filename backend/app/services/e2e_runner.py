@@ -378,7 +378,7 @@ class E2EExecutionHarness:
             ),
             ai_confidence_score=0.98 if stp_eligible else 0.50, # Advisory only
             hitl_required=not stp_eligible,
-            approval_requirement="NONE_AUTONOMOUS_STP" if stp_eligible else "MAKER_CHECKER_DUAL_AUTH",
+            approval_requirement=profile_packs.approval_requirement_for(profile, stp_eligible),
             next_action="DISPATCH_TO_BANK_GATEWAY" if stp_eligible else "ROUTE_TO_OPERATIONS_WORKLIST",
             bank_handoff_status=handoff_envelope.status.value,
             execution_owner="BANK", # Absolute invariant

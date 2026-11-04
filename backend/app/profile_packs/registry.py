@@ -66,6 +66,25 @@ def is_enabled(code: str) -> bool:
     return "*" in wanted or code in wanted
 
 
+_APPROVAL = {"MAKER_CHECKER": "MAKER_CHECKER_DUAL_AUTH", "SINGLE": "SINGLE_APPROVER",
+             "COMPLIANCE_THEN_RISK": "COMPLIANCE_THEN_RISK_SIGN_OFF"}
+_STRICT_DEFAULT = "MAKER_CHECKER_DUAL_AUTH"
+
+
+def approval_requirement_for(code: str, stp_eligible: bool) -> str:
+    """Who must authorise a case. Straight-through needs nobody; otherwise the pack decides.
+    Anything unknown, or packs switched off, gets the strictest existing rule. The amount rule (dual
+    authorisation from the policy threshold) is applied on top by the workflow layer and only tightens."""
+    if stp_eligible:
+        return "NONE_AUTONOMOUS_STP"
+    if not is_enabled(code):
+        return _STRICT_DEFAULT
+    pack = get_pack(code)
+    if pack is None:
+        return _STRICT_DEFAULT
+    return _APPROVAL.get(str(getattr(pack.approval.when_not_stp, "value", pack.approval.when_not_stp)), _STRICT_DEFAULT)
+
+
 def never_stp_reason(code: str) -> Optional[str]:
     """Text to show when a pack forbids straight-through; None when it does not apply."""
     if not is_enabled(code):

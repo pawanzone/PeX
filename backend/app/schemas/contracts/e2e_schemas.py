@@ -146,7 +146,7 @@ class CanonicalE2EOutput(BaseModel):
     
     # HITL & Approval Governance
     hitl_required: bool = True
-    approval_requirement: str                        # "NONE_AUTONOMOUS_STP", "MAKER_CHECKER_DUAL_AUTH", "COMPLIANCE_OFFICER_SIGN_OFF"
+    approval_requirement: str                        # "NONE_AUTONOMOUS_STP", "MAKER_CHECKER_DUAL_AUTH", "SINGLE_APPROVER", "COMPLIANCE_THEN_RISK_SIGN_OFF"
     next_action: str                                 # "DISPATCH_TO_BANK_GATEWAY", "ROUTE_TO_OPERATIONS_WORKLIST", "ROUTE_TO_COMPLIANCE_DESK"
     
     # Bank Execution Handoff

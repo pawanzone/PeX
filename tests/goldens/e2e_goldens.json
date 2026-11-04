@@ -1943,7 +1943,7 @@
  },
  "input/CO-01_sanctions_suspected_missing_evidence": {
   "ai_confidence_score": 0.5,
-  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "approval_requirement": "COMPLIANCE_THEN_RISK_SIGN_OFF",
   "authority_status": "AUTHORITATIVE_CONFIRMED",
   "bank_handoff_status": "MAKER_CHECKER_PENDING",
   "bank_policy_status": "POLICY_PERMITTED",
@@ -1999,7 +1999,7 @@
  },
  "input/CO-01_sanctions_suspected_sufficient": {
   "ai_confidence_score": 0.5,
-  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "approval_requirement": "COMPLIANCE_THEN_RISK_SIGN_OFF",
   "authority_status": "AUTHORITATIVE_CONFIRMED",
   "bank_handoff_status": "MAKER_CHECKER_PENDING",
   "bank_policy_status": "POLICY_PERMITTED",
@@ -2052,7 +2052,7 @@
  },
  "input/CO-02_aml_alert_missing_evidence": {
   "ai_confidence_score": 0.5,
-  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "approval_requirement": "COMPLIANCE_THEN_RISK_SIGN_OFF",
   "authority_status": "AUTHORITATIVE_CONFIRMED",
   "bank_handoff_status": "MAKER_CHECKER_PENDING",
   "bank_policy_status": "POLICY_PERMITTED",
@@ -2108,7 +2108,7 @@
  },
  "input/CO-02_aml_alert_sufficient": {
   "ai_confidence_score": 0.5,
-  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "approval_requirement": "COMPLIANCE_THEN_RISK_SIGN_OFF",
   "authority_status": "AUTHORITATIVE_CONFIRMED",
   "bank_handoff_status": "MAKER_CHECKER_PENDING",
   "bank_policy_status": "POLICY_PERMITTED",
@@ -2161,7 +2161,7 @@
  },
  "input/CO-03_pep_match_missing_evidence": {
   "ai_confidence_score": 0.5,
-  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "approval_requirement": "COMPLIANCE_THEN_RISK_SIGN_OFF",
   "authority_status": "AUTHORITATIVE_CONFIRMED",
   "bank_handoff_status": "MAKER_CHECKER_PENDING",
   "bank_policy_status": "POLICY_PERMITTED",
@@ -2217,7 +2217,7 @@
  },
  "input/CO-03_pep_match_sufficient": {
   "ai_confidence_score": 0.5,
-  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "approval_requirement": "COMPLIANCE_THEN_RISK_SIGN_OFF",
   "authority_status": "AUTHORITATIVE_CONFIRMED",
   "bank_handoff_status": "MAKER_CHECKER_PENDING",
   "bank_policy_status": "POLICY_PERMITTED",
@@ -2364,7 +2364,7 @@
  },
  "input/CO-05_adverse_media_match_missing_evidence": {
   "ai_confidence_score": 0.5,
-  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "approval_requirement": "COMPLIANCE_THEN_RISK_SIGN_OFF",
   "authority_status": "AUTHORITATIVE_CONFIRMED",
   "bank_handoff_status": "MAKER_CHECKER_PENDING",
   "bank_policy_status": "POLICY_PERMITTED",
@@ -2420,7 +2420,7 @@
  },
  "input/CO-05_adverse_media_match_sufficient": {
   "ai_confidence_score": 0.5,
-  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "approval_requirement": "COMPLIANCE_THEN_RISK_SIGN_OFF",
   "authority_status": "AUTHORITATIVE_CONFIRMED",
   "bank_handoff_status": "MAKER_CHECKER_PENDING",
   "bank_policy_status": "POLICY_PERMITTED",
@@ -2473,7 +2473,7 @@
  },
  "input/CO-06_high_risk_jurisdiction_missing_evidence": {
   "ai_confidence_score": 0.5,
-  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "approval_requirement": "COMPLIANCE_THEN_RISK_SIGN_OFF",
   "authority_status": "AUTHORITATIVE_CONFIRMED",
   "bank_handoff_status": "MAKER_CHECKER_PENDING",
   "bank_policy_status": "POLICY_PERMITTED",
@@ -2529,7 +2529,7 @@
  },
  "input/CO-06_high_risk_jurisdiction_sufficient": {
   "ai_confidence_score": 0.5,
-  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "approval_requirement": "COMPLIANCE_THEN_RISK_SIGN_OFF",
   "authority_status": "AUTHORITATIVE_CONFIRMED",
   "bank_handoff_status": "MAKER_CHECKER_PENDING",
   "bank_policy_status": "POLICY_PERMITTED",
@@ -2706,7 +2706,7 @@
  },
  "input/CO-08_customer_watchlist_match_missing_evidence": {
   "ai_confidence_score": 0.5,
-  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "approval_requirement": "COMPLIANCE_THEN_RISK_SIGN_OFF",
   "authority_status": "AUTHORITATIVE_CONFIRMED",
   "bank_handoff_status": "MAKER_CHECKER_PENDING",
   "bank_policy_status": "POLICY_PERMITTED",
@@ -2762,7 +2762,7 @@
  },
  "input/CO-08_customer_watchlist_match_sufficient": {
   "ai_confidence_score": 0.5,
-  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "approval_requirement": "COMPLIANCE_THEN_RISK_SIGN_OFF",
   "authority_status": "AUTHORITATIVE_CONFIRMED",
   "bank_handoff_status": "MAKER_CHECKER_PENDING",
   "bank_policy_status": "POLICY_PERMITTED",
@@ -4493,7 +4493,7 @@
  },
  "input/ST-04_reconciliation_break_missing_evidence": {
   "ai_confidence_score": 0.5,
-  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "approval_requirement": "SINGLE_APPROVER",
   "authority_status": "AUTHORITATIVE_CONFIRMED",
   "bank_handoff_status": "MAKER_CHECKER_PENDING",
   "bank_policy_status": "POLICY_PERMITTED",
@@ -4549,7 +4549,7 @@
  },
  "input/ST-04_reconciliation_break_sufficient": {
   "ai_confidence_score": 0.5,
-  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "approval_requirement": "SINGLE_APPROVER",
   "authority_status": "AUTHORITATIVE_CONFIRMED",
   "bank_handoff_status": "MAKER_CHECKER_PENDING",
   "bank_policy_status": "POLICY_PERMITTED",
@@ -4602,7 +4602,7 @@
  },
  "input/ST-05_settlement_failure_missing_evidence": {
   "ai_confidence_score": 0.5,
-  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "approval_requirement": "SINGLE_APPROVER",
   "authority_status": "AUTHORITATIVE_CONFIRMED",
   "bank_handoff_status": "MAKER_CHECKER_PENDING",
   "bank_policy_status": "POLICY_PERMITTED",
@@ -4658,7 +4658,7 @@
  },
  "input/ST-05_settlement_failure_sufficient": {
   "ai_confidence_score": 0.5,
-  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "approval_requirement": "SINGLE_APPROVER",
   "authority_status": "AUTHORITATIVE_CONFIRMED",
   "bank_handoff_status": "MAKER_CHECKER_PENDING",
   "bank_policy_status": "POLICY_PERMITTED",
@@ -4820,7 +4820,7 @@
  },
  "input/ST-07_unmatched_credit_missing_evidence": {
   "ai_confidence_score": 0.5,
-  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "approval_requirement": "SINGLE_APPROVER",
   "authority_status": "AUTHORITATIVE_CONFIRMED",
   "bank_handoff_status": "MAKER_CHECKER_PENDING",
   "bank_policy_status": "POLICY_PERMITTED",
@@ -4876,7 +4876,7 @@
  },
  "input/ST-07_unmatched_credit_sufficient": {
   "ai_confidence_score": 0.5,
-  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "approval_requirement": "SINGLE_APPROVER",
   "authority_status": "AUTHORITATIVE_CONFIRMED",
   "bank_handoff_status": "MAKER_CHECKER_PENDING",
   "bank_policy_status": "POLICY_PERMITTED",

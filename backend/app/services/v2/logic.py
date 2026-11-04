@@ -34,7 +34,10 @@ def ext_of(case: Dict[str, Any]) -> Dict[str, Any]:
 
 def is_dual(case: Dict[str, Any]) -> bool:
     from app.services.v2 import policy
-    return float(case.get("amount") or 0) >= policy.get("dual_auth_amount") or bool(case.get("dual_auth_required")) or status_of(case) == "AWAITING_SECOND_APPROVAL"
+    # The profile pack can demand two steps (compliance, then risk); the amount rule only ever adds to that.
+    pack_two_step = (ext_of(case).get("approval_requirement") == "COMPLIANCE_THEN_RISK_SIGN_OFF")
+    return (float(case.get("amount") or 0) >= policy.get("dual_auth_amount") or bool(case.get("dual_auth_required"))
+            or status_of(case) == "AWAITING_SECOND_APPROVAL" or pack_two_step)
 
 
 def evidence_state(ext: Dict[str, Any]) -> str:
