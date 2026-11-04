@@ -709,6 +709,97 @@ def compliance_decision(case_id: str, user, decision: Optional[str], reason_code
 
 
 # ----------------------------------------------------------------------------------------------
+# decision-support profiles: record the option a reviewer chose (PeX lists the options, a person picks one)
+# ----------------------------------------------------------------------------------------------
+def record_decision(case_id: str, user, option: Optional[str], comment: Optional[str]) -> Dict[str, Any]:
+    from app.profile_packs import registry
+    from app.services import approval_routing
+    from app.services.state_machine import ALLOWED_TRANSITIONS
+    case = _load(case_id)
+    ext = lg.ext_of(case)
+    dr = ext.get("decision_request")
+    if not dr:
+        raise bad_state("This case has no open decision.")
+    if dr.get("action") != "DECISION_REQUIRED" or not dr.get("evidence_complete"):
+        raise bad_state("Evidence is incomplete. Gather it before a decision is recorded.")
+    cur = dict(ext.get("decision") or {})
+    if cur.get("final"):
+        raise bad_state("A decision has already been recorded on this case.")
+    need = str(dr.get("reviewer_role"))
+    if role_of(user) != need:
+        raise V2Error(403, "FORBIDDEN", f"Only a {ROLE_LABELS.get(need, need)} can decide this exception.")
+    if case.get("maker_id") and case["maker_id"] == user.user_id:
+        raise V2Error(403, "SOD_VIOLATION", "You prepared this case, so you cannot decide it.")
+    pack = registry.get_pack(approval_routing.profile_code_of(case))
+    opt = (option or "").strip()
+    if pack is None or pack.decision is None or opt not in pack.decision.effects or opt not in (dr.get("options") or []):
+        raise invalid("Choose one of the listed options.", "option")
+    cm = _need(comment, "comment", "Reason")
+    effect = pack.decision.effects[opt].value
+    is_co = need == "COMPLIANCE_APPROVER"
+    before = lg.status_of(case)
+    rec = {"option": opt, "effect": effect, "by": user.user_id, "by_name": user.name, "at": iso(now()), "comment": cm}
+    hist = list(ext.get("decision_history") or [])
+    hist.append(dict(rec))
+    ext["decision_history"] = hist
+    tags = ["Human decision", "PeX did not choose"]
+    note = ""
+
+    if effect == "STOP" and is_co:
+        pending = cur.get("state") == "awaiting_second_review" and cur.get("option") == opt
+        if pending and cur.get("by") == user.user_id:
+            raise V2Error(403, "SOD_VIOLATION", "The second reviewer must be a different person from the first reviewer.")
+        if not pending:
+            ext["decision"] = {**rec, "state": "awaiting_second_review", "final": False}
+            touch(case, ext)
+            xt.persist_ext(case_id, ext)
+            audit(case, user, "HITL_DECISION", "DECISION_RECORDED", f"{user.name} chose {opt} on {case_id}; a second compliance reviewer must confirm before the payment is stopped.",
+                  tags + ["Four-eyes", "Second reviewer required"], before=before, after="Awaiting second reviewer", reason=cm, policy_version=POLICY_VERSION)
+            notify("PING", f"Second review needed: {case_id}", f"{user.name} chose to stop the payment ({opt}). A second reviewer must confirm.", case_id, target_role="COMPLIANCE_APPROVER")
+            return result(case_id, user, "First review recorded. A second compliance reviewer must confirm before the payment is stopped.", decision=ext["decision"])
+
+    if effect == "STOP":
+        _ensure_pending(case, user, ext)
+        ok, msg, _r, _n = approval_engine.process_approval_action(
+            ApprovalSubmission(case_id=case_id, action=ApprovalAction.REJECT, comments=f"[{opt}] {cm}"), approver_id=user.user_id)
+        if not ok:
+            raise _map_engine_error(msg)
+        ext["decision"] = {**rec, "state": "stopped", "final": True, **({"first_by": cur.get("by")} if cur.get("by") else {})}
+        note = "The case is stopped and will not be released."
+    elif effect == "PROCEED":
+        _ensure_pending(case, user, ext)
+        if is_co:                                   # the compliance sign-off is step one; a Risk Approver finishes it
+            cd = dict(ext.get("compliance") or {})
+            cd.update({"released": True, "released_by": person(user.user_id), "released_at": iso(now()),
+                       "decision": {"decision": "release", "by": user.user_id, "at": iso(now()), "reason_code": opt}})
+            ext["compliance"] = cd
+        ext["decision"] = {**rec, "state": "cleared_for_approval", "final": True}
+        note = "Cleared for approval. A different approver must authorise it before any bank handoff."
+        notify("APPROVAL", f"{case_id} ready for approval", f"{user.name} chose {opt}. An approver must authorise before any bank handoff.", case_id,
+               target_role="RISK_APPROVER" if is_co else "OPERATIONS_APPROVER")
+    elif effect == "ESCALATE":
+        st = lg.status_of(case)
+        if st != "ESCALATED":
+            if "ESCALATED" not in ALLOWED_TRANSITIONS.get(st, frozenset()):
+                raise bad_state(f"Case is {st.replace('_', ' ').lower()}; it cannot be escalated.")
+            move(case, "ESCALATED", user, f"Escalated: {opt}.")
+            repo.save_case(case)
+        ext["decision"] = {**rec, "state": "escalated", "final": True}
+        note = "Escalated to a senior desk."
+        notify("ESCALATED", f"{case_id} escalated", f"{user.name}: {opt}. {cm}", case_id, target_role="RISK_APPROVER")
+    else:                                           # HOLD: the case stays open and can be decided again
+        ext["decision"] = {**rec, "state": "on_hold", "final": False}
+        note = "Recorded. The case stays open until the outstanding item is resolved."
+
+    case = _load(case_id)
+    touch(case, ext)
+    xt.persist_ext(case_id, ext)
+    audit(case, user, "HITL_DECISION", "DECISION_RECORDED", f"{user.name} chose {opt} on {case_id} ({effect.lower()}). {note}",
+          tags, before=before, after=lg.status_of(case), reason=cm, policy_version=POLICY_VERSION, sod="Passed")
+    return result(case_id, user, note, decision=ext["decision"])
+
+
+# ----------------------------------------------------------------------------------------------
 # notifications
 # ----------------------------------------------------------------------------------------------
 def list_notifications(user) -> Dict[str, Any]:

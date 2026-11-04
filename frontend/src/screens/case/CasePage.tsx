@@ -116,7 +116,7 @@ export const CasePage: React.FC<{ id: string; context?: "worklist" | "approvals"
           <ExpediteLadder caseId={id} onSent={() => { r.reload(); onChanged?.(); }} />
 
           {(v === "DECISION" || v === "GENERIC") && page.decision_brief && <DecisionBrief brief={page.decision_brief} />}
-          {page.decision_request && <DecisionRequestBlock d={page.decision_request} />}
+          {page.decision_request && <DecisionRequestBlock d={page.decision_request} caseId={id} run={run} />}
           {v === "DECISION" && <>{showChange && <ChangeBlock page={page} mode="decision" />}</>}
           {v === "APPROVAL" && <>
             {showChange && <ChangeBlock page={page} mode="approval" />}

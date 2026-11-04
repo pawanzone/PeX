@@ -34,6 +34,11 @@
       "TRUE_MATCH_CONFIRMED_BLOCK",
       "ESCALATE_SENIOR_COMPLIANCE"
     ],
-    "reviewer_role": "COMPLIANCE_APPROVER"
+    "reviewer_role": "COMPLIANCE_APPROVER",
+    "effects": {
+      "FALSE_POSITIVE_HOMONYM_CLEARED": "PROCEED",
+      "TRUE_MATCH_CONFIRMED_BLOCK": "STOP",
+      "ESCALATE_SENIOR_COMPLIANCE": "ESCALATE"
+    }
   }
 }

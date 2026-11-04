@@ -447,7 +447,7 @@ def case_page(case_id: str, user) -> Dict[str, Any]:
         "compliance": _compliance(case, ext) if variant == "COMPLIANCE_HOLD" else None,
         "request_information": _request_info(case, ext) if variant in ("MISSING_INFO", "CONFLICT", "DECISION") else None,
         "recommendation": _recommendation(case, ext),
-        "decision_request": decision_request_block(ext),
+        "decision_request": decision_request_block(ext, user, case),
         "confidence": _confidence(case, ext, variant, user),
         "pii": pii.page_block(case, ext, user),
         "journey": build_journey(case, ext, variant),
@@ -492,16 +492,42 @@ def _words(code: str) -> str:
     return t[:1].upper() + t[1:]
 
 
-def decision_request_block(ext: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-    """Read-only panel for decision-support cases: what is being decided, the options, who decides. PeX does not choose."""
+_DECISION_STATE = {"cleared_for_approval": "Cleared for approval", "stopped": "Stopped", "escalated": "Escalated", "on_hold": "On hold",
+                   "awaiting_second_review": "Awaiting second reviewer"}
+
+
+def decision_request_block(ext: Dict[str, Any], user=None, case: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
+    """Panel for decision-support cases: what is being decided, the options, who decides, and what was recorded. PeX does not choose."""
     d = ext.get("decision_request")
     if not d:
         return None
     from app.services.v2.core import ROLE_LABELS
-    who = ROLE_LABELS.get(str(d.get("reviewer_role")), _words(d.get("reviewer_role")) or "A reviewer")
+    need = str(d.get("reviewer_role"))
+    who = ROLE_LABELS.get(need, _words(need)) or "A reviewer"
     complete = bool(d.get("evidence_complete"))
+    dec = ext.get("decision") or {}
+    final = bool(dec.get("final"))
+    recorded = None
+    if dec:
+        recorded = {"option": dec.get("option"), "option_label": _words(dec.get("option")), "state": dec.get("state"),
+                    "state_label": _DECISION_STATE.get(str(dec.get("state")), _words(dec.get("state"))), "by_name": dec.get("by_name"),
+                    "at": dec.get("at"), "comment": dec.get("comment"), "final": final}
+    can, why = False, None
+    if user is not None:
+        if final:
+            why = "A decision has already been recorded."
+        elif not complete:
+            why = "Evidence is incomplete. Gather it before a decision is recorded."
+        elif role_of(user) != need:
+            why = f"Only a {who} can decide this exception."
+        elif case is not None and case.get("maker_id") == user.user_id:
+            why = "You prepared this case, so you cannot decide it."
+        else:
+            can = True
+    cid = (case or {}).get("case_id")
+    title = "Decision recorded" if final else ("Decision required" if complete else "Waiting for evidence")
     return {
-        "title": "Decision required" if complete else "Waiting for evidence",
+        "title": title,
         "target_label": _words(d.get("target")),
         "decided_by": who,
         "evidence_complete": complete,
@@ -510,6 +536,8 @@ def decision_request_block(ext: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         "conflicting": list(d.get("conflicting") or []),
         "note": (f"PeX does not choose. {who} decides, and the decision is never released straight through." if complete
                  else f"Evidence is incomplete. Gather it before {who} decides; PeX does not choose."),
+        "can_decide": can, "cannot_decide_reason": why, "endpoint": f"/api/v2/cases/{cid}/decision" if cid else None,
+        "recorded": recorded,
     }
 
 

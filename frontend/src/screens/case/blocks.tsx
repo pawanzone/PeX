@@ -65,36 +65,75 @@ export const HandoverNote: React.FC<{ h: NonNullable<CasePage["handover"]>; case
   </Section>
 );
 
-// Decision-support cases: what a person must decide, the options, and who decides. Read-only: PeX never picks an option.
-export const DecisionRequestBlock: React.FC<{ d: DecisionRequestDto }> = ({ d }) => (
-  <Section title={d.title} right={<StatusPill tone={d.evidence_complete ? "green" : "amber"}>{d.evidence_complete ? "Evidence complete" : "Evidence incomplete"}</StatusPill>}>
-    <div className="grid gap-3 text-sm" data-testid="decision-request">
-      <dl className="grid gap-4 sm:grid-cols-2">
-        <div><dt className="text-xs text-pex-muted">What is being decided</dt><dd className="font-medium text-pex-ink mt-1">{d.target_label}</dd></div>
-        <div><dt className="text-xs text-pex-muted">Decided by</dt><dd className="font-medium text-pex-ink mt-1">{d.decided_by}</dd></div>
-      </dl>
-      {d.options.length > 0 && (
-        <div>
-          <p className="text-xs text-pex-muted mb-1.5">Options for the decision-maker</p>
-          <ul className="grid gap-1.5">{d.options.map((o) => <li key={o.code} className="px-3 py-2 rounded-lg border border-surface-line bg-white">{o.label}</li>)}</ul>
-        </div>
-      )}
-      {d.missing.length > 0 && (
-        <div>
-          <p className="text-xs text-pex-muted mb-1.5">Still needed</p>
-          <ul className="list-disc pl-5">{d.missing.map((m) => <li key={m}>{m}</li>)}</ul>
-        </div>
-      )}
-      {d.conflicting.length > 0 && (
-        <div>
-          <p className="text-xs text-pex-muted mb-1.5">Conflicting evidence</p>
-          <ul className="list-disc pl-5">{d.conflicting.map((c) => <li key={c}>{c}</li>)}</ul>
-        </div>
-      )}
-      <p className="text-xs text-pex-muted">{d.note}</p>
-    </div>
-  </Section>
-);
+// Decision-support cases: what a person must decide, the options, and who decides. PeX lists the options and never picks one.
+export const DecisionRequestBlock: React.FC<{ d: DecisionRequestDto; caseId: string; run: Run }> = ({ d, caseId, run }) => {
+  const [pick, setPick] = useState("");
+  const [reason, setReason] = useState("");
+  const [busy, setBusy] = useState(false);
+  const r = d.recorded;
+  const canSubmit = !!pick && reason.trim().length > 0 && !busy;
+  return (
+    <Section title={d.title} right={<StatusPill tone={d.evidence_complete ? "green" : "amber"}>{d.evidence_complete ? "Evidence complete" : "Evidence incomplete"}</StatusPill>}>
+      <div className="grid gap-3 text-sm" data-testid="decision-request">
+        <dl className="grid gap-4 sm:grid-cols-2">
+          <div><dt className="text-xs text-pex-muted">What is being decided</dt><dd className="font-medium text-pex-ink mt-1">{d.target_label}</dd></div>
+          <div><dt className="text-xs text-pex-muted">Decided by</dt><dd className="font-medium text-pex-ink mt-1">{d.decided_by}</dd></div>
+        </dl>
+        {r && (
+          <div className="px-3 py-2 rounded-lg border border-surface-line bg-slate-50" data-testid="decision-recorded">
+            <p className="text-xs text-pex-muted">{r.final ? "Decision recorded" : "Latest entry"}{r.state_label ? ` · ${r.state_label}` : ""}</p>
+            <p className="font-medium text-pex-ink mt-0.5">{r.option_label}</p>
+            <p className="text-pex-muted mt-0.5">{r.by_name}{r.at ? `, ${fmtDateTime(r.at)}` : ""}</p>
+            {r.comment && <p className="mt-1">{r.comment}</p>}
+          </div>
+        )}
+        {d.options.length > 0 && !d.can_decide && (
+          <div>
+            <p className="text-xs text-pex-muted mb-1.5">Options for the decision-maker</p>
+            <ul className="grid gap-1.5">{d.options.map((o) => <li key={o.code} className="px-3 py-2 rounded-lg border border-surface-line bg-white">{o.label}</li>)}</ul>
+          </div>
+        )}
+        {d.can_decide && (
+          <form className="grid gap-3" onSubmit={async (e) => {
+            e.preventDefault();
+            if (!canSubmit) return;
+            setBusy(true);
+            const res = await run(() => postCaseAction(caseId, "decision", { option: pick, comment: reason.trim() }), "Decision recorded");
+            setBusy(false);
+            if (res) { setPick(""); setReason(""); }
+          }}>
+            <fieldset className="grid gap-1.5">
+              <legend className="text-xs text-pex-muted mb-1.5">Choose one option. PeX does not choose for you.</legend>
+              {d.options.map((o) => (
+                <label key={o.code} className={cn("flex items-center gap-2 px-3 py-2 rounded-lg border bg-white cursor-pointer", pick === o.code ? "border-pex-primary" : "border-surface-line")}>
+                  <input type="radio" name="decision-option" value={o.code} checked={pick === o.code} onChange={() => setPick(o.code)} />{o.label}
+                </label>
+              ))}
+            </fieldset>
+            <label className="grid gap-1"><span className="text-xs text-pex-muted">Reason (required, kept in the audit trail)</span>
+              <textarea className={field} rows={3} value={reason} onChange={(e) => setReason(e.target.value)} />
+            </label>
+            <div><button type="submit" className={primaryBtn} disabled={!canSubmit}>Record decision</button></div>
+          </form>
+        )}
+        {!d.can_decide && d.cannot_decide_reason && !r?.final && <p className="text-xs text-pex-muted">{d.cannot_decide_reason}</p>}
+        {d.missing.length > 0 && (
+          <div>
+            <p className="text-xs text-pex-muted mb-1.5">Still needed</p>
+            <ul className="list-disc pl-5">{d.missing.map((m) => <li key={m}>{m}</li>)}</ul>
+          </div>
+        )}
+        {d.conflicting.length > 0 && (
+          <div>
+            <p className="text-xs text-pex-muted mb-1.5">Conflicting evidence</p>
+            <ul className="list-disc pl-5">{d.conflicting.map((c) => <li key={c}>{c}</li>)}</ul>
+          </div>
+        )}
+        <p className="text-xs text-pex-muted">{d.note}</p>
+      </div>
+    </Section>
+  );
+};
 
 export const RecommendationBlock: React.FC<{ page: CasePage }> = ({ page }) => {
   const rec = page.recommendation;

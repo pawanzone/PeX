@@ -32,6 +32,11 @@
       "HOLD_IN_SUSPENSE",
       "RETURN_TO_ORDERING_BANK"
     ],
-    "reviewer_role": "OPERATIONS_APPROVER"
+    "reviewer_role": "OPERATIONS_APPROVER",
+    "effects": {
+      "ALLOCATE_TO_DEBTOR_RECEIVABLES_LEDGER": "PROCEED",
+      "HOLD_IN_SUSPENSE": "HOLD",
+      "RETURN_TO_ORDERING_BANK": "STOP"
+    }
   }
 }

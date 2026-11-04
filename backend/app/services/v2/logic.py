@@ -270,6 +270,9 @@ def approve_gate(case: Dict[str, Any], user, for_decline: bool = False) -> Tuple
     rel = ((ext_of(case).get("compliance") or {}).get("released_by") or {}).get("user_id")
     if rel and rel == user.user_id:
         return False, "SOD_VIOLATION", "You cleared the screening hold on this case. A Risk Approver (not you) must authorise the handoff."
+    dec = ext_of(case).get("decision") or {}
+    if dec.get("final") and dec.get("by") == user.user_id:
+        return False, "SOD_VIOLATION", "You recorded the decision on this case. A different approver must authorise it."
     if st == "AWAITING_SECOND_APPROVAL":
         l1 = [a for a in (case.get("approval_history") or []) if int((a or {}).get("step_number", 1)) == 1
               and str((a or {}).get("action")) in ("APPROVE", "ApprovalAction.APPROVE", "MODIFY")]

@@ -34,6 +34,11 @@
       "RETURN_PAYMENT",
       "FILE_REGULATORY_REPORT"
     ],
-    "reviewer_role": "COMPLIANCE_APPROVER"
+    "reviewer_role": "COMPLIANCE_APPROVER",
+    "effects": {
+      "FATF_ECDD_VERIFIED_TRANSACTION": "PROCEED",
+      "RETURN_PAYMENT": "STOP",
+      "FILE_REGULATORY_REPORT": "ESCALATE"
+    }
   }
 }

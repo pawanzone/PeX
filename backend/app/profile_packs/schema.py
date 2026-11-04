@@ -51,12 +51,28 @@ class ApprovalSpec(BaseModel):
     when_not_stp: str = "MAKER_CHECKER"   # MAKER_CHECKER | COMPLIANCE_THEN_RISK | SINGLE
 
 
+class Effect(str, Enum):
+    """What choosing an option does to the case. PROCEED: clears it for approval. STOP: closes it with no release.
+    ESCALATE: hands it to a senior desk. HOLD: the case stays open (information or an investigation is outstanding)."""
+    PROCEED = "PROCEED"
+    STOP = "STOP"
+    ESCALATE = "ESCALATE"
+    HOLD = "HOLD"
+
+
 class DecisionSpec(BaseModel):
     """For decision-support profiles: what a person is asked to decide, and by whom. PeX never picks an option."""
     model_config = ConfigDict(extra="forbid")
     target_field: str
     options: List[str] = Field(min_length=2)
     reviewer_role: str
+    effects: Dict[str, Effect]   # one per option; derived from the option names, to be validated by SMEs
+
+    @model_validator(mode="after")
+    def _effects_cover_options(self):
+        if set(self.effects) != set(self.options):
+            raise ValueError("effects must cover the options exactly")
+        return self
 
 
 class ProfilePack(BaseModel):

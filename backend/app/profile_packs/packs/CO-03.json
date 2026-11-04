@@ -34,6 +34,11 @@
       "PEP_REJECTED",
       "ESCALATE_SENIOR_COMPLIANCE"
     ],
-    "reviewer_role": "COMPLIANCE_APPROVER"
+    "reviewer_role": "COMPLIANCE_APPROVER",
+    "effects": {
+      "PEP_EDD_CLEARED": "PROCEED",
+      "PEP_REJECTED": "STOP",
+      "ESCALATE_SENIOR_COMPLIANCE": "ESCALATE"
+    }
   }
 }

@@ -34,6 +34,11 @@
       "BLOCK_PER_EXIT_MEMO",
       "ESCALATE_CREDIT_OFFICER"
     ],
-    "reviewer_role": "COMPLIANCE_APPROVER"
+    "reviewer_role": "COMPLIANCE_APPROVER",
+    "effects": {
+      "INTERNAL_WATCHLIST_WAIVER_APPROVED": "PROCEED",
+      "BLOCK_PER_EXIT_MEMO": "STOP",
+      "ESCALATE_CREDIT_OFFICER": "ESCALATE"
+    }
   }
 }

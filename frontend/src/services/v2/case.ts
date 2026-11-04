@@ -58,6 +58,8 @@ export interface StatusUnknownDto {
 export interface DecisionRequestDto {
   title: string; target_label: string; decided_by: string; evidence_complete: boolean;
   options: Array<{ code: string; label: string }>; missing: string[]; conflicting: string[]; note: string;
+  can_decide?: boolean; cannot_decide_reason?: string | null; endpoint?: string | null;
+  recorded?: { option?: string; option_label?: string; state?: string; state_label?: string; by_name?: string; at?: string; comment?: string; final?: boolean } | null;
 }
 
 export interface CasePage {

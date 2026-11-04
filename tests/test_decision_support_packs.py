@@ -64,3 +64,42 @@ def test_catch_all_still_fails_closed():
     from test_profile_goldens import CASES, snapshot
     s = snapshot(CASES["nofixture/ST-08"])
     assert s["stp_eligible"] is False and s["hitl_required"] is True
+
+
+# ---- what each option does to the case (derived from the option names; to be validated by SMEs) ------------
+EFFECTS = {
+    "CO-01": {"FALSE_POSITIVE_HOMONYM_CLEARED": "PROCEED", "TRUE_MATCH_CONFIRMED_BLOCK": "STOP", "ESCALATE_SENIOR_COMPLIANCE": "ESCALATE"},
+    "CO-02": {"EDD_VERIFIED_COMMERCIAL_TRADE": "PROCEED", "REQUEST_MORE_INFORMATION": "HOLD", "ESCALATE_FOR_SAR_REVIEW": "ESCALATE"},
+    "CO-03": {"PEP_EDD_CLEARED": "PROCEED", "PEP_REJECTED": "STOP", "ESCALATE_SENIOR_COMPLIANCE": "ESCALATE"},
+    "CO-05": {"ADVERSE_MEDIA_CLEARED": "PROCEED", "RESTRICT_COUNTERPARTY": "STOP", "REFER_TO_SIU": "ESCALATE"},
+    "CO-06": {"FATF_ECDD_VERIFIED_TRANSACTION": "PROCEED", "RETURN_PAYMENT": "STOP", "FILE_REGULATORY_REPORT": "ESCALATE"},
+    "CO-08": {"INTERNAL_WATCHLIST_WAIVER_APPROVED": "PROCEED", "BLOCK_PER_EXIT_MEMO": "STOP", "ESCALATE_CREDIT_OFFICER": "ESCALATE"},
+    "ST-04": {"POST_FEE_ADJUSTMENT_WITHIN_TOLERANCE": "PROCEED", "RAISE_INVESTIGATION_WITH_CORRESPONDENT": "HOLD", "ESCALATE_TREASURY_OPERATIONS": "ESCALATE"},
+    "ST-05": {"CONTINGENCY_CLEARING_WINDOW_DISPATCH": "PROCEED", "RECALL_AND_RETURN": "STOP", "ESCALATE_TO_SETTLEMENT_OPERATIONS": "ESCALATE"},
+    "ST-07": {"ALLOCATE_TO_DEBTOR_RECEIVABLES_LEDGER": "PROCEED", "HOLD_IN_SUSPENSE": "HOLD", "RETURN_TO_ORDERING_BANK": "STOP"},
+}
+
+
+@pytest.mark.parametrize("code", CODES)
+def test_every_option_declares_its_effect(code):
+    d = registry.get_pack(code).decision
+    assert {k: v.value for k, v in d.effects.items()} == EFFECTS[code]
+    assert set(d.effects) == set(d.options)
+
+
+@pytest.mark.parametrize("code", CODES)
+def test_a_decision_can_both_proceed_and_not_proceed(code):
+    vals = {v.value for v in registry.get_pack(code).decision.effects.values()}
+    assert "PROCEED" in vals and len(vals) >= 2
+
+
+def test_effects_must_cover_the_options_exactly():
+    from pydantic import ValidationError
+    from app.profile_packs.schema import DecisionSpec
+    with pytest.raises(ValidationError):
+        DecisionSpec(target_field="x.y", options=["A", "B"], reviewer_role="R", effects={"A": "PROCEED"})
+    with pytest.raises(ValidationError):
+        DecisionSpec(target_field="x.y", options=["A", "B"], reviewer_role="R", effects={"A": "PROCEED", "B": "MAYBE"})
+    with pytest.raises(ValidationError):
+        DecisionSpec(target_field="x.y", options=["A", "B"], reviewer_role="R", effects={"A": "PROCEED", "C": "STOP"})
+    DecisionSpec(target_field="x.y", options=["A", "B"], reviewer_role="R", effects={"A": "PROCEED", "B": "STOP"})

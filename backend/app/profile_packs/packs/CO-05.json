@@ -34,6 +34,11 @@
       "RESTRICT_COUNTERPARTY",
       "REFER_TO_SIU"
     ],
-    "reviewer_role": "COMPLIANCE_APPROVER"
+    "reviewer_role": "COMPLIANCE_APPROVER",
+    "effects": {
+      "ADVERSE_MEDIA_CLEARED": "PROCEED",
+      "RESTRICT_COUNTERPARTY": "STOP",
+      "REFER_TO_SIU": "ESCALATE"
+    }
   }
 }

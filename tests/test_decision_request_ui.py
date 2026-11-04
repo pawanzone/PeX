@@ -85,3 +85,56 @@ def test_case_page_carries_the_block():
     ext_store.put(cid, base, persist=False)
     assert pages.case_page(cid, get_persona("CMP-4420"))["decision_request"] is None
 
+
+
+# ---- recording: the block tells the viewer whether they can decide, and shows what was recorded ----------
+def _stored(code="CO-02", complete=True):
+    import test_decision_record as tdr
+    cid, pack = tdr._case(code, complete)
+    return cid, pack, tdr
+
+
+def test_block_tells_the_right_role_it_can_decide():
+    from app.services.v2 import pages
+    from app.services.data_loader import repo
+    cid, pack, tdr = _stored("CO-02")
+    ext = pages.lg.ext_of(repo.cases[cid])
+    ok = pages.decision_request_block(ext, tdr.CMP1, repo.cases[cid])
+    assert ok["can_decide"] is True and ok["cannot_decide_reason"] is None and ok["endpoint"] == f"/api/v2/cases/{cid}/decision"
+    no = pages.decision_request_block(ext, tdr.RSK, repo.cases[cid])
+    assert no["can_decide"] is False and "Compliance Officer" in no["cannot_decide_reason"]
+
+
+def test_block_without_complete_evidence_cannot_be_decided():
+    from app.services.v2 import pages
+    from app.services.data_loader import repo
+    cid, pack, tdr = _stored("CO-02", complete=False)
+    blk = pages.decision_request_block(pages.lg.ext_of(repo.cases[cid]), tdr.CMP1, repo.cases[cid])
+    assert blk["can_decide"] is False and "evidence" in blk["cannot_decide_reason"].lower()
+
+
+def test_block_shows_the_recorded_decision():
+    from app.services.v2 import pages
+    from app.services.data_loader import repo
+    cid, pack, tdr = _stored("ST-04")
+    tdr._decide(cid, tdr.OPS1, tdr._opt(pack, "PROCEED"), "Within tolerance.")
+    blk = pages.decision_request_block(pages.lg.ext_of(repo.cases[cid]), tdr.OPS1, repo.cases[cid])
+    assert blk["title"] == "Decision recorded" and blk["can_decide"] is False
+    r = blk["recorded"]
+    assert r["option_label"] == "Post fee adjustment within tolerance" and r["by_name"] == tdr.OPS1.name and r["comment"] == "Within tolerance."
+    assert r["state_label"] == "Cleared for approval"
+
+
+def test_hold_still_allows_a_new_decision():
+    from app.services.v2 import pages
+    from app.services.data_loader import repo
+    cid, pack, tdr = _stored("ST-07")
+    tdr._decide(cid, tdr.OPS1, tdr._opt(pack, "HOLD"), "Waiting for the bank.")
+    blk = pages.decision_request_block(pages.lg.ext_of(repo.cases[cid]), tdr.OPS1, repo.cases[cid])
+    assert blk["can_decide"] is True and blk["recorded"]["state_label"] == "On hold" and blk["title"] == "Decision required"
+
+
+def test_decision_endpoint_is_registered():
+    from app.api.endpoints import v2
+    paths = {r.path for r in v2.router.routes}
+    assert any(p.endswith("/cases/{case_id}/decision") for p in paths)

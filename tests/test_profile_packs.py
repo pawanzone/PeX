@@ -42,7 +42,7 @@ def test_decision_support_pack_without_resolver_is_valid():
                            stp="NEVER", resolver=None, checks=["screening"],
                            authority_domain="LEGAL_PROHIBITION", action="INVESTIGATION_HOLD",
                            approval={"when_not_stp": "COMPLIANCE_THEN_RISK"},
-                           decision={"target_field": "x.y", "options": ["A", "B"], "reviewer_role": "COMPLIANCE_APPROVER"}))
+                           decision={"target_field": "x.y", "options": ["A", "B"], "reviewer_role": "COMPLIANCE_APPROVER", "effects": {"A": "PROCEED", "B": "STOP"}}))
     assert p.resolver is None
 
 

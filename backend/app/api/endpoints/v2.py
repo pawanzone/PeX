@@ -110,6 +110,11 @@ class NoteBody(BaseModel):
     note: Optional[str] = None
 
 
+class DecisionBody(BaseModel):
+    option: Optional[str] = None
+    comment: Optional[str] = None
+
+
 class ComplianceBody(BaseModel):
     decision: Optional[str] = None
     reason_code: Optional[str] = None
@@ -433,6 +438,11 @@ def request_bank_status(case_id: str, body: NoteBody, user=Depends(writer_user))
 @router.post("/cases/{case_id}/compliance/decision")
 def compliance_decision(case_id: str, body: ComplianceBody, user=Depends(writer_user), idem: Optional[str] = Header(None, alias="Idempotency-Key")):
     return _idem(idem, user, lambda: ac.compliance_decision(case_id, user, body.decision, body.reason_code, body.comment))
+
+
+@router.post("/cases/{case_id}/decision")
+def record_decision(case_id: str, body: DecisionBody, user=Depends(writer_user), idem: Optional[str] = Header(None, alias="Idempotency-Key")):
+    return _idem(idem, user, lambda: ac.record_decision(case_id, user, body.option, body.comment))
 
 
 @router.post("/cases/{case_id}/confidence-review")
