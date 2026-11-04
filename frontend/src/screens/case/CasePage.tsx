@@ -9,7 +9,7 @@ import { useV2 } from "../../services/v2";
 import { getCasePage, postCaseAction, actionPath } from "../../services/v2/case";
 import type { ActionResult, CaseAction, CasePage as CasePageDto } from "../../services/v2/case";
 import { BannerFromApi, chipTone, errText, journeyVariant, mapJourney } from "./parts";
-import { BankBlock, ChangeBlock, ConflictBlock, DecisionBrief, NeededBlock, ReassessBlock, RequestInfoForm, StatusUnknownBlock } from "./blocks";
+import { BankBlock, ChangeBlock, ConflictBlock, DecisionBrief, DecisionRequestBlock, NeededBlock, ReassessBlock, RequestInfoForm, StatusUnknownBlock } from "./blocks";
 import type { SendHandle } from "./blocks";
 import { DecisionPanel, EscalateModal, SubmitModal } from "./forms";
 import { ConfidenceBlock } from "./confidence";
@@ -116,6 +116,7 @@ export const CasePage: React.FC<{ id: string; context?: "worklist" | "approvals"
           <ExpediteLadder caseId={id} onSent={() => { r.reload(); onChanged?.(); }} />
 
           {(v === "DECISION" || v === "GENERIC") && page.decision_brief && <DecisionBrief brief={page.decision_brief} />}
+          {page.decision_request && <DecisionRequestBlock d={page.decision_request} />}
           {v === "DECISION" && <>{showChange && <ChangeBlock page={page} mode="decision" />}</>}
           {v === "APPROVAL" && <>
             {showChange && <ChangeBlock page={page} mode="approval" />}

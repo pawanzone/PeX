@@ -55,6 +55,11 @@ export interface StatusUnknownDto {
   last_check?: { at?: string; result?: string } | null; check_overdue_minutes?: number;
 }
 
+export interface DecisionRequestDto {
+  title: string; target_label: string; decided_by: string; evidence_complete: boolean;
+  options: Array<{ code: string; label: string }>; missing: string[]; conflicting: string[]; note: string;
+}
+
 export interface CasePage {
   case_id: string; variant: Variant; viewer_mode?: string; now?: string;
   header?: {
@@ -82,6 +87,7 @@ export interface CasePage {
     review: { required: boolean; state: string; reviewed_by?: Person | null; reviewed_at?: string | null; comment?: string | null; can_review: boolean; endpoint: string };
   } | null;
   recommendation?: { summary?: string; reasoning?: string[]; confidence_label?: string; source?: string } | null;
+  decision_request?: DecisionRequestDto | null;
   journey?: JourneyDto | null;
   actions?: CaseAction[];
   blocked_actions?: Array<{ label: string; reason: string }>;

@@ -3,7 +3,7 @@ import { Info, Search, Phone, FileText, Users, Lock, Hourglass, CheckCircle2, XC
 import { Banner, StatusPill, KeyValueList, Avatar, cn } from "../../components/v2";
 import { Section, ValueBoxes, EvidenceGrid, fmtTime, fmtDateTime, HighlightedValue } from "./parts";
 import type { Run } from "./forms";
-import type { CasePage, ConflictDto, NeededDto, RequestInfoDto, StatusUnknownDto } from "../../services/v2/case";
+import type { CasePage, ConflictDto, DecisionRequestDto, NeededDto, RequestInfoDto, StatusUnknownDto } from "../../services/v2/case";
 import { openAttachment } from "../../services/v2/case";
 import { requestInformation, postCaseAction, disambiguateCase } from "../../services/v2/case";
 
@@ -61,6 +61,37 @@ export const HandoverNote: React.FC<{ h: NonNullable<CasePage["handover"]>; case
           : <span className="mt-2 inline-flex items-center gap-1.5 text-sm px-2.5 py-1 rounded-lg border border-surface-line bg-slate-50"><Paperclip className="w-3.5 h-3.5" aria-hidden />{h.attachment.name}</span>)}
       </div>
       <div className="text-xs text-pex-muted text-right">{fmtTime(h.at)}<br />Today</div>
+    </div>
+  </Section>
+);
+
+// Decision-support cases: what a person must decide, the options, and who decides. Read-only: PeX never picks an option.
+export const DecisionRequestBlock: React.FC<{ d: DecisionRequestDto }> = ({ d }) => (
+  <Section title={d.title} right={<StatusPill tone={d.evidence_complete ? "green" : "amber"}>{d.evidence_complete ? "Evidence complete" : "Evidence incomplete"}</StatusPill>}>
+    <div className="grid gap-3 text-sm" data-testid="decision-request">
+      <dl className="grid gap-4 sm:grid-cols-2">
+        <div><dt className="text-xs text-pex-muted">What is being decided</dt><dd className="font-medium text-pex-ink mt-1">{d.target_label}</dd></div>
+        <div><dt className="text-xs text-pex-muted">Decided by</dt><dd className="font-medium text-pex-ink mt-1">{d.decided_by}</dd></div>
+      </dl>
+      {d.options.length > 0 && (
+        <div>
+          <p className="text-xs text-pex-muted mb-1.5">Options for the decision-maker</p>
+          <ul className="grid gap-1.5">{d.options.map((o) => <li key={o.code} className="px-3 py-2 rounded-lg border border-surface-line bg-white">{o.label}</li>)}</ul>
+        </div>
+      )}
+      {d.missing.length > 0 && (
+        <div>
+          <p className="text-xs text-pex-muted mb-1.5">Still needed</p>
+          <ul className="list-disc pl-5">{d.missing.map((m) => <li key={m}>{m}</li>)}</ul>
+        </div>
+      )}
+      {d.conflicting.length > 0 && (
+        <div>
+          <p className="text-xs text-pex-muted mb-1.5">Conflicting evidence</p>
+          <ul className="list-disc pl-5">{d.conflicting.map((c) => <li key={c}>{c}</li>)}</ul>
+        </div>
+      )}
+      <p className="text-xs text-pex-muted">{d.note}</p>
     </div>
   </Section>
 );

@@ -162,6 +162,25 @@ def conflict_from_e2e(output) -> Optional[Dict[str, Any]]:
     }
 
 
+def decision_request_from_e2e(output) -> Optional[Dict[str, Any]]:
+    """What a person must decide (decision-support profiles only). PeX lists the options; it never picks one."""
+    rec = output.resolution_recommendation if isinstance(output.resolution_recommendation, dict) else {}
+    action = rec.get("action")
+    if action not in ("DECISION_REQUIRED", "INVESTIGATION_HOLD") or not rec.get("target"):
+        return None
+    reviewer = rec.get("reviewer_role")
+    if not reviewer:
+        try:
+            from app.profile_packs import registry
+            pk = registry.get_pack(str(output.detected_profile_id))
+            reviewer = pk.decision.reviewer_role if pk and pk.decision else None
+        except Exception:
+            reviewer = None
+    return {"action": action, "target": rec.get("target"), "options": list(rec.get("options") or []),
+            "reviewer_role": reviewer, "evidence_complete": bool(rec.get("evidence_complete")),
+            "missing": [str(m) for m in (rec.get("missing") or [])], "conflicting": [str(c) for c in (rec.get("conflicting") or [])]}
+
+
 def ext_from_e2e(case_dict: Dict[str, Any], e2e_input, output, batch_id: Optional[str] = None,
                  record_index: Optional[int] = None) -> Dict[str, Any]:
     """Build and store the v2 extension for a case created by the E2E pipeline (batch or file watcher)."""
@@ -192,6 +211,7 @@ def ext_from_e2e(case_dict: Dict[str, Any], e2e_input, output, batch_id: Optiona
         "stp": {"eligible": bool(output.stp_eligible), "reason": output.stp_decision_reason,
                 "predicates": {k: bool(getattr(pb, k)) for k in ("e_suff", "r_det", "r_uniq", "v_det", "v_auth", "p_bank", "c_comp", "x_pre")}},
         "recommended_action": (output.resolution_recommendation or {}).get("action") if isinstance(output.resolution_recommendation, dict) else None,
+        "decision_request": decision_request_from_e2e(output),
         "resolution_basis": output.resolution_basis,
         "compliance_status": output.compliance_status,
         "approval_requirement": output.approval_requirement,

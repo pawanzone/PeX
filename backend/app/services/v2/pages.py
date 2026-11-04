@@ -447,6 +447,7 @@ def case_page(case_id: str, user) -> Dict[str, Any]:
         "compliance": _compliance(case, ext) if variant == "COMPLIANCE_HOLD" else None,
         "request_information": _request_info(case, ext) if variant in ("MISSING_INFO", "CONFLICT", "DECISION") else None,
         "recommendation": _recommendation(case, ext),
+        "decision_request": decision_request_block(ext),
         "confidence": _confidence(case, ext, variant, user),
         "pii": pii.page_block(case, ext, user),
         "journey": build_journey(case, ext, variant),
@@ -484,6 +485,32 @@ def _confidence(case, ext, variant, user):
                       "endpoint": f"/api/v2/cases/{case['case_id']}/confidence-review"}
     conf["label"] = "High" if conf["confidence_pct"] >= 95 else ("Sufficient" if conf["confidence_pct"] >= conf["threshold"] else "Below threshold")
     return conf
+
+
+def _words(code: str) -> str:
+    t = str(code or "").replace(".", " ").replace("_", " ").strip().lower()
+    return t[:1].upper() + t[1:]
+
+
+def decision_request_block(ext: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """Read-only panel for decision-support cases: what is being decided, the options, who decides. PeX does not choose."""
+    d = ext.get("decision_request")
+    if not d:
+        return None
+    from app.services.v2.core import ROLE_LABELS
+    who = ROLE_LABELS.get(str(d.get("reviewer_role")), _words(d.get("reviewer_role")) or "A reviewer")
+    complete = bool(d.get("evidence_complete"))
+    return {
+        "title": "Decision required" if complete else "Waiting for evidence",
+        "target_label": _words(d.get("target")),
+        "decided_by": who,
+        "evidence_complete": complete,
+        "options": [{"code": o, "label": _words(o)} for o in (d.get("options") or [])],
+        "missing": [_words(m) for m in (d.get("missing") or [])],
+        "conflicting": list(d.get("conflicting") or []),
+        "note": (f"PeX does not choose. {who} decides, and the decision is never released straight through." if complete
+                 else f"Evidence is incomplete. Gather it before {who} decides; PeX does not choose."),
+    }
 
 
 def _recommendation(case, ext):
