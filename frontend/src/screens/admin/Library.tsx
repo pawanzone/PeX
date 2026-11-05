@@ -82,11 +82,10 @@ const Profiles: React.FC = () => {
   const s = d.summary;
   return (
     <div className="grid grid-cols-1 gap-4 min-w-0">
-      <div className="grid gap-2 grid-cols-2 md:grid-cols-4">
+      <div className="grid gap-2 grid-cols-1 sm:grid-cols-3">
         <Stat label="Profiles" value={s.profiles} hint={Object.entries(s.by_family).map(([k, v]) => `${k} ${v}`).join(" · ")} />
-        <Stat label="Repair" value={s.by_outcome.REPAIR ?? 0} hint="PeX proposes, a resolver derives" />
-        <Stat label="Decision support and investigation" value={(s.by_outcome.DECISION_SUPPORT ?? 0) + (s.by_outcome.INVESTIGATION ?? 0)} hint="a person decides" />
-        <Stat label="Never straight through" value={s.by_stp.NEVER ?? 0} hint="no setting can loosen this" />
+        <Stat label="Repair" value={s.by_outcome.REPAIR ?? 0} hint={`of ${s.profiles}. May go straight through: ${s.by_stp.ALLOWED ?? 0} always allowed, ${s.by_stp.POLICY_GATED ?? 0} only if the bank opts in`} />
+        <Stat label="Decision support and investigation" value={(s.by_outcome.DECISION_SUPPORT ?? 0) + (s.by_outcome.INVESTIGATION ?? 0)} hint={`of ${s.profiles}. Never straight through; a person always decides`} />
       </div>
       <Card title="Exception profiles" right={<div><label className="sr-only" htmlFor="lib-q">Filter profiles</label><input id="lib-q" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Filter, for example IBAN, CO-01, resolver" className="py-1.5 px-2.5 text-sm rounded-lg border border-surface-line w-72 max-w-full" /></div>}>
         <div className="grid gap-2 mb-3">
