@@ -158,3 +158,65 @@ def test_l10_a_changed_mode_shows_in_the_library(client):
         assert s["release_mode"]["value"] == "REVIEW_EACH" and s["release_mode"]["default"] == "APPROVE_ALL"
     finally:
         policy.reset_all()
+
+
+# ---- control catalog as a tree, and the release-mode control -------------------------------------------------------
+RELATIONS = {"part_of", "clarifies", "configures"}
+
+
+def test_l11_parent_links_are_well_formed():
+    ids = {c["id"] for c in DEFS["controls"]}
+    preds = {p["code"] for p in DEFS["stp_predicates"]}
+    for c in DEFS["controls"]:
+        if "parent" not in c:
+            continue
+        assert c["parent"] in ids and c["parent"] != c["id"], c["id"]
+        assert c["relation"] in RELATIONS and c.get("relation_note"), c["id"]
+        if c["relation"] == "part_of":
+            assert c["predicate"] in preds, c["id"]
+    for c in DEFS["controls"]:                                   # no cycles, depth at most 3
+        seen, cur = [c["id"]], c
+        while "parent" in cur:
+            cur = next(x for x in DEFS["controls"] if x["id"] == cur["parent"])
+            assert cur["id"] not in seen, f"cycle at {c['id']}"
+            seen.append(cur["id"])
+        assert len(seen) <= 3, seen
+
+
+def test_l12_the_overlaps_are_shown_as_children_of_ctl_01():
+    c = {x["id"]: x for x in DEFS["controls"]}
+    assert c["CTL-04"]["parent"] == "CTL-01" and c["CTL-04"]["predicate"] == "E_suff" and c["CTL-04"]["relation"] == "part_of"
+    assert c["CTL-05"]["parent"] == "CTL-01" and c["CTL-05"]["predicate"] == "E_suff"
+    assert c["CTL-10"]["parent"] == "CTL-01" and c["CTL-10"]["predicate"] == "P_bank"
+    assert c["CTL-02"]["parent"] == "CTL-01" and c["CTL-02"]["relation"] == "clarifies"
+    assert c["CTL-06"]["parent"] == "CTL-05" and c["CTL-06"]["relation"] == "configures"
+    assert "parent" not in c["CTL-01"] and "parent" not in c["CTL-08"] and "parent" not in c["CTL-15"]
+    assert "person decides" in c["CTL-04"]["relation_note"].lower() and "person decides" in c["CTL-10"]["relation_note"].lower()
+
+
+def test_l13_api_gives_children_and_a_headline_count(client):
+    d = get(client, "controls").json()
+    c = {x["id"]: x for x in d["controls"]}
+    assert set(c["CTL-01"]["children"]) == {"CTL-02", "CTL-04", "CTL-05", "CTL-10"} and c["CTL-05"]["children"] == ["CTL-06"]
+    assert c["CTL-04"]["parent"] == "CTL-01" and c["CTL-04"]["relation"] == "part_of" and c["CTL-04"]["predicate"] == "E_suff"
+    s = d["control_summary"]
+    nested = sum(1 for x in c.values() if x.get("parent"))
+    assert s["total"] == len(c) and s["nested"] == nested and s["headline"] == len(c) - nested
+    assert all(isinstance(x["children"], list) for x in c.values())
+    assert all(x["parent"] in c for x in c.values() if x.get("parent"))
+
+
+def test_l14_release_mode_control_exists_and_matches_the_code(client):
+    from app.services.v2 import policy
+    c = {x["id"]: x for x in DEFS["controls"]}
+    r = c["CTL-17"]
+    assert r["name"] == "Release mode" and r["kind"] == "Release" and r["configurable"] == "bank-configurable" and r["applies_to"] == "repair"
+    assert (APP.parent / r["enforced_in"]).exists()
+    assert "release_mode" in policy.BY_KEY and {o["value"] for o in policy.BY_KEY["release_mode"]["options"]} == {"AUTO_RELEASE", "APPROVE_ALL", "REVIEW_EACH"}
+    for word in ("auto-release", "approve all", "review each"):
+        assert word in r["meaning"].lower()
+    assert "loosen" in r["meaning"].lower()
+    api = {x["id"]: x for x in get(client, "controls").json()["controls"]}
+    assert set(api["CTL-17"]["profiles"]) == {k for k, p in PACKS.items() if p.outcome.value == "REPAIR"}
+    assert "CTL-17" in {x["id"] for x in get(client, "library/DQ-01").json()["controls"]}
+    assert "CTL-17" not in {x["id"] for x in get(client, "library/CO-01").json()["controls"]}

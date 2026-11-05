@@ -110,7 +110,11 @@ def controls() -> Dict[str, Any]:
         if c["id"] == "CTL-09":
             row["breakdown"] = {k: sum(1 for p in packs.values() if p.approval.when_not_stp == k) for k in d["approval_paths"]}
         ctl.append(row)
+    for row in ctl:
+        row["children"] = [x["id"] for x in ctl if x.get("parent") == row["id"]]
+    nested = sum(1 for x in ctl if x.get("parent"))
+    control_summary = {"total": len(ctl), "headline": len(ctl) - nested, "nested": nested}
     can_stp = sorted(code for code, p in packs.items() if p.stp.value != "NEVER")
     preds = [{**x, "profiles": can_stp, "profile_count": len(can_stp)} for x in d["stp_predicates"]]
-    return {"stp_predicates": preds, "controls": ctl, "bank_settings": bank_settings(), "stp_rules": d["stp_rules"], "note": d["note"],
+    return {"stp_predicates": preds, "controls": ctl, "control_summary": control_summary, "bank_settings": bank_settings(), "stp_rules": d["stp_rules"], "note": d["note"],
             "formula": "STP eligible = E_suff AND R_det AND R_uniq AND V_det AND V_auth AND P_bank AND C_comp AND X_pre"}

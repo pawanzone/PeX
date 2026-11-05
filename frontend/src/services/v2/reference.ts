@@ -33,7 +33,8 @@ export interface LibDetail extends Omit<LibRow, "evidence_mandatory" | "evidence
 export interface Controls {
   formula: string; note: string; stp_rules: Record<string, string>;
   stp_predicates: Array<{ code: string; name: string; meaning: string; fed_by: string; enforced_in: string; configurable: string; bank_settings: string[]; profiles: string[]; profile_count: number }>;
-  controls: Array<{ id: string; name: string; kind: string; meaning: string; enforced_in: string; configurable: string; applies_to: string; profiles: string[]; profile_count: number; breakdown?: Record<string, number> }>;
+  controls: Array<{ id: string; name: string; kind: string; meaning: string; enforced_in: string; configurable: string; applies_to: string; profiles: string[]; profile_count: number; parent?: string | null; relation?: "part_of" | "clarifies" | "configures"; predicate?: string; relation_note?: string; children: string[]; breakdown?: Record<string, number> }>;
+  control_summary: { total: number; headline: number; nested: number };
   bank_settings: Array<{ key: string; label: string; default: number | string | boolean | string[]; value: number | string | boolean | string[]; source: string; configurable: boolean; note: string }>;
 }
 export const getLibrary = () => v2Get<Library>("/reference/library");

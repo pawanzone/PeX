@@ -139,17 +139,23 @@ const Controls: React.FC = () => {
   const d = r.data;
   if (!d) return <Wait r={r} />;
   const kinds = Array.from(new Set(d.controls.map((c) => c.kind)));
-  const rows = d.controls.filter((c) => !kind || c.kind === kind);
+  const byId = Object.fromEntries(d.controls.map((c) => [c.id, c]));
+  const depth = (c: { parent?: string | null }): number => (c.parent && byId[c.parent] ? 1 + depth(byId[c.parent]) : 0);
+  const tree: typeof d.controls = [];
+  const walk = (c: (typeof d.controls)[number]) => { tree.push(c); c.children.forEach((id) => byId[id] && walk(byId[id])); };
+  d.controls.filter((c) => !c.parent).forEach(walk);
+  const rows = kind ? d.controls.filter((c) => c.kind === kind) : tree;
+  const REL: Record<string, string> = { part_of: "Part of", clarifies: "Clarifies", configures: "Configures" };
   return (
     <div className="grid grid-cols-1 gap-4 min-w-0">
       <Banner tone="grey" title="Controls">{d.note}</Banner>
-      <Card title="Controls" right={<span className="text-xs text-pex-muted">{rows.length} of {d.controls.length}</span>}>
+      <Card title="Controls" right={<span className="text-xs text-pex-muted">{d.control_summary.headline} headline controls · {d.control_summary.nested} nested under another{kind ? ` · showing ${rows.length}` : ""}</span>}>
         <div className="flex flex-wrap gap-1.5 mb-3" role="group" aria-label="Filter by kind"><Chip on={!kind} onClick={() => setKind("")}>All</Chip>{kinds.map((k) => <Chip key={k} on={kind === k} onClick={() => setKind(kind === k ? "" : k)}>{k}</Chip>)}</div>
         <div className="overflow-x-auto"><table className="w-full text-sm"><caption className="sr-only">Controls, what enforces them and which profiles they cover</caption>
           <thead className="text-xs text-pex-muted text-left"><tr><th className={th}>ID</th><th className={th}>Control</th><th className={th}>Kind</th><th className="pr-3 font-medium">What it does</th><th className={th}>Can a bank change it?</th><th className="font-medium">Covers</th></tr></thead>
           <tbody>{rows.map((c) => (
             <tr key={c.id} className="border-t border-surface-line align-top">
-              <td className="py-2 pr-3 pex-mono text-pex-primary">{c.id}</td><td className="pr-3 font-medium">{c.name}<div className="pex-mono text-xs text-pex-muted font-normal">{c.enforced_in}</div></td><td className="pr-3 text-xs">{c.kind}</td>
+              <td className="py-2 pr-3 pex-mono text-pex-primary whitespace-nowrap" style={{ paddingLeft: kind ? undefined : depth(c) * 18 }}>{!kind && c.parent ? "↳ " : ""}{c.id}</td><td className="pr-3 font-medium">{c.name}<div className="pex-mono text-xs text-pex-muted font-normal">{c.enforced_in}</div>{c.parent && <div className="text-xs font-normal text-pex-primary mt-0.5">{REL[c.relation ?? "part_of"]} {c.parent}{c.predicate ? ` · rule ${c.predicate}` : ""}<span className="block text-pex-muted">{c.relation_note}</span></div>}</td><td className="pr-3 text-xs">{c.kind}</td>
               <td className="pr-3">{c.meaning}</td><td className="pr-3"><StatusPill tone={c.configurable === "fixed" ? "grey" : "blue"} dot={false}>{c.configurable === "fixed" ? "No, fixed" : "Yes"}</StatusPill></td>
               <td className="text-xs whitespace-nowrap">{c.profile_count} profiles{c.breakdown && <div className="text-pex-muted">{Object.entries(c.breakdown).map(([k, v]) => `${pretty(k)} ${v}`).join(" · ")}</div>}</td></tr>))}</tbody></table></div>
       </Card>
