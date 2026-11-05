@@ -46,7 +46,12 @@ const Stat: React.FC<{ label: string; value: React.ReactNode; hint?: string }> =
 );
 
 /** Semantic layer: generated from the real models and profile packs (meaning is curated; coverage is computed and tested). */
-const SemanticLayer: React.FC<{ d: DataModel }> = ({ d }) => {
+const SemanticLayer: React.FC<{ d: DataModel }> = ({ d: raw }) => {
+  // Tolerate an older backend that only returns the first-generation semantic layer (restart the backend to get the full one).
+  const d: DataModel = { ...raw, evidence_catalogue: raw.evidence_catalogue ?? [], element_catalogue: raw.element_catalogue ?? [],
+    semantic_layer: (raw.semantic_layer ?? []).map((m) => ({ ...m, mt: m.mt ?? "", validation: m.validation ?? "", data_class: m.data_class ?? "C5", pex_internal: !!m.pex_internal })),
+    semantic_summary: raw.semantic_summary ?? { canonical_fields_total: raw.semantic_layer?.length ?? 0, canonical_fields_mapped: raw.semantic_layer?.length ?? 0, iso_mapped_fields: raw.semantic_layer?.length ?? 0, evidence_types: 0, profiles: 0, element_gaps: 0, iso_messages: [], categories: {}, data_classes: {} } };
+  const stale = !raw.semantic_summary;
   const [tab, setTab] = useState<"fields" | "evidence" | "elements">("fields");
   const [q, setQ] = useState("");
   const [cat, setCat] = useState("");
@@ -59,6 +64,7 @@ const SemanticLayer: React.FC<{ d: DataModel }> = ({ d }) => {
   const th = "py-1.5 pr-3 font-medium whitespace-nowrap";
   return (
     <Card title="Semantic layer" right={<div><label className="sr-only" htmlFor="sl-q">Filter the semantic layer</label><input id="sl-q" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Filter, for example IBAN, DQ-02, sanctions" className="py-1.5 px-2.5 text-sm rounded-lg border border-surface-line w-80" /></div>}>
+      {stale && <div className="mb-3"><Banner tone="amber" title="Backend needs a restart">This page is newer than the running backend, so only the basic field list is shown. Stop and start the backend to see the full semantic layer.</Banner></div>}
       <p className="text-sm text-pex-muted mb-3">What each piece of payment data means: its ISO 20022 element and SWIFT MT equivalent, how it is validated, how sensitive it is, and which of the {s.profiles} exception profiles rely on it. Generated from the live models and profile packs, so it cannot drift; a test fails if any evidence a profile asks for is missing here.</p>
       <div className="grid gap-2 grid-cols-2 md:grid-cols-4 xl:grid-cols-6 mb-4">
         <Stat label="Canonical fields mapped" value={`${s.canonical_fields_mapped} of ${s.canonical_fields_total}`} hint={`${s.iso_mapped_fields} to ISO elements`} />
