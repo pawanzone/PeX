@@ -2,7 +2,7 @@ import React, { useMemo, useState } from "react";
 import { Database, Layers, Link2, X } from "lucide-react";
 import { Banner, ErrorState, Loading, StatusPill, cn } from "../../components/v2";
 import { useV2 } from "../../services/v2/client";
-import { getDataModel, getOntology, getSop, getSops, type SopRow } from "../../services/v2/reference";
+import { getDataModel, getOntology, getSop, getSops, type DataModel, type SopRow } from "../../services/v2/reference";
 
 const Card: React.FC<{ title: string; right?: React.ReactNode; children: React.ReactNode; className?: string }> = ({ title, right, children, className }) => (
   <section className={cn("bg-surface-card rounded-card border border-surface-line shadow-card p-4", className)}>
@@ -40,6 +40,73 @@ export const OntologyView: React.FC = () => {
   );
 };
 
+const CLASS_TONE: Record<string, "red" | "amber" | "blue" | "grey"> = { C1: "red", C2: "amber", C3: "red", C4: "blue", C5: "grey" };
+const Stat: React.FC<{ label: string; value: React.ReactNode; hint?: string }> = ({ label, value, hint }) => (
+  <div className="rounded-xl bg-slate-50 px-3 py-2"><div className="text-xl font-semibold text-pex-ink">{value}</div><div className="text-xs text-pex-muted">{label}</div>{hint && <div className="text-[11px] text-pex-muted mt-0.5">{hint}</div>}</div>
+);
+
+/** Semantic layer: generated from the real models and profile packs (meaning is curated; coverage is computed and tested). */
+const SemanticLayer: React.FC<{ d: DataModel }> = ({ d }) => {
+  const [tab, setTab] = useState<"fields" | "evidence" | "elements">("fields");
+  const [q, setQ] = useState("");
+  const [cat, setCat] = useState("");
+  const s = d.semantic_summary;
+  const has = (...v: Array<string | undefined>) => !q || v.some((x) => (x ?? "").toLowerCase().includes(q.toLowerCase()));
+  const fields = d.semantic_layer.filter((m) => has(m.canonical, m.iso20022, m.mt, m.description));
+  const ev = d.evidence_catalogue.filter((e) => (!cat || e.category === cat) && has(e.type, e.label, e.source_system, e.proves, e.used_by.map((u) => u.code).join(" ")));
+  const el = d.element_catalogue.filter((e) => has(e.element, e.message, e.mt, e.why, e.used_by.join(" ")));
+  const tabs: Array<["fields" | "evidence" | "elements", string, number]> = [["fields", "Canonical fields", d.semantic_layer.length], ["evidence", "Evidence sources", d.evidence_catalogue.length], ["elements", "Message elements not yet in the model", d.element_catalogue.length]];
+  const th = "py-1.5 pr-3 font-medium whitespace-nowrap";
+  return (
+    <Card title="Semantic layer" right={<div><label className="sr-only" htmlFor="sl-q">Filter the semantic layer</label><input id="sl-q" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Filter, for example IBAN, DQ-02, sanctions" className="py-1.5 px-2.5 text-sm rounded-lg border border-surface-line w-80" /></div>}>
+      <p className="text-sm text-pex-muted mb-3">What each piece of payment data means: its ISO 20022 element and SWIFT MT equivalent, how it is validated, how sensitive it is, and which of the {s.profiles} exception profiles rely on it. Generated from the live models and profile packs, so it cannot drift; a test fails if any evidence a profile asks for is missing here.</p>
+      <div className="grid gap-2 grid-cols-2 md:grid-cols-4 xl:grid-cols-6 mb-4">
+        <Stat label="Canonical fields mapped" value={`${s.canonical_fields_mapped} of ${s.canonical_fields_total}`} hint={`${s.iso_mapped_fields} to ISO elements`} />
+        <Stat label="Evidence sources" value={s.evidence_types} hint={`${Object.keys(s.categories).length} categories`} />
+        <Stat label="Exception profiles" value={s.profiles} />
+        <Stat label="ISO message types" value={s.iso_messages.length} hint={s.iso_messages.join(", ")} />
+        <Stat label="Elements still to add" value={s.element_gaps} hint="used by profiles, not yet in the canonical model" />
+        <Stat label="Data classes" value={Object.keys(s.data_classes).length} hint="C1 personal to C5 operational" />
+      </div>
+      <div role="tablist" aria-label="Semantic layer views" className="flex flex-wrap gap-1 mb-3">
+        {tabs.map(([id, label, n]) => (
+          <button key={id} role="tab" aria-selected={tab === id} onClick={() => setTab(id)} className={cn("px-3 py-1.5 text-sm rounded-full", tab === id ? "bg-pex-primary-soft text-pex-primary font-medium" : "text-slate-600 hover:bg-slate-100")}>{label} <span className="text-xs text-pex-muted">{n}</span></button>))}
+      </div>
+      {tab === "fields" && (
+        <div className="overflow-x-auto"><table className="w-full text-sm"><caption className="sr-only">Canonical fields</caption>
+          <thead className="text-xs text-pex-muted text-left"><tr><th className={th}>Canonical field</th><th className={th}>ISO 20022 element</th><th className={th}>SWIFT MT</th><th className={th}>Validation</th><th className={th}>Class</th><th className="font-medium">Meaning</th></tr></thead>
+          <tbody>{fields.map((m) => <tr key={m.canonical} className="border-t border-surface-line align-top">
+            <td className="py-1.5 pr-3 pex-mono text-xs text-pex-primary">{m.canonical}</td><td className="pr-3 pex-mono text-xs">{m.iso20022}</td><td className="pr-3 text-xs">{m.mt}</td>
+            <td className="pr-3 text-xs">{m.validation}</td><td className="pr-3"><StatusPill tone={CLASS_TONE[m.data_class]} dot={false}>{m.data_class}</StatusPill></td><td className="text-pex-muted">{m.description}</td></tr>)}</tbody></table>
+          {!fields.length && <p className="text-sm text-pex-muted py-3">Nothing matches the filter.</p>}</div>)}
+      {tab === "evidence" && (
+        <>
+          <div className="flex flex-wrap gap-1 mb-3" role="group" aria-label="Evidence category">
+            <button aria-pressed={!cat} onClick={() => setCat("")} className={cn("px-2.5 py-1 text-xs rounded-full border", !cat ? "bg-pex-primary-soft border-pex-primary text-pex-primary" : "border-surface-line text-slate-600")}>All {d.evidence_catalogue.length}</button>
+            {Object.entries(s.categories).map(([c, n]) => <button key={c} aria-pressed={cat === c} onClick={() => setCat(cat === c ? "" : c)} className={cn("px-2.5 py-1 text-xs rounded-full border", cat === c ? "bg-pex-primary-soft border-pex-primary text-pex-primary" : "border-surface-line text-slate-600")}>{c} {n}</button>)}
+          </div>
+          <div className="overflow-x-auto"><table className="w-full text-sm"><caption className="sr-only">Evidence sources</caption>
+            <thead className="text-xs text-pex-muted text-left"><tr><th className={th}>Evidence</th><th className={th}>Category</th><th className={th}>Comes from</th><th className="pr-3 font-medium">What it proves</th><th className={th}>ISO</th><th className={th}>Class</th><th className="font-medium">Used by (trust tier)</th></tr></thead>
+            <tbody>{ev.map((e) => <tr key={e.type} className="border-t border-surface-line align-top">
+              <td className="py-1.5 pr-3 pex-mono text-xs text-pex-primary">{e.type}</td><td className="pr-3 text-xs whitespace-nowrap">{e.category}</td><td className="pr-3 text-xs">{e.source_system}</td><td className="pr-3">{e.proves}</td>
+              <td className="pr-3 text-xs whitespace-nowrap">{e.iso_messages}</td><td className="pr-3"><StatusPill tone={CLASS_TONE[e.data_class]} dot={false}>{e.data_class}</StatusPill></td>
+              <td className="text-xs">{e.used_by.map((u) => <span key={u.code} title={`${u.name} · trust tier ${u.tier} (1 = core record, 4 = advisory)`} className="inline-block mr-1.5 pex-mono">{u.code}<span className="text-pex-muted"> T{u.tier}</span></span>)}</td></tr>)}</tbody></table>
+            {!ev.length && <p className="text-sm text-pex-muted py-3">Nothing matches the filter.</p>}</div>
+        </>)}
+      {tab === "elements" && (
+        <>
+          <p className="text-sm text-pex-muted mb-2">Message elements that profiles read from the payload but the canonical model does not carry as fields yet. Listed openly so coverage gaps are visible, not hidden.</p>
+          <div className="overflow-x-auto"><table className="w-full text-sm"><caption className="sr-only">Message elements not yet in the canonical model</caption>
+            <thead className="text-xs text-pex-muted text-left"><tr><th className={th}>Element</th><th className={th}>Message</th><th className={th}>SWIFT MT</th><th className={th}>Class</th><th className="pr-3 font-medium">Why PeX needs it</th><th className="font-medium">Profiles</th></tr></thead>
+            <tbody>{el.map((e) => <tr key={e.element + e.message} className="border-t border-surface-line align-top">
+              <td className="py-1.5 pr-3 pex-mono text-xs text-pex-primary">{e.element}</td><td className="pr-3 text-xs whitespace-nowrap">{e.message}</td><td className="pr-3 text-xs">{e.mt}</td>
+              <td className="pr-3"><StatusPill tone={CLASS_TONE[e.data_class]} dot={false}>{e.data_class}</StatusPill></td><td className="pr-3">{e.why}</td><td className="text-xs pex-mono">{e.used_by.join(" ")}</td></tr>)}</tbody></table>
+            {!el.length && <p className="text-sm text-pex-muted py-3">Nothing matches the filter.</p>}</div>
+        </>)}
+    </Card>
+  );
+};
+
 /** Canonical database and semantic layer: read from the live models. */
 export const DataModelView: React.FC = () => {
   const r = useV2(getDataModel, []);
@@ -50,10 +117,7 @@ export const DataModelView: React.FC = () => {
   return (
     <div className="grid gap-4">
       <Banner tone="grey" title="Read only">{d.note}</Banner>
-      <Card title="Semantic layer: canonical field to ISO 20022 element" right={<StatusPill tone="grey">{d.semantic_layer.length} mappings</StatusPill>}>
-        <div className="overflow-x-auto"><table className="w-full text-sm"><thead className="text-xs text-pex-muted text-left"><tr><th className="py-1.5 pr-3 font-medium">Canonical field</th><th className="pr-3 font-medium">ISO 20022 element</th><th className="font-medium">Meaning</th></tr></thead>
-          <tbody>{d.semantic_layer.map((m) => <tr key={m.canonical} className="border-t border-surface-line align-top"><td className="py-1.5 pr-3 pex-mono text-xs text-pex-primary">{m.canonical}</td><td className="pr-3 pex-mono text-xs">{m.iso20022}</td><td className="text-pex-muted">{m.description}</td></tr>)}</tbody></table></div>
-      </Card>
+      <SemanticLayer d={d} />
       <Card title="Canonical models">
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {d.canonical.map((m) => (
