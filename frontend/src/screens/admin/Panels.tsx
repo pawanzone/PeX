@@ -59,7 +59,7 @@ export const PoliciesPanel: React.FC = () => {
         <p className="text-xs text-pex-muted mt-2">The limit is set with an environment setting on the server in this build. It cannot be edited here.</p>
       </Card>
       <Card title={`Rules (${rules.length})`}>
-        {!rules.length ? <div className="text-sm text-pex-muted">No rules returned. The rules studio remains under Reference screens.</div> : (
+        {!rules.length ? <div className="text-sm text-pex-muted">No rules returned. Rules are managed in Policy Studio.</div> : (
           <DataTable rows={rules.slice(0, 50)} rowKey={(x: any) => String(x.rule_id ?? x.id ?? x.name ?? JSON.stringify(x).slice(0, 40))} caption="Rules" columns={[
             { key: "i", header: "Rule", mono: true, render: (x: any) => x.rule_id ?? x.id ?? "—" },
             { key: "n", header: "Name", render: (x: any) => x.name ?? x.title ?? x.description ?? "—" },
