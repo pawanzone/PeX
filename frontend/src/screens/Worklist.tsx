@@ -42,6 +42,9 @@ export const Worklist: React.FC = () => {
   const [qParam] = useQueryParam("q", "");
   const [f, setF] = useState({ exception_type: "", rail: "", currency: "", cutoff_band: "", evidence: "" });
   const [q, setQ] = useState(qParam);
+  const [density, setDensityState] = useState<"comfortable" | "compact">(() => { try { return window.localStorage.getItem("pex.v2.density") === "compact" ? "compact" : "comfortable"; } catch { return "comfortable"; } });
+  const setDensity = (d: "comfortable" | "compact") => { setDensityState(d); try { window.localStorage.setItem("pex.v2.density", d); } catch { /* ignore */ } };
+  const stripeOf = (r: WorkRow) => { const e = r.evidence?.status; return e === "conflict" ? "block" as const : e === "missing" ? "wait" as const : null; };
   const [page, setPage] = useState(1);
   const [sel, setSel] = useState<string | undefined>();
   const [activeView, setActiveView] = useState<string | undefined>();
@@ -82,7 +85,13 @@ export const Worklist: React.FC = () => {
   const canAssign = !!selected && (!selected.assignee || selected.assignee.user_id !== persona?.user_id) && tab !== "done";
   return (
     <>
-      <PageHeader title="Worklist" />
+      <PageHeader title="Worklist" actions={
+        <div role="group" aria-label="Row density" className="inline-flex rounded-full bg-slate-100 p-0.5 text-xs">
+          {(["comfortable", "compact"] as const).map((d) => (
+            <button key={d} type="button" aria-pressed={density === d} onClick={() => setDensity(d)}
+              className={"px-3 py-1 rounded-full capitalize " + (density === d ? "bg-white shadow-card text-pex-ink font-medium" : "text-slate-500")}>{d}</button>
+          ))}
+        </div>} />
       <Tabs label="Worklist tabs" value={tab} onChange={(id) => setTabQ(id)} tabs={TABS.map((t) => ({ id: t.id, label: t.label, count: counts?.[t.id] }))} />
       <FilterBar search={{ value: q, onChange: setQ, placeholder: "Search case, party or reference" }}
         right={<SavedViewsMenu views={(views.data ?? []).map((v) => ({ id: v.id, label: v.name }))} activeId={activeView} onSelect={onSelectView} onSave={onSaveView} />}>
@@ -94,18 +103,18 @@ export const Worklist: React.FC = () => {
       </FilterBar>
       {scopeQ === "all" && <div className="mb-3"><Banner tone="blue">Showing all cases (supervisor scope).</Banner></div>}
 
-      <div className="grid grid-cols-1 xl:grid-cols-[1fr_22rem] gap-4 items-start">
+      <div className="grid grid-cols-1 2xl:grid-cols-[minmax(0,1fr)_22rem] gap-4 items-start">
         <div className="bg-surface-card rounded-card border border-surface-line shadow-card">
           <DataTable<WorkRow> caption={`Worklist: ${TABS.find((t) => t.id === tab)?.label}`} loading={list.loading} error={list.error} onRetry={list.reload}
-            rows={items} rowKey={(r) => r.case_id} selectedKey={selected?.case_id} onRowClick={(r) => setSel(r.case_id)}
+            density={density} stripe={stripeOf} rows={items} rowKey={(r) => r.case_id} selectedKey={selected?.case_id} onRowClick={(r) => setSel(r.case_id)}
             emptyTitle="No cases in this view" emptyHint="Change the tab or clear filters."
             columns={[
-              { key: "co", header: "Cutoff ↑", render: (r) => <CutoffChip cutoff={r.cutoff} />, width: "6rem" },
-              { key: "id", header: "Case", render: (r) => <span className="font-medium">{r.case_id}</span> },
-              { key: "ex", header: "Exception", render: (r) => r.exception?.label ?? "—" },
-              { key: "am", header: "Amount", mono: true, render: (r) => r.amount?.display ?? "—" },
-              { key: "ra", header: "Rail", render: (r) => <span className="text-pex-muted">{r.rail?.label ?? "—"}</span> },
-              { key: "cp", header: "Counterparty", render: (r) => r.counterparty ?? "—" },
+              { key: "co", header: "Cutoff ↑", render: (r) => <CutoffChip cutoff={r.cutoff} />, width: "6rem", nowrap: true },
+              { key: "id", header: "Case", render: (r) => <span className="font-medium">{r.case_id}</span>, nowrap: true },
+              { key: "ex", header: "Exception", nowrap: true, render: (r) => r.exception?.label ?? "—" },
+              { key: "am", header: "Amount", mono: true, nowrap: true, render: (r) => r.amount?.display ?? "—" },
+              { key: "ra", header: "Rail", render: (r) => <span title={r.rail?.label} className="block max-w-[6rem] truncate text-pex-muted">{r.rail?.label ?? "—"}</span> },
+              { key: "cp", header: "Counterparty", render: (r) => <span title={r.counterparty ?? undefined} className="block max-w-[6.5rem] truncate pex-mono text-xs text-slate-600">{r.counterparty ?? "—"}</span> },
               { key: "na", header: "Next action", render: (r) => r.next_action?.text ? <button className="text-left text-pex-primary hover:underline" onClick={(e) => { e.stopPropagation(); navigate(routes.workCase(r.case_id)); }}>{r.next_action.text}</button> : "—" },
               { key: "ev", header: "Evidence", render: (r) => <EvidencePill row={r} /> },
             ]}
@@ -120,7 +129,7 @@ export const Worklist: React.FC = () => {
               </div>) : null} />
         </div>
 
-        <aside aria-label="Case preview" className="bg-surface-card rounded-card border border-surface-line shadow-card p-4 xl:sticky xl:top-4">
+        <aside aria-label="Case preview" className="bg-surface-card rounded-card border border-surface-line shadow-card p-4 2xl:sticky 2xl:top-4">
           {!selected ? <p className="text-sm text-pex-muted">Select a case to preview it.</p> : prev.loading ? <Loading /> : prev.error ? <ErrorState message={prev.error} onRetry={prev.reload} /> : (() => {
             const p = prev.data;
             return (

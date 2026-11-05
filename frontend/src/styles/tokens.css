@@ -1,16 +1,17 @@
-/* PeX v2 design tokens. Mirrors tailwind.config.js; use CSS vars for non-Tailwind consumers. */
+/* PeX design tokens for non-Tailwind consumers. The Tailwind palette (tailwind.config.js) is the source of truth;
+   these CSS variables mirror it and follow light / dark. */
 :root {
-  --pex-navy: #0B2A4A;
-  --pex-surface: #F4F6F9;
-  --pex-card: #FFFFFF;
-  --pex-line: #E2E8F0;
-  --pex-primary: #0070AD;
-  --pex-ok: #16794C;
-  --pex-wait: #B45309;
-  --pex-block: #B42318;
-  --pex-radius: 12px;
+  --pex-navy: rgb(var(--c-ink));
+  --pex-surface: rgb(var(--c-surface));
+  --pex-card: rgb(var(--c-card));
+  --pex-line: rgb(var(--c-line));
+  --pex-primary: rgb(var(--c-primary));
+  --pex-ok: rgb(var(--c-ok));
+  --pex-wait: rgb(var(--c-wait));
+  --pex-block: rgb(var(--c-block));
+  --pex-radius: 14px;
 }
 .pex-mono { font-family: 'JetBrains Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; }
 .pex-focus:focus-visible, button:focus-visible, a:focus-visible, [role="tab"]:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
-  outline: 2px solid #0070AD; outline-offset: 2px;
+  outline: 2px solid rgb(var(--c-primary)); outline-offset: 2px;
 }

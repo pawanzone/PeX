@@ -8,6 +8,7 @@ import { Avatar, Banner, StatusPill, cn } from "../components/v2";
 import { Login } from "./Login";
 import { TextSizeControl } from "./textsize";
 import { ChasersBell } from "./Chasers";
+import { ThemeControl } from "./theme";
 
 const Clock: React.FC = () => {
   const [now, setNow] = useState(new Date());
@@ -35,12 +36,12 @@ const PersonaMenu: React.FC = () => {
   };
   return (
     <div ref={ref} className="relative" onKeyDown={onKey}>
-      <button aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((o) => !o)} className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-lg hover:bg-slate-100">
+      <button aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((o) => !o)} className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-full hover:bg-slate-100">
         <Avatar bare size="sm" name={persona?.name} initials={persona?.avatar_initials} />
         <span className="text-sm text-pex-ink max-w-[9rem] xl:max-w-[16rem] truncate">{roleLabel(persona)}</span><ChevronDown className="w-3.5 h-3.5 text-slate-400" aria-hidden />
       </button>
       {open && (
-        <div role="menu" aria-label="Switch demo persona" className="absolute right-0 mt-1 w-80 max-h-[70vh] overflow-y-auto bg-white border border-surface-line rounded-lg shadow-xl z-40 py-1">
+        <div role="menu" aria-label="Switch demo persona" className="absolute right-0 mt-1 w-80 max-h-[70vh] overflow-y-auto bg-white border border-surface-line rounded-xl shadow-xl z-40 py-1">
           <div className="px-3 py-1.5 text-[11px] uppercase tracking-wide text-pex-muted">Switch role (demo)</div>
           {personas.map((p) => (
             <button key={p.user_id} role="menuitemradio" aria-checked={p.user_id === persona?.user_id} onClick={async () => { if (await switchTo(p)) setOpen(false); }}
@@ -63,11 +64,11 @@ const TopBar: React.FC = () => {
   const [q, setQ] = useState("");
   const submit = (e: React.FormEvent) => { e.preventDefault(); if (q.trim()) navigate(routes.worklist({ q: q.trim() })); };
   return (
-    <header className="h-14 bg-white border-b border-surface-line px-5 flex items-center gap-4 shrink-0">
-      <form onSubmit={submit} role="search" className="relative flex-1 max-w-md">
+    <header className="h-14 glass border-b border-surface-line px-6 flex items-center gap-4 shrink-0 sticky top-0 z-30">
+      <form onSubmit={submit} role="search" className="relative flex-1 max-w-md min-w-0">
         <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" aria-hidden />
         <label className="sr-only" htmlFor="pex-global-search">Search case, party or reference</label>
-        <input id="pex-global-search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search case, party or reference" className="w-full pl-9 pr-3 py-2 text-sm rounded-lg bg-slate-100 border border-transparent focus:bg-white focus:border-surface-line" />
+        <input id="pex-global-search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search case, party or reference" className="w-full pl-9 pr-3 py-2 text-sm rounded-full bg-slate-100 border border-transparent focus:bg-white focus:border-surface-line" />
       </form>
       <div className="ml-auto flex items-center gap-3">
         {info?.operation_mode && <StatusPill tone={info.operation_mode === "LIVE" ? "red" : info.operation_mode === "ASSISTED" ? "amber" : "blue"} title="Operation mode">{info.operation_mode}</StatusPill>}
@@ -75,6 +76,7 @@ const TopBar: React.FC = () => {
         <StatusPill tone="amber" title="All data in this environment is synthetic">Demo data</StatusPill>
         <Clock />
         <TextSizeControl userId={persona?.user_id} />
+        <ThemeControl />
         <ChasersBell />
         <PersonaMenu />
       </div>
@@ -85,24 +87,25 @@ const TopBar: React.FC = () => {
 const Sidebar: React.FC<{ route: Route }> = ({ route }) => {
   const { persona } = useSession();
   return (
-    <nav aria-label="Main" className="w-56 bg-navy-800 text-slate-200 flex flex-col shrink-0">
-      <div className="h-14 px-5 flex items-center gap-2.5 border-b border-white/10">
-        <span className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center font-bold text-white">P</span>
-        <div className="leading-tight"><div className="text-white font-semibold">PeX</div><div className="text-[10px] text-slate-400">Payment Exception Resolution</div></div>
+    <nav aria-label="Main" className="w-16 lg:w-60 bg-surface border-r border-surface-line text-slate-600 flex flex-col shrink-0">
+      <div className="h-14 px-4 lg:px-5 flex items-center gap-3">
+        <span className="w-8 h-8 rounded-[9px] bg-pex-primary flex items-center justify-center font-semibold text-white text-sm">Px</span>
+        <div className="leading-tight hidden lg:block"><div className="text-pex-ink font-semibold tracking-tight">PeX</div><div className="text-[11px] text-slate-500">Payment exceptions</div></div>
       </div>
-      <ul className="p-3 space-y-1">
+      <ul className="px-2 lg:px-3 pt-3 space-y-0.5">
         {NAV.filter((n) => areaAllowed(n.area, persona?.role)).map((n) => {
           const active = route.area === n.area; const Icon = n.icon;
           return (
             <li key={n.area}>
-              <a href={n.href} aria-current={active ? "page" : undefined} className={cn("flex items-center gap-3 px-3 py-2 rounded-lg text-sm", active ? "bg-white/15 text-white font-medium" : "text-slate-300 hover:bg-white/10")}>
-                <Icon className="w-4 h-4" aria-hidden />{n.label}
+              <a href={n.href} title={n.label} aria-current={active ? "page" : undefined}
+                className={cn("flex items-center justify-center lg:justify-start gap-3 px-3 py-2 rounded-[10px] text-sm", active ? "bg-white text-pex-ink font-medium shadow-card" : "text-slate-600 hover:bg-white/70 hover:text-pex-ink")}>
+                <Icon className={cn("w-[17px] h-[17px]", active && "text-pex-primary")} strokeWidth={1.75} aria-hidden /><span className="hidden lg:inline">{n.label}</span>
               </a>
             </li>
           );
         })}
       </ul>
-      <div className="mt-auto p-4 text-[11px] text-slate-400 leading-snug border-t border-white/10">AI recommends. Controls validate. Humans authorize when required. Bank systems execute.</div>
+      <div className="hidden lg:block mt-auto m-4 p-3 rounded-xl bg-white/60 border border-surface-line text-[11px] text-slate-500 leading-snug">AI recommends. Controls validate. Humans authorize when required. Bank systems execute.</div>
     </nav>
   );
 };
@@ -110,7 +113,7 @@ const Sidebar: React.FC<{ route: Route }> = ({ route }) => {
 export const Shell: React.FC<{ render: (route: Route) => React.ReactNode }> = ({ render }) => {
   const route = useRoute();
   const { persona, note, ready } = useSession();
-  if (!ready) return <div className="min-h-screen bg-navy-800" aria-busy="true" />;
+  if (!ready) return <div className="min-h-screen bg-surface" aria-busy="true" />;
   if (!persona) return <Login />;
   const allowed = route.kind === "case" || areaAllowed(route.area, persona?.role); // case links are readable by every role (server decides what it shows)
   return (
@@ -120,7 +123,7 @@ export const Shell: React.FC<{ render: (route: Route) => React.ReactNode }> = ({
       <div className="flex-1 flex flex-col min-w-0">
         <TopBar />
         {note && <div className="px-6 pt-3"><Banner tone="amber">{note}</Banner></div>}
-        <main id="main" className="flex-1 overflow-y-auto px-6 py-5">
+        <main id="main" className="flex-1 overflow-y-auto px-8 py-6">
           {persona && !allowed
             ? <Banner tone="amber" title="Not available for your role" action={<a className="text-sm font-medium underline" href="#/home">Go home</a>}>{persona.title} ({persona.role}) cannot open this area. Switch persona from the top right to see it.</Banner>
             : render(route)}

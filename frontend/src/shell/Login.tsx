@@ -18,16 +18,16 @@ export const Login: React.FC = () => {
     setBusy(false);
   };
   return (
-    <div className="min-h-screen bg-navy-800 flex items-center justify-center p-6 font-sans">
-      <div className="w-full max-w-4xl grid md:grid-cols-5 rounded-2xl overflow-hidden shadow-2xl bg-white">
-        <div className="md:col-span-2 bg-navy-800 text-white p-8 flex flex-col justify-between border-r border-white/10">
+    <div className="min-h-screen bg-surface flex items-center justify-center p-6 font-sans">
+      <div className="w-full max-w-4xl grid md:grid-cols-5 rounded-3xl overflow-hidden shadow-xl bg-white border border-surface-line">
+        <div className="md:col-span-2 bg-surface text-pex-ink p-8 flex flex-col justify-between border-r border-surface-line">
           <div>
-            <div className="flex items-center gap-3 mb-8"><span className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center font-bold text-lg">P</span>
-              <div className="leading-tight"><div className="font-semibold text-lg">PeX</div><div className="text-xs text-slate-300">Payment Exception Resolution</div></div></div>
+            <div className="flex items-center gap-3 mb-8"><span className="w-10 h-10 rounded-[11px] bg-pex-primary text-white flex items-center justify-center font-semibold text-lg">P</span>
+              <div className="leading-tight"><div className="font-semibold text-lg">PeX</div><div className="text-xs text-slate-500">Payment Exception Resolution</div></div></div>
             <p className="text-xl font-semibold leading-snug mb-3">AI recommends. Controls validate. Humans authorize when required.</p>
-            <p className="text-sm text-slate-300">Bank systems execute. PeX never moves money.</p>
+            <p className="text-sm text-slate-500">Bank systems execute. PeX never moves money.</p>
           </div>
-          <ul className="mt-8 space-y-2 text-sm text-slate-300">
+          <ul className="mt-8 space-y-2 text-sm text-slate-500">
             <li className="flex items-center gap-2"><ShieldCheck className="w-4 h-4" aria-hidden />Personal data is tokenised before AI sees it</li>
             <li className="flex items-center gap-2"><Landmark className="w-4 h-4" aria-hidden />Every action is logged and attributable</li>
           </ul>

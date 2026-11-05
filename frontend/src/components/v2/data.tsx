@@ -60,8 +60,9 @@ export const SavedViewsMenu: React.FC<{ views: SavedView[]; activeId?: string; o
   );
 };
 
-export interface Column<T> { key: string; header: string; render: (row: T) => React.ReactNode; mono?: boolean; align?: "left" | "right"; width?: string }
-export function DataTable<T>({ columns, rows, rowKey, onRowClick, selectedKey, selectable, selected, onToggle, loading, error, onRetry, emptyTitle = "Nothing here", emptyHint, caption, footer }: {
+export interface Column<T> { key: string; header: string; render: (row: T) => React.ReactNode; mono?: boolean; align?: "left" | "right"; width?: string; nowrap?: boolean }
+export function DataTable<T>({ columns, rows, rowKey, onRowClick, selectedKey, selectable, selected, onToggle, loading, error, onRetry, emptyTitle = "Nothing here", emptyHint, caption, footer, density = "comfortable", stripe }: {
+  density?: "comfortable" | "compact"; stripe?: (r: T) => "block" | "wait" | "ok" | null;
   columns: Column<T>[]; rows: T[]; rowKey: (r: T) => string; onRowClick?: (r: T) => void; selectedKey?: string;
   selectable?: boolean; selected?: Set<string>; onToggle?: (key: string) => void;
   loading?: boolean; error?: string | null; onRetry?: () => void; emptyTitle?: string; emptyHint?: string; caption?: string; footer?: React.ReactNode;
@@ -75,7 +76,7 @@ export function DataTable<T>({ columns, rows, rowKey, onRowClick, selectedKey, s
         {caption && <caption className="sr-only">{caption}</caption>}
         <thead><tr className="text-left text-xs text-pex-muted border-b border-surface-line">
           {selectable && <th className="w-8 py-2 px-2"><span className="sr-only">Select</span></th>}
-          {columns.map((c) => <th key={c.key} scope="col" style={{ width: c.width }} className={cn("py-2 px-3 font-medium", c.align === "right" && "text-right")}>{c.header}</th>)}
+          {columns.map((c) => <th key={c.key} scope="col" style={{ width: c.width }} className={cn("py-2.5 px-2.5 font-medium whitespace-nowrap", c.align === "right" && "text-right")}>{c.header}</th>)}
         </tr></thead>
         <tbody>
           {rows.map((r) => {
@@ -84,8 +85,8 @@ export function DataTable<T>({ columns, rows, rowKey, onRowClick, selectedKey, s
               <tr key={k} onClick={onRowClick ? () => onRowClick(r) : undefined} aria-selected={selectedKey === k || undefined}
                 tabIndex={onRowClick ? 0 : undefined} onKeyDown={onRowClick ? (e) => { if (e.key === "Enter") onRowClick(r); } : undefined}
                 className={cn("border-b border-surface-line last:border-0", onRowClick && "cursor-pointer hover:bg-slate-50", selectedKey === k && "bg-pex-primary-soft/60")}>
-                {selectable && <td className="px-2 py-2.5" onClick={(e) => e.stopPropagation()}><input type="checkbox" aria-label={`Select ${k}`} checked={!!selected?.has(k)} onChange={() => onToggle?.(k)} /></td>}
-                {columns.map((c) => <td key={c.key} className={cn("py-2.5 px-3 align-middle", c.mono && "pex-mono", c.align === "right" && "text-right")}>{c.render(r)}</td>)}
+                {selectable && <td className={cn("px-2", density === "compact" ? "py-1" : "py-2.5")} onClick={(e) => e.stopPropagation()}><input type="checkbox" aria-label={`Select ${k}`} checked={!!selected?.has(k)} onChange={() => onToggle?.(k)} /></td>}
+                {columns.map((c, ci) => { const st = ci === 0 && !selectable ? stripe?.(r) : null; return <td key={c.key} style={st ? { boxShadow: `inset 3px 0 0 rgb(var(--c-${st}))` } : undefined} className={cn("px-2.5 align-middle", density === "compact" ? "py-1.5" : "py-2.5", c.mono && "pex-mono", c.nowrap && "whitespace-nowrap", c.align === "right" && "text-right")}>{c.render(r)}</td>; })}
               </tr>
             );
           })}
