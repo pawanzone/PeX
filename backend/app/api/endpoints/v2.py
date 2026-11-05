@@ -254,6 +254,20 @@ def ref_library_profile(code: str, user=Depends(current_user)):
     return lb.profile(code)
 
 
+@router.get("/reference/contract")
+def ref_contract(user=Depends(current_user)):
+    require(user, "reference.read", "Reference pages are for Administrators and Policy Owners.")
+    from app.services.v2 import contract as ct
+    return ct.overview()
+
+
+@router.get("/reference/contract/{code}")
+def ref_contract_profile(code: str, user=Depends(current_user)):
+    require(user, "reference.read", "Reference pages are for Administrators and Policy Owners.")
+    from app.services.v2 import contract as ct
+    return ct.profile_contract(code)
+
+
 @router.get("/reference/controls")
 def ref_controls(user=Depends(current_user)):
     require(user, "reference.read", "Reference pages are for Administrators and Policy Owners.")

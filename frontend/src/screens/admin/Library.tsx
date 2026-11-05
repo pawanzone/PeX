@@ -4,6 +4,7 @@ import { Banner, StatusPill, cn } from "../../components/v2";
 import { useV2 } from "../../services/v2/client";
 import { getControls, getLibrary, getLibraryProfile, type LibRow } from "../../services/v2/reference";
 import { Card, Stat, Wait } from "./Reference";
+import { ContractSection, ContractView } from "./Contract";
 
 const STP_TONE: Record<string, "green" | "amber" | "red"> = { ALLOWED: "green", POLICY_GATED: "amber", NEVER: "red" };
 const STP_LABEL: Record<string, string> = { ALLOWED: "May go straight through", POLICY_GATED: "Bank opt-in", NEVER: "Never straight through" };
@@ -13,7 +14,6 @@ const EFFECT_TONE: Record<string, "green" | "red" | "amber" | "blue"> = { PROCEE
 const th = "py-1.5 pr-3 font-medium whitespace-nowrap";
 const ACR = new Set(["AML", "PEP", "KYC", "BIC", "IBAN", "FX", "STP", "SLA", "ISO", "UETR", "SSI", "ID"]);
 const pretty = (s: string) => s.replace(/_/g, " ").toLowerCase().split(" ").map((w, i) => (ACR.has(w.toUpperCase()) ? w.toUpperCase() : i === 0 ? w.replace(/^./, (c) => c.toUpperCase()) : w)).join(" ");
-const TIER_NAME: Record<number, string> = { 1: "Core record", 2: "Authoritative", 3: "Corroborating", 4: "Advisory" };
 const Chip: React.FC<{ on: boolean; onClick: () => void; children: React.ReactNode }> = ({ on, onClick, children }) => (
   <button type="button" aria-pressed={on} onClick={onClick} className={cn("px-2.5 py-1 rounded-md text-xs border", on ? "bg-pex-primary text-white border-pex-primary" : "bg-white border-surface-line text-pex-muted")}>{children}</button>);
 
@@ -29,7 +29,7 @@ const ProfileDrawer: React.FC<{ code: string; onClose: () => void }> = ({ code, 
           <button type="button" onClick={onClose} aria-label="Close" autoFocus className="p-1.5 rounded-lg hover:bg-slate-100"><X className="w-5 h-5" aria-hidden /></button>
         </div>
         {!d ? <Wait r={r} /> : <div className="grid gap-5 text-sm">
-          <Banner tone="amber" title={d.validation_status}>Trust tiers, decision-option effects and the wording below are a first draft. They have not yet been signed off by payment operations and compliance experts.</Banner>
+          <Banner tone="amber" title={d.validation_status}>Trust tiers, decision-option effects and the wording below are a first draft. The bank's payment operations and compliance SMEs should validate them against their own process.</Banner>
           <section aria-label="What it does"><h3 className="font-semibold mb-1">What it does</h3><p className="text-pex-muted">{d.outcome_meaning}</p></section>
           <section aria-label="Release and approval">
             <h3 className="font-semibold mb-2">Release and approval</h3>
@@ -43,17 +43,7 @@ const ProfileDrawer: React.FC<{ code: string; onClose: () => void }> = ({ code, 
               {d.min_confidence != null && <><dt className="text-pex-muted">Minimum confidence</dt><dd>{d.min_confidence} <span className="text-pex-muted">{d.confidence_note}</span></dd></>}
             </dl>
           </section>
-          <section aria-label="Evidence contract">
-            <h3 className="font-semibold mb-2">Evidence contract <span className="text-xs font-normal text-pex-muted">{d.evidence.length} items</span></h3>
-            <div className="overflow-x-auto"><table className="w-full text-sm"><caption className="sr-only">Evidence the profile asks for</caption>
-              <thead className="text-xs text-pex-muted text-left"><tr><th className={th}>Evidence</th><th className={th}>Trust tier</th><th className={th}>Needed</th><th className="pr-3 font-medium">What it proves</th><th className="font-medium">Comes from</th></tr></thead>
-              <tbody>{d.evidence.map((e) => (
-                <tr key={e.type} className="border-t border-surface-line align-top">
-                  <td className="py-1.5 pr-3 pex-mono text-xs text-pex-primary">{e.type}</td>
-                  <td className="pr-3 whitespace-nowrap" title={e.tier_meaning}>T{e.tier} <span className="text-xs text-pex-muted">{TIER_NAME[e.tier]}</span></td>
-                  <td className="pr-3">{e.mandatory ? <StatusPill tone="blue" dot={false}>Mandatory</StatusPill> : <span className="text-xs text-pex-muted">When available</span>}</td>
-                  <td className="pr-3">{e.proves}</td><td className="text-xs text-pex-muted">{e.source_system}</td></tr>))}</tbody></table></div>
-          </section>
+          <ContractSection code={code} />
           {d.decision && (
             <section aria-label="Decision options">
               <h3 className="font-semibold mb-1">Decision options</h3>
@@ -168,15 +158,15 @@ const Controls: React.FC = () => {
 };
 
 export const LibraryView: React.FC = () => {
-  const [tab, setTab] = useState<"profiles" | "stp" | "controls">("profiles");
-  const tabs: Array<["profiles" | "stp" | "controls", string]> = [["profiles", "Profiles"], ["stp", "Straight-through rules"], ["controls", "Controls"]];
+  const [tab, setTab] = useState<"profiles" | "stp" | "controls" | "contract">("profiles");
+  const tabs: Array<["profiles" | "stp" | "controls" | "contract", string]> = [["profiles", "Profiles"], ["stp", "Straight-through rules"], ["controls", "Controls"], ["contract", "Integration contract"]];
   return (
     <div className="grid grid-cols-1 gap-4 min-w-0">
-      <Banner tone="amber" title="Read only. Pending expert validation">Everything here is read from the live profile packs and a definitions file. The meanings, trust tiers and decision-option effects are a first draft until the bank's payment operations and compliance experts sign them off.</Banner>
+      <Banner tone="amber" title="Read only. Bank SME to validate against their process">Everything here is read from the live profile packs and a definitions file. The meanings, trust tiers and decision-option effects are a first draft. The bank's payment operations and compliance SMEs should validate them against their own process.</Banner>
       <div role="tablist" aria-label="Library views" className="flex flex-wrap gap-1">
         {tabs.map(([id, label]) => <button key={id} role="tab" aria-selected={tab === id} onClick={() => setTab(id)} className={cn("px-3 py-1.5 text-sm rounded-full", tab === id ? "bg-pex-primary-soft text-pex-primary font-medium" : "text-slate-600 hover:bg-slate-100")}>{label}</button>)}
       </div>
-      {tab === "profiles" && <Profiles />}{tab === "stp" && <StpRules />}{tab === "controls" && <Controls />}
+      {tab === "profiles" && <Profiles />}{tab === "stp" && <StpRules />}{tab === "controls" && <Controls />}{tab === "contract" && <ContractView />}
     </div>
   );
 };

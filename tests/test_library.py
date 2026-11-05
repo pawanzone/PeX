@@ -73,7 +73,7 @@ def test_l4_library_lists_every_profile(client):
         p = PACKS[r["code"]]
         assert (r["name"], r["family"], r["outcome"], r["stp"], r["approval"], r["authority_domain"]) == (p.name, p.code.split("-")[0], p.outcome.value, p.stp.value, p.approval.when_not_stp, p.authority_domain)
         assert r["evidence_mandatory"] == len(p.evidence.mandatory_types) and r["evidence_total"] == len(p.evidence.required)
-        assert r["validation_status"] == "Pending expert validation" and r["family_name"] and r["family_name"] == DEFS["families"][r["family"]]
+        assert r["validation_status"] == "Bank SME to validate against their process" and r["family_name"] and r["family_name"] == DEFS["families"][r["family"]]
         assert r["decision_options"] == (len(p.decision.options) if p.decision else 0)
 
 
@@ -93,7 +93,7 @@ def test_l5_detail_equals_the_pack_and_explains_every_term(client, code):
         assert all(o["effect_meaning"] for o in d["decision"]["options"])
     else:
         assert d["decision"] is None
-    assert d["validation_status"] == "Pending expert validation"
+    assert d["validation_status"] == "Bank SME to validate against their process"
     ctl = {c["id"] for c in DEFS["controls"]}
     assert d["controls"] and {c["id"] for c in d["controls"]} <= ctl
     assert ("CTL-07" in {c["id"] for c in d["controls"]}) == bool(p.decision)

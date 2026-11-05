@@ -1,5 +1,5 @@
 {
-  "note": "Readable definitions for the straight-through predicates, the controls and the terms used by the profile packs. This is configuration, not logic: the engine's rules are in code, and tests/test_library.py fails if this file and the code disagree. Wording is a first draft for expert review.",
+  "note": "Readable definitions for the straight-through predicates, the controls and the terms used by the profile packs. This is configuration, not logic: the engine's rules are in code, and tests/test_library.py fails if this file and the code disagree. Wording is a first draft for the bank's SMEs to validate against their process.",
   "families": {
     "DQ": "Data quality",
     "PR": "Processing",

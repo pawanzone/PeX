@@ -13,7 +13,7 @@ from app.services.v2 import semantic_layer as sl
 from app.services.v2.core import not_found
 
 DEFS_PATH = Path(registry.__file__).resolve().parent / "definitions" / "controls.json"
-VALIDATION = "Pending expert validation"
+VALIDATION = "Bank SME to validate against their process"
 
 
 @lru_cache(maxsize=1)

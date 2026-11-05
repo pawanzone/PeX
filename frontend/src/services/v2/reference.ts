@@ -39,3 +39,30 @@ export interface Controls {
 export const getLibrary = () => v2Get<Library>("/reference/library");
 export const getLibraryProfile = (code: string) => v2Get<LibDetail>(`/reference/library/${encodeURIComponent(code)}`);
 export const getControls = () => v2Get<Controls>("/reference/controls");
+
+export type HowKey = "BANK_SENDS" | "PEX_LOOKUP_COMPUTED" | "PEX_LOOKUP_SIMULATED" | "COULD_LOOK_UP";
+export interface ContractEvidence {
+  type: string; event_key: string; mandatory: boolean; tier: number; tier_name: string; meaning: string; source_system: string; category: string;
+  how: HowKey; how_label: string; modes: string[]; freshness_hours: number;
+  lookup: null | { kind: "COMPUTED" | "SIMULATED_DIRECTORY"; source: string; as_of: string; name: string; params: string[] };
+}
+export interface ContractProfile {
+  code: string; name: string; validation_status: string;
+  payment_fields: { always_required: string[]; used_in_sample: string[]; note: string };
+  evidence: ContractEvidence[];
+  counts: { total: number; mandatory: number; optional: number; lookups_built: number; could_look_up: number; bank_sends: number };
+  sample: null | { file: string; event: Record<string, unknown>; synthetic: boolean }; sample_note: string;
+}
+export interface ContractField { field: string; required: boolean; meaning: string }
+export interface ContractOverview {
+  profiles: number; rule: string; validation_status: string;
+  envelope: { top_fields: ContractField[]; payment_fields: ContractField[]; evidence_groups: Array<{ field: string; meaning: string }> };
+  modes: Array<{ mode: string; meaning: string }>;
+  delivery: { single: { title: string; shape: string; channels: string[]; answer: string }; batch: { title: string; shape: string; channels: string[]; outcomes: string[]; answer: string } };
+  lookups: Array<{ evidence_type: string; name: string; kind: "COMPUTED" | "SIMULATED_DIRECTORY"; source: string; as_of: string; params: string[]; used_by_profiles: number }>;
+  coverage: Array<{ code: string; name: string; total: number; mandatory: number; lookups_built: number; could_look_up: number; bank_sends: number; has_sample: boolean }>;
+  evidence_summary: { distinct_types: number; shared_by_two_or_more: number; by_how: Record<string, number> };
+  how_labels: Record<string, string>;
+}
+export const getContract = () => v2Get<ContractOverview>("/reference/contract");
+export const getContractProfile = (code: string) => v2Get<ContractProfile>(`/reference/contract/${encodeURIComponent(code)}`);
