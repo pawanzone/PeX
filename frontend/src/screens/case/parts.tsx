@@ -1,6 +1,6 @@
 import { Dossier } from "./Dossier";
 import React, { useState } from "react";
-import { Hourglass, AlertOctagon, CheckCircle2, User, Copy, Check, X as XIcon } from "lucide-react";
+import { Hourglass, AlertOctagon, CheckCircle2, User, Copy, Check, ArrowRight, X as XIcon } from "lucide-react";
 import { Banner, Modal, StatusPill, NextActionCard, KeyValueList, Loading, ErrorState, cn } from "../../components/v2";
 import type { JourneyStep } from "../../components/v2";
 import type { StatusTone } from "../../lib/statusMeta";
@@ -72,20 +72,21 @@ export const CopyButton: React.FC<{ text?: string; label: string }> = ({ text, l
 
 /** Original (red) vs proposed (green) value boxes. Status text always accompanies the colour. */
 export const ValueBoxes: React.FC<{ original?: { value?: string; status?: string }; proposed?: { value?: string; status?: string }; compact?: boolean }> = ({ original, proposed, compact }) => (
-  <div className="grid gap-3 md:grid-cols-2">
-    <div className="rounded-xl border border-red-200 bg-red-50 p-3">
-      <div className="flex items-center justify-between text-sm text-pex-block font-medium">
+  <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-stretch">
+    <div className="rounded-2xl bg-pex-block-soft p-4">
+      <div className="flex items-center justify-between text-xs text-pex-block font-medium">
         <span className="flex items-center gap-1.5"><XIcon className="w-4 h-4" aria-hidden />Original ({(original?.status ?? "failed validation").toLowerCase()})</span>
         <CopyButton text={original?.value} label="Copy original value" />
       </div>
-      <div className={cn("mt-2 break-all", compact ? "text-base" : "text-xl")}><HighlightedValue value={original?.value} other={proposed?.value} tone="red" /></div>
+      <div className={cn("mt-2 break-all pex-mono text-pex-ink", compact ? "text-base" : "text-2xl")}><HighlightedValue value={original?.value} other={proposed?.value} tone="red" /></div>
     </div>
-    <div className="rounded-xl border border-green-200 bg-green-50 p-3">
-      <div className="flex items-center justify-between text-sm text-pex-ok font-medium">
+    <div className="hidden md:flex items-center justify-center text-slate-400" aria-hidden><ArrowRight className="w-5 h-5" /></div>
+    <div className="rounded-2xl bg-pex-ok-soft p-4">
+      <div className="flex items-center justify-between text-xs text-pex-ok font-medium">
         <span className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4" aria-hidden />Proposed ({(proposed?.status ?? "passes validation").toLowerCase()})</span>
         <CopyButton text={proposed?.value} label="Copy proposed value" />
       </div>
-      <div className={cn("mt-2 break-all", compact ? "text-base" : "text-xl")}><HighlightedValue value={proposed?.value} other={original?.value} tone="green" /></div>
+      <div className={cn("mt-2 break-all pex-mono text-pex-ink", compact ? "text-base" : "text-2xl")}><HighlightedValue value={proposed?.value} other={original?.value} tone="green" /></div>
     </div>
   </div>
 );

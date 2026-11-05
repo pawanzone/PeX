@@ -36,3 +36,11 @@
 ::-webkit-scrollbar-thumb:hover { background: rgb(var(--c-slate-400)); background-clip: content-box; border: 2px solid transparent; }
 
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation-duration: .001ms !important; } }
+
+/* `white` is a themed surface colour; text that sits on a solid accent (primary, status) must stay white in both themes. */
+.text-white { color: #fff !important; }
+
+/* Accent used as text on tinted surfaces needs to be lighter in dark mode (the solid accent stays for fills). */
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .text-pex-primary, :root:not([data-theme="light"]) .text-pex-info { color: rgb(110 188 240); } }
+:root[data-theme="dark"] .text-pex-primary, :root[data-theme="dark"] .text-pex-info { color: rgb(110 188 240); }
+.no-scrollbar{scrollbar-width:none}.no-scrollbar::-webkit-scrollbar{display:none}

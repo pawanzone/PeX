@@ -9,7 +9,7 @@ import { useV2 } from "../../services/v2";
 import { getCasePage, postCaseAction, actionPath } from "../../services/v2/case";
 import type { ActionResult, CaseAction, CasePage as CasePageDto } from "../../services/v2/case";
 import { BannerFromApi, chipTone, errText, journeyVariant, mapJourney } from "./parts";
-import { BankBlock, ChangeBlock, ConflictBlock, DecisionBrief, DecisionRequestBlock, NeededBlock, ReassessBlock, RequestInfoForm, StatusUnknownBlock } from "./blocks";
+import { BankBlock, ChangeBlock, RecommendedFix, ConflictBlock, DecisionBrief, DecisionRequestBlock, NeededBlock, ReassessBlock, RequestInfoForm, StatusUnknownBlock } from "./blocks";
 import type { SendHandle } from "./blocks";
 import { DecisionPanel, EscalateModal, SubmitModal } from "./forms";
 import { ConfidenceBlock } from "./confidence";
@@ -98,8 +98,8 @@ export const CasePage: React.FC<{ id: string; context?: "worklist" | "approvals"
   return (
     <div>
       <div className="mb-3"><Breadcrumbs items={crumbs} /></div>
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_22rem] items-start">
-        <div className="grid gap-4 min-w-0">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_22rem] items-start">
+        <div className="grid grid-cols-1 gap-4 min-w-0">
           <CaseHeader id={page.case_id} chips={(h.chips ?? []).map((c) => ({ label: c.label, tone: chipTone(c.tone) }))}
             amount={amt?.amount !== undefined ? amt.amount.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : amt?.display}
             currency={amt?.amount !== undefined ? amt.currency : undefined}
@@ -107,6 +107,7 @@ export const CasePage: React.FC<{ id: string; context?: "worklist" | "approvals"
             meta={[
               ...(h.uetr ? [{ label: "UETR", value: <span className="pex-mono text-xs break-all">{h.uetr}</span> }] : []),
               ...(h.rail?.label ? [{ label: "Rail", value: h.rail.label }] : []),
+              ...(h.exception?.code ? [{ label: "Profile", value: <span className="pex-mono text-xs">{h.exception.code}</span> }] : []),
               ...(h.creditor ? [{ label: "Creditor", value: h.creditor }] : []),
               ...(h.assignee?.name ? [{ label: "Assigned to", value: h.assignee.name }] : []),
             ]} />
@@ -115,9 +116,10 @@ export const CasePage: React.FC<{ id: string; context?: "worklist" | "approvals"
           <PiiBar page={page} run={run} />
           <ExpediteLadder caseId={id} onSent={() => { r.reload(); onChanged?.(); }} />
 
-          {(v === "DECISION" || v === "GENERIC") && page.decision_brief && <DecisionBrief brief={page.decision_brief} />}
+          {(v === "DECISION" || v === "GENERIC") && showChange && <RecommendedFix page={page} brief={page.decision_brief} />}
+          {(v === "DECISION" || v === "GENERIC") && !showChange && page.decision_brief && <DecisionBrief brief={page.decision_brief} />}
           {page.decision_request && <DecisionRequestBlock d={page.decision_request} caseId={id} run={run} />}
-          {v === "DECISION" && <>{showChange && <ChangeBlock page={page} mode="decision" />}</>}
+          
           {v === "APPROVAL" && <>
             {showChange && <ChangeBlock page={page} mode="approval" />}
             
@@ -135,7 +137,7 @@ export const CasePage: React.FC<{ id: string; context?: "worklist" | "approvals"
             {showChange && <ChangeBlock page={page} mode="approval" />}
             
           </>}
-          {v === "GENERIC" && showChange && <ChangeBlock page={page} mode="decision" />}
+          
           <CaseTabs page={page} confidence={conf} />
         </div>
         <div className="lg:sticky lg:top-4">

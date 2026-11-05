@@ -48,6 +48,34 @@ export const ChangeBlock: React.FC<{ page: CasePage; mode: "decision" | "approva
   );
 };
 
+/** Hero card for cases where PeX recommends a fix: one glance shows what changes, why it is safe, and what happens next.
+ *  Combines the decision brief and the proposed change; every field of both is still shown. */
+export const RecommendedFix: React.FC<{ page: CasePage; brief?: CasePage["decision_brief"] | null }> = ({ page, brief }) => {
+  const c = page.change_summary;
+  const sod = page.sod;
+  const facts: Array<[string, string | undefined]> = [["Evidence", brief?.evidence], ["Controls", brief?.controls], ["Next", brief?.next]];
+  return (
+    <>
+      <section aria-label="Recommended fix" className="bg-surface-card rounded-card border border-surface-line shadow-card p-6">
+        <p className="text-xs font-medium tracking-wide uppercase text-pex-primary">Recommended fix</p>
+        <h2 className="text-xl font-semibold text-pex-ink mt-1">{c?.what_changes ?? brief?.proposed_change ?? "Proposed change"}</h2>
+        {brief?.what_happened && <p className="text-sm text-pex-muted mt-1">{brief.what_happened}</p>}
+        {c && <div className="mt-4"><ValueBoxes original={c.original} proposed={c.proposed} /></div>}
+        {c?.source && <p className="text-sm text-pex-muted mt-3"><span className="font-medium text-pex-ink">Source:</span> {c.source}</p>}
+        {brief && brief.proposed_change && c?.what_changes && brief.proposed_change !== c.what_changes && <p className="text-sm text-pex-muted mt-1"><span className="font-medium text-pex-ink">Proposed change:</span> {brief.proposed_change}</p>}
+        {brief && (
+          <dl className="mt-5 pt-4 border-t border-surface-line grid gap-4 sm:grid-cols-3">
+            {facts.map(([k, v]) => <div key={k}><dt className="text-xs text-pex-muted">{k}</dt><dd className="text-sm font-medium text-pex-ink mt-1">{v || "—"}</dd></div>)}
+          </dl>
+        )}
+      </section>
+      {sod && sod.status && sod.status !== "n/a" && (
+        <Banner tone={sod.status === "passed" ? "green" : "red"} title={sod.status === "passed" ? "Separation of duties passed" : "Separation of duties failed"}>{sod.text}</Banner>
+      )}
+    </>
+  );
+};
+
 export const HandoverNote: React.FC<{ h: NonNullable<CasePage["handover"]>; caseId: string }> = ({ h, caseId }) => (
   <Section title="Maker's handover note">
     <div className="flex gap-4 items-start flex-wrap">
@@ -90,7 +118,7 @@ export const DecisionRequestBlock: React.FC<{ d: DecisionRequestDto; caseId: str
         {d.options.length > 0 && !d.can_decide && (
           <div>
             <p className="text-xs text-pex-muted mb-1.5">Options for the decision-maker</p>
-            <ul className="grid gap-1.5">{d.options.map((o) => <li key={o.code} className="px-3 py-2 rounded-lg border border-surface-line bg-white">{o.label}</li>)}</ul>
+            <ul className="grid gap-1.5">{d.options.map((o) => <li key={o.code} className="px-4 py-3 rounded-xl border border-surface-line bg-white">{o.label}</li>)}</ul>
           </div>
         )}
         {d.can_decide && (
@@ -105,7 +133,7 @@ export const DecisionRequestBlock: React.FC<{ d: DecisionRequestDto; caseId: str
             <fieldset className="grid gap-1.5">
               <legend className="text-xs text-pex-muted mb-1.5">Choose one option. PeX does not choose for you.</legend>
               {d.options.map((o) => (
-                <label key={o.code} className={cn("flex items-center gap-2 px-3 py-2 rounded-lg border bg-white cursor-pointer", pick === o.code ? "border-pex-primary" : "border-surface-line")}>
+                <label key={o.code} className={cn("flex items-center gap-3 px-4 py-3 rounded-xl border bg-white cursor-pointer hover:bg-slate-50", pick === o.code ? "border-pex-primary ring-2 ring-pex-primary/20 bg-pex-primary-soft/40" : "border-surface-line")}>
                   <input type="radio" name="decision-option" value={o.code} checked={pick === o.code} onChange={() => setPick(o.code)} />{o.label}
                 </label>
               ))}

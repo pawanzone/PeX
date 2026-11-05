@@ -65,7 +65,7 @@ export interface DecisionRequestDto {
 export interface CasePage {
   case_id: string; variant: Variant; viewer_mode?: string; now?: string;
   header?: {
-    title?: string; chips?: Chip[]; amount?: Money; cutoff?: Cutoff; uetr?: string; rail?: { key?: string; label?: string };
+    title?: string; chips?: Chip[]; amount?: Money; cutoff?: Cutoff; uetr?: string; exception?: { code?: string; label?: string; domain?: string }; rail?: { key?: string; label?: string };
     creditor?: string; debtor?: string; status?: string; assignee?: Person | null; opened_at?: string;
   };
   banner?: { tone?: ApiTone; title?: string; text?: string } | null;

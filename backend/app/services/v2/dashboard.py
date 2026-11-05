@@ -153,7 +153,7 @@ def dashboard(user, stuck_limit: int = 10) -> Dict[str, Any]:
         pw["open"] += 1
         if left is not None and left < 3600:
             pw["at_risk"] += 1
-        row = {"case_id": c["case_id"], "exception": (c.get("profile") or "").replace("_", " ").title(), "amount": c.get("amount"),
+        row = {"case_id": c["case_id"], "exception": lg.profile_label(c.get("profile")), "amount": c.get("amount"),
                "currency": c.get("currency"), "stage": STAGE_LABEL[stage], "stage_key": stage, "with": owner,
                "cutoff": cutoff_obj(cut, t) if cut else None, "link": f"/cases/{c['case_id']}"}
         if left is not None and left < 3600:

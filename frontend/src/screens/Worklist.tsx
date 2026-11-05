@@ -111,7 +111,7 @@ export const Worklist: React.FC = () => {
             columns={[
               { key: "co", header: "Cutoff ↑", render: (r) => <CutoffChip cutoff={r.cutoff} />, width: "6rem", nowrap: true },
               { key: "id", header: "Case", render: (r) => <span className="font-medium">{r.case_id}</span>, nowrap: true },
-              { key: "ex", header: "Exception", nowrap: true, render: (r) => r.exception?.label ?? "—" },
+              { key: "ex", header: "Exception", nowrap: true, render: (r) => <span>{r.exception?.label ?? "—"}{r.exception?.code && <span className="ml-2 pex-mono text-[11px] text-slate-400" title="Profile code">{r.exception.code}</span>}</span> },
               { key: "am", header: "Amount", mono: true, nowrap: true, render: (r) => r.amount?.display ?? "—" },
               { key: "ra", header: "Rail", render: (r) => <span title={r.rail?.label} className="block max-w-[6rem] truncate text-pex-muted">{r.rail?.label ?? "—"}</span> },
               { key: "cp", header: "Counterparty", render: (r) => <span title={r.counterparty ?? undefined} className="block max-w-[6.5rem] truncate pex-mono text-xs text-slate-600">{r.counterparty ?? "—"}</span> },

@@ -64,17 +64,17 @@ const TopBar: React.FC = () => {
   const [q, setQ] = useState("");
   const submit = (e: React.FormEvent) => { e.preventDefault(); if (q.trim()) navigate(routes.worklist({ q: q.trim() })); };
   return (
-    <header className="h-14 glass border-b border-surface-line px-6 flex items-center gap-4 shrink-0 sticky top-0 z-30">
-      <form onSubmit={submit} role="search" className="relative flex-1 max-w-md min-w-0">
+    <header className="h-14 glass border-b border-surface-line px-3 sm:px-6 flex items-center gap-2 sm:gap-4 shrink-0 sticky top-0 z-30">
+      <form onSubmit={submit} role="search" className="relative flex-1 max-w-md min-w-[2.5rem]">
         <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" aria-hidden />
         <label className="sr-only" htmlFor="pex-global-search">Search case, party or reference</label>
         <input id="pex-global-search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search case, party or reference" className="w-full pl-9 pr-3 py-2 text-sm rounded-full bg-slate-100 border border-transparent focus:bg-white focus:border-surface-line" />
       </form>
-      <div className="ml-auto flex items-center gap-3">
+      <div className="ml-auto flex items-center gap-2 sm:gap-3 min-w-0 overflow-x-auto no-scrollbar">
         {info?.operation_mode && <StatusPill tone={info.operation_mode === "LIVE" ? "red" : info.operation_mode === "ASSISTED" ? "amber" : "blue"} title="Operation mode">{info.operation_mode}</StatusPill>}
-        {info?.bank_comm && <StatusPill tone="grey" title="Bank communication">Bank: {info.bank_comm}</StatusPill>}
+        {info?.bank_comm && <span className="hidden md:inline-flex"><StatusPill tone="grey" title="Bank communication">Bank: {info.bank_comm}</StatusPill></span>}
         <StatusPill tone="amber" title="All data in this environment is synthetic">Demo data</StatusPill>
-        <Clock />
+        <span className="hidden lg:inline-flex"><Clock /></span>
         <TextSizeControl userId={persona?.user_id} />
         <ThemeControl />
         <ChasersBell />
@@ -123,7 +123,7 @@ export const Shell: React.FC<{ render: (route: Route) => React.ReactNode }> = ({
       <div className="flex-1 flex flex-col min-w-0">
         <TopBar />
         {note && <div className="px-6 pt-3"><Banner tone="amber">{note}</Banner></div>}
-        <main id="main" className="flex-1 overflow-y-auto px-8 py-6">
+        <main id="main" className="flex-1 overflow-y-auto px-4 sm:px-8 py-6">
           {persona && !allowed
             ? <Banner tone="amber" title="Not available for your role" action={<a className="text-sm font-medium underline" href="#/home">Go home</a>}>{persona.title} ({persona.role}) cannot open this area. Switch persona from the top right to see it.</Banner>
             : render(route)}
