@@ -5,7 +5,8 @@ import uuid
 
 from app.schemas.bank_events import RawBankEvent
 from app.schemas.canonical import (
-    CanonicalPayment, CanonicalException, CanonicalParty, CanonicalAccount,
+    CanonicalPayment, CanonicalException, CanonicalParty, CanonicalAccount, CanonicalAgent, CanonicalPostalAddress,
+    CanonicalPurpose, CanonicalRemittance,
     LifecycleStage, ExceptionProfile, ExceptionSeverity, ExceptionPriority,
     ExceptionDomain, get_domain_for_profile
 )
@@ -257,6 +258,26 @@ class CanonicalizerService:
             source_bank_id=bank_id,
             raw_source_ref=raw_event.event_id
         )
+
+        # Message detail the bank supplied, held in the canonical entities (None when the bank sent nothing).
+        if creditor_bic:
+            canonical_payment.creditor_agent = CanonicalAgent(role="CREDITOR_AGENT", bic=creditor_bic)
+        if bank_id == "BANK_B" and body.get("routing_code"):
+            if canonical_payment.creditor_agent:
+                canonical_payment.creditor_agent.member_id = str(body["routing_code"])
+        if bank_id == "BANK_B" and body.get("intermediary_bic"):
+            canonical_payment.intermediary_agents = [CanonicalAgent(role="INTERMEDIARY", bic=body["intermediary_bic"], sequence=1)]
+        if p.get("purpose_code"):
+            canonical_payment.purpose = CanonicalPurpose(code=str(p["purpose_code"]))
+        if p.get("remittance_info"):
+            canonical_payment.remittance = CanonicalRemittance(unstructured=[str(p["remittance_info"])])
+        addr = p.get("creditor_address")
+        if isinstance(addr, dict) and addr:
+            lines = addr.get("address_lines") or addr.get("lines") or []
+            canonical_payment.creditor_party.address = CanonicalPostalAddress(
+                street=addr.get("street"), building=addr.get("building"), post_code=addr.get("post_code") or addr.get("postcode"),
+                town=addr.get("town") or addr.get("city"), country_sub_division=addr.get("country_sub_division"), country=addr.get("country"),
+                address_lines=[str(x) for x in lines] if isinstance(lines, list) else [])
 
         queue = "Repair"
         if profile in [ExceptionProfile.SANCTIONS_SUSPECTED, ExceptionProfile.KYC_EXPIRED]:

@@ -5,7 +5,7 @@ import { useV2 } from "../../services/v2/client";
 import { getDataModel, getOntology, getSop, getSops, type DataModel, type SopRow } from "../../services/v2/reference";
 
 const Card: React.FC<{ title: string; right?: React.ReactNode; children: React.ReactNode; className?: string }> = ({ title, right, children, className }) => (
-  <section className={cn("bg-surface-card rounded-card border border-surface-line shadow-card p-4", className)}>
+  <section className={cn("min-w-0 bg-surface-card rounded-card border border-surface-line shadow-card p-4", className)}>
     <div className="flex items-center justify-between mb-3"><h2 className="text-base font-semibold text-pex-ink">{title}</h2>{right}</div>{children}
   </section>
 );
@@ -18,7 +18,7 @@ export const OntologyView: React.FC = () => {
   const d = r.data;
   if (!d) return <Wait r={r} />;
   return (
-    <div className="grid gap-4">
+    <div className="grid grid-cols-1 gap-4 min-w-0">
       <Banner tone="grey" title="Read only">{d.note}</Banner>
       <Card title="Six-stage governed pipeline">
         <ol className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
@@ -60,7 +60,7 @@ const SemanticLayer: React.FC<{ d: DataModel }> = ({ d: raw }) => {
   const fields = d.semantic_layer.filter((m) => has(m.canonical, m.iso20022, m.mt, m.description));
   const ev = d.evidence_catalogue.filter((e) => (!cat || e.category === cat) && has(e.type, e.label, e.source_system, e.proves, e.used_by.map((u) => u.code).join(" ")));
   const el = d.element_catalogue.filter((e) => has(e.element, e.message, e.mt, e.why, e.used_by.join(" ")));
-  const tabs: Array<["fields" | "evidence" | "elements", string, number]> = [["fields", "Canonical fields", d.semantic_layer.length], ["evidence", "Evidence sources", d.evidence_catalogue.length], ["elements", "Message elements not yet in the model", d.element_catalogue.length]];
+  const tabs: Array<["fields" | "evidence" | "elements", string, number]> = [["fields", "Canonical fields", d.semantic_layer.length], ["evidence", "Evidence sources", d.evidence_catalogue.length], ["elements", "Message elements", d.element_catalogue.length]];
   const th = "py-1.5 pr-3 font-medium whitespace-nowrap";
   return (
     <Card title="Semantic layer" right={<div><label className="sr-only" htmlFor="sl-q">Filter the semantic layer</label><input id="sl-q" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Filter, for example IBAN, DQ-02, sanctions" className="py-1.5 px-2.5 text-sm rounded-lg border border-surface-line w-80" /></div>}>
@@ -71,7 +71,7 @@ const SemanticLayer: React.FC<{ d: DataModel }> = ({ d: raw }) => {
         <Stat label="Evidence sources" value={s.evidence_types} hint={`${Object.keys(s.categories).length} categories`} />
         <Stat label="Exception profiles" value={s.profiles} />
         <Stat label="ISO message types" value={s.iso_messages.length} hint={s.iso_messages.join(", ")} />
-        <Stat label="Elements still to add" value={s.element_gaps} hint="used by profiles, not yet in the canonical model" />
+        <Stat label="Message elements carried" value={`${s.elements_covered ?? d.element_catalogue.filter((e) => e.in_canonical_model).length} of ${s.elements_total ?? d.element_catalogue.length}`} hint={`${s.element_gaps} still to add`} />
         <Stat label="Data classes" value={Object.keys(s.data_classes).length} hint="C1 personal to C5 operational" />
       </div>
       <div role="tablist" aria-label="Semantic layer views" className="flex flex-wrap gap-1 mb-3">
@@ -101,14 +101,48 @@ const SemanticLayer: React.FC<{ d: DataModel }> = ({ d: raw }) => {
         </>)}
       {tab === "elements" && (
         <>
-          <p className="text-sm text-pex-muted mb-2">Message elements that profiles read from the payload but the canonical model does not carry as fields yet. Listed openly so coverage gaps are visible, not hidden.</p>
-          <div className="overflow-x-auto"><table className="w-full text-sm"><caption className="sr-only">Message elements not yet in the canonical model</caption>
-            <thead className="text-xs text-pex-muted text-left"><tr><th className={th}>Element</th><th className={th}>Message</th><th className={th}>SWIFT MT</th><th className={th}>Class</th><th className="pr-3 font-medium">Why PeX needs it</th><th className="font-medium">Profiles</th></tr></thead>
+          <p className="text-sm text-pex-muted mb-2">Message elements that profiles read from the payload, and where the canonical model now carries each one. Elements marked "Not yet carried" are listed openly so gaps are visible, not hidden.</p>
+          <div className="overflow-x-auto"><table className="w-full text-sm"><caption className="sr-only">Message elements and where the canonical model carries them</caption>
+            <thead className="text-xs text-pex-muted text-left"><tr><th className={th}>Element</th><th className={th}>Message</th><th className={th}>SWIFT MT</th><th className={th}>Carried in</th><th className={th}>Class</th><th className="pr-3 font-medium">Why PeX needs it</th><th className="font-medium">Profiles</th></tr></thead>
             <tbody>{el.map((e) => <tr key={e.element + e.message} className="border-t border-surface-line align-top">
               <td className="py-1.5 pr-3 pex-mono text-xs text-pex-primary">{e.element}</td><td className="pr-3 text-xs whitespace-nowrap">{e.message}</td><td className="pr-3 text-xs">{e.mt}</td>
+              <td className="pr-3 text-xs whitespace-nowrap">{e.canonical_home ? <span className="pex-mono">{e.canonical_home}</span> : <StatusPill tone="amber" dot={false}>Not yet carried</StatusPill>}</td>
               <td className="pr-3"><StatusPill tone={CLASS_TONE[e.data_class]} dot={false}>{e.data_class}</StatusPill></td><td className="pr-3">{e.why}</td><td className="text-xs pex-mono">{e.used_by.join(" ")}</td></tr>)}</tbody></table>
             {!el.length && <p className="text-sm text-pex-muted py-3">Nothing matches the filter.</p>}</div>
         </>)}
+    </Card>
+  );
+};
+
+
+const STATUS_TONE: Record<string, "green" | "amber" | "grey"> = { "in code": "green", "database only": "amber", planned: "grey" };
+
+/** The logical canonical model: business entities by domain. Status is computed from the code, so it cannot overstate what exists. */
+const LogicalModelCard: React.FC<{ lm?: DataModel["logical_model"] }> = ({ lm }) => {
+  if (!lm) return null;
+  const s = lm.summary;
+  return (
+    <Card title="Canonical data model" right={<span className="text-xs text-pex-muted">{s.entities} entities · {s.in_code} in code · {s.database_only} database only · {s.planned} planned</span>}>
+      <p className="text-sm text-pex-muted mb-3">The business entities PeX reasons about, grouped by domain. Each is marked <b>in code</b> (a real model in the code; ISO 20022 messages and bank events fill it, except mandate and screening alert, which wait for a bank feed), <b>database only</b> (held in a table, no canonical model yet) or <b>planned</b>. The status is read from the code, so it cannot claim more than exists.</p>
+      <div className="grid gap-4">
+        {lm.domains.map((dom) => (
+          <div key={dom}>
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-pex-muted mb-2">{dom}</h3>
+            <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+              {lm.entities.filter((e) => e.domain === dom).map((e) => (
+                <div key={e.name} className="rounded-lg border border-surface-line p-3 min-w-0">
+                  <div className="flex items-center justify-between gap-2"><span className="font-semibold text-sm text-pex-ink">{e.name}</span><StatusPill tone={STATUS_TONE[e.status]} dot={false}>{e.status}</StatusPill></div>
+                  <p className="text-xs text-pex-muted mt-1">{e.description}</p>
+                  <div className="text-xs mt-2 flex flex-wrap gap-x-3 gap-y-0.5 text-pex-muted">
+                    <span className="pex-mono">{e.iso_anchor}</span>
+                    {e.canonical_class && <span className="pex-mono text-pex-primary">{e.canonical_class} · {e.fields} fields</span>}
+                    {e.db_table && <span className="pex-mono">table {e.db_table}</span>}
+                  </div>
+                  {e.links.length > 0 && <div className="text-xs mt-1.5 text-pex-muted">{e.links.map((l) => `${l.label} → ${l.to}`).join(" · ")}</div>}
+                </div>))}
+            </div>
+          </div>))}
+      </div>
     </Card>
   );
 };
@@ -123,8 +157,9 @@ export const DataModelView: React.FC = () => {
   return (
     <div className="grid gap-4">
       <Banner tone="grey" title="Read only">{d.note}</Banner>
+      <LogicalModelCard lm={d.logical_model} />
       <SemanticLayer d={d} />
-      <Card title="Canonical models">
+      <Card title="Canonical model classes (fields)">
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {d.canonical.map((m) => (
             <details key={m.name} className="rounded-lg border border-surface-line p-3"><summary className="cursor-pointer font-semibold pex-mono text-sm text-pex-primary">{m.name} <span className="text-xs font-normal text-pex-muted">· {m.fields.length} fields</span></summary>

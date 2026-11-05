@@ -10,9 +10,11 @@ from typing import Any, Dict, List
 
 from app.schemas import canonical as cn
 from app.services.v2 import classification as cls
-from app.services.v2.semantic_data import ELEMENTS, EVIDENCE, FIELD_ROWS
+from app.services.v2.semantic_data import ELEMENTS, ELEMENT_HOME, EVIDENCE, FIELD_ROWS
 
-MODELS = ["CanonicalParty", "CanonicalAccount", "CanonicalPayment", "CanonicalException"]
+MODELS = ["CanonicalParty", "CanonicalAccount", "CanonicalPayment", "CanonicalException", "CanonicalPostalAddress", "CanonicalAgent", "ChargeInfo",
+          "CanonicalCharges", "CanonicalRemittance", "CanonicalPurpose", "CanonicalEnvelope", "CanonicalStatusReport", "CanonicalInvestigation",
+          "CanonicalMandate", "CanonicalScreeningAlert"]
 PACKS_DIR = Path(__file__).resolve().parents[2] / "profile_packs" / "packs"
 
 
@@ -46,9 +48,19 @@ def evidence_catalogue() -> List[Dict[str, Any]]:
     return rows
 
 
+def _home_exists(path: str) -> bool:
+    model, _, fld = path.partition(".")
+    cls_ = getattr(cn, model, None)
+    return bool(cls_) and (not fld or fld in cls_.model_fields)
+
+
 def element_catalogue() -> List[Dict[str, Any]]:
-    return [{"element": e, "message": msg, "mt": mt, "data_class": k, "why": why, "used_by": list(p), "in_canonical_model": False}
-            for e, msg, mt, k, why, p in ELEMENTS]
+    out = []
+    for e, msg, mt, k, why, p in ELEMENTS:
+        home = ELEMENT_HOME.get(e)
+        out.append({"element": e, "message": msg, "mt": mt, "data_class": k, "why": why, "used_by": list(p),
+                    "canonical_home": home if home and _home_exists(home) else None, "in_canonical_model": bool(home and _home_exists(home))})
+    return out
 
 
 _MSG = re.compile(r"\b(?:pacs|pain|camt|head)\.\d{3}\b")
@@ -71,5 +83,5 @@ def summary() -> Dict[str, Any]:
     for r in fields + ev + el:
         classes[r["data_class"]] += 1
     return {"canonical_fields_total": total, "canonical_fields_mapped": len(fields), "iso_mapped_fields": sum(1 for r in fields if not r["pex_internal"]),
-            "evidence_types": len(ev), "profiles": len(_packs()), "element_gaps": len(el), "iso_messages": sorted(msgs), "categories": cats,
+            "evidence_types": len(ev), "profiles": len(_packs()), "element_gaps": sum(1 for r in el if not r["in_canonical_model"]), "elements_total": len(el), "elements_covered": sum(1 for r in el if r["in_canonical_model"]), "iso_messages": sorted(msgs), "categories": cats,
             "data_classes": {k: {"label": cls.CLASSES[k], "count": v} for k, v in classes.items()}}

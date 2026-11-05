@@ -135,6 +135,117 @@ class ExceptionPriority(str, Enum):
     HIGH = "HIGH"
     CRITICAL = "CRITICAL"
 
+class CanonicalPostalAddress(BaseModel):
+    """ISO 20022 PostalAddress: structured fields, or free address lines when the sender did not structure it."""
+    street: Optional[str] = None
+    building: Optional[str] = None
+    post_code: Optional[str] = None
+    town: Optional[str] = None
+    country_sub_division: Optional[str] = None
+    country: Optional[str] = None
+    address_lines: List[str] = []
+
+
+class CanonicalAgent(BaseModel):
+    """A bank in the payment chain (debtor agent, creditor agent, intermediary 1..3, instructing or instructed agent)."""
+    role: str  # DEBTOR_AGENT, CREDITOR_AGENT, INTERMEDIARY, INSTRUCTING_AGENT, INSTRUCTED_AGENT
+    bic: Optional[str] = None
+    name: Optional[str] = None
+    clearing_system_id: Optional[str] = None
+    member_id: Optional[str] = None
+    lei: Optional[str] = None
+    sequence: Optional[int] = None  # position among intermediaries
+
+
+class ChargeInfo(BaseModel):
+    amount: float
+    currency: str
+    agent_bic: Optional[str] = None
+
+
+class CanonicalCharges(BaseModel):
+    """Who pays the fees (ChrgBr), the charges taken on the way, and the original instructed amount and rate when the payment was converted."""
+    charge_bearer: Optional[str] = None  # DEBT, CRED, SHAR, SLEV
+    items: List[ChargeInfo] = []
+    instructed_amount: Optional[float] = None
+    instructed_currency: Optional[str] = None
+    exchange_rate: Optional[float] = None
+
+
+class CanonicalRemittance(BaseModel):
+    unstructured: List[str] = []
+    structured_reference: Optional[str] = None
+    reference_type: Optional[str] = None  # SCOR (creditor reference), etc.
+
+
+class CanonicalPurpose(BaseModel):
+    code: Optional[str] = None  # ExternalPurpose1Code
+    category_code: Optional[str] = None  # ExternalCategoryPurpose1Code
+    regulatory_codes: List[str] = []
+
+
+class CanonicalEnvelope(BaseModel):
+    """What the message itself says about how it travels: type, ids, settlement method, clearing system, service level, agents, instructions."""
+    message_type: Optional[str] = None
+    message_id: Optional[str] = None
+    created_at: Optional[str] = None
+    number_of_transactions: Optional[int] = None
+    settlement_method: Optional[str] = None
+    clearing_system: Optional[str] = None
+    service_level: Optional[str] = None
+    local_instrument: Optional[str] = None
+    instructing_agent_bic: Optional[str] = None
+    instructed_agent_bic: Optional[str] = None
+    instructions_for_next_agent: List[str] = []
+
+
+class CanonicalStatusReport(BaseModel):
+    """pacs.002 status report or pacs.004 return: what happened to a payment and why."""
+    message_type: str
+    message_id: Optional[str] = None
+    kind: str = "STATUS"  # STATUS | RETURN
+    uetr: Optional[str] = None
+    status: Optional[str] = None
+    reason_code: Optional[str] = None
+    additional_info: Optional[str] = None
+    originator: Optional[str] = None
+    returned_amount: Optional[float] = None
+    currency: Optional[str] = None
+
+
+class CanonicalInvestigation(BaseModel):
+    """camt.056 recall, camt.029 answer, camt.110 investigation request, camt.111 response."""
+    message_type: str
+    message_id: Optional[str] = None
+    kind: str  # RECALL | RECALL_ANSWER | INVESTIGATION | INVESTIGATION_ANSWER
+    case_id: Optional[str] = None
+    original_uetr: Optional[str] = None
+    reason_code: Optional[str] = None
+    status_code: Optional[str] = None
+    narrative: Optional[str] = None
+    amount: Optional[float] = None
+    currency: Optional[str] = None
+
+
+class CanonicalMandate(BaseModel):
+    """A direct-debit mandate (pain.009 family). Defined for the mandate profiles; filled when a bank sends mandate data."""
+    mandate_id: str
+    creditor_scheme_id: Optional[str] = None
+    signature_date: Optional[str] = None
+    sequence_type: Optional[str] = None  # FRST, RCUR, FNAL, OOFF
+    debtor_account_iban: Optional[str] = None
+
+
+class CanonicalScreeningAlert(BaseModel):
+    """A sanctions, PEP or watch-list hit raised against a party on a payment."""
+    alert_id: str
+    party_role: Optional[str] = None
+    list_name: Optional[str] = None
+    matched_name: Optional[str] = None
+    match_score: Optional[float] = None
+    disposition: Optional[str] = None
+
+
 class CanonicalParty(BaseModel):
     party_id: str
     party_name: str
@@ -143,6 +254,7 @@ class CanonicalParty(BaseModel):
     identifier_type: Optional[str] = "NAME"
     identifier_value: Optional[str] = None
     token_ref: Optional[str] = None
+    address: Optional[CanonicalPostalAddress] = None
 
 class CanonicalAccount(BaseModel):
     account_id: str
@@ -169,6 +281,16 @@ class CanonicalPayment(BaseModel):
     source_bank_id: str
     raw_source_ref: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
+    # Message detail the profiles rely on. All optional, so earlier constructions keep working.
+    debtor_agent: Optional[CanonicalAgent] = None
+    creditor_agent: Optional[CanonicalAgent] = None
+    intermediary_agents: List[CanonicalAgent] = []
+    ultimate_debtor: Optional[CanonicalParty] = None
+    ultimate_creditor: Optional[CanonicalParty] = None
+    charges: Optional[CanonicalCharges] = None
+    remittance: Optional[CanonicalRemittance] = None
+    purpose: Optional[CanonicalPurpose] = None
+    envelope: Optional[CanonicalEnvelope] = None
 
 class CanonicalException(BaseModel):
     exception_id: str

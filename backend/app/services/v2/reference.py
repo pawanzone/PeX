@@ -8,9 +8,12 @@ from app.db.session import SessionLocal
 from app.schemas import canonical as cn
 from app.services.v2 import evidence_model as em
 from app.services.v2 import semantic_layer as sl
+from app.services.v2.logical_model import logical_model
 from app.services.v2.core import not_found
 
-CANONICAL_MODELS = ["CanonicalParty", "CanonicalAccount", "CanonicalPayment", "CanonicalException", "CaseSummary", "PeXCase"]
+CANONICAL_MODELS = ["CanonicalParty", "CanonicalAccount", "CanonicalPayment", "CanonicalException", "CaseSummary", "PeXCase", "CanonicalPostalAddress", "CanonicalAgent",
+                    "CanonicalCharges", "CanonicalRemittance", "CanonicalPurpose", "CanonicalEnvelope", "CanonicalStatusReport", "CanonicalInvestigation", "CanonicalMandate",
+                    "CanonicalScreeningAlert"]
 
 def ontology() -> Dict[str, Any]:
     from app.api.endpoints import ontology as o
@@ -50,7 +53,7 @@ def data_model() -> Dict[str, Any]:
                 relations.append({"from": f"{t.name}.{c.name}", "to": fk.target_fullname})
         tables.append({"name": t.name, "description": doc.get(t.name, ""), "columns": cols, "rows": counts.get(t.name, -1)})
     canonical = [{"name": n, "fields": _model_fields(n), "description": (getattr(cn, n).__doc__ or "").strip().split("\n")[0]} for n in CANONICAL_MODELS]
-    return {"tables": tables, "relations": relations, "canonical": canonical, "semantic_layer": sl.field_mappings(),
+    return {"tables": tables, "relations": relations, "canonical": canonical, "logical_model": logical_model(), "semantic_layer": sl.field_mappings(),
             "evidence_catalogue": sl.evidence_catalogue(), "element_catalogue": sl.element_catalogue(), "semantic_summary": sl.summary(),
             "note": "Read from the live database models, canonical schemas and profile packs. Meaning is curated; coverage is computed and tested."}
 
