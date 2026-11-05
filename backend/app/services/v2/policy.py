@@ -22,6 +22,16 @@ PARAMS: List[Dict[str, Any]] = [
     {"key": "batch_limit", "label": "One-click batch approval limit", "group": "Approval", "unit": "payment currency", "min": 1_000, "max": 1_000_000, "step": 1_000, "kind": "amount",
      "description": "Validated micro-repairs under this amount can be approved together on the batch screen. A human still approves.", "used_by": "Low-risk batch approval screen",
      "default": lambda: float(settings.BATCH_APPROVAL_MAX_AMOUNT)},
+    {"key": "zero_touch_limit", "label": "Zero-touch release limit", "group": "Approval", "unit": "payment currency", "min": 1_000, "max": 1_000_000, "step": 1_000, "kind": "amount",
+     "description": "In auto-release mode, a case that passes all 8 straight-through rules and is at or under this amount is eligible for release with no person. Never applies to profiles marked never straight-through.",
+     "used_by": "Straight-through engine, batch screen (auto-release marker), Admin pages", "default": lambda: float(settings.STP_MAX_AMOUNT)},
+    {"key": "release_mode", "label": "Release mode", "group": "Approval", "unit": "choice", "kind": "choice", "min": 0, "max": 0, "step": 0,
+     "description": "Who releases cases that pass all 8 straight-through rules. It never loosens a rule: a case that fails one, or a profile marked never straight-through, always goes to a person.",
+     "used_by": "Batch approval screen", "options": [
+         {"value": "AUTO_RELEASE", "label": "Auto-release", "meaning": "Eligible cases at or under the zero-touch limit can be released with no person. People can still release in bulk."},
+         {"value": "APPROVE_ALL", "label": "Approve all", "meaning": "A person approves all eligible cases in one click on the batch screen. Exceptions are listed with the rule that stopped them."},
+         {"value": "REVIEW_EACH", "label": "Review each", "meaning": "No bulk release. A person opens and approves every case."}],
+     "default": lambda: "APPROVE_ALL"},
     {"key": "confidence_threshold", "label": "Decision confidence threshold", "group": "Evidence", "unit": "percent", "min": 50, "max": 99, "step": 1, "kind": "int",
      "description": "Below this confidence a second person must review the evidence before the repair can be approved.", "used_by": "Evidence confidence gate on every case",
      "default": lambda: _em().CONFIDENCE_THRESHOLD},
@@ -37,6 +47,10 @@ PARAMS: List[Dict[str, Any]] = [
      "default": lambda: _nw().RESPONSE_HOURS},
 ]
 BY_KEY = {p["key"]: p for p in PARAMS}
+
+
+def _f(v: Any) -> str:
+    return f"{v:,}" if isinstance(v, (int, float)) else str(v)
 
 
 def _lg():
@@ -111,6 +125,10 @@ def _clean(key: str, value: Any) -> Any:
     p = BY_KEY.get(key)
     if not p:
         raise not_found(f"Rule {key}")
+    if p["kind"] == "choice":
+        if not isinstance(value, str) or value not in {o["value"] for o in p["options"]}:
+            raise V2Error(422, "INVALID", f"{p['label']} must be one of: " + ", ".join(o["value"] for o in p["options"]) + ".")
+        return value
     try:
         v = float(value)
     except (TypeError, ValueError):
@@ -161,6 +179,20 @@ def impact(key: str, new: Any) -> Dict[str, Any]:
                 hit.append({"case_id": c["case_id"], "amount": float(c.get("amount") or 0), "currency": c.get("currency"), "now": "extra review" if pct < new else "no extra review", "was": "extra review" if pct < old else "no extra review"})
         verb = "need an extra evidence review" if new > old else "no longer need an extra evidence review"
         scope = "open"
+    elif key == "release_mode":
+        label = {o["value"]: o["label"] for o in BY_KEY[key]["options"]}
+        return {"cases_affected": 0, "cases": [], "old": old, "new": new,
+                "summary": f"Changes how eligible cases are released: {label[old]} to {label[new]}. Takes effect on the batch screen straight away. No case changes state."}
+    elif key == "zero_touch_limit":
+        for c in cases:
+            ext = lg.ext_of(c)
+            if not stp.is_candidate(c, ext) or not stp.evaluate(c)["eligible"]:
+                continue
+            a = float(c.get("amount") or 0)
+            if (a <= old) != (a <= new):
+                hit.append({"case_id": c["case_id"], "amount": a, "currency": c.get("currency"), "now": "auto-release eligible" if a <= new else "person releases", "was": "auto-release eligible" if a <= old else "person releases"})
+        verb = "become eligible for auto-release" if new > old else "stop being eligible for auto-release"
+        scope = "eligible"
     else:
         nxt = {"reveal_minutes": "reveal", "network_response_hours": "network case received or raised"}.get(key, "expedite request")
         return {"cases_affected": 0, "cases": [], "summary": f"Takes effect for the next {nxt}. No case changes.", "old": old, "new": new}
@@ -214,7 +246,7 @@ def propose(user, key: str, value: Any, reason: str) -> Dict[str, Any]:
         out = _row(r)
     finally:
         db.close()
-    _audit(key, user, "POLICY_CHANGE_PROPOSED", f"{user.name} proposed {BY_KEY[key]['label']}: {out['prev_value']:,} to {v:,}. Reason: {why[:200]}. {imp['summary']}")
+    _audit(key, user, "POLICY_CHANGE_PROPOSED", f"{user.name} proposed {BY_KEY[key]['label']}: {_f(out['prev_value'])} to {_f(v)}. Reason: {why[:200]}. {imp['summary']}")
     return out
 
 
@@ -241,7 +273,7 @@ def approve(user, cid: str, note: Optional[str]) -> Dict[str, Any]:
     finally:
         db.close()
     reset_cache()
-    _audit(key, user, "POLICY_CHANGE_APPROVED", f"{user.name} approved {BY_KEY[key]['label']}: {prev:,} to {val:,}. In force now.")
+    _audit(key, user, "POLICY_CHANGE_APPROVED", f"{user.name} approved {BY_KEY[key]['label']}: {_f(prev)} to {_f(val)}. In force now.")
     return out
 
 

@@ -42,6 +42,8 @@ const Content: React.FC<{ onClose: () => void; onDone: () => void }> = ({ onClos
   const currencies = new Set(chosen.map((i) => i.amount?.currency).filter(Boolean));
   const largest = chosen.reduce<StpItem | null>((m, i) => (!m || amountOf(i) > amountOf(m) ? i : m), null);
   const ne = r.data?.not_eligible;
+  const mode = r.data?.release_mode;
+  const bulk = mode ? mode.bulk_release : true;
   const toggle = (k: string) => setSel((s) => { const n = new Set(s); if (n.has(k)) n.delete(k); else n.add(k); return n; });
 
   const submit = async () => {
@@ -56,7 +58,7 @@ const Content: React.FC<{ onClose: () => void; onDone: () => void }> = ({ onClos
     { key: "e", header: "Exception", render: (i) => i.exception?.label ?? "" },
     { key: "a", header: "Amount and rail", render: (i) => <div><span className="pex-mono font-medium">{i.amount?.display ?? ""}</span><div className="text-xs text-pex-muted">{i.rail?.label}</div></div> },
     { key: "f", header: "Field change", render: (i) => <FieldChange c={i.change} /> },
-    { key: "w", header: "Why eligible", render: (i) => <div className="flex flex-wrap gap-1.5">{(i.chips ?? []).map((c, k) => <StatusPill key={k} tone={chipTone(c.tone)}><CheckCircle2 className="w-3 h-3" aria-hidden />{c.label}</StatusPill>)}</div> },
+    { key: "w", header: "Why eligible", render: (i) => <div className="flex flex-wrap gap-1.5">{i.auto_release_eligible && mode?.value === "AUTO_RELEASE" && <StatusPill tone="blue">Auto-release eligible</StatusPill>}{(i.chips ?? []).map((c, k) => <StatusPill key={k} tone={chipTone(c.tone)}><CheckCircle2 className="w-3 h-3" aria-hidden />{c.label}</StatusPill>)}</div> },
   ];
 
   const sim = result?.mode === "SHADOW";
@@ -64,7 +66,7 @@ const Content: React.FC<{ onClose: () => void; onDone: () => void }> = ({ onClos
     <div className="flex items-center gap-4 w-full">
       <p className="text-xs text-pex-muted mr-auto">{r.data?.footnote ?? "Handoff requests will be sent to the bank payment system. Execution is confirmed by the bank."}</p>
       <button className="px-4 py-2 text-sm font-medium rounded-lg bg-white border border-surface-line text-pex-primary" onClick={onClose}>Cancel</button>
-      <button disabled={busy || chosen.length === 0} onClick={submit} className="px-4 py-2 text-sm font-semibold rounded-lg bg-pex-primary text-white hover:bg-pex-primary-dark disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2"><Send className="w-4 h-4" aria-hidden />Approve {chosen.length} for bank handoff</button>
+      <button disabled={busy || chosen.length === 0 || !bulk} onClick={submit} className="px-4 py-2 text-sm font-semibold rounded-lg bg-pex-primary text-white hover:bg-pex-primary-dark disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2"><Send className="w-4 h-4" aria-hidden />Approve {chosen.length} for bank handoff</button>
     </div>
   );
 
@@ -78,6 +80,7 @@ const Content: React.FC<{ onClose: () => void; onDone: () => void }> = ({ onClos
         </div>
       ) : (
         <div className="grid gap-4">
+          {mode && <Banner tone={bulk ? "blue" : "amber"} title={mode.value === "REVIEW_EACH" ? "Review each: bulk release is off" : mode.value === "AUTO_RELEASE" ? "Release mode: auto-release" : "Release mode: approve all"}>{mode.note}</Banner>}
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <Tile label="Selected" value={`${chosen.length} of ${items.length}`} />
             <Tile label="Total value" value={num(total)} hint={currencies.size > 1 ? "(mixed currencies)" : [...currencies][0] as string} mono />
@@ -97,10 +100,10 @@ const Content: React.FC<{ onClose: () => void; onDone: () => void }> = ({ onClos
               <button className="w-full flex items-center gap-3 flex-wrap px-4 py-3 text-left" aria-expanded={showWhy} onClick={() => setShowWhy((s) => !s)}>
                 {showWhy ? <ChevronDown className="w-4 h-4 text-pex-block" aria-hidden /> : <ChevronRight className="w-4 h-4 text-pex-block" aria-hidden />}
                 <span className="font-semibold text-pex-block">{ne.total} item{ne.total === 1 ? "" : "s"} not eligible</span>
-                {(ne.groups ?? []).map((g, i) => <span key={i} className="text-xs rounded-full bg-white border border-red-200 px-2.5 py-1 text-pex-ink">{g.reason} <b className="ml-1">{g.count}</b></span>)}
+                {(ne.groups ?? []).map((g, i) => <span key={i} className="text-xs rounded-full bg-white border border-red-200 px-2.5 py-1 text-pex-ink">{g.reason}{g.rule ? <span className="pex-mono text-pex-muted"> · {g.rule}</span> : null} <b className="ml-1">{g.count}</b></span>)}
                 <span className="ml-auto text-sm text-pex-primary">{showWhy ? "Hide" : "View why"}</span>
               </button>
-              {showWhy && <div className="px-4 pb-3 grid gap-2">{(ne.groups ?? []).flatMap((g) => (g.cases ?? []).map((c) => <div key={c.case_id} className="text-sm flex gap-3 flex-wrap"><span className="pex-mono">{c.case_id}</span><span className="font-medium">{g.reason}</span><span className="text-pex-muted">{c.detail}</span></div>))}</div>}
+              {showWhy && <div className="px-4 pb-3 grid gap-2">{(ne.groups ?? []).flatMap((g) => (g.cases ?? []).map((c) => <div key={c.case_id} className="text-sm flex gap-3 flex-wrap"><span className="pex-mono">{c.case_id}</span><span className="font-medium">{g.reason}{g.rule ? ` (${g.rule})` : ""}</span><span className="text-pex-muted">{c.detail}</span></div>))}</div>}
             </div>
           )}
           {err && <Banner tone="red" title="Batch approval failed">{err}</Banner>}

@@ -47,6 +47,12 @@ from app.services.state_machine import transition_case
 from app.services.e2e_runner import e2e_runner
 
 
+def _zero_touch_limit() -> float:
+    """The zero-touch limit in force (policy rule, default settings.STP_MAX_AMOUNT)."""
+    from app.services.v2 import policy
+    return float(policy.get("zero_touch_limit"))
+
+
 def _handoff_transition(case, to_state, actor, reason, dispatch_status=None):
     """Walk the legal path RECOMMENDED/PENDING_APPROVAL -> APPROVED -> handoff target."""
     from app.services.state_machine import normalize_status
@@ -288,7 +294,7 @@ class STPEngine:
             return STPEligibilityItem(
                 case_id=case_id, payment_id=payment_id, amount=amount, currency=currency,
                 domain=domain, profile=profile, ai_confidence=confidence, eligible=True,
-                mode=STPMode.AUTONOMOUS if amount <= float(getattr(settings, 'STP_MAX_AMOUNT', 10000.0)) else STPMode.ONE_CLICK_BATCH,
+                mode=STPMode.AUTONOMOUS if amount <= _zero_touch_limit() else STPMode.ONE_CLICK_BATCH,
                 reason=stp_reason or "All 8 canonical predicates satisfied (E_suff ∧ R_det ∧ R_uniq ∧ V_det ∧ V_auth ∧ P_bank ∧ C_comp ∧ X_pre).",
                 proposed_repair_summary=proposed_summary,
                 debtor_name=debtor_name, creditor_name=creditor_name,
@@ -347,8 +353,8 @@ class STPEngine:
         _ts, _why = resolve_handoff_state("SYS-AUTONOMOUS-STP", policy_approved=True)
         if _ts is None:
             raise ValueError(f"Autonomous STP refused for {case_id}: {_why} Use the supervised 1-click fast-lane release.")
-        if float(case.get("amount", 0.0)) > float(getattr(settings, "STP_MAX_AMOUNT", 10000.0)):
-            raise ValueError(f"Case {case_id} exceeds the STP amount limit ({settings.STP_MAX_AMOUNT:,.0f}); human approval required.")
+        if float(case.get("amount", 0.0)) > _zero_touch_limit():
+            raise ValueError(f"Case {case_id} exceeds the STP amount limit ({_zero_touch_limit():,.0f}); human approval required.")
 
         db: Session = SessionLocal()
         try:

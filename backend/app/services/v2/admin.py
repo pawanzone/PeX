@@ -240,8 +240,8 @@ def roles() -> Dict[str, Any]:
 def policies() -> Dict[str, Any]:
     from app.services.v2.stp import limit_amount, policy_text
     thresholds = [
-        {"key": "stp_limit", "label": "Autonomous STP limit", "value": float(settings.STP_MAX_AMOUNT), "currency": "payment currency", "editable": False,
-         "note": "Zero-touch release limit (PEX_STP_MAX_AMOUNT). Never applies to compliance, returns or high-value payments."},
+        {"key": "stp_limit", "label": "Autonomous STP limit", "value": __import__("app.services.v2.policy", fromlist=["x"]).get("zero_touch_limit"), "currency": "payment currency", "editable": False,
+         "note": "Zero-touch release limit (Rules and policy: zero_touch_limit). Never applies to compliance, returns or high-value payments."},
         {"key": "batch_limit", "label": "One-click batch approval limit", "value": limit_amount(), "currency": "payment currency", "editable": False, "note": "Human approves; PEX_BATCH_APPROVAL_MAX."},
         {"key": "dual_auth_threshold", "label": "Dual authorisation from", "value": __import__("app.services.v2.policy", fromlist=["x"]).get("dual_auth_amount"), "currency": "payment currency", "editable": False, "note": "Two different approvers required."},
         {"key": "micro_repair_rule", "label": "Micro-repair rule", "value": policy_text(), "editable": False, "note": "Eligibility for the batch approval screen."},

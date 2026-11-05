@@ -18,13 +18,15 @@ export const getApprovals = (tier: string, page = 1, page_size = 25, desk: "all"
 export interface StpItem {
   case_id: string; exception?: { code?: string; label?: string }; amount?: Money; rail?: { key?: string; label?: string };
   change?: { field?: string; original?: string; proposed?: string; highlight?: number[] | null; source?: string };
-  chips?: Chip[];
+  chips?: Chip[]; auto_release_eligible?: boolean;
 }
+export interface ReleaseMode { value: "AUTO_RELEASE" | "APPROVE_ALL" | "REVIEW_EACH"; bulk_release: boolean; zero_touch_limit: number; batch_limit: number; note: string }
 export interface StpReview {
+  release_mode?: ReleaseMode;
   policy?: { rule_id?: string; text?: string; limit?: { amount?: number; currency?: string } };
   eligible?: StpItem[];
   totals?: { selected?: number; eligible?: number; total_value?: Array<{ currency: string; amount: number }>; total_value_label?: string; largest?: { case_id?: string; amount?: Money } };
-  not_eligible?: { total?: number; groups?: Array<{ reason?: string; code?: string; count?: number; cases?: Array<{ case_id: string; detail?: string }> }> };
+  not_eligible?: { total?: number; groups?: Array<{ reason?: string; code?: string; rule?: string | null; count?: number; cases?: Array<{ case_id: string; detail?: string }> }> };
   footnote?: string;
 }
 export interface StpApproveResult {

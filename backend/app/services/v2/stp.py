@@ -1,6 +1,6 @@
 """Batch approval of low-risk repairs (one-click supervised STP): review + approve.
 
-Autonomous zero-touch STP stays governed by settings.STP_MAX_AMOUNT (default 10,000). This screen is the HUMAN
+Zero-touch limit comes from policy zero_touch_limit (default settings.STP_MAX_AMOUNT, 10,000); release mode from policy release_mode. This screen is the HUMAN
 one-click batch tier: an approver releases validated micro-repairs under settings.BATCH_APPROVAL_MAX_AMOUNT (default 25,000,
 compared in the payment currency, no FX). Every release goes through the outbound port (mode aware) and records an
 approval + audit event per case.
@@ -31,6 +31,30 @@ RULE_ID = "MR-01"
 def limit_amount() -> float:
     from app.services.v2 import policy
     return float(policy.get("batch_limit"))
+
+
+RULE_OF = {"COMPLIANCE_HOLD": "C_comp", "EVIDENCE_CONFLICT": "E_suff", "EVIDENCE_MISSING": "E_suff", "VALIDATION_FAILED": "V_det",
+           "HARD_BLOCK": "Profile ceiling", "ABOVE_LIMIT": "P_bank"}
+MODE_NOTE = {
+    "AUTO_RELEASE": "Auto-release is selected. Eligible cases at or under the zero-touch limit are marked below. There is no trigger yet, so nothing is released without a person.",
+    "APPROVE_ALL": "Approve all is selected. Approve the eligible cases in one click; exceptions are listed with the rule that stopped them.",
+    "REVIEW_EACH": "Review each is selected. Bulk release is off: open and approve each case.",
+}
+
+
+def zero_touch_limit() -> float:
+    from app.services.v2 import policy
+    return float(policy.get("zero_touch_limit"))
+
+
+def release_mode() -> str:
+    from app.services.v2 import policy
+    return str(policy.get("release_mode"))
+
+
+def mode_block() -> Dict[str, Any]:
+    m = release_mode()
+    return {"value": m, "bulk_release": m != "REVIEW_EACH", "zero_touch_limit": zero_touch_limit(), "batch_limit": limit_amount(), "note": MODE_NOTE[m]}
 
 
 def policy_text() -> str:
@@ -89,11 +113,14 @@ def review(user, case_ids: Optional[List[str]] = None) -> Dict[str, Any]:
         if ev["eligible"]:
             eligible.append((case, ev))
         else:
-            g = groups.setdefault(ev["code"], {"reason": ev["reason_label"], "code": ev["code"], "count": 0, "cases": []})
+            g = groups.setdefault(ev["code"], {"reason": ev["reason_label"], "code": ev["code"], "rule": RULE_OF.get(ev["code"]), "count": 0, "cases": []})
             g["count"] += 1
             g["cases"].append({"case_id": case["case_id"], "detail": ev["detail"]})
     eligible.sort(key=lambda ce: ce[0]["case_id"])
     items = [_item(c, e) for c, e in eligible]
+    zt = zero_touch_limit()
+    for i in items:
+        i["auto_release_eligible"] = i["amount"]["amount"] <= zt
     sel = items if not case_ids else [i for i in items if i["case_id"] in set(case_ids)]
     cur: Dict[str, float] = {}
     total = 0.0
@@ -103,7 +130,8 @@ def review(user, case_ids: Optional[List[str]] = None) -> Dict[str, Any]:
     largest = max(sel, key=lambda i: i["amount"]["amount"]) if sel else None
     return {
         "policy": {"rule_id": RULE_ID, "text": policy_text(), "limit": {"amount": limit_amount(), "currency": "payment currency (no FX)"},
-                   "autonomous_limit": {"amount": float(settings.STP_MAX_AMOUNT)}},
+                   "autonomous_limit": {"amount": zt}},
+        "release_mode": mode_block(),
         "eligible": items,
         "totals": {"selected": len(sel), "eligible": len(items), "total_value": [{"currency": k, "amount": round(v, 2)} for k, v in sorted(cur.items())],
                    "total_value_label": f"{total:,.2f}" + (" (mixed currencies)" if len(cur) > 1 else (f" {next(iter(cur))}" if cur else "")),
@@ -116,6 +144,8 @@ def review(user, case_ids: Optional[List[str]] = None) -> Dict[str, Any]:
 
 def approve(user, case_ids: List[str]) -> Dict[str, Any]:
     require(user, "stp.approve")
+    if release_mode() == "REVIEW_EACH":
+        raise V2Error(409, "INVALID_STATE", "Bulk release is switched off (release mode: review each). Open and approve each case.")
     ids = [c for c in (case_ids or []) if c]
     if not ids:
         raise invalid("case_ids must contain at least one case", "case_ids")

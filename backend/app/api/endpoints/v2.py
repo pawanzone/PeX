@@ -164,7 +164,7 @@ def me(user=Depends(current_user)):
             "permissions": PERMISSIONS.get(r, []),
             "nav": [{"key": k, "label": NAV_LABELS[k][0], "path": NAV_LABELS[k][1]} for k in NAV.get(r, ["home"])],
             "mode": operation_mode(), "bank_comm": settings.BANK_COMM_MODE, "demo": bool(settings.PEX_DEMO), "now": iso(now()),
-            "stp_limit": {"amount": float(settings.STP_MAX_AMOUNT), "currency": "payment currency", "label": "Autonomous STP limit"},
+            "stp_limit": {"amount": float(__import__("app.services.v2.policy", fromlist=["x"]).get("zero_touch_limit")), "currency": "payment currency", "label": "Autonomous STP limit"},
             "batch_limit": {"amount": float(__import__("app.services.v2.policy", fromlist=["x"]).get("batch_limit")), "label": "One-click batch approval limit"},
             "unread_notifications": ac.list_notifications(user)["unread"]}
 
