@@ -125,7 +125,7 @@ export const Shell: React.FC<{ render: (route: Route) => React.ReactNode }> = ({
         {note && <div className="px-6 pt-3"><Banner tone="amber">{note}</Banner></div>}
         <main id="main" className="flex-1 overflow-y-auto px-4 sm:px-8 py-6">
           {persona && !allowed
-            ? <Banner tone="amber" title="Not available for your role" action={<a className="text-sm font-medium underline" href="#/home">Go home</a>}>{persona.title} ({persona.role}) cannot open this area. Switch persona from the top right to see it.</Banner>
+            ? <Banner tone="amber" title="Not available for your role" action={<span className="flex items-center gap-4"><button type="button" onClick={() => { if (window.history.length > 1) window.history.back(); else window.location.hash = "#/home"; }} className="text-sm font-medium underline">Go back</button><a className="text-sm font-medium underline" href="#/home">Go home</a></span>}>{persona.title} ({persona.role}) cannot open this area. Switch persona from the top right to see it.</Banner>
             : render(route)}
         </main>
         {/* Bottom pane: page action bars are drawn here, outside the scrolling area, so nothing scrolls behind them. */}
