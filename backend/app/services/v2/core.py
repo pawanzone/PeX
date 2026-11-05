@@ -224,13 +224,13 @@ ROLE_LABELS = {
 }
 PERMISSIONS: Dict[str, List[str]] = {
     "OPERATOR": ["case.read", "case.work", "case.assign", "batch.upload", "pii.reveal", "network.read", "network.work"],
-    "SUPERVISOR": ["case.read", "case.work", "case.assign", "case.reassign", "audit.read", "batch.upload", "pii.reveal", "network.read", "network.work"],
+    "SUPERVISOR": ["case.read", "case.work", "case.assign", "case.reassign", "audit.read", "batch.upload", "pii.reveal", "network.read", "network.work", "shadow.read"],
     "OPERATIONS_APPROVER": ["case.read", "case.approve", "stp.approve", "pii.reveal", "network.read", "network.approve"],
     "COMPLIANCE_APPROVER": ["case.read", "compliance.decide", "audit.read", "pii.reveal", "network.read"],
     "RISK_APPROVER": ["case.read", "case.approve", "stp.approve", "compliance.decide", "pii.reveal", "network.read", "network.approve"],
-    "AUDIT_RISK": ["case.read", "audit.read", "audit.export", "pii.reveal", "network.read"],
-    "ADMIN": ["case.read", "case.approve", "audit.read", "audit.export", "admin.read", "admin.mode_change", "admin.mode_approve", "batch.upload", "reference.read"],
-    "POLICY_OWNER": ["case.read", "audit.read", "policy.read", "policy.write", "policy.approve", "reference.read"],
+    "AUDIT_RISK": ["case.read", "audit.read", "audit.export", "pii.reveal", "network.read", "shadow.read"],
+    "ADMIN": ["case.read", "case.approve", "audit.read", "audit.export", "admin.read", "admin.mode_change", "admin.mode_approve", "batch.upload", "reference.read", "shadow.read", "shadow.write"],
+    "POLICY_OWNER": ["case.read", "audit.read", "policy.read", "policy.write", "policy.approve", "reference.read", "shadow.read"],
 }
 NAV = {
     "OPERATOR": ["dashboard", "home", "worklist", "network", "batches"],

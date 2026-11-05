@@ -253,6 +253,51 @@ def ref_library_profile(code: str, user=Depends(current_user)):
     from app.services.v2 import library as lb
     return lb.profile(code)
 
+@router.post("/shadow/rows")
+def shadow_rows(body: Dict[str, Any], user=Depends(current_user)):
+    require(user, "shadow.write", "Only Administrators load shadow comparison data.")
+    from app.services.v2 import shadow as sh
+    rows = body.get("rows")
+    if not isinstance(rows, list):
+        raise V2Error(400, "INVALID", "rows must be a list")
+    return sh.load_rows(user, rows)
+
+
+@router.post("/shadow/upload")
+async def shadow_upload(file: UploadFile = File(...), user=Depends(current_user)):
+    require(user, "shadow.write", "Only Administrators load shadow comparison data.")
+    from app.services.v2 import shadow as sh
+    return sh.load_csv(user, await file.read())
+
+
+@router.delete("/shadow")
+def shadow_clear(user=Depends(current_user)):
+    require(user, "shadow.write", "Only Administrators clear shadow comparison data.")
+    from app.services.v2 import shadow as sh
+    return sh.clear(user)
+
+
+@router.get("/shadow/scorecard")
+def shadow_scorecard(user=Depends(current_user)):
+    require(user, "shadow.read", "The shadow scorecard is for Administrators, Policy Owners, Supervisors and Audit.")
+    from app.services.v2 import shadow as sh
+    return sh.scorecard()
+
+
+@router.get("/shadow/cases")
+def shadow_cases(verdict: Optional[str] = None, release: Optional[str] = None, user=Depends(current_user)):
+    require(user, "shadow.read", "The shadow scorecard is for Administrators, Policy Owners, Supervisors and Audit.")
+    from app.services.v2 import shadow as sh
+    return sh.cases(verdict, release)
+
+
+
+@router.get("/value-model")
+def value_model(monthly_exceptions: str = "5000", minutes_per_case: str = "15", cost_per_hour: str = "45", review_minutes: str = "3", user=Depends(current_user)):
+    require(user, "shadow.read", "The value model is for Administrators, Policy Owners, Supervisors and Audit.")
+    from app.services.v2 import value as vm
+    return vm.model(monthly_exceptions, minutes_per_case, cost_per_hour, review_minutes)
+
 
 @router.get("/reference/contract")
 def ref_contract(user=Depends(current_user)):

@@ -393,3 +393,17 @@ class V2AttachmentModel(Base):
     uploaded_by = Column(String(32), nullable=False)
     uploaded_at = Column(String(40), nullable=False)
     linked = Column(Boolean, nullable=False, default=False)         # true once it is tied to a submitted handover note
+
+
+class V2ShadowRowModel(Base):
+    """What the bank's analyst actually did on one case, loaded for the shadow scorecard. One row per case; loading again replaces it."""
+    __tablename__ = "v2_shadow_rows"
+
+    case_id = Column(String(64), primary_key=True)
+    action = Column(String(16), nullable=False)                    # FIXED | REJECTED | ESCALATED | RETURNED
+    value = Column(String(1024), nullable=True)                    # the value the analyst applied (FIXED only)
+    minutes = Column(Float, nullable=True)
+    analyst_ref = Column(String(64), nullable=True)
+    resolved_at = Column(String(64), nullable=True)
+    loaded_by = Column(String(64), nullable=False)
+    loaded_at = Column(String(64), nullable=False)
