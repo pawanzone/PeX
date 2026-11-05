@@ -172,15 +172,14 @@ def test_replit_end_to_end_exception_resolution_lifecycle(client):
     assert exec_resp.status_code == 200
     exec_data = exec_resp.json()
     assert exec_data["success"] is True
-    assert "delivery_receipt" in exec_data
-    assert exec_data["delivery_receipt"]["bank_ack_reference"].startswith("ACK-SIM-")
+    assert not exec_data.get("delivery_receipt")  # default mode is SHADOW: nothing is sent, so no bank receipt
 
     # Step 7: Verify Terminal Settlement & Audit Trail
     final_case_resp = client.get(f"/api/cases/{case_id}")
     assert final_case_resp.status_code == 200
     final_case_wrapper = final_case_resp.json()
     final_case = final_case_wrapper["case"]
-    assert final_case["status"] == LifecycleStage.SETTLED.value
+    assert final_case["status"] != LifecycleStage.SETTLED.value  # PeX never settles; the bank does
     assert len(final_case["audit_timeline"]) > 0
 
 

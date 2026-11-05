@@ -232,10 +232,10 @@ def test_03_batch_different_records_different_outcomes(tmp_path):
 
     watcher.scan_once()
 
-    # Case 1 (DQ-01): Resolves to SETTLED via STP Fast-Lane
+    # Case 1 (DQ-01): Resolves via STP Fast-Lane. Default mode is SHADOW, so it is recorded and nothing is sent to the bank (PeX never settles).
     c1 = repo.get_case(case_stp)
     assert c1 is not None
-    assert c1["status"] == "SETTLED"
+    assert c1["status"] == "SHADOW_RECORDED"
     assert c1["queue"] == "STP Fast-Lane"
 
     # Case 2 (CO-01): Resolves to PENDING_APPROVAL via Compliance Queue
@@ -246,7 +246,7 @@ def test_03_batch_different_records_different_outcomes(tmp_path):
 
     # Reconciliation report outcomes
     recon = json.loads((out_dir / f"{batch_id}.reconciliation.json").read_text(encoding="utf-8"))
-    assert recon["outcomes_by_status"].get("SETTLED") == 1
+    assert recon["outcomes_by_status"].get("SHADOW_RECORDED") == 1
     assert recon["outcomes_by_status"].get("PENDING_APPROVAL") == 1
 
 

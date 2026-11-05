@@ -137,11 +137,11 @@ def test_new_file_detection_and_pipeline_execution(tmp_path):
     case_db = repo.get_case(case_id)
     assert case_db is not None
     assert case_db["case_id"] == case_id
-    assert case_db["status"] == "SETTLED"
+    assert case_db["status"] == "SHADOW_RECORDED"  # default mode is SHADOW: recorded, nothing sent
     assert case_db["queue"] == "STP Fast-Lane"
     assert case_db["amount"] == 4250.0
     assert case_db["currency"] == "GBP"
-    assert case_db["settled_at"] is not None
+    assert case_db["settled_at"] is None  # PeX never settles; the bank does
 
     # Verify recommendation saved
     rec_db = repo.get_recommendation(case_id)

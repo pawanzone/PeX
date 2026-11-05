@@ -495,7 +495,7 @@ def test_isolated_stage4_batch_e2e_retest(tmp_path):
 
     # Verify status breakdown: EXACTLY 1 SETTLED (REC01), REC04 is RECOMMENDED
     outcomes = recon_data["outcomes_by_status"]
-    assert outcomes.get("SETTLED") == 1
+    assert outcomes.get("SHADOW_RECORDED") == 1  # default mode is SHADOW
     assert outcomes.get("RECOMMENDED") == 3  # REC04 (conflicting), REC05 (invalid repair), REC06 (compound £34k)
     assert outcomes.get("PENDING_APPROVAL") == 1  # REC02 (sanctions)
     assert outcomes.get("INGESTED") == 1  # REC03 (missing evidence)
@@ -529,7 +529,7 @@ def test_isolated_stage4_batch_e2e_retest(tmp_path):
     try:
         c1 = db.query(CaseModel).filter(CaseModel.case_id == f"PEX-STAGE4-T{rid}-REC01-STP").first()
         assert c1 is not None
-        assert c1.status == "SETTLED"
+        assert c1.status == "SHADOW_RECORDED"
         assert c1.queue == "STP Fast-Lane"
 
         c4 = db.query(CaseModel).filter(CaseModel.case_id == f"PEX-STAGE4-T{rid}-REC04-CONFLICTING-EVIDENCE").first()

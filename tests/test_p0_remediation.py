@@ -17,6 +17,7 @@ from datetime import datetime
 
 # Set up test environment
 writable_db_path = Path(__file__).resolve().parent.parent / "scratch" / "writable_test.db"
+writable_db_path.parent.mkdir(parents=True, exist_ok=True)  # the scratch folder is not in the repository
 writable_url = f"sqlite:///{writable_db_path.as_posix()}"
 os.environ["DATABASE_URL"] = writable_url
 os.environ["PYTHONPATH"] = "backend"

@@ -134,13 +134,12 @@ def test_normal_full_lifecycle_e2e(client):
     # 8. Action Execution & Settlement Receipt
     act_ok, act_msg, contract, receipt = action_executor.execute_governed_action(exc.case_id)
     assert act_ok is True
-    assert contract.status.value == "SETTLED"
-    assert receipt.status == "SETTLED_CONFIRMED"
-    assert receipt.bank_ack_reference.startswith("ACK-SIM-")
+    assert contract.status.value == "DISPATCHED"  # PeX hands off; the bank settles
+    assert receipt is None or receipt.status != "SETTLED_CONFIRMED"
     
     # 9. Case Settled in Repo & Audit Trail Intact
     final_case = repo.get_case(exc.case_id)
-    assert final_case["status"] == LifecycleStage.SETTLED.value
+    assert final_case["status"] != LifecycleStage.SETTLED.value  # PeX never settles; the bank does
     
     # Verify Audit Chain Integrity
     chain_res = audit_service.verify_chain()
@@ -570,7 +569,9 @@ def test_redteam_audit_hash_chain_tampering_detection():
     finally:
         db.close()
 
-def test_redteam_idempotency_flood_attack():
+def test_redteam_idempotency_flood_attack(monkeypatch):
+    from app.config import settings as _settings
+    monkeypatch.setattr(_settings, "PEX_OPERATION_MODE", "ASSISTED")  # a handoff only happens outside SHADOW
     """
     Adversarial Attack: Re-submitting identical settlement dispatch 10 times concurrently.
     Expected Result: Exactly 1 action created; subsequent submissions return identical receipt with zero duplicate executions.
@@ -596,14 +597,12 @@ def test_redteam_idempotency_flood_attack():
     # First execution
     ok1, msg1, contract1, receipt1 = action_executor.execute_governed_action(case_id, idempotency_key=idempotency_key)
     assert ok1 is True
-    assert "successfully executed" in msg1
-    assert receipt1.status == "SETTLED_CONFIRMED"
+    assert "handed off to the bank" in msg1  # PeX hands off; the bank confirms and settles
     
     # Flood submissions 2 through 10
     for i in range(2, 11):
         ok_dup, msg_dup, contract_dup, receipt_dup = action_executor.execute_governed_action(case_id, idempotency_key=idempotency_key)
         assert ok_dup is True
-        assert "Idempotent response: action already settled" in msg_dup
+        assert "Idempotent response: action already handed off" in msg_dup
         assert contract_dup.action_id == contract1.action_id
-        assert receipt_dup.receipt_id == receipt1.receipt_id
-        assert receipt_dup.bank_ack_reference == receipt1.bank_ack_reference
+        assert receipt_dup is None and receipt1 is None  # no receipt until the bank confirms

@@ -74,11 +74,11 @@ def test_scenario_iban_repair_001():
     # Step 6: Action Execution
     act_ok, act_msg, contract, receipt = action_executor.execute_governed_action(exc.case_id)
     assert act_ok is True
-    assert receipt.status == "SETTLED_CONFIRMED"
-    
-    # Assert case status is settled
+    assert receipt is None  # default mode is SHADOW: recorded, nothing is sent, so no bank receipt
+
+    # PeX never settles; the bank does
     case = repo.get_case(exc.case_id)
-    assert case["status"] == LifecycleStage.SETTLED
+    assert case["status"] != LifecycleStage.SETTLED
 
 def test_scenario_iban_escalate_001():
     """Scenario IBAN-ESCALATE-001: Ambiguous evidence generates ESCALATE and blocks action execution."""

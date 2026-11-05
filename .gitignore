@@ -51,3 +51,4 @@ scratch/old_db/
 scratch/*.tgz
 scratch/patch*.py
 scratch/*.txt
+scratch/
