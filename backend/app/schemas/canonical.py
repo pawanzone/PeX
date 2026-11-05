@@ -356,3 +356,30 @@ class PeXCase(BaseModel):
     approval_history: List[Dict[str, Any]] = []
     settled_at: Optional[str] = None
     audit_timeline: List[Dict[str, Any]] = []
+
+
+class CanonicalBankOutcome(BaseModel):
+    """The bank's final word on an action PeX handed over (a signed callback, or a pacs.002 status mapped to one)."""
+    idempotency_key: str
+    case_id: str
+    outcome: str  # SETTLED | EXECUTED_CONFIRMED | REJECTED | FAILED
+    bank_reference: str
+    clearing_system: Optional[str] = None
+    received_at: str
+    signature_verified: bool = False
+    uetr: Optional[str] = None
+    status_code: Optional[str] = None  # pacs.002 TxSts when the outcome came from a status report
+    reason_code: Optional[str] = None
+    originator: Optional[str] = None
+
+
+def __getattr__(name: str):
+    """CanonicalApprovalRecord and CanonicalAuditEvent are the workflow's own classes, exposed here so there is one definition.
+    Loaded on first use because the approval schema imports this module."""
+    if name == "CanonicalApprovalRecord":
+        from app.schemas.approval import ApprovalRecord
+        return ApprovalRecord
+    if name == "CanonicalAuditEvent":
+        from app.schemas.audit import AuditEvent
+        return AuditEvent
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

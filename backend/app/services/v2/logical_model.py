@@ -31,13 +31,13 @@ ENTITIES: Dict[str, Tuple[str, str, str, Optional[str], Optional[str], List[Tupl
     "Correspondent position": ("Banks and routing", "The bank's nostro and vostro balances and limits per correspondent and currency.", "camt.053 / camt.052 statements", None, None, [("Bank", "held with")]),
     "Status report": ("Message and status", "What a bank reported about a payment (accepted, rejected, returned) and why.", "pacs.002, pacs.004", "CanonicalStatusReport", None, [("Payment", "reports on")]),
     "Investigation": ("Message and status", "A recall, investigation request or their answers, tied to the payment by UETR.", "camt.056, camt.029, camt.110, camt.111", "CanonicalInvestigation", None, [("Payment", "concerns")]),
-    "Bank outcome": ("Message and status", "The bank's final word on an action PeX handed over: executed, rejected or still unknown.", "pacs.002 / bank callback", None, "bank_outcomes", [("Case", "settles")]),
+    "Bank outcome": ("Message and status", "The bank's final word on an action PeX handed over: executed, rejected or still unknown.", "pacs.002 / bank callback", "CanonicalBankOutcome", "bank_outcomes", [("Case", "settles")]),
     "Screening alert": ("Compliance", "A sanctions, PEP or watch-list hit raised against a party, with its score and the screening team's decision.", "Bank screening system", "CanonicalScreeningAlert", None, [("Party", "raised against")]),
     "Customer KYC record": ("Compliance", "The customer's KYC status, expiry and risk rating, held by the bank.", "Bank KYC system", None, None, [("Party", "describes")]),
     "Exception": ("PeX workflow", "Why a payment stopped: profile, error code, severity, SLA and the amount at risk.", "PeX", "CanonicalException", None, [("Payment", "stopped")]),
     "Case": ("PeX workflow", "The unit of work a person handles: status, queue, evidence, recommendation, approvals and audit.", "PeX", "PeXCase", "cases", [("Exception", "opened for"), ("Payment", "about"), ("Approval", "gated by"), ("Audit event", "recorded in")]),
-    "Approval": ("PeX workflow", "A person's decision on a case: who, role, when, comment, and the second approver where required.", "PeX", None, "approval_records", [("Case", "decides")]),
-    "Audit event": ("PeX workflow", "A tamper-evident record of each step on a case.", "PeX", None, "audit_events", [("Case", "belongs to")]),
+    "Approval": ("PeX workflow", "A person's decision on a case: who, role, when, comment, and the second approver where required.", "PeX", "CanonicalApprovalRecord", "approval_records", [("Case", "decides")]),
+    "Audit event": ("PeX workflow", "A tamper-evident record of each step on a case.", "PeX", "CanonicalAuditEvent", "audit_events", [("Case", "belongs to")]),
 }
 
 SUPPORTING = {"ChargeInfo": "One charge line inside Charges and FX.", "CaseSummary": "The list view of a case (a projection of Case)."}
@@ -50,7 +50,7 @@ def _fields(cls_name: str) -> int:
 def logical_model() -> Dict[str, Any]:
     ents: List[Dict[str, Any]] = []
     for name, (domain, desc, iso, klass, table, links) in ENTITIES.items():
-        in_code = bool(klass and isinstance(getattr(cn, klass, None), type) and issubclass(getattr(cn, klass), BaseModel))
+        in_code = bool(klass and isinstance(getattr(cn, klass, None), type) and issubclass(getattr(cn, klass), BaseModel))  # aliases resolve through cn.__getattr__
         status = "in code" if in_code else ("database only" if table else "planned")
         ents.append({"name": name, "domain": domain, "description": desc, "iso_anchor": iso, "status": status,
                      "canonical_class": klass if in_code else None, "db_table": table,

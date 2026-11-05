@@ -14,7 +14,7 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
 from app.schemas.canonical import (
-    CanonicalAccount, CanonicalAgent, CanonicalCharges, CanonicalEnvelope, CanonicalInvestigation, CanonicalParty, CanonicalPayment,
+    CanonicalAccount, CanonicalAgent, CanonicalBankOutcome, CanonicalCharges, CanonicalEnvelope, CanonicalInvestigation, CanonicalParty, CanonicalPayment,
     CanonicalPostalAddress, CanonicalPurpose, CanonicalRemittance, CanonicalStatusReport, ChargeInfo,
 )
 
@@ -282,3 +282,41 @@ def from_payment_info(info: Dict[str, Any]) -> CanonicalPayment:
         creditor_account=CanonicalAccount(account_id=f"ACC-{uuid.uuid4().hex[:6]}", account_number=c_acc, iban=c_acc if c_acc and re.match(r"^[A-Z]{2}\d{2}", c_acc) else None, currency=ccy, bank_bic=s("creditor_agent_bic")),
         settlement_date=s("value_date"), source_bank_id=s("source_bank_id") or "PROFILE_PIPELINE",
         debtor_agent=dba, creditor_agent=cda, remittance=remit, purpose=purpose, charges=charges)
+
+
+# ---- bank outcome ----------------------------------------------------------------------------------------------------
+OUTCOMES = ("SETTLED", "EXECUTED_CONFIRMED", "REJECTED", "FAILED")
+# pacs.002 TxSts -> the outcome PeX records. Anything not listed (pending, unknown, empty) yields no outcome: fail closed.
+_STATUS_TO_OUTCOME = {"ACSC": "SETTLED", "ACCC": "SETTLED", "ACSP": "EXECUTED_CONFIRMED", "RJCT": "REJECTED"}
+
+
+def bank_outcome_from_status(report: CanonicalStatusReport, case_id: str, bank_reference: str, clearing_system: Optional[str] = None,
+                             received_at: Optional[str] = None) -> Optional[CanonicalBankOutcome]:
+    """Map a pacs.002 status report to a bank outcome, or None when the status is not a final or acknowledged result.
+    A parsed message is not a verified callback, so signature_verified stays False."""
+    if report.message_type != "pacs.002" or report.status not in _STATUS_TO_OUTCOME:
+        return None
+    outcome = _STATUS_TO_OUTCOME[report.status]
+    from datetime import datetime, timezone
+    return CanonicalBankOutcome(idempotency_key=f"IDEMP-BANK-{case_id}-{bank_reference}-{outcome}", case_id=case_id, outcome=outcome, bank_reference=bank_reference,
+                                clearing_system=clearing_system, received_at=received_at or datetime.now(timezone.utc).isoformat(), signature_verified=False,
+                                uetr=report.uetr, status_code=report.status, reason_code=report.reason_code, originator=report.originator)
+
+
+def bank_outcome_from_row(row: Dict[str, Any]) -> CanonicalBankOutcome:
+    """Load a stored bank_outcomes row (a dict of its columns) into the canonical model."""
+    return CanonicalBankOutcome(**{k: row[k] for k in CanonicalBankOutcome.model_fields if k in row and row[k] is not None})
+
+
+def bank_outcome_from_callback(payload: Dict[str, Any], signature_verified: bool, received_at: Optional[str] = None) -> CanonicalBankOutcome:
+    """Build the model from a bank callback payload (same keys as the /bank/outcome request). Raises ValueError for an unknown outcome."""
+    outcome = str(payload.get("outcome") or "").upper().strip()
+    if outcome not in OUTCOMES:
+        raise ValueError(f"Invalid bank outcome '{payload.get('outcome')}'")
+    ref = str(payload.get("bank_reference") or "")
+    case_id = str(payload.get("case_id") or "")
+    from datetime import datetime, timezone
+    return CanonicalBankOutcome(idempotency_key=payload.get("idempotency_key") or f"IDEMP-BANK-{case_id}-{ref}-{outcome}", case_id=case_id, outcome=outcome,
+                                bank_reference=ref, clearing_system=payload.get("clearing_system"),
+                                received_at=received_at or payload.get("settlement_timestamp") or datetime.now(timezone.utc).isoformat(),
+                                signature_verified=signature_verified, uetr=payload.get("uetr"), reason_code=payload.get("reason"))

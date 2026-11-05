@@ -13,7 +13,7 @@ from app.services.v2.core import not_found
 
 CANONICAL_MODELS = ["CanonicalParty", "CanonicalAccount", "CanonicalPayment", "CanonicalException", "CaseSummary", "PeXCase", "CanonicalPostalAddress", "CanonicalAgent",
                     "CanonicalCharges", "CanonicalRemittance", "CanonicalPurpose", "CanonicalEnvelope", "CanonicalStatusReport", "CanonicalInvestigation", "CanonicalMandate",
-                    "CanonicalScreeningAlert"]
+                    "CanonicalScreeningAlert", "CanonicalBankOutcome", "CanonicalApprovalRecord", "CanonicalAuditEvent"]
 
 def ontology() -> Dict[str, Any]:
     from app.api.endpoints import ontology as o

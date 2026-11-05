@@ -4,7 +4,7 @@
   S2  Every evidence type any profile pack asks for has a catalogue entry; no catalogue entry is unused.
   S3  "Used by" is computed from the packs (profile, tier), never typed by hand.
   S4  Every row names its data class (C1 to C5), and field rows carry the SWIFT MT equivalent and a validation rule.
-  S5  Message elements the profiles rely on but the canonical model does not carry yet are listed openly, and each names real profiles.
+  S5  Message elements the profiles rely on name real profiles and, when the canonical model carries them, a home that exists in code; the rest are listed as gaps.
   S6  The API exposes the layers, a coverage summary, and keeps the old `semantic_layer` shape.
 """
 import json
@@ -17,8 +17,10 @@ from app.schemas import canonical as cn
 from app.services.v2 import classification as cls
 from app.services.v2 import semantic_layer as sl
 
-PACKS = Path(__file__).resolve().parents[1] / "app" / "profile_packs" / "packs"
-MODELS = ["CanonicalParty", "CanonicalAccount", "CanonicalPayment", "CanonicalException"]
+import app.profile_packs as _pp
+
+PACKS = Path(_pp.__file__).resolve().parent / "packs"  # works from tests/ or backend/tests/
+MODELS = sl.MODELS
 
 
 def packs():
@@ -70,9 +72,16 @@ def test_s5_uncovered_elements_are_listed_with_real_profiles():
     P = packs()
     rows = sl.element_catalogue()
     assert len(rows) >= 30
+    from app.services.v2.semantic_data import ELEMENT_HOME
+    assert set(ELEMENT_HOME) <= {r["element"] for r in rows}
     for r in rows:
-        assert r["in_canonical_model"] is False
+        assert r["in_canonical_model"] is bool(r["canonical_home"])
+        if r["canonical_home"]:
+            m, _, f = r["canonical_home"].partition(".")
+            assert hasattr(cn, m) and (not f or f in getattr(cn, m).model_fields), r["element"]
         assert r["used_by"] and set(r["used_by"]) <= set(P), r["element"]
+    gaps = [r["element"] for r in rows if not r["in_canonical_model"]]
+    assert 0 < len(gaps) <= 6 and sum(1 for r in rows if r["in_canonical_model"]) >= 35  # covered now, remaining gaps listed openly
     msgs = " ".join(r["message"] for r in rows)
     for m in ("pacs.008", "pacs.002", "pacs.004", "camt.056", "camt.029"):
         assert m in msgs
