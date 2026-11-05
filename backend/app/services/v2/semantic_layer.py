@@ -14,7 +14,8 @@ from app.services.v2.semantic_data import ELEMENTS, ELEMENT_HOME, EVIDENCE, FIEL
 
 MODELS = ["CanonicalParty", "CanonicalAccount", "CanonicalPayment", "CanonicalException", "CanonicalPostalAddress", "CanonicalAgent", "ChargeInfo",
           "CanonicalCharges", "CanonicalRemittance", "CanonicalPurpose", "CanonicalEnvelope", "CanonicalStatusReport", "CanonicalInvestigation",
-          "CanonicalMandate", "CanonicalScreeningAlert", "CanonicalBankOutcome", "CanonicalApprovalRecord", "CanonicalAuditEvent"]
+          "CanonicalMandate", "CanonicalScreeningAlert", "CanonicalBankOutcome", "CanonicalApprovalRecord", "CanonicalAuditEvent", "CanonicalCustomer", "CanonicalKycRecord", "CanonicalTreasuryPosition",
+          "CanonicalPrecedentSummary"]
 PACKS_DIR = Path(__file__).resolve().parents[2] / "profile_packs" / "packs"
 
 

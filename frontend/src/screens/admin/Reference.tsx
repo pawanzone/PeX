@@ -30,8 +30,23 @@ export const OntologyView: React.FC = () => {
         </ol>
       </Card>
       <Card title="Canonical entities">
-        <div className="overflow-x-auto"><table className="w-full text-sm"><thead className="text-xs text-pex-muted text-left"><tr><th className="py-1.5 pr-3 font-medium">Entity</th><th className="pr-3 font-medium">Standard</th><th className="pr-3 font-medium">What it holds</th><th className="font-medium">Key fields</th></tr></thead>
-          <tbody>{d.entities.map((e) => <tr key={e.name} className="border-t border-surface-line align-top"><td className="py-2 pr-3 font-semibold pex-mono text-pex-primary">{e.name}</td><td className="pr-3">{e.standard}</td><td className="pr-3 text-pex-muted">{e.description}</td><td className="pex-mono text-xs text-pex-muted">{e.key_fields.join(", ")}</td></tr>)}</tbody></table></div>
+        <p className="text-sm text-pex-muted mb-3">Each key field shows where the canonical data model holds it, or the canonical fields it is worked out from. The paths are checked against the code, so this page cannot name a field the model does not have.</p>
+        <div className="grid gap-3 lg:grid-cols-2">
+          {d.entities.map((e) => (
+            <div key={e.name} className="rounded-lg border border-surface-line p-3 min-w-0">
+              <div className="flex flex-wrap items-baseline justify-between gap-2"><span className="font-semibold pex-mono text-pex-primary">{e.name}</span><span className="text-xs text-pex-muted">{e.standard}</span></div>
+              <p className="text-xs text-pex-muted mt-1">{e.description}</p>
+              {e.source_note && <p className="text-xs mt-1 text-pex-muted"><b>Source:</b> {e.source_note}</p>}
+              {e.logical_entity && <p className="text-xs mt-1 text-pex-muted"><b>Canonical entity:</b> {e.logical_entity}</p>}
+              <div className="overflow-x-auto mt-2"><table className="w-full text-xs"><caption className="sr-only">{e.name} key fields and their canonical home</caption>
+                <thead className="text-pex-muted text-left"><tr><th className="py-1 pr-2 font-medium">Field</th><th className="pr-2 font-medium">Held as</th><th className="font-medium">Canonical field</th></tr></thead>
+                <tbody>{(e.fields ?? e.key_fields.map((k) => ({ name: k, kind: "unmapped" as const, home: null, derived_from: [], in_code: false }))).map((f) => (
+                  <tr key={f.name} className="border-t border-surface-line align-top">
+                    <td className="py-1 pr-2 pex-mono">{f.name}</td>
+                    <td className="pr-2 whitespace-nowrap"><StatusPill tone={f.kind === "canonical" ? "green" : f.kind === "derived" ? "blue" : "grey"} dot={false}>{f.kind === "canonical" ? "stored" : f.kind === "derived" ? "derived" : "not mapped"}</StatusPill></td>
+                    <td className="pex-mono text-pex-muted break-words">{f.home ?? (f.derived_from.length ? f.derived_from.join(", ") : "—")}</td></tr>))}</tbody></table></div>
+            </div>))}
+        </div>
       </Card>
       <Card title="Which evidence domains each exception type reads">
         <div className="overflow-x-auto"><table className="w-full text-sm"><tbody>{d.domains.map((x) => <tr key={x.exception_type} className="border-t border-surface-line first:border-0"><td className="py-1.5 pr-3">{x.exception_type}</td><td className="text-pex-muted">{x.domain_str}</td></tr>)}</tbody></table></div>

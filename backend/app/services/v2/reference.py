@@ -13,12 +13,15 @@ from app.services.v2.core import not_found
 
 CANONICAL_MODELS = ["CanonicalParty", "CanonicalAccount", "CanonicalPayment", "CanonicalException", "CaseSummary", "PeXCase", "CanonicalPostalAddress", "CanonicalAgent",
                     "CanonicalCharges", "CanonicalRemittance", "CanonicalPurpose", "CanonicalEnvelope", "CanonicalStatusReport", "CanonicalInvestigation", "CanonicalMandate",
-                    "CanonicalScreeningAlert", "CanonicalBankOutcome", "CanonicalApprovalRecord", "CanonicalAuditEvent"]
+                    "CanonicalScreeningAlert", "CanonicalBankOutcome", "CanonicalApprovalRecord", "CanonicalAuditEvent", "CanonicalCustomer", "CanonicalKycRecord", "CanonicalTreasuryPosition",
+                    "CanonicalPrecedentSummary"]
 
 def ontology() -> Dict[str, Any]:
     from app.api.endpoints import ontology as o
-    return {"pipeline": o.get_pipeline_stages(), "entities": [{**e} for e in o.get_canonical_entities()], "domains": o.get_investigation_domains_matrix(),
-            "note": "Read only. Bank-agnostic canonical entities aligned to ISO 20022 and BIAN."}
+    from app.services.v2 import ontology_map as om
+    ents = [{**e, **om.describe(e["name"], e["key_fields"])} for e in o.get_canonical_entities()]
+    return {"pipeline": o.get_pipeline_stages(), "entities": ents, "domains": o.get_investigation_domains_matrix(),
+            "note": "Read only. Bank-agnostic entities aligned to ISO 20022 and BIAN. Each key field shows its canonical home or the canonical fields it is derived from, checked against the code."}
 
 
 def _model_fields(name: str) -> List[Dict[str, Any]]:

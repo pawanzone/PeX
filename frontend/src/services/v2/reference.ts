@@ -1,6 +1,6 @@
 import { v2Get } from "./client";
 
-export interface Ontology { pipeline: Array<{ stage_id: string; name: string; description: string }>; entities: Array<{ name: string; description: string; standard: string; key_fields: string[] }>; domains: Array<{ exception_type: string; domain_str: string }>; note: string }
+export interface Ontology { pipeline: Array<{ stage_id: string; name: string; description: string }>; entities: Array<{ name: string; description: string; standard: string; key_fields: string[]; logical_entity?: string | null; source_note?: string; fields?: Array<{ name: string; kind: "canonical" | "derived" | "unmapped"; home: string | null; derived_from: string[]; in_code: boolean }> }>; domains: Array<{ exception_type: string; domain_str: string }>; note: string }
 export interface DmColumn { name: string; type: string; nullable: boolean; primary_key: boolean; references: string | null }
 export interface DmTable { name: string; description: string; columns: DmColumn[]; rows: number }
 export interface LogicalEntity { name: string; domain: string; description: string; iso_anchor: string; status: "in code" | "database only" | "planned"; canonical_class: string | null; db_table: string | null; fields: number; links: Array<{ to: string; label: string }> }

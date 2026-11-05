@@ -193,6 +193,36 @@ FIELD_ROWS: Dict[str, Tuple[str, str, str, str, str]] = {
     "CanonicalAuditEvent.creditor_account": ("pacs.008 CdtrAcct/Id", "59 account line", "Tokenised or masked", "Creditor account, masked.", "C1"),
     "CanonicalAuditEvent.prev_hash": ("PeX: hash of the previous event", NA, "Equals the previous event's current_hash", "Chain link to the previous event.", "C4"),
     "CanonicalAuditEvent.current_hash": ("PeX: SHA-256 of this event and prev_hash", NA, "Recomputes to the same value", "Tamper-evidence seal of this event.", "C4"),
+
+    # ---- CanonicalCustomer
+    "CanonicalCustomer.client_id": ("PeX: bank customer number", NA, "Present; exists in the bank's customer system", "The bank's identifier of the customer.", "C4"),
+    "CanonicalCustomer.name": ("pacs.008 Dbtr/Nm (matched to the customer)", "50K", "Matches the customer record", "Customer name.", "C1"),
+    "CanonicalCustomer.client_type": ("BIAN Customer Management: customer type", NA, "One of CORPORATE, FINANCIAL_INSTITUTION, PRIVATE", "What kind of customer this is.", "C5"),
+    "CanonicalCustomer.segment": ("BIAN Customer Management: segment", NA, "A segment the bank defines", "Commercial segment, for example large corporate.", "C5"),
+    "CanonicalCustomer.country": ("Dbtr/PstlAdr/Ctry", "50F country line", "ISO 3166-1 alpha-2, active code", "Customer's country of domicile.", "C5"),
+    "CanonicalCustomer.risk_rating": ("BIAN Customer Management: risk rating", NA, "One of LOW, MEDIUM, HIGH", "The bank's risk rating of the customer.", "C3"),
+    "CanonicalCustomer.service_tier": ("BIAN Customer Management: service tier", NA, "A tier the bank defines", "Service level the customer is entitled to.", "C5"),
+    "CanonicalCustomer.historical_exception_rate": ("PeX: share of the customer's payments that became exceptions", NA, "0 to 1", "How often this customer's payments stop.", "C5"),
+    "CanonicalCustomer.stp_repair_eligible": ("PeX: derived from risk rating, KYC and bank policy", NA, "True only when the customer is not restricted and policy allows", "Whether repairs for this customer may go straight through.", "C5"),
+    # ---- CanonicalKycRecord
+    "CanonicalKycRecord.client_id": ("PeX: bank customer number", NA, "An existing customer", "The customer the record is about.", "C4"),
+    "CanonicalKycRecord.status": ("FATF customer due diligence status", NA, "One of ACTIVE, EXPIRED, UNDER_REVIEW", "Whether KYC is current.", "C3"),
+    "CanonicalKycRecord.risk_classification": ("FATF risk-based approach classification", NA, "One of LOW, MEDIUM, HIGH", "Risk class from the last KYC review.", "C3"),
+    "CanonicalKycRecord.expired_documents": ("FATF R10 documents past their validity", NA, "Names of documents; none expired when ACTIVE", "Documents that need renewing.", "C3"),
+    "CanonicalKycRecord.missing_documents": ("FATF R10/R16 documents not on file", NA, "Names of documents", "Documents still to be supplied.", "C3"),
+    "CanonicalKycRecord.payment_restriction": ("Bank KYC restriction flag", NA, "True when payments are blocked", "Whether KYC blocks payments for the customer.", "C3"),
+    # ---- CanonicalTreasuryPosition
+    "CanonicalTreasuryPosition.correspondent_bic": ("camt.053 Acct/Svcr/FinInstnId/BICFI", "62F account owner", "Valid BIC", "The correspondent bank holding the nostro.", "C5"),
+    "CanonicalTreasuryPosition.currency": ("camt.053 Acct/Ccy", "62F currency", "ISO 4217 active code", "Currency of the nostro account.", "C5"),
+    "CanonicalTreasuryPosition.nostro_balance": ("camt.053 Bal/Amt (closing available)", "62F / 64", "Number; may be negative", "Available balance at the correspondent.", "C5"),
+    "CanonicalTreasuryPosition.liquidity_threshold": ("Bank treasury limit", NA, "Greater than or equal to zero", "Minimum balance the bank wants to hold.", "C5"),
+    "CanonicalTreasuryPosition.currency_shortfall": ("PeX: threshold minus balance when positive", NA, "Greater than zero when present", "How far the nostro is below its threshold.", "C5"),
+    "CanonicalTreasuryPosition.funding_route_available": ("Bank treasury funding options", NA, "True or False", "Whether the bank can fund the nostro in time.", "C5"),
+    # ---- CanonicalPrecedentSummary
+    "CanonicalPrecedentSummary.case_match_count": ("PeX: similar earlier cases found", NA, "Zero or more", "How many similar cases PeX has seen.", "C5"),
+    "CanonicalPrecedentSummary.average_similarity": ("PeX: mean similarity score of the matches", NA, "0 to 1", "How close the matches are.", "C5"),
+    "CanonicalPrecedentSummary.last_resolution_action": ("PeX: action taken on the most recent match", NA, "An action PeX knows", "What was done last time.", "C5"),
+    "CanonicalPrecedentSummary.settlement_success_rate": ("PeX: share of matches that settled", NA, "0 to 1", "How often the earlier fix worked.", "C5"),
 }
 
 CORE, REF, MSG, SCR, POL, TRS, DOC, INF, STL, LED = (

@@ -373,6 +373,47 @@ class CanonicalBankOutcome(BaseModel):
     originator: Optional[str] = None
 
 
+class CanonicalCustomer(BaseModel):
+    """The bank's view of the instructing customer (BIAN Customer Management). Comes from the bank's customer system."""
+    client_id: str
+    name: str
+    client_type: Optional[str] = None  # CORPORATE, FINANCIAL_INSTITUTION, PRIVATE
+    segment: Optional[str] = None
+    country: Optional[str] = None
+    risk_rating: Optional[str] = None  # LOW, MEDIUM, HIGH
+    service_tier: Optional[str] = None
+    historical_exception_rate: Optional[float] = None
+    stp_repair_eligible: Optional[bool] = None
+
+
+class CanonicalKycRecord(BaseModel):
+    """The customer's KYC standing, from the bank's KYC system."""
+    client_id: str
+    status: str  # ACTIVE, EXPIRED, UNDER_REVIEW
+    risk_classification: Optional[str] = None
+    expired_documents: List[str] = []
+    missing_documents: List[str] = []
+    payment_restriction: bool = False
+
+
+class CanonicalTreasuryPosition(BaseModel):
+    """Nostro position per correspondent and currency (BIAN Treasury Management), from the bank's treasury system."""
+    correspondent_bic: str
+    currency: str
+    nostro_balance: float
+    liquidity_threshold: Optional[float] = None
+    currency_shortfall: Optional[float] = None
+    funding_route_available: Optional[bool] = None
+
+
+class CanonicalPrecedentSummary(BaseModel):
+    """What PeX's precedent memory knows about similar earlier cases."""
+    case_match_count: int = 0
+    average_similarity: Optional[float] = None
+    last_resolution_action: Optional[str] = None
+    settlement_success_rate: Optional[float] = None
+
+
 def __getattr__(name: str):
     """CanonicalApprovalRecord and CanonicalAuditEvent are the workflow's own classes, exposed here so there is one definition.
     Loaded on first use because the approval schema imports this module."""
