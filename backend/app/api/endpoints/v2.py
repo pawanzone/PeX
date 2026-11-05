@@ -240,6 +240,27 @@ def ref_data_model(user=Depends(current_user)):
     return rf.data_model()
 
 
+@router.get("/reference/library")
+def ref_library(user=Depends(current_user)):
+    require(user, "reference.read", "Reference pages are for Administrators and Policy Owners.")
+    from app.services.v2 import library as lb
+    return lb.library()
+
+
+@router.get("/reference/library/{code}")
+def ref_library_profile(code: str, user=Depends(current_user)):
+    require(user, "reference.read", "Reference pages are for Administrators and Policy Owners.")
+    from app.services.v2 import library as lb
+    return lb.profile(code)
+
+
+@router.get("/reference/controls")
+def ref_controls(user=Depends(current_user)):
+    require(user, "reference.read", "Reference pages are for Administrators and Policy Owners.")
+    from app.services.v2 import library as lb
+    return lb.controls()
+
+
 @router.get("/reference/sops")
 def ref_sops(user=Depends(current_user)):
     require(user, "reference.read", "Reference pages are for Administrators and Policy Owners.")

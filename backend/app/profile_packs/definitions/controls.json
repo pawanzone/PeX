@@ -1,0 +1,71 @@
+{
+  "note": "Readable definitions for the straight-through predicates, the controls and the terms used by the profile packs. This is configuration, not logic: the engine's rules are in code, and tests/test_library.py fails if this file and the code disagree. Wording is a first draft for expert review.",
+  "families": {
+    "DQ": "Data quality",
+    "PR": "Processing",
+    "CO": "Compliance",
+    "TR": "Client and treasury",
+    "ST": "Settlement and returns"
+  },
+  "stp_rules": {
+    "ALLOWED": "May go straight through when all 8 predicates hold and the bank's policy allows it.",
+    "POLICY_GATED": "Goes straight through only if the bank has opted in for this profile; otherwise a person approves.",
+    "NEVER": "Never goes straight through. No bank setting can loosen this; a person always decides."
+  },
+  "approval_paths": {
+    "MAKER_CHECKER": "One person prepares the repair and a different approver releases it.",
+    "COMPLIANCE_THEN_RISK": "A compliance approver decides first, then a risk approver confirms.",
+    "SINGLE": "One approver decides."
+  },
+  "authority_domains": {
+    "ACCOUNT_OWNERSHIP_BALANCE": "The account holder's bank is the authority for who owns an account and what it holds.",
+    "CLEARING_SETTLEMENT_STATUS": "The clearing or settlement system is the authority for where a payment stands.",
+    "LEGAL_PROHIBITION": "The sanctions list or legal order is the authority; the bank cannot override it by policy.",
+    "QUEUE_PROCESSING_STATE": "The bank's own processing queue is the authority for the state of a message in flight."
+  },
+  "outcomes": {
+    "REPAIR": "PeX proposes a repair and a resolver works out the new value.",
+    "DECISION_SUPPORT": "PeX gathers the evidence and a person chooses; PeX never picks an option.",
+    "INVESTIGATION": "A tracked investigation, for example funds held at a correspondent."
+  },
+  "effects": {
+    "PROCEED": "Clears the case for approval or release.",
+    "STOP": "Closes the case with no release.",
+    "ESCALATE": "Hands the case to a senior desk.",
+    "HOLD": "The case stays open while information or an investigation is outstanding."
+  },
+  "evidence_tiers": {
+    "1": "Core record: the bank's own system of record.",
+    "2": "Authoritative external source or the bank's reference data.",
+    "3": "Corroborating source.",
+    "4": "Advisory: informs a person, never proves on its own."
+  },
+  "stp_predicates": [
+    {"code": "E_suff", "engine_field": "evidence_sufficient", "name": "Evidence is sufficient", "meaning": "Every mandatory evidence item for the profile is present, fresh and not in conflict.", "fed_by": "The profile's evidence contract and the sufficiency check.", "enforced_in": "app/services/evidence_stp_evaluator.py", "configurable": "fixed", "bank_settings": []},
+    {"code": "R_det", "engine_field": "resolution_determined", "name": "Resolution is determined", "meaning": "A resolver derived a candidate repair deterministically (no guesswork).", "fed_by": "The profile's resolver.", "enforced_in": "app/services/evidence_stp_evaluator.py", "configurable": "fixed", "bank_settings": []},
+    {"code": "R_uniq", "engine_field": "resolution_unique", "name": "Resolution is unique", "meaning": "Exactly one candidate repair exists. Two or more means a person must choose.", "fed_by": "The resolver's candidate list.", "enforced_in": "app/services/evidence_stp_evaluator.py", "configurable": "fixed", "bank_settings": []},
+    {"code": "V_det", "engine_field": "deterministic_validation_passed", "name": "Deterministic validation passed", "meaning": "The candidate keeps the payment intact (lossless) and passes format and checksum rules.", "fed_by": "The resolver's validation of the candidate.", "enforced_in": "app/services/evidence_stp_evaluator.py", "configurable": "fixed", "bank_settings": []},
+    {"code": "V_auth", "engine_field": "authority_validation_passed", "name": "Authority validated", "meaning": "The authoritative source for the profile's authority domain confirmed the candidate.", "fed_by": "The authority validation, using the profile's authority domain.", "enforced_in": "app/services/evidence_stp_evaluator.py", "configurable": "fixed", "bank_settings": []},
+    {"code": "P_bank", "engine_field": "bank_policy_allows", "name": "Bank policy allows", "meaning": "The amount is within the bank's limit and below the dual-authorisation threshold, the currency is an allowed corridor, and straight-through is switched on.", "fed_by": "The bank's policy settings (STPPolicyConfig).", "enforced_in": "app/services/evidence_stp_evaluator.py", "configurable": "bank-configurable", "bank_settings": ["max_stp_amount", "dual_auth_threshold", "allowed_corridors", "auto_stp_enabled"]},
+    {"code": "C_comp", "engine_field": "compliance_gate_passed", "name": "Compliance gate passed", "meaning": "Screening returned no sanctions or AML hit; any hit stops straight-through.", "fed_by": "The bank's screening result.", "enforced_in": "app/services/evidence_stp_evaluator.py", "configurable": "fixed", "bank_settings": []},
+    {"code": "X_pre", "engine_field": "execution_preconditions_satisfied", "name": "Execution preconditions satisfied", "meaning": "The payment can be executed now: cutoff still open, ledger reachable, idempotency secured.", "fed_by": "Cutoff, ledger and idempotency checks.", "enforced_in": "app/services/evidence_stp_evaluator.py", "configurable": "fixed", "bank_settings": []}
+  ],
+  "controls": [
+    {"id": "CTL-01", "name": "All 8 predicates must hold", "kind": "Release", "meaning": "A case goes straight through only when all 8 predicates are true. One false predicate sends it to a person.", "enforced_in": "app/schemas/policy_contract.py", "configurable": "fixed", "applies_to": "repair"},
+    {"id": "CTL-02", "name": "AI confidence has no authority", "kind": "Release", "meaning": "The AI's confidence score is shown to people but is never one of the 8 predicates and cannot release a payment.", "enforced_in": "app/schemas/policy_contract.py", "configurable": "fixed", "applies_to": "all"},
+    {"id": "CTL-03", "name": "Straight-through ceiling per profile", "kind": "Release", "meaning": "Each profile is marked ALLOWED, POLICY_GATED or NEVER. A bank can tighten this but cannot loosen a NEVER.", "enforced_in": "app/profile_packs/schema.py", "configurable": "fixed", "applies_to": "all"},
+    {"id": "CTL-04", "name": "Missing or conflicting evidence stops release", "kind": "Evidence", "meaning": "If mandatory evidence is missing, stale, or sources contradict each other, the case goes to a person. The engine does not guess.", "enforced_in": "app/services/sufficiency_engine.py", "configurable": "fixed", "applies_to": "all"},
+    {"id": "CTL-05", "name": "Evidence must meet its required trust tier", "kind": "Evidence", "meaning": "Each evidence item must come from a source at or above the trust tier the profile requires. A weaker source does not count as evidence.", "enforced_in": "app/services/sufficiency_engine.py", "configurable": "fixed", "applies_to": "all"},
+    {"id": "CTL-06", "name": "Evidence trust tiers", "kind": "Evidence", "meaning": "Each evidence item has a trust tier from 1 (core record) to 4 (advisory). A bank's published configuration may override the defaults.", "enforced_in": "app/profile_packs/schema.py", "configurable": "bank-configurable", "applies_to": "all"},
+    {"id": "CTL-07", "name": "Decision support never picks an option", "kind": "Decision", "meaning": "For decision-support profiles PeX gathers evidence and shows options, and a named reviewer chooses. PeX never chooses.", "enforced_in": "app/profile_packs/schema.py", "configurable": "fixed", "applies_to": "decision"},
+    {"id": "CTL-08", "name": "Separation of duties", "kind": "Approval", "meaning": "The person who prepared a repair cannot approve it.", "enforced_in": "app/services/approval_engine.py", "configurable": "fixed", "applies_to": "all"},
+    {"id": "CTL-09", "name": "Approval path per profile", "kind": "Approval", "meaning": "Each profile names how a case is approved when it is not straight through: maker-checker, compliance then risk, or a single approver.", "enforced_in": "app/profile_packs/schema.py", "configurable": "fixed", "applies_to": "all"},
+    {"id": "CTL-10", "name": "Dual authorisation above a threshold", "kind": "Approval", "meaning": "Amounts at or above the bank's threshold need two different approvers.", "enforced_in": "app/services/evidence_stp_evaluator.py", "configurable": "bank-configurable", "applies_to": "all"},
+    {"id": "CTL-11", "name": "One-click batch approval limit", "kind": "Approval", "meaning": "Validated micro-repairs under the bank's limit can be approved together by a person on the Batches screen.", "enforced_in": "app/services/v2/stp.py", "configurable": "bank-configurable", "applies_to": "repair"},
+    {"id": "CTL-12", "name": "Operation mode", "kind": "Release", "meaning": "SHADOW sends nothing to the bank. ASSISTED needs a named person for every handoff. LIVE needs a person or an approved straight-through policy. Changing mode needs two administrators.", "enforced_in": "app/services/outbound_port.py", "configurable": "bank-configurable", "applies_to": "all"},
+    {"id": "CTL-13", "name": "Signed, idempotent bank callbacks", "kind": "Bank boundary", "meaning": "A bank outcome is accepted only with a valid signature, and a repeated callback is ignored.", "enforced_in": "app/api/endpoints/bank.py", "configurable": "fixed", "applies_to": "all"},
+    {"id": "CTL-14", "name": "PeX never moves money", "kind": "Bank boundary", "meaning": "PeX hands a decision to the bank's systems, which execute it. PeX holds no funds and sends no payment itself.", "enforced_in": "app/services/outbound_port.py", "configurable": "fixed", "applies_to": "all"},
+    {"id": "CTL-15", "name": "Tamper-evident audit trail", "kind": "Audit", "meaning": "Every step is recorded in a SHA-256 hash chain; any change to a past record breaks the chain and is detected.", "enforced_in": "app/services/audit_service.py", "configurable": "fixed", "applies_to": "all"},
+    {"id": "CTL-16", "name": "Personal data is tokenised", "kind": "Data protection", "meaning": "Names and account numbers are replaced by tokens outside the evidence zone.", "enforced_in": "app/core/tokenization.py", "configurable": "fixed", "applies_to": "all"}
+  ]
+}

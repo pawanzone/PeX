@@ -4,12 +4,12 @@ import { Banner, ErrorState, Loading, StatusPill, cn } from "../../components/v2
 import { useV2 } from "../../services/v2/client";
 import { getDataModel, getOntology, getSop, getSops, type DataModel, type SopRow } from "../../services/v2/reference";
 
-const Card: React.FC<{ title: string; right?: React.ReactNode; children: React.ReactNode; className?: string }> = ({ title, right, children, className }) => (
+export const Card: React.FC<{ title: string; right?: React.ReactNode; children: React.ReactNode; className?: string }> = ({ title, right, children, className }) => (
   <section className={cn("min-w-0 bg-surface-card rounded-card border border-surface-line shadow-card p-4", className)}>
     <div className="flex items-center justify-between mb-3"><h2 className="text-base font-semibold text-pex-ink">{title}</h2>{right}</div>{children}
   </section>
 );
-const Wait: React.FC<{ r: { loading: boolean; error: string | null; unavailable: boolean; data: unknown; reload: () => void } }> = ({ r }) =>
+export const Wait: React.FC<{ r: { loading: boolean; error: string | null; unavailable: boolean; data: unknown; reload: () => void } }> = ({ r }) =>
   r.loading && !r.data ? <Loading /> : <ErrorState message={r.error ?? undefined} unavailable={r.unavailable} onRetry={r.reload} />;
 
 /** Payment ontology: read only. */
@@ -56,7 +56,7 @@ export const OntologyView: React.FC = () => {
 };
 
 const CLASS_TONE: Record<string, "red" | "amber" | "blue" | "grey"> = { C1: "red", C2: "amber", C3: "red", C4: "blue", C5: "grey" };
-const Stat: React.FC<{ label: string; value: React.ReactNode; hint?: string }> = ({ label, value, hint }) => (
+export const Stat: React.FC<{ label: string; value: React.ReactNode; hint?: string }> = ({ label, value, hint }) => (
   <div className="rounded-xl bg-slate-50 px-3 py-2"><div className="text-xl font-semibold text-pex-ink">{value}</div><div className="text-xs text-pex-muted">{label}</div>{hint && <div className="text-[11px] text-pex-muted mt-0.5">{hint}</div>}</div>
 );
 
