@@ -64,13 +64,13 @@ const TopBar: React.FC = () => {
   const [q, setQ] = useState("");
   const submit = (e: React.FormEvent) => { e.preventDefault(); if (q.trim()) navigate(routes.worklist({ q: q.trim() })); };
   return (
-    <header className="h-14 glass border-b border-surface-line px-3 sm:px-6 flex items-center gap-2 sm:gap-4 shrink-0 sticky top-0 z-30">
+    <header className="min-h-14 py-1.5 flex-wrap glass border-b border-surface-line px-3 sm:px-6 flex items-center gap-2 sm:gap-4 shrink-0 sticky top-0 z-30">
       <form onSubmit={submit} role="search" className="relative flex-1 max-w-md min-w-[2.5rem]">
         <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" aria-hidden />
         <label className="sr-only" htmlFor="pex-global-search">Search case, party or reference</label>
         <input id="pex-global-search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search case, party or reference" className="w-full pl-9 pr-3 py-2 text-sm rounded-full bg-slate-100 border border-transparent focus:bg-white focus:border-surface-line" />
       </form>
-      <div className="ml-auto flex items-center gap-2 sm:gap-3 min-w-0 overflow-x-auto no-scrollbar">
+      <div className="ml-auto flex items-center gap-2 sm:gap-3 flex-wrap justify-end">
         {info?.operation_mode && <StatusPill tone={info.operation_mode === "LIVE" ? "red" : info.operation_mode === "ASSISTED" ? "amber" : "blue"} title="Operation mode">{info.operation_mode}</StatusPill>}
         {info?.bank_comm && <span className="hidden md:inline-flex"><StatusPill tone="grey" title="Bank communication">Bank: {info.bank_comm}</StatusPill></span>}
         <StatusPill tone="amber" title="All data in this environment is synthetic">Demo data</StatusPill>
