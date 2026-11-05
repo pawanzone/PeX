@@ -7089,6 +7089,68 @@
   "stp_eligible": true,
   "warnings": []
  },
+ "input/TR-05_authorization_missing_missing_evidence": {
+  "ai_confidence_score": 0.5,
+  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
+  "authority_status": "AUTHORITATIVE_CONFIRMED",
+  "bank_handoff_status": "MAKER_CHECKER_PENDING",
+  "bank_policy_status": "POLICY_PERMITTED",
+  "compliance_status": "COMPLIANCE_CLEARED",
+  "detected_profile_id": "TR-05",
+  "domain": "CLIENT_TREASURY",
+  "errors": [
+   "Evidence insufficient: missing mandatory ['CORPORATE_MANDATE_RECORD'] / stale [] / contradictory []"
+  ],
+  "evidence_contradictions": [],
+  "evidence_missing": [
+   "CORPORATE_MANDATE_RECORD"
+  ],
+  "evidence_status": "INSUFFICIENT",
+  "evidence_used": [
+   "INBOUND_PAYMENT_TELEMETRY",
+   "DEBTOR_ACCOUNT",
+   "PRIMARY_SIGNATORY_ID",
+   "SECONDARY_SIGNATORY_ID",
+   "SECONDARY_SIGNATORY_RECORD",
+   "PORTAL_CALLBACK_RECORD",
+   "RESOLUTION_ACTION"
+  ],
+  "exception_id": "PEX-E2E-TR05-SUFF-MISSING-EVIDENCE",
+  "execution_owner": "BANK",
+  "hitl_required": true,
+  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
+  "predicate_breakdown": {
+   "c_comp": true,
+   "e_suff": false,
+   "p_bank": true,
+   "r_det": true,
+   "r_uniq": true,
+   "stp_formula_result": false,
+   "v_auth": true,
+   "v_det": true,
+   "x_pre": true
+  },
+  "repaired_fields": [
+   {
+    "field_path": "mandate_authorization.status",
+    "repaired_value": "DUAL_AUTHORIZATION_VERIFIED"
+   }
+  ],
+  "resolution_basis": "Dual authorization AUTH-MAND-<ID> verified for mandate MAND-APEX-01. Signatories: SIG-PRIMARY-01 (Primary), SIG-CLASS-A-99 (CLASS_A, MFA verified).",
+  "resolution_recommendation": {
+   "authorization_id": "AUTH-MAND-<ID>",
+   "authorization_status": "DUAL_AUTHORIZATION_VERIFIED",
+   "execution_owner": "BANK",
+   "mandate_id": "MAND-APEX-01",
+   "primary_signatory_id": "SIG-PRIMARY-01",
+   "rationale": "Dual authorization verified for mandate MAND-APEX-01 via secondary digital signature (SIG-CLASS-A-99).",
+   "secondary_signatory_id": "SIG-CLASS-A-99"
+  },
+  "resolution_status": "RESOLVED",
+  "stp_decision_reason": "Evidence insufficient: missing mandatory ['CORPORATE_MANDATE_RECORD'] / stale [] / contradictory []",
+  "stp_eligible": false,
+  "warnings": []
+ },
  "input/TR-05_authorization_missing_sufficient": {
   "ai_confidence_score": 0.98,
   "approval_requirement": "NONE_AUTONOMOUS_STP",

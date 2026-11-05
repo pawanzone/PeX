@@ -179,6 +179,18 @@ class Wave4ResolutionEngine:
     # ==========================================================================
     # 2. TR-05: AUTHORIZATION MISSING (PAT-C / PAT-B)
     # ==========================================================================
+    def _scoped_mandate_port(self):
+        """Private copy of the mandate port's records for one resolution (no state leaks between cases)."""
+        mp = self.mandate_port
+        if all(hasattr(mp, a) for a in ("_mandates", "_signatories", "_callbacks")):
+            import copy
+            clone = copy.copy(mp)
+            clone._mandates = dict(mp._mandates)
+            clone._signatories = dict(mp._signatories)
+            clone._callbacks = dict(mp._callbacks)
+            return clone
+        return mp
+
     def resolve_tr05_authorization_missing(
         self,
         debtor_account: str,
@@ -197,6 +209,9 @@ class Wave4ResolutionEngine:
         3. Secondary digital signature is APPROVED with verified MFA.
         4. Out-of-band corporate portal callback status is VERIFIED.
         """
+        # Evidence supplied with this case is applied to a private copy of the reference store. Writing it into the shared
+        # adapter made later cases (and tests) see earlier cases' mandates, signatories and callbacks.
+        port = self._scoped_mandate_port()
         diff_log: List[str] = []
         ctx = evidence_context or {}
         policy = policy_thresholds or W4PolicyThresholds()
@@ -213,8 +228,8 @@ class Wave4ResolutionEngine:
                 is_authoritative=bool(raw_mandate.get("is_authoritative", True)),
                 authority_source=raw_mandate.get("authority_source", "CORPORATE_MANDATE_SYSTEM"),
             )
-            if hasattr(self.mandate_port, "_mandates"):
-                self.mandate_port._mandates[debtor_account] = m_rec
+            if hasattr(port, "_mandates"):
+                port._mandates[debtor_account] = m_rec
 
         raw_signer = ctx.get("secondary_signatory_record")
         sig_id = secondary_signatory_id or (raw_signer.get("signatory_id") if isinstance(raw_signer, dict) else "SIG-CLASS-A-99")
@@ -227,9 +242,9 @@ class Wave4ResolutionEngine:
                 mfa_verified=bool(raw_signer.get("mfa_verified", True)),
                 digital_token_reference=raw_signer.get("digital_token_reference", "TOKEN-MFA-OK"),
             )
-            if hasattr(self.mandate_port, "_signatories"):
-                self.mandate_port._signatories[sig_id] = s_rec
-                self.mandate_port._signatories[debtor_account] = s_rec
+            if hasattr(port, "_signatories"):
+                port._signatories[sig_id] = s_rec
+                port._signatories[debtor_account] = s_rec
 
         raw_callback = ctx.get("portal_callback_record")
         if raw_callback and isinstance(raw_callback, dict):
@@ -239,17 +254,17 @@ class Wave4ResolutionEngine:
                 callback_status=raw_callback.get("callback_status", "VERIFIED"),
                 verification_channel=raw_callback.get("verification_channel", "CORPORATE_PORTAL_MFA"),
             )
-            if hasattr(self.mandate_port, "_callbacks"):
-                self.mandate_port._callbacks[debtor_account] = c_rec
+            if hasattr(port, "_callbacks"):
+                port._callbacks[debtor_account] = c_rec
 
         # 1. Authoritative Mandate Lookup
-        mandate = self.mandate_port.get_mandate_record(debtor_account)
+        mandate = port.get_mandate_record(debtor_account)
         if not mandate:
             diff_log.append(f"No authoritative corporate mandate found for account {debtor_account}.")
             return ResolutionStatus.RESOLUTION_NOT_DETERMINED, ResolutionUniqueness.RESOLUTION_UNIQUE, None, diff_log, f"Missing corporate mandate for {debtor_account}."
 
         # 2. Signatory & Digital Signature Validation
-        signatory = self.mandate_port.get_secondary_signatory(debtor_account) or self.mandate_port.get_secondary_signatory(sig_id)
+        signatory = port.get_secondary_signatory(debtor_account) or port.get_secondary_signatory(sig_id)
         if not signatory:
             diff_log.append(f"Secondary signatory {sig_id} not found in corporate directory.")
             return ResolutionStatus.RESOLUTION_NOT_DETERMINED, ResolutionUniqueness.RESOLUTION_UNIQUE, None, diff_log, f"Secondary signatory {sig_id} not found."
@@ -267,14 +282,14 @@ class Wave4ResolutionEngine:
             return ResolutionStatus.RESOLUTION_NOT_DETERMINED, ResolutionUniqueness.RESOLUTION_UNIQUE, None, diff_log, "Secondary signatory MFA not verified."
 
         # 3. Portal Out-of-Band Callback Verification
-        callback = self.mandate_port.get_portal_callback(debtor_account)
+        callback = port.get_portal_callback(debtor_account)
         if not callback or callback.callback_status != "VERIFIED":
             diff_log.append(f"Out-of-band portal callback for account {debtor_account} is not VERIFIED.")
             return ResolutionStatus.RESOLUTION_NOT_DETERMINED, ResolutionUniqueness.RESOLUTION_UNIQUE, None, diff_log, "Portal callback verification failed."
 
         # 4. Dual-Auth Candidate Clearance
         prim_id = primary_signatory_id or "SIG-PRIMARY-01"
-        auth_candidate = self.mandate_port.generate_dual_auth_clearance(
+        auth_candidate = port.generate_dual_auth_clearance(
             mandate_id=mandate.mandate_id,
             primary_signer=prim_id,
             secondary_signer=signatory.signatory_id,

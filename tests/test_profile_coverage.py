@@ -19,12 +19,7 @@ def test_every_pack_has_at_least_two_fixtures():
     assert not thin, f"profiles with fewer than 2 fixtures: {thin}"
 
 
-# TR-05 falls back to a shared in-memory mandate store when the mandate record is absent, so a missing-mandate fixture gives
-# different output depending on which tests ran before it. Its negative case is the "unapproved" fixture until that lookup is fixed.
-ORDER_DEPENDENT = {"TR-05"}
-
-
-@pytest.mark.parametrize("code", [c for c in REPAIR if c not in ORDER_DEPENDENT])
+@pytest.mark.parametrize("code", REPAIR)
 def test_repair_profile_with_incomplete_or_conflicting_evidence_is_never_straight_through(code):
     from test_profile_goldens import _load_goldens
     gold = _load_goldens()

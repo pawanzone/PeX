@@ -1,0 +1,47 @@
+{
+  "exception_id": "PEX-E2E-TR05-SUFF-MISSING-EVIDENCE",
+  "profile_id": "TR-05",
+  "domain": "CLIENT_TREASURY",
+  "error_code": "ERR_AUTHORIZATION_MISSING",
+  "error_message": "Secondary corporate signatory authorization missing under account mandate.",
+  "payment_info": {
+    "payment_id": "PMT-2026-TR05-001",
+    "uetr": "UETR-TR05-SUFF-0001-A1",
+    "amount": 7500.0,
+    "currency": "USD",
+    "clearing_rail": "FEDWIRE",
+    "value_date": "2026-10-15",
+    "debtor_name": "Apex Commercial Holdings",
+    "debtor_account": "ACCT-CORP-USD-001",
+    "debtor_agent_bic": "CHASUS33XXX",
+    "creditor_name": "Global Machinery Corp",
+    "creditor_account": "77665544",
+    "creditor_agent_bic": "BNPAFRPPXXX",
+    "remittance_info": "CAPITAL EQUIPMENT INVOICE 4492"
+  },
+  "bank_supplied_evidence": {
+    "debtor_account": "ACCT-CORP-USD-001",
+    "primary_signatory_id": "SIG-PRIMARY-01",
+    "secondary_signatory_id": "SIG-CLASS-A-99",
+    "secondary_signatory_record": {
+      "signatory_id": "SIG-CLASS-A-99",
+      "signatory_name": "Jane Doe (CFO)",
+      "signer_class": "CLASS_A",
+      "signature_status": "APPROVED",
+      "mfa_verified": true,
+      "digital_token_reference": "TOKEN-MFA-998822"
+    },
+    "portal_callback_record": {
+      "callback_id": "CB-001",
+      "debtor_account": "ACCT-CORP-USD-001",
+      "callback_status": "VERIFIED",
+      "verification_channel": "CORPORATE_PORTAL_MFA"
+    }
+  },
+  "external_authoritative_evidence": {},
+  "derived_evidence": {
+    "resolution_action": "DUAL_AUTHORIZATION_VERIFIED"
+  },
+  "evidence_provenance": "SYNTHETIC_TEST_FIXTURE",
+  "test_status": "TEST_ONLY"
+}
