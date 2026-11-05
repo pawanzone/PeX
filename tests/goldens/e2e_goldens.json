@@ -5627,58 +5627,6 @@
   "stp_eligible": false,
   "warnings": []
  },
- "input/ST-02_account_closed_missing_evidence": {
-  "ai_confidence_score": 0.5,
-  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
-  "authority_status": "AUTHORITATIVE_CONFIRMED",
-  "bank_handoff_status": "MAKER_CHECKER_PENDING",
-  "bank_policy_status": "POLICY_PERMITTED",
-  "compliance_status": "COMPLIANCE_CLEARED",
-  "detected_profile_id": "ST-02",
-  "domain": "SETTLEMENT_RETURNS",
-  "errors": [
-   "Evidence insufficient: missing mandatory ['CORE_DDA_ACCOUNT_STATUS'] / stale [] / contradictory ['CONTRADICTORY_ACCOUNT_STATUS']",
-   "Deterministic resolution could not be derived.",
-   "Resolution is ambiguous due to contradictory evidence (CONTRADICTORY_ACCOUNT_STATUS).",
-   "Deterministic validation / checksum failed."
-  ],
-  "evidence_contradictions": [
-   "CONTRADICTORY_ACCOUNT_STATUS"
-  ],
-  "evidence_missing": [
-   "CORE_DDA_ACCOUNT_STATUS"
-  ],
-  "evidence_status": "CONTRADICTORY",
-  "evidence_used": [
-   "INBOUND_PAYMENT_TELEMETRY",
-   "AUTONOMOUS_REPLACEMENT_ATTEMPT",
-   "INWARD_PAYMENT_RECORD",
-   "CLEARING_RETURN_SCHEDULE",
-   "INVESTIGATION_STATUS"
-  ],
-  "exception_id": "PEX-E2E-ST02-NEG-MISSING-EVIDENCE",
-  "execution_owner": "BANK",
-  "hitl_required": true,
-  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
-  "predicate_breakdown": {
-   "c_comp": true,
-   "e_suff": false,
-   "p_bank": true,
-   "r_det": false,
-   "r_uniq": false,
-   "stp_formula_result": false,
-   "v_auth": true,
-   "v_det": false,
-   "x_pre": true
-  },
-  "repaired_fields": [],
-  "resolution_basis": "Contradictory account status signals between Core DDA and auxiliary directory. PeX fails closed to HITL.",
-  "resolution_recommendation": null,
-  "resolution_status": "INVESTIGATION_REQUIRED",
-  "stp_decision_reason": "Evidence insufficient: missing mandatory ['CORE_DDA_ACCOUNT_STATUS'] / stale [] / contradictory ['CONTRADICTORY_ACCOUNT_STATUS']; Deterministic resolution could not be derived.; Resolution is ambiguous due to contradictory evidence (CONTRADICTORY_ACCOUNT_STATUS).; Deterministic validation / checksum failed.",
-  "stp_eligible": false,
-  "warnings": []
- },
  "input/ST-02_account_closed_status_missing_with_conflict": {
   "ai_confidence_score": 0.5,
   "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
@@ -5915,61 +5863,6 @@
   "resolution_status": "RESOLVED",
   "stp_decision_reason": "All 8 canonical predicates satisfied (E_suff \u2227 R_det \u2227 R_uniq \u2227 V_det \u2227 V_auth \u2227 P_bank \u2227 C_comp \u2227 X_pre).",
   "stp_eligible": true,
-  "warnings": []
- },
- "input/ST-03_beneficiary_account_frozen_missing_evidence": {
-  "ai_confidence_score": 0.5,
-  "approval_requirement": "MAKER_CHECKER_DUAL_AUTH",
-  "authority_status": "AUTHORITATIVE_CONFIRMED",
-  "bank_handoff_status": "MAKER_CHECKER_PENDING",
-  "bank_policy_status": "POLICY_BLOCKED",
-  "compliance_status": "COMPLIANCE_CLEARED",
-  "detected_profile_id": "ST-03",
-  "domain": "SETTLEMENT_RETURNS",
-  "errors": [
-   "Evidence insufficient: missing mandatory ['CORE_ACCOUNT_RESTRICTION_FLAG', 'LEGAL_FREEZE_DOSSIER'] / stale [] / contradictory ['CONFLICTING_LEGAL_ORDERS', 'LEGAL_FREEZE_DOSSIER']",
-   "Deterministic resolution could not be derived.",
-   "Resolution is ambiguous due to contradictory evidence (CONFLICTING_LEGAL_ORDERS, LEGAL_FREEZE_DOSSIER).",
-   "Deterministic validation / checksum failed.",
-   "Bank policy disallows autonomous STP: ['Amount ($28,000.00) exceeds fast-lane batch threshold ($25,000.00).']"
-  ],
-  "evidence_contradictions": [
-   "CONFLICTING_LEGAL_ORDERS",
-   "LEGAL_FREEZE_DOSSIER"
-  ],
-  "evidence_missing": [
-   "CORE_ACCOUNT_RESTRICTION_FLAG",
-   "LEGAL_FREEZE_DOSSIER"
-  ],
-  "evidence_status": "CONTRADICTORY",
-  "evidence_used": [
-   "INBOUND_PAYMENT_TELEMETRY",
-   "ACCOUNT_NUMBER",
-   "INWARD_PAYMENT_RECORD",
-   "SUSPENSE_LEDGER_MATRIX",
-   "INVESTIGATION_STATUS"
-  ],
-  "exception_id": "PEX-E2E-ST03-NEG-MISSING-EVIDENCE",
-  "execution_owner": "BANK",
-  "hitl_required": true,
-  "next_action": "ROUTE_TO_OPERATIONS_WORKLIST",
-  "predicate_breakdown": {
-   "c_comp": true,
-   "e_suff": false,
-   "p_bank": false,
-   "r_det": false,
-   "r_uniq": false,
-   "stp_formula_result": false,
-   "v_auth": true,
-   "v_det": false,
-   "x_pre": true
-  },
-  "repaired_fields": [],
-  "resolution_basis": "Authoritative restriction confirmed: POST_NO_CREDITS (issuing authority: NEW_YORK_SUPREME_COURT). Credit posting is prohibited.; Conflicting judicial orders on record (e.g., competing state vs federal garnishment). Route to Legal Officer.; Legal freeze dossier validation failed: Conflicting legal orders detected.",
-  "resolution_recommendation": null,
-  "resolution_status": "INVESTIGATION_REQUIRED",
-  "stp_decision_reason": "Evidence insufficient: missing mandatory ['CORE_ACCOUNT_RESTRICTION_FLAG', 'LEGAL_FREEZE_DOSSIER'] / stale [] / contradictory ['CONFLICTING_LEGAL_ORDERS', 'LEGAL_FREEZE_DOSSIER']; Deterministic resolution could not be derived.; Resolution is ambiguous due to contradictory evidence (CONFLICTING_LEGAL_ORDERS, LEGAL_FREEZE_DOSSIER).; Deterministic validation / checksum failed.; Bank policy disallows autonomous STP: ['Amount ($28,000.00) exceeds fast-lane batch threshold ($25,000.00).']",
-  "stp_eligible": false,
   "warnings": []
  },
  "input/ST-03_beneficiary_account_frozen_restriction_missing_with_conflict": {
