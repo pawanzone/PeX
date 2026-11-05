@@ -72,7 +72,7 @@ def test_o5_logical_model_shows_the_three_as_in_code(client):
     for name, klass in (("Bank outcome", "CanonicalBankOutcome"), ("Approval", "CanonicalApprovalRecord"), ("Audit event", "CanonicalAuditEvent")):
         assert e[name]["status"] == "in code" and e[name]["canonical_class"] == klass and e[name]["db_table"] and e[name]["fields"] > 0, name
     assert lm["summary"]["database_only"] == 0
-    assert "Routing directory entry" in lm["planned_names"]
+    assert lm["planned_names"] == []
 
 
 def test_o6_semantic_layer_covers_the_new_models():

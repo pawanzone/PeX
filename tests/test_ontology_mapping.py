@@ -5,7 +5,7 @@
   M3  Each ontology entity links to a logical-model entity that is in code.
   M4  The context entities (client, KYC, treasury, precedent) are real canonical models and are in the semantic layer.
   M5  The API returns the mapping per field and says which entities are simulated in the demo.
-  M6  Only the routing directory entry is still planned.
+  M6  No logical entity is left as planned.
 """
 import pytest
 
@@ -80,6 +80,6 @@ def test_m5_api_flags_simulated_entities(client):
     assert "derived" in d["note"].lower() or "canonical" in d["note"].lower()
 
 
-def test_m6_only_routing_directory_is_planned(client):
+def test_m6_nothing_is_planned(client):
     lm = client.get("/api/v2/reference/data-model", headers=H()).json()["logical_model"]
-    assert lm["planned_names"] == ["Routing directory entry"]
+    assert lm["planned_names"] == []

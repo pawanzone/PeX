@@ -223,6 +223,21 @@ FIELD_ROWS: Dict[str, Tuple[str, str, str, str, str]] = {
     "CanonicalPrecedentSummary.average_similarity": ("PeX: mean similarity score of the matches", NA, "0 to 1", "How close the matches are.", "C5"),
     "CanonicalPrecedentSummary.last_resolution_action": ("PeX: action taken on the most recent match", NA, "An action PeX knows", "What was done last time.", "C5"),
     "CanonicalPrecedentSummary.settlement_success_rate": ("PeX: share of matches that settled", NA, "0 to 1", "How often the earlier fix worked.", "C5"),
+
+    # ---- CanonicalRoutingEntry
+    "CanonicalRoutingEntry.bic": ("SwiftRef BIC directory: BIC11", "52A, 56A, 57A", "8 or 11 characters; unique in the directory", "The bank's BIC as the directory lists it.", "C5"),
+    "CanonicalRoutingEntry.clearing_system_id": ("ClrSysMmbId/ClrSysId/Cd", "57A/57C code prefix", "Code from the clearing system list", "Clearing system the member number belongs to.", "C5"),
+    "CanonicalRoutingEntry.member_id": ("ClrSysMmbId/MmbId (routing number, sort code)", "57A/57C (//FW, //CH)", "Format valid for the clearing system", "Clearing member or routing number.", "C5"),
+    "CanonicalRoutingEntry.institution_name": ("Directory institution name", "n/a", "Present when the directory has it", "Name of the bank.", "C5"),
+    "CanonicalRoutingEntry.country": ("Directory country code", "n/a", "ISO 3166-1 alpha-2, active code", "Country of the bank.", "C5"),
+    "CanonicalRoutingEntry.status": ("Directory lifecycle status", "n/a", "One of ACTIVE, INACTIVE, DEPRECATED, REPLACED, MERGED, UNKNOWN, NOT_FOUND", "Whether the bank can be paid.", "C5"),
+    "CanonicalRoutingEntry.is_head_office": ("Directory branch indicator", "n/a", "True or False", "Whether this is the head office code.", "C5"),
+    "CanonicalRoutingEntry.successor_bics": ("Directory successor mapping", "n/a", "Valid BICs; more than one means a person must choose", "BICs that replace this one.", "C5"),
+    "CanonicalRoutingEntry.supported_rails": ("Directory reachability", "n/a", "Rails the bank's directory lists", "Rails the bank can be reached on.", "C5"),
+    "CanonicalRoutingEntry.source": ("Directory provider", "n/a", "Names the provider; a synthetic provider is marked", "Where the entry came from.", "C4"),
+    "CanonicalRoutingEntry.retrieved_at": ("PeX: when the entry was fetched", NA, "ISO 8601 date and time", "When PeX read the directory.", "C5"),
+    "CanonicalRoutingEntry.effective_at": ("Directory effective date", "n/a", "ISO 8601 date and time", "When the entry took effect.", "C5"),
+    "CanonicalRoutingEntry.expires_at": ("PeX: end of the trust window", NA, "ISO 8601 date and time; missing or past means not current", "After this the entry must be re-fetched.", "C5"),
 }
 
 CORE, REF, MSG, SCR, POL, TRS, DOC, INF, STL, LED = (

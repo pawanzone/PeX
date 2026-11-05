@@ -14,7 +14,7 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
 from app.schemas.canonical import (
-    CanonicalAccount, CanonicalAgent, CanonicalBankOutcome, CanonicalCharges, CanonicalEnvelope, CanonicalInvestigation, CanonicalParty, CanonicalPayment,
+    CanonicalAccount, CanonicalAgent, CanonicalBankOutcome, CanonicalRoutingEntry, CanonicalCharges, CanonicalEnvelope, CanonicalInvestigation, CanonicalParty, CanonicalPayment,
     CanonicalPostalAddress, CanonicalPurpose, CanonicalRemittance, CanonicalStatusReport, ChargeInfo,
 )
 
@@ -320,3 +320,47 @@ def bank_outcome_from_callback(payload: Dict[str, Any], signature_verified: bool
                                 bank_reference=ref, clearing_system=payload.get("clearing_system"),
                                 received_at=received_at or payload.get("settlement_timestamp") or datetime.now(timezone.utc).isoformat(),
                                 signature_verified=signature_verified, uetr=payload.get("uetr"), reason_code=payload.get("reason"))
+
+
+# ---- routing directory ------------------------------------------------------------------------------------------------
+def _iso(v: Any) -> Optional[str]:
+    return v.isoformat() if hasattr(v, "isoformat") else (str(v) if v else None)
+
+
+def routing_entry_from_bic_reference(ref: Any) -> CanonicalRoutingEntry:
+    """Load a BIC reference directory entry (the DQ-02 BICReferenceEntry) into the canonical model."""
+    status = getattr(ref.status, "value", ref.status)
+    return CanonicalRoutingEntry(bic=ref.bic_code, institution_name=ref.institution_name, country=ref.country_code, status=str(status), is_head_office=ref.is_head_office,
+                                 successor_bics=list(ref.successor_bics), supported_rails=list(ref.supported_rails), source=ref.provider,
+                                 retrieved_at=_iso(ref.retrieved_at), effective_at=_iso(ref.effective_at), expires_at=_iso(ref.expires_at))
+
+
+def routing_entry_from_identifier(member_id: str, clearing_system_id: str, institution_name: Optional[str] = None, country: Optional[str] = None,
+                                  source: Optional[str] = None, status: str = "UNKNOWN", **dates: Optional[str]) -> CanonicalRoutingEntry:
+    """Build an entry for a clearing member or routing number (the DQ-08 routing directory)."""
+    return CanonicalRoutingEntry(member_id=member_id, clearing_system_id=clearing_system_id, institution_name=institution_name, country=country, status=status,
+                                 source=source, retrieved_at=dates.get("retrieved_at"), effective_at=dates.get("effective_at"), expires_at=dates.get("expires_at"))
+
+
+def routing_entry_is_current(entry: CanonicalRoutingEntry, now: Optional[Any] = None) -> bool:
+    """True only when the entry has a readable expiry date that has not passed. No date, or an unreadable one, counts as not current."""
+    from datetime import datetime, timezone
+    if not entry.expires_at:
+        return False
+    try:
+        exp = datetime.fromisoformat(entry.expires_at)
+    except ValueError:
+        return False
+    if exp.tzinfo is None:
+        exp = exp.replace(tzinfo=timezone.utc)
+    return (now or datetime.now(timezone.utc)) <= exp
+
+
+def find_routing_entry(agent: CanonicalAgent, entries: List[CanonicalRoutingEntry]) -> Optional[CanonicalRoutingEntry]:
+    """Find the directory entry for a bank in a payment: by BIC (first 8 characters decide the institution) or by clearing member id."""
+    for e in entries:
+        if agent.bic and e.bic and agent.bic[:8].upper() == e.bic[:8].upper():
+            return e
+        if agent.member_id and e.member_id and agent.member_id == e.member_id and (not agent.clearing_system_id or not e.clearing_system_id or agent.clearing_system_id == e.clearing_system_id):
+            return e
+    return None

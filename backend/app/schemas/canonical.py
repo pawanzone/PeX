@@ -414,6 +414,24 @@ class CanonicalPrecedentSummary(BaseModel):
     settlement_success_rate: Optional[float] = None
 
 
+class CanonicalRoutingEntry(BaseModel):
+    """One entry from a bank directory: a BIC (SwiftRef) or a clearing member / routing number (central bank directory), with its status,
+    successors, rails it can be reached on, where it came from and how long it can be trusted."""
+    bic: Optional[str] = None
+    clearing_system_id: Optional[str] = None
+    member_id: Optional[str] = None
+    institution_name: Optional[str] = None
+    country: Optional[str] = None
+    status: str  # ACTIVE, INACTIVE, DEPRECATED, REPLACED, MERGED, UNKNOWN, NOT_FOUND
+    is_head_office: Optional[bool] = None
+    successor_bics: List[str] = []
+    supported_rails: List[str] = []
+    source: Optional[str] = None
+    retrieved_at: Optional[str] = None
+    effective_at: Optional[str] = None
+    expires_at: Optional[str] = None
+
+
 def __getattr__(name: str):
     """CanonicalApprovalRecord and CanonicalAuditEvent are the workflow's own classes, exposed here so there is one definition.
     Loaded on first use because the approval schema imports this module."""
