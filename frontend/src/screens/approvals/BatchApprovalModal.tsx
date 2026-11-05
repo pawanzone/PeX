@@ -82,18 +82,18 @@ const Content: React.FC<{ onClose: () => void; onDone: () => void }> = ({ onClos
         <div className="grid gap-4">
           {mode && <Banner tone={bulk ? "blue" : "amber"} title={mode.value === "REVIEW_EACH" ? "Review each: bulk release is off" : mode.value === "AUTO_RELEASE" ? "Release mode: auto-release" : "Release mode: approve all"}>{mode.note}</Banner>}
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <Tile label="Selected" value={`${chosen.length} of ${items.length}`} />
-            <Tile label="Total value" value={num(total)} hint={currencies.size > 1 ? "(mixed currencies)" : [...currencies][0] as string} mono />
+            <Tile label={bulk ? "Selected" : "Eligible"} value={bulk ? `${chosen.length} of ${items.length}` : String(items.length)} />
+            <Tile label="Total value" value={num(bulk ? total : items.reduce((a, i) => a + amountOf(i), 0))} hint={currencies.size > 1 ? "(mixed currencies)" : [...currencies][0] as string} mono />
             <Tile label="Largest item" value={largest ? num(amountOf(largest)) : "—"} hint={largest ? `${largest.case_id} · ${largest.amount?.currency ?? ""}` : undefined} mono />
             <Tile label="Policy rule"><div className="mt-1 text-sm text-pex-ink">{r.data?.policy?.text ?? "—"}</div></Tile>
           </div>
-          <div className="flex items-center gap-4 rounded-lg border border-surface-line px-3 py-2 text-sm">
+          {bulk && <div className="flex items-center gap-4 rounded-lg border border-surface-line px-3 py-2 text-sm">
             <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={items.length > 0 && sel.size === items.length} onChange={(e) => setSel(e.target.checked ? new Set(items.map((i) => i.case_id)) : new Set())} />Select all</label>
             <button className="text-pex-primary hover:underline" onClick={() => setSel(new Set())}>Clear</button>
             <span className="ml-auto text-pex-muted">{sel.size} of {items.length} selected</span>
-          </div>
+          </div>}
           <div className="max-h-[22rem] overflow-y-auto rounded-lg border border-surface-line">
-            <DataTable columns={cols} rows={items} rowKey={(i) => i.case_id} selectable selected={sel} onToggle={toggle} emptyTitle="No low-risk repairs are eligible right now" caption="Eligible low-risk repairs" />
+            <DataTable columns={cols} rows={items} rowKey={(i) => i.case_id} selectable={bulk} selected={sel} onToggle={toggle} emptyTitle="No low-risk repairs are eligible right now" caption="Eligible low-risk repairs" />
           </div>
           {!!ne?.total && (
             <div className="rounded-card border border-red-200 bg-red-50">

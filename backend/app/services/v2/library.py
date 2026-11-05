@@ -76,7 +76,7 @@ def bank_settings() -> List[Dict[str, Any]]:
     from app.config import settings
     from app.services.v2 import policy as po
     cfg = STPPolicyConfig()
-    return [
+    rows = [
         {"key": "max_stp_amount", "label": "Bank policy amount cap (predicate P_bank)", "default": cfg.max_stp_amount, "source": "STPPolicyConfig default", "configurable": True,
          "note": "Cap used by the P_bank predicate. This default differs from the zero-touch limit setting below. They are separate settings, so confirm with the bank which limits apply in its set-up."},
         {"key": "dual_auth_threshold", "label": "Dual authorisation from (predicate P_bank)", "default": cfg.dual_auth_threshold, "source": "STPPolicyConfig default", "configurable": True,
@@ -85,13 +85,18 @@ def bank_settings() -> List[Dict[str, Any]]:
          "note": "A payment in another currency is routed to a person."},
         {"key": "auto_stp_enabled", "label": "Straight-through switched on", "default": cfg.auto_stp_enabled, "source": "STPPolicyConfig default", "configurable": True,
          "note": "A bank can switch straight-through off entirely."},
-        {"key": "zero_touch_limit", "label": "Zero-touch release limit", "default": float(settings.STP_MAX_AMOUNT), "source": "Setting PEX_STP_MAX_AMOUNT", "configurable": True,
-         "note": "Up to this amount an eligible case is released without a person (in a mode that allows it). Above it, an eligible case goes to one-click batch approval."},
-        {"key": "batch_limit", "label": "One-click batch approval limit", "default": float(po.get("batch_limit")), "source": "Bank policy (versioned changes)", "configurable": True,
+        {"key": "release_mode", "label": "Release mode", "default": po.BY_KEY["release_mode"]["default"](), "value": po.get("release_mode"), "source": "Bank policy (versioned changes)", "configurable": True,
+         "note": "Who releases cases that pass all 8 rules: auto-release, approve all in one click, or review each. It never loosens a rule."},
+        {"key": "zero_touch_limit", "label": "Zero-touch release limit", "default": po.BY_KEY["zero_touch_limit"]["default"](), "value": po.get("zero_touch_limit"), "source": "Bank policy (versioned changes); default from PEX_STP_MAX_AMOUNT", "configurable": True,
+         "note": "In auto-release mode, eligible cases up to this amount are marked for release with no person. There is no trigger yet, so nothing is released without a person. Above it, an eligible case goes to one-click batch approval."},
+        {"key": "batch_limit", "label": "One-click batch approval limit", "default": po.BY_KEY["batch_limit"]["default"](), "value": po.get("batch_limit"), "source": "Bank policy (versioned changes)", "configurable": True,
          "note": "Validated micro-repairs under this amount can be approved together on the Batches screen."},
         {"key": "sanctions_mode", "label": "Sanctions mode", "default": cfg.sanctions_mode, "source": "STPPolicyConfig default", "configurable": True,
          "note": "ZERO_TOLERANCE: any screening hit stops straight-through."},
     ]
+    for r in rows:
+        r.setdefault("value", r["default"])
+    return rows
 
 
 def controls() -> Dict[str, Any]:

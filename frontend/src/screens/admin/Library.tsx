@@ -132,10 +132,10 @@ const StpRules: React.FC = () => {
         </div>
       </Card>
       <Card title="Settings a bank can change">
-        <p className="text-sm text-pex-muted mb-3">Values shown are the framework defaults in the code. A bank's own policy replaces them.</p>
+        <p className="text-sm text-pex-muted mb-3">The framework default is what the code ships with. The value in force is what this bank's policy currently says.</p>
         <div className="overflow-x-auto"><table className="w-full text-sm"><caption className="sr-only">Bank-configurable settings and framework defaults</caption>
-          <thead className="text-xs text-pex-muted text-left"><tr><th className={th}>Setting</th><th className={th}>Framework default</th><th className={th}>Set in</th><th className="font-medium">What it does</th></tr></thead>
-          <tbody>{d.bank_settings.map((s) => <tr key={s.key} className="border-t border-surface-line align-top"><td className="py-1.5 pr-3">{s.label}<div className="pex-mono text-xs text-pex-muted">{s.key}</div></td><td className="pr-3 pex-mono">{val(s.default)}</td><td className="pr-3 text-xs text-pex-muted">{s.source}</td><td className="text-pex-muted">{s.note}</td></tr>)}</tbody></table></div>
+          <thead className="text-xs text-pex-muted text-left"><tr><th className={th}>Setting</th><th className={th}>Framework default</th><th className={th}>In force</th><th className={th}>Set in</th><th className="font-medium">What it does</th></tr></thead>
+          <tbody>{d.bank_settings.map((s) => <tr key={s.key} className="border-t border-surface-line align-top"><td className="py-1.5 pr-3">{s.label}<div className="pex-mono text-xs text-pex-muted">{s.key}</div></td><td className="pr-3 pex-mono">{val(s.default)}</td><td className="pr-3 pex-mono">{val(s.value)}{JSON.stringify(s.value) !== JSON.stringify(s.default) && <span className="ml-1.5 text-xs text-pex-primary">changed</span>}</td><td className="pr-3 text-xs text-pex-muted">{s.source}</td><td className="text-pex-muted">{s.note}</td></tr>)}</tbody></table></div>
       </Card>
       <Card title="Straight-through ceiling per profile">
         <ul className="grid gap-2 text-sm">{Object.entries(d.stp_rules).map(([k, v]) => <li key={k} className="flex flex-wrap items-baseline gap-2"><StatusPill tone={STP_TONE[k]} dot={false}>{STP_LABEL[k]}</StatusPill><span className="text-pex-muted">{v}</span></li>)}</ul>

@@ -134,3 +134,27 @@ def test_l8_access_follows_the_reference_pages_and_unknown_profile_is_404(client
     assert get(client, "library/DQ-99").status_code == 404
     for verb in (client.post, client.put, client.delete):
         assert verb("/api/v2/reference/library", headers=H()).status_code in (404, 405)
+
+
+def test_l9_bank_settings_show_the_value_in_force_and_the_release_mode(client):
+    from app.services.v2 import policy
+    d = get(client, "controls").json()
+    s = {x["key"]: x for x in d["bank_settings"]}
+    assert s["release_mode"]["value"] == "APPROVE_ALL" and s["release_mode"]["default"] == "APPROVE_ALL" and s["release_mode"]["source"].startswith("Bank policy")
+    assert s["zero_touch_limit"]["value"] == policy.get("zero_touch_limit") and s["batch_limit"]["value"] == policy.get("batch_limit")
+    assert "no trigger" in s["zero_touch_limit"]["note"].lower()          # honest: nothing releases on its own yet
+    assert all("value" in x for x in d["bank_settings"])
+
+
+def test_l10_a_changed_mode_shows_in_the_library(client):
+    from app.services.v2 import policy
+    from app.services.v2 import seed as v2seed
+    v2seed.seed_v2()
+    policy.reset_all()
+    try:
+        c = client.post("/api/v2/policy/changes", json={"key": "release_mode", "value": "REVIEW_EACH", "reason": "pilot"}, headers=H("POL-8001")).json()
+        client.post(f"/api/v2/policy/changes/{c['id']}/approve", json={"note": "ok"}, headers=H("POL-8002"))
+        s = {x["key"]: x for x in get(client, "controls").json()["bank_settings"]}
+        assert s["release_mode"]["value"] == "REVIEW_EACH" and s["release_mode"]["default"] == "APPROVE_ALL"
+    finally:
+        policy.reset_all()
