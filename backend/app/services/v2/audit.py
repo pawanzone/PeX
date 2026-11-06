@@ -35,6 +35,7 @@ LABELS = {
     "NETWORK_SENT": "Message sent to bank (simulated)", "NETWORK_REPLY_RECEIVED": "Reply received", "NETWORK_RETURN_CONFIRMED": "Bank return confirmed", "NETWORK_CLOSED": "Network case closed",
     "STATUS_UNKNOWN": "Status unknown", "ROUTED_TO_QUEUE": "Routed to queue", "AUTONOMOUS_STP_HANDOFF": "Autonomous STP handoff",
     "SHADOW_COMPARISON_LOADED": "Shadow comparison loaded", "SHADOW_COMPARISON_CLEARED": "Shadow comparison cleared",
+    "SME_STATUS_SET": "SME review status set", "SME_COMMENT_ADDED": "SME review comment added", "SME_COMMENT_ADDRESSED": "SME review comment addressed", "SME_REVIEW_IMPORTED": "SME review workbook imported", "SME_REVIEW_CLEARED": "SME review cleared",
 }
 
 

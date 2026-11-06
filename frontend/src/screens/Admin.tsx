@@ -6,13 +6,14 @@ import { useSession } from "../shell/session";
 import { OntologyView, DataModelView, SopsView } from "./admin/Reference";
 import { LibraryView } from "./admin/Library";
 import { ShadowView } from "./admin/Shadow";
+import { ReviewView } from "./admin/Review";
 
 export const Admin: React.FC<{ route: Route }> = ({ route }) => {
   const { persona } = useSession();
   const owner = persona?.role === ("POLICY_OWNER" as any);
   const tabs = owner
-    ? [{ id: "ontology", label: "Payment ontology" }, { id: "data-model", label: "Data model and semantic layer" }, { id: "library", label: "Profile and control library" }, { id: "shadow", label: "Shadow scorecard" }, { id: "sops", label: "SOPs" }]
-    : [{ id: "integrations", label: "Integrations" }, { id: "ontology", label: "Payment ontology" }, { id: "data-model", label: "Data model and semantic layer" }, { id: "library", label: "Profile and control library" }, { id: "shadow", label: "Shadow scorecard" }, { id: "sops", label: "SOPs" }];
+    ? [{ id: "ontology", label: "Payment ontology" }, { id: "data-model", label: "Data model and semantic layer" }, { id: "library", label: "Profile and control library" }, { id: "review", label: "SME review" }, { id: "shadow", label: "Shadow scorecard" }, { id: "sops", label: "SOPs" }]
+    : [{ id: "integrations", label: "Integrations" }, { id: "ontology", label: "Payment ontology" }, { id: "data-model", label: "Data model and semantic layer" }, { id: "library", label: "Profile and control library" }, { id: "review", label: "SME review" }, { id: "shadow", label: "Shadow scorecard" }, { id: "sops", label: "SOPs" }];
   // Old links to the removed Reference screens / Component gallery tabs fall back to the first tab.
   const section = tabs.some((t) => t.id === route.section) ? route.section! : tabs[0].id;
   return (
@@ -24,6 +25,7 @@ export const Admin: React.FC<{ route: Route }> = ({ route }) => {
         {section === "ontology" && <OntologyView />}
         {section === "data-model" && <DataModelView />}
         {section === "library" && <LibraryView />}
+        {section === "review" && <ReviewView />}
         {section === "shadow" && <ShadowView />}
         {section === "sops" && <SopsView />}
       </div>

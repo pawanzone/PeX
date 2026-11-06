@@ -407,3 +407,34 @@ class V2ShadowRowModel(Base):
     resolved_at = Column(String(64), nullable=True)
     loaded_by = Column(String(64), nullable=False)
     loaded_at = Column(String(64), nullable=False)
+
+
+class V2ReviewStatusModel(Base):
+    """SME review status of one profile or control. A sign-off keeps the content hash it was given on."""
+    __tablename__ = "v2_review_status"
+
+    kind = Column(String(16), primary_key=True)          # profile | control
+    item_id = Column(String(32), primary_key=True)
+    status = Column(String(24), nullable=False)          # IN_REVIEW | CHANGES_REQUESTED | SIGNED_OFF
+    reviewer = Column(String(64), nullable=False)
+    reviewer_name = Column(String(128), nullable=True)
+    reviewed_at = Column(String(64), nullable=False)
+    signed_off_hash = Column(String(64), nullable=True)
+    note = Column(String(1024), nullable=True)
+
+
+class V2ReviewCommentModel(Base):
+    __tablename__ = "v2_review_comments"
+
+    id = Column(String(16), primary_key=True)
+    kind = Column(String(16), nullable=False, index=True)
+    item_id = Column(String(32), nullable=False, index=True)
+    part = Column(String(160), nullable=True)
+    text = Column(String(2000), nullable=False)
+    author = Column(String(64), nullable=False)
+    author_name = Column(String(128), nullable=True)
+    created_at = Column(String(64), nullable=False)
+    status = Column(String(16), nullable=False, default="OPEN")   # OPEN | ADDRESSED
+    addressed_by = Column(String(64), nullable=True)
+    addressed_at = Column(String(64), nullable=True)
+    addressed_note = Column(String(1024), nullable=True)

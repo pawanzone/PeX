@@ -299,6 +299,77 @@ def value_model(monthly_exceptions: str = "5000", minutes_per_case: str = "15", 
     return vm.model(monthly_exceptions, minutes_per_case, cost_per_hour, review_minutes)
 
 
+@router.get("/review/summary")
+def review_summary(user=Depends(current_user)):
+    require(user, "review.read", "SME review is for Administrators, Policy Owners, Supervisors and Audit.")
+    from app.services.v2 import review as rv
+    return rv.summary()
+
+
+@router.get("/review/items")
+def review_items(kind: str = "profile", user=Depends(current_user)):
+    require(user, "review.read", "SME review is for Administrators, Policy Owners, Supervisors and Audit.")
+    from app.services.v2 import review as rv
+    return rv.items(kind)
+
+
+@router.get("/review/items/{kind}/{item_id}")
+def review_item(kind: str, item_id: str, user=Depends(current_user)):
+    require(user, "review.read", "SME review is for Administrators, Policy Owners, Supervisors and Audit.")
+    from app.services.v2 import review as rv
+    return rv.detail(kind, item_id)
+
+
+@router.post("/review/items/{kind}/{item_id}/status")
+def review_status(kind: str, item_id: str, body: Dict[str, Any], user=Depends(current_user)):
+    require(user, "review.write", "Only Administrators and Policy Owners set a review status.")
+    from app.services.v2 import review as rv
+    return rv.set_status(user, kind, item_id, str(body.get("status") or ""), body.get("note"))
+
+
+@router.post("/review/items/{kind}/{item_id}/comments")
+def review_comment(kind: str, item_id: str, body: Dict[str, Any], user=Depends(current_user)):
+    require(user, "review.write", "Only Administrators and Policy Owners comment on a review.")
+    from app.services.v2 import review as rv
+    return rv.add_comment(user, kind, item_id, str(body.get("text") or ""), body.get("part"))
+
+
+@router.post("/review/comments/{comment_id}/address")
+def review_address(comment_id: str, body: Dict[str, Any], user=Depends(current_user)):
+    require(user, "review.write", "Only Administrators and Policy Owners address a review comment.")
+    from app.services.v2 import review as rv
+    return rv.address_comment(user, comment_id, body.get("note"))
+
+
+@router.get("/review/export.xlsx")
+def review_export(user=Depends(current_user)):
+    require(user, "review.read", "SME review is for Administrators, Policy Owners, Supervisors and Audit.")
+    from fastapi.responses import Response
+    from app.services.v2 import review as rv
+    return Response(rv.export_xlsx(), media_type=rv.XLSX, headers={"Content-Disposition": 'attachment; filename="pex_review_workbook.xlsx"'})
+
+
+@router.post("/review/import")
+async def review_import(file: UploadFile = File(...), user=Depends(current_user)):
+    require(user, "review.import", "Only Administrators import a review workbook.")
+    from app.services.v2 import review as rv
+    return rv.import_xlsx(user, await file.read())
+
+
+@router.delete("/review")
+def review_clear(user=Depends(current_user)):
+    require(user, "review.import", "Only Administrators clear the review.")
+    from app.services.v2 import review as rv
+    return rv.clear(user)
+
+
+@router.get("/director")
+def director_view(user=Depends(current_user)):
+    require(user, "shadow.read", "The director view is for Administrators, Policy Owners, Supervisors and Audit.")
+    from app.services.v2 import director as dv
+    return dv.view()
+
+
 @router.get("/reference/contract")
 def ref_contract(user=Depends(current_user)):
     require(user, "reference.read", "Reference pages are for Administrators and Policy Owners.")

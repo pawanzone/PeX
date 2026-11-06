@@ -2,8 +2,8 @@
  *  #/compliance, #/compliance/case/<id>, #/batches, #/batches/<id>, #/audit, #/admin/<section>. */
 import { useEffect, useState, useCallback } from "react";
 
-export type Area = "dashboard" | "home" | "worklist" | "approvals" | "compliance" | "batches" | "audit" | "admin" | "policy" | "network";
-export const AREAS: Area[] = ["dashboard", "home", "worklist", "approvals", "compliance", "batches", "audit", "admin", "policy", "network"];
+export type Area = "dashboard" | "home" | "worklist" | "approvals" | "compliance" | "batches" | "audit" | "admin" | "policy" | "network" | "director";
+export const AREAS: Area[] = ["dashboard", "home", "worklist", "approvals", "compliance", "batches", "audit", "admin", "policy", "network", "director"];
 
 export interface Route {
   area: Area;

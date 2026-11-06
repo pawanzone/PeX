@@ -1,10 +1,11 @@
-import { LayoutDashboard, Home, ListChecks, ShieldCheck, Scale, Layers, ScrollText, Settings, SlidersHorizontal, ArrowLeftRight, type LucideIcon } from "lucide-react";
+import { LayoutDashboard, Home, ListChecks, ShieldCheck, Scale, Layers, ScrollText, Settings, SlidersHorizontal, ArrowLeftRight, Gauge, type LucideIcon } from "lucide-react";
 import type { Area } from "../lib/router";
 import type { UserPersona } from "../types";
 
 export interface NavDef { area: Area; label: string; icon: LucideIcon; href: string }
 export const NAV: NavDef[] = [
   { area: "dashboard", label: "Dashboard", icon: LayoutDashboard, href: "#/dashboard" },
+  { area: "director", label: "Operations view", icon: Gauge, href: "#/director" },
   { area: "home", label: "My work", icon: Home, href: "#/home" },
   { area: "worklist", label: "Worklist", icon: ListChecks, href: "#/worklist" },
   { area: "approvals", label: "Approvals", icon: ShieldCheck, href: "#/approvals" },
@@ -20,13 +21,13 @@ export const NAV: NavDef[] = [
  *  UI hiding is a convenience only; the server enforces every permission. Unknown roles see Home only. */
 const ROLE_AREAS: Record<string, Area[]> = {
   OPERATOR: ["dashboard", "home", "worklist", "network", "batches"],
-  SUPERVISOR: ["dashboard", "home", "worklist", "approvals", "compliance", "network", "batches", "audit"],
+  SUPERVISOR: ["dashboard", "director", "home", "worklist", "approvals", "compliance", "network", "batches", "audit"],
   OPERATIONS_APPROVER: ["dashboard", "home", "approvals", "worklist", "network", "batches"],
   RISK_APPROVER: ["dashboard", "home", "approvals", "compliance", "worklist", "network", "batches"],
   COMPLIANCE_APPROVER: ["dashboard", "home", "compliance", "network", "audit"],
-  AUDIT_RISK: ["dashboard", "home", "network", "audit"],
-  ADMIN: ["dashboard", "home", "batches", "audit", "admin"],
-  POLICY_OWNER: ["dashboard", "policy", "admin", "audit"],
+  AUDIT_RISK: ["dashboard", "director", "home", "network", "audit"],
+  ADMIN: ["dashboard", "director", "home", "batches", "audit", "admin"],
+  POLICY_OWNER: ["dashboard", "director", "policy", "admin", "audit"],
 };
 export function areaAllowed(area: Area, role?: string): boolean {
   const r = (role || "").toUpperCase();

@@ -5,6 +5,7 @@ import { useV2 } from "../../services/v2/client";
 import { getControls, getLibrary, getLibraryProfile, type LibRow } from "../../services/v2/reference";
 import { Card, Stat, Wait } from "./Reference";
 import { ContractSection, ContractView } from "./Contract";
+import { ReviewPanel } from "./Review";
 
 const STP_TONE: Record<string, "green" | "amber" | "red"> = { ALLOWED: "green", POLICY_GATED: "amber", NEVER: "red" };
 const STP_LABEL: Record<string, string> = { ALLOWED: "May go straight through", POLICY_GATED: "Bank opt-in", NEVER: "Never straight through" };
@@ -13,7 +14,7 @@ const APPROVAL_LABEL: Record<string, string> = { MAKER_CHECKER: "Maker-checker",
 const EFFECT_TONE: Record<string, "green" | "red" | "amber" | "blue"> = { PROCEED: "green", STOP: "red", ESCALATE: "amber", HOLD: "blue" };
 const th = "py-1.5 pr-3 font-medium whitespace-nowrap";
 const ACR = new Set(["AML", "PEP", "KYC", "BIC", "IBAN", "FX", "STP", "SLA", "ISO", "UETR", "SSI", "ID"]);
-const pretty = (s: string) => s.replace(/_/g, " ").toLowerCase().split(" ").map((w, i) => (ACR.has(w.toUpperCase()) ? w.toUpperCase() : i === 0 ? w.replace(/^./, (c) => c.toUpperCase()) : w)).join(" ");
+export const pretty = (s: string) => s.replace(/_/g, " ").toLowerCase().split(" ").map((w, i) => (ACR.has(w.toUpperCase()) ? w.toUpperCase() : i === 0 ? w.replace(/^./, (c) => c.toUpperCase()) : w)).join(" ");
 const Chip: React.FC<{ on: boolean; onClick: () => void; children: React.ReactNode }> = ({ on, onClick, children }) => (
   <button type="button" aria-pressed={on} onClick={onClick} className={cn("px-2.5 py-1 rounded-md text-xs border", on ? "bg-pex-primary text-white border-pex-primary" : "bg-white border-surface-line text-pex-muted")}>{children}</button>);
 
@@ -44,6 +45,7 @@ const ProfileDrawer: React.FC<{ code: string; onClose: () => void }> = ({ code, 
             </dl>
           </section>
           <ContractSection code={code} />
+          <ReviewPanel kind="profile" id={code} />
           {d.decision && (
             <section aria-label="Decision options">
               <h3 className="font-semibold mb-1">Decision options</h3>

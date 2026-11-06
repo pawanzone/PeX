@@ -224,27 +224,27 @@ ROLE_LABELS = {
 }
 PERMISSIONS: Dict[str, List[str]] = {
     "OPERATOR": ["case.read", "case.work", "case.assign", "batch.upload", "pii.reveal", "network.read", "network.work"],
-    "SUPERVISOR": ["case.read", "case.work", "case.assign", "case.reassign", "audit.read", "batch.upload", "pii.reveal", "network.read", "network.work", "shadow.read"],
+    "SUPERVISOR": ["case.read", "case.work", "case.assign", "case.reassign", "audit.read", "batch.upload", "pii.reveal", "network.read", "network.work", "shadow.read", "review.read"],
     "OPERATIONS_APPROVER": ["case.read", "case.approve", "stp.approve", "pii.reveal", "network.read", "network.approve"],
     "COMPLIANCE_APPROVER": ["case.read", "compliance.decide", "audit.read", "pii.reveal", "network.read"],
     "RISK_APPROVER": ["case.read", "case.approve", "stp.approve", "compliance.decide", "pii.reveal", "network.read", "network.approve"],
-    "AUDIT_RISK": ["case.read", "audit.read", "audit.export", "pii.reveal", "network.read", "shadow.read"],
-    "ADMIN": ["case.read", "case.approve", "audit.read", "audit.export", "admin.read", "admin.mode_change", "admin.mode_approve", "batch.upload", "reference.read", "shadow.read", "shadow.write"],
-    "POLICY_OWNER": ["case.read", "audit.read", "policy.read", "policy.write", "policy.approve", "reference.read", "shadow.read"],
+    "AUDIT_RISK": ["case.read", "audit.read", "audit.export", "pii.reveal", "network.read", "shadow.read", "review.read"],
+    "ADMIN": ["case.read", "case.approve", "audit.read", "audit.export", "admin.read", "admin.mode_change", "admin.mode_approve", "batch.upload", "reference.read", "shadow.read", "shadow.write", "review.read", "review.write", "review.import"],
+    "POLICY_OWNER": ["case.read", "audit.read", "policy.read", "policy.write", "policy.approve", "reference.read", "shadow.read", "review.read", "review.write"],
 }
 NAV = {
     "OPERATOR": ["dashboard", "home", "worklist", "network", "batches"],
-    "SUPERVISOR": ["dashboard", "home", "worklist", "approvals", "compliance", "network", "batches", "audit"],
+    "SUPERVISOR": ["dashboard", "director", "home", "worklist", "approvals", "compliance", "network", "batches", "audit"],
     "OPERATIONS_APPROVER": ["dashboard", "home", "approvals", "worklist", "network", "batches"],
     "RISK_APPROVER": ["dashboard", "home", "approvals", "compliance", "worklist", "network", "batches"],
     "COMPLIANCE_APPROVER": ["dashboard", "home", "compliance", "network", "audit"],
-    "AUDIT_RISK": ["dashboard", "network", "audit"],
-    "ADMIN": ["dashboard", "home", "batches", "audit", "admin"],
-    "POLICY_OWNER": ["dashboard", "policy", "admin", "audit"],
+    "AUDIT_RISK": ["dashboard", "director", "network", "audit"],
+    "ADMIN": ["dashboard", "director", "home", "batches", "audit", "admin"],
+    "POLICY_OWNER": ["dashboard", "director", "policy", "admin", "audit"],
 }
 NAV_LABELS = {"dashboard": ("Dashboard", "/dashboard"), "home": ("My work", "/"), "worklist": ("Worklist", "/worklist"), "approvals": ("Approvals", "/approvals"),
               "compliance": ("Compliance", "/compliance"), "batches": ("Batches", "/batches"), "audit": ("Audit", "/audit"),
-              "admin": ("Admin", "/admin"), "policy": ("Policy Studio", "/policy"), "network": ("Network cases", "/network")}
+              "admin": ("Admin", "/admin"), "policy": ("Policy Studio", "/policy"), "network": ("Network cases", "/network"), "director": ("Operations view", "/director")}
 
 
 def role_of(user) -> str:
