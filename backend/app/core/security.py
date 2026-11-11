@@ -93,6 +93,17 @@ DEMO_PERSONAS: Dict[str, UserPersona] = {
         badge_color="purple",
         max_approval_amount=10000000.0
     ),
+    "RSK-7715": UserPersona(
+        user_id="RSK-7715",
+        name="Helen Brandt",
+        email="h.brandt@pexbank.internal",
+        role=UserRole.RISK_APPROVER,
+        title="Approver — Risk",
+        department="Enterprise Risk Management",
+        avatar_initials="HB",
+        badge_color="purple",
+        max_approval_amount=10000000.0
+    ),
     "ADM-0001": UserPersona(
         user_id="ADM-0001",
         name="Alex Whitfield",

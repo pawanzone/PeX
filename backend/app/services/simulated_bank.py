@@ -36,6 +36,11 @@ def _age_seconds(iso: Optional[str]) -> float:
 
 
 def _behaviour(case_id: str) -> str:
+    # Manual-test pack (TST-...): the simulated bank always settles, so a tester's result never depends on the id hash.
+    # The one case listed in testpack.BANK_REJECTS is the designated "bank rejects after hand-off" test.
+    if case_id.startswith("TST-"):
+        from app.services.v2.testpack import BANK_REJECTS
+        return "REJECT" if case_id in BANK_REJECTS else "SETTLE"
     r = int(hashlib.sha256(case_id.encode()).hexdigest()[:6], 16) % 100
     if r < 88:
         return "SETTLE"

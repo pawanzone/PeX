@@ -1,0 +1,62 @@
+[
+ {
+  "finding": "Admin (Alex Whitfield) can give the second signature on a payment of 250,000 or more. In the demo only one Risk Approver existed, so the Admin was the only other person who could sign.",
+  "why": "An administrator who configures the platform should not also authorise payments. Auditors will ask.",
+  "action": "Decide with the Bank SME whether Admin keeps 'case.approve'. A second Risk Approver (Helen Brandt) was added to the demo so the dual-authorisation test no longer needs Admin.",
+  "status": "Open: SME decision"
+ },
+ {
+  "finding": "CO-04 (Restricted corridor) and CO-07 (Regulatory reporting) are listed as 'Maker-checker', but on screen they open as a compliance hold. Compliance clears the hold, then a Risk Approver approves. There is no maker step, and an Operations Approver is refused.",
+  "why": "The library says one thing and the workflow does another. A bank SME will notice.",
+  "action": "Bank SME to validate against their process: should these two be 'Compliance then Risk' in the library, or should the maker repair first?",
+  "status": "Open: SME decision"
+ },
+ {
+  "finding": "The compliance screen asks for 'I have reviewed the alert and the party comparison' but the server does not enforce it (the approver decision panel is enforced on screen and in the API).",
+  "why": "The same rule should hold everywhere: a person can call the API directly and skip the tick.",
+  "action": "Enforce a reviewed flag on /compliance/decision, as done for approve, return and reject.",
+  "status": "Open: small change"
+ },
+ {
+  "finding": "Reassess (the client replied with the missing information) applies only an IBAN. A reply with a remittance reference, purpose code or BIC cannot be applied in the demo.",
+  "why": "DQ-04, DQ-06 and DQ-02 style missing-information cases cannot be completed through the request-information loop; the test pack models them as ready-to-decide repairs.",
+  "action": "Extend reassess to the other missing fields, or state the limitation in the FAQ.",
+  "status": "Open: build item"
+ },
+ {
+  "finding": "A repair built from a client reply only (for example a missing IBAN) always lands below the 85% confidence threshold, so a second person must confirm the evidence before the final approval.",
+  "why": "This is correct behaviour and a good control story, but a tester will see Approve refused and think it is broken.",
+  "action": "Documented in the DQ-03 test case and DQ-01 'Low confidence'. No code change.",
+  "status": "Documented"
+ },
+ {
+  "finding": "Auto-release has no trigger. Release mode 'auto-release' exists as a policy value only.",
+  "why": "A bank may ask to see zero-touch release.",
+  "action": "Plan separately (control-critical).",
+  "status": "Known"
+ },
+ {
+  "finding": "Evidence in the test-pack cases is simulated. The evidence rows list the sources the profile needs, with an 'agree' result; real connectors are not built.",
+  "why": "Tests prove the workflow and controls, not data accuracy against a real bank source.",
+  "action": "Pilot item: connect real sources.",
+  "status": "Known"
+ },
+ {
+  "finding": "The simulated bank used to decide each case's outcome from a hash of the case ID: about 6% were rejected and 3% never answered. A tester following a clean workflow could land on a rejection.",
+  "why": "Test and demo results must not depend on chance.",
+  "action": "Test-pack cases (TST-...) now always settle. TST-DQ01-12 is set to be rejected on purpose, as the bank-rejection test.",
+  "status": "Fixed for the test pack"
+ },
+ {
+  "finding": "When the bank rejects after hand-off the case shows the same banner as an approver rejection ('rejected and will not be repaired or released'). The bank's reason is only in the audit trail.",
+  "why": "A maker needs to see that the bank refused, and why.",
+  "action": "Show 'Rejected by the bank' with the bank reference and reason on the case page.",
+  "status": "Open: small change"
+ },
+ {
+  "finding": "The Approve / Return / Reject panel overflowed its card at 1280 px wide and clipped the Reject column.",
+  "why": "1280 px is a common laptop width in a client meeting.",
+  "action": "Layout fixed (stacks below 1280 px, two columns at 1280 px, three at 1536 px).",
+  "status": "Fixed"
+ }
+]

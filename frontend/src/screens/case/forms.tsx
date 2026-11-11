@@ -115,8 +115,8 @@ export const DecisionPanel: React.FC<{
   return (
     <Section title="Your decision" hint={form?.dual_auth ? "Dual authorisation: a second, different approver is also required." : undefined}>
       <ConfirmCheckbox id="reviewed-ack" checked={reviewed} onChange={setReviewed}>I have reviewed the change summary and evidence</ConfirmCheckbox>
-      <div className="grid gap-5 mt-4 lg:grid-cols-[1fr_1fr_1fr]">
-        <div className="grid gap-2 content-start">
+      <div className="grid gap-5 mt-4 xl:grid-cols-2 2xl:grid-cols-3">
+        <div className="grid gap-2 content-start min-w-0 xl:col-span-2 2xl:col-span-1">
           <button className={cn("px-4 py-2.5 text-sm font-semibold rounded-lg inline-flex items-center justify-center gap-2 bg-pex-ok text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed")}
             disabled={!canApprove} onClick={() => go(() => approveCase(id, true, aComment.trim()), "Approved for bank handoff")}>
             <Check className="w-4 h-4" aria-hidden />Approve for bank handoff
@@ -128,7 +128,7 @@ export const DecisionPanel: React.FC<{
           {approveBlocked && <p className="text-xs text-pex-block">{approve?.disabled_reason ?? "You cannot approve this case."}</p>}
           {!approveBlocked && needAck && !reviewed && <p className="text-xs text-pex-wait">Tick the review box to enable approval.</p>}
         </div>
-        <div className="grid gap-2 content-start">
+        <div className="grid gap-2 content-start min-w-0">
           <button className="px-4 py-2.5 text-sm font-semibold rounded-lg inline-flex items-center justify-center gap-2 bg-white border border-pex-wait/60 text-pex-wait hover:bg-pex-wait-soft disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={!canReturn} onClick={() => go(() => returnCase(id, true, rtReason, rtComment.trim()), "Returned to maker")}>
             <Undo2 className="w-4 h-4" aria-hidden />Return to Maker
@@ -137,7 +137,7 @@ export const DecisionPanel: React.FC<{
           {ret?.enabled === false && <p className="text-xs text-pex-block">{ret.disabled_reason}</p>}
           {ret?.enabled !== false && !ackOk && <p className="text-xs text-pex-wait">Tick the review box to enable this.</p>}
         </div>
-        <div className="grid gap-2 content-start">
+        <div className="grid gap-2 content-start min-w-0">
           <button className="px-4 py-2.5 text-sm font-semibold rounded-lg inline-flex items-center justify-center gap-2 bg-white border border-pex-block/50 text-pex-block hover:bg-pex-block-soft disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={!canReject} onClick={() => go(() => rejectCase(id, true, rjReason, rjComment.trim()), "Rejected")}>
             <X className="w-4 h-4" aria-hidden />Reject
