@@ -131,8 +131,8 @@ export const openAttachment = (caseId: string, id: string, name: string) =>
   apiDownload(`/v2/cases/${enc(caseId)}/attachments/${encodeURIComponent(id)}/download`, name);
 export const approveCase = (id: string, reviewed: boolean, comment?: string) =>
   postCaseAction(id, "approve", { reviewed, comment: comment || null });
-export const returnCase = (id: string, reason_code: string, comment: string) => postCaseAction(id, "return", { reason_code, comment });
-export const rejectCase = (id: string, reason_code: string, comment: string) => postCaseAction(id, "reject", { reason_code, comment });
+export const returnCase = (id: string, reviewed: boolean, reason_code: string, comment: string) => postCaseAction(id, "return", { reviewed, reason_code, comment });
+export const rejectCase = (id: string, reviewed: boolean, reason_code: string, comment: string) => postCaseAction(id, "reject", { reviewed, reason_code, comment });
 export const requestInformation = (id: string, body: { to: string; method: string; message: string; draft?: boolean; reply_due?: string | null; escalate_at?: string | null }) =>
   postCaseAction(id, "request-information", body);
 export const escalateCase = (id: string, to: string, reason: string) => postCaseAction(id, "escalate", { to, reason });

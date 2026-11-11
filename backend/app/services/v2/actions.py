@@ -582,10 +582,12 @@ def approve(case_id: str, user, reviewed: Any, comment: Optional[str]) -> Dict[s
     return result(case_id, user, m, mode=operation_mode(), handoff=({"handoff_id": ext.get("handoff_id")} if st == "DISPATCHED" else None))
 
 
-def _checker_decline(case_id: str, user, action: ApprovalAction, reason_code: Optional[str], comment: Optional[str], label: str) -> Dict[str, Any]:
+def _checker_decline(case_id: str, user, action: ApprovalAction, reason_code: Optional[str], comment: Optional[str], label: str, reviewed: Any = None) -> Dict[str, Any]:
     case = _load(case_id)
     rc = _need(reason_code, "reason_code", "Reason code")
     cm = _need(comment, "comment", "Comment")
+    if reviewed is not True:
+        raise invalid("You must confirm you reviewed the change summary and evidence (reviewed=true).", "reviewed")
     _gate_or_raise(case, user, for_decline=True)
     ext = lg.ext_of(case)
     before = lg.status_of(case)
@@ -608,12 +610,12 @@ def _checker_decline(case_id: str, user, action: ApprovalAction, reason_code: Op
     return result(case_id, user, "Returned to the Maker." if action == ApprovalAction.RETURN_TO_MAKER else "Rejected. The case will not be released.")
 
 
-def return_to_maker(case_id: str, user, reason_code, comment):
-    return _checker_decline(case_id, user, ApprovalAction.RETURN_TO_MAKER, reason_code, comment, "returned to maker")
+def return_to_maker(case_id: str, user, reason_code, comment, reviewed=None):
+    return _checker_decline(case_id, user, ApprovalAction.RETURN_TO_MAKER, reason_code, comment, "returned to maker", reviewed)
 
 
-def reject(case_id: str, user, reason_code, comment):
-    return _checker_decline(case_id, user, ApprovalAction.REJECT, reason_code, comment, "rejected")
+def reject(case_id: str, user, reason_code, comment, reviewed=None):
+    return _checker_decline(case_id, user, ApprovalAction.REJECT, reason_code, comment, "rejected", reviewed)
 
 
 # ----------------------------------------------------------------------------------------------

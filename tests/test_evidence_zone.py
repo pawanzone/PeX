@@ -222,7 +222,7 @@ def test_stored_audit_rows_hold_no_real_values(cid):
 def test_actions_write_tokenised_audit_and_notifications(client):
     cid = "PEX-INV-0002"
     post(client, MAKER, f"/cases/{cid}/submit", {"handover_note": "Client confirmed by phone"})
-    post(client, APPR, f"/cases/{cid}/return", {"reason_code": "EVIDENCE_INSUFFICIENT", "comment": f"Please re-check {repo.get_case(cid)['creditor_party']['party_name']} against the invoice."})
+    post(client, APPR, f"/cases/{cid}/return", {"reviewed": True, "reason_code": "EVIDENCE_INSUFFICIENT", "comment": f"Please re-check {repo.get_case(cid)['creditor_party']['party_name']} against the invoice."})
     db = SessionLocal()
     try:
         for e in db.query(AuditEventModel).filter(AuditEventModel.case_id == cid).all():

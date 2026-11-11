@@ -109,8 +109,9 @@ export const DecisionPanel: React.FC<{
   const rejectReasons = (form?.reject_reason_codes?.length ? form.reject_reason_codes : DEFAULT_REJECT).map((r) => ({ value: r.code, label: r.label }));
   const go = async (fn: () => Promise<ActionResult>, text: string) => { setBusy(true); const r = await run(fn, text); setBusy(false); if (r) onDone?.(); };
   const canApprove = !busy && !approveBlocked && (!needAck || reviewed);
-  const canReturn = !busy && ret?.enabled !== false && !!rtReason && !!rtComment.trim();
-  const canReject = !busy && rej?.enabled !== false && !!rjReason && !!rjComment.trim();
+  const ackOk = !needAck || reviewed;
+  const canReturn = !busy && ackOk && ret?.enabled !== false && !!rtReason && !!rtComment.trim();
+  const canReject = !busy && ackOk && rej?.enabled !== false && !!rjReason && !!rjComment.trim();
   return (
     <Section title="Your decision" hint={form?.dual_auth ? "Dual authorisation: a second, different approver is also required." : undefined}>
       <ConfirmCheckbox id="reviewed-ack" checked={reviewed} onChange={setReviewed}>I have reviewed the change summary and evidence</ConfirmCheckbox>
@@ -129,19 +130,21 @@ export const DecisionPanel: React.FC<{
         </div>
         <div className="grid gap-2 content-start">
           <button className="px-4 py-2.5 text-sm font-semibold rounded-lg inline-flex items-center justify-center gap-2 bg-white border border-pex-wait/60 text-pex-wait hover:bg-pex-wait-soft disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={!canReturn} onClick={() => go(() => returnCase(id, rtReason, rtComment.trim()), "Returned to maker")}>
+            disabled={!canReturn} onClick={() => go(() => returnCase(id, true, rtReason, rtComment.trim()), "Returned to maker")}>
             <Undo2 className="w-4 h-4" aria-hidden />Return to Maker
           </button>
           <ReasonCommentFields reasons={returnReasons} reason={rtReason} onReason={setRtReason} comment={rtComment} onComment={setRtComment} required reasonLabel="Reason code (required)" commentLabel="Comment (required)" />
           {ret?.enabled === false && <p className="text-xs text-pex-block">{ret.disabled_reason}</p>}
+          {ret?.enabled !== false && !ackOk && <p className="text-xs text-pex-wait">Tick the review box to enable this.</p>}
         </div>
         <div className="grid gap-2 content-start">
           <button className="px-4 py-2.5 text-sm font-semibold rounded-lg inline-flex items-center justify-center gap-2 bg-white border border-pex-block/50 text-pex-block hover:bg-pex-block-soft disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={!canReject} onClick={() => go(() => rejectCase(id, rjReason, rjComment.trim()), "Rejected")}>
+            disabled={!canReject} onClick={() => go(() => rejectCase(id, true, rjReason, rjComment.trim()), "Rejected")}>
             <X className="w-4 h-4" aria-hidden />Reject
           </button>
           <ReasonCommentFields reasons={rejectReasons} reason={rjReason} onReason={setRjReason} comment={rjComment} onComment={setRjComment} required reasonLabel="Reason code (required)" commentLabel="Comment (required)" />
           {rej?.enabled === false && <p className="text-xs text-pex-block">{rej.disabled_reason}</p>}
+          {rej?.enabled !== false && !ackOk && <p className="text-xs text-pex-wait">Tick the review box to enable this.</p>}
         </div>
       </div>
     </Section>

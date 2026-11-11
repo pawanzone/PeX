@@ -153,7 +153,7 @@ def test_dual_authorisation_needs_two_distinct_approvers(client):
 
 def test_return_and_reject_need_reasons(client):
     post(client, APPR, "/cases/PEX-INV-0001/return", {}, expect=422)
-    post(client, APPR, "/cases/PEX-INV-0001/return", {"reason_code": "EVIDENCE_INCOMPLETE", "comment": "Attach statement."})
+    post(client, APPR, "/cases/PEX-INV-0001/return", {"reviewed": True, "reason_code": "EVIDENCE_INCOMPLETE", "comment": "Attach statement."})
     assert repo.get_case("PEX-INV-0001")["status"] == "RETURNED_FOR_REWORK"
 
 
@@ -234,7 +234,7 @@ def test_stp_approve_requires_approver_not_maker_of_item(client):
 # Audit
 # ------------------------------------------------------------------------------------------------------------------
 def test_audit_filters_export_and_report(client):
-    post(client, APPR, "/cases/PEX-INV-0001/return", {"reason_code": "EVIDENCE_INCOMPLETE", "comment": "x"})
+    post(client, APPR, "/cases/PEX-INV-0001/return", {"reviewed": True, "reason_code": "EVIDENCE_INCOMPLETE", "comment": "x"})
     r = client.get("/api/v2/audit/events?case_id=PEX-INV-0001&role=checker", headers=H(AUD))
     assert r.status_code == 200
     r2 = client.get("/api/v2/audit/events?q=PEX-INV-0001", headers=H(AUD))
@@ -459,7 +459,7 @@ def test_low_confidence_needs_independent_review_then_different_approver(client)
 
 def test_low_confidence_case_can_still_be_returned_by_checker(client):
     post(client, MAKER, "/cases/PEX-LOW-0096/submit", {"handover_note": "x"})
-    post(client, APPR, "/cases/PEX-LOW-0096/return", {"reason_code": "EVIDENCE_INSUFFICIENT", "comment": "Need client confirmation."})
+    post(client, APPR, "/cases/PEX-LOW-0096/return", {"reviewed": True, "reason_code": "EVIDENCE_INSUFFICIENT", "comment": "Need client confirmation."})
     assert repo.get_case("PEX-LOW-0096")["status"] == "RETURNED_FOR_REWORK"
 
 

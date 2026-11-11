@@ -83,6 +83,7 @@ class ApproveBody(BaseModel):
 
 
 class DeclineBody(BaseModel):
+    reviewed: Optional[bool] = None
     reason_code: Optional[str] = None
     comment: Optional[str] = None
 
@@ -548,12 +549,12 @@ def approve(case_id: str, body: ApproveBody, user=Depends(writer_user), idem: Op
 
 @router.post("/cases/{case_id}/return")
 def return_case(case_id: str, body: DeclineBody, user=Depends(writer_user), idem: Optional[str] = Header(None, alias="Idempotency-Key")):
-    return _idem(idem, user, lambda: ac.return_to_maker(case_id, user, body.reason_code, body.comment))
+    return _idem(idem, user, lambda: ac.return_to_maker(case_id, user, body.reason_code, body.comment, body.reviewed))
 
 
 @router.post("/cases/{case_id}/reject")
 def reject(case_id: str, body: DeclineBody, user=Depends(writer_user), idem: Optional[str] = Header(None, alias="Idempotency-Key")):
-    return _idem(idem, user, lambda: ac.reject(case_id, user, body.reason_code, body.comment))
+    return _idem(idem, user, lambda: ac.reject(case_id, user, body.reason_code, body.comment, body.reviewed))
 
 
 @router.post("/cases/{case_id}/request-information")
